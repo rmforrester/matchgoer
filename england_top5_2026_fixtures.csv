@@ -1,0 +1,553 @@
+fixture_id,league_id,league,date,home_team,away_team,venue_id,venue,city
+1585147,43,National League,2026-08-08T14:00:00+00:00,Scunthorpe,Yeovil Town,21312.0,Attis Arena,Scunthorpe
+1585145,43,National League,2026-08-08T14:00:00+00:00,Hartlepool,Barrow,,Victoria Park,Hartlepool
+1585141,43,National League,2026-08-08T14:00:00+00:00,Carlisle,Worthing,,Brunton Park,Carlisle
+1585143,43,National League,2026-08-08T14:00:00+00:00,Forest Green,FC Halifax Town,,The New Lawn,Nailsworth
+1585142,43,National League,2026-08-08T14:00:00+00:00,Eastleigh,Gateshead,,Silverlake Stadium,Eastleigh
+1585139,43,National League,2026-08-08T14:00:00+00:00,Boreham Wood,Tamworth,,Meadow Park,Borehamwood
+1585148,43,National League,2026-08-08T14:00:00+00:00,Woking,Sutton Utd,,Kingfield Stadium,Woking
+1585137,43,National League,2026-08-08T14:00:00+00:00,AFC Fylde,Wealdstone,,Mill Farm,Wesham
+1585144,43,National League,2026-08-08T14:00:00+00:00,Harrogate Town,Solihull Moors,,Exercise Stadium,Harrogate
+1585138,43,National League,2026-08-08T14:00:00+00:00,Altrincham,Southend,,Moss Lane,Altrincham
+1585146,43,National League,2026-08-08T14:00:00+00:00,AFC Hornchurch,Kidderminster Harriers,5552.0,Hornchurch Stadium,London
+1585140,43,National League,2026-08-08T14:00:00+00:00,Boston United,Aldershot Town,,Jakemans Community Stadium,Boston
+1585155,43,National League,2026-08-15T14:00:00+00:00,Southend,Scunthorpe,,Roots Hall,Southend on Sea
+1585160,43,National League,2026-08-15T14:00:00+00:00,Yeovil Town,Carlisle,,Huish Park,Yeovil
+1585149,43,National League,2026-08-15T14:00:00+00:00,Aldershot Town,Hartlepool,,EBB Stadium at Recreation Ground,Aldershot
+1585150,43,National League,2026-08-15T14:00:00+00:00,Barrow,AFC Hornchurch,,Holker Street,Barrow in Furness
+1585152,43,National League,2026-08-15T14:00:00+00:00,Gateshead,Woking,,Gateshead International Stadium,Gateshead
+1585154,43,National League,2026-08-15T14:00:00+00:00,Solihull Moors,Boston United,,Damson Park,Solihull
+1585156,43,National League,2026-08-15T14:00:00+00:00,Sutton Utd,Altrincham,,VBS Community Stadium,London
+1585151,43,National League,2026-08-15T14:00:00+00:00,FC Halifax Town,Boreham Wood,,The Shay,Halifax
+1585153,43,National League,2026-08-15T14:00:00+00:00,Kidderminster Harriers,Eastleigh,,Aggborough Stadium,Kidderminster
+1585157,43,National League,2026-08-15T14:00:00+00:00,Tamworth,AFC Fylde,,The Lamb Ground,Tamworth
+1585159,43,National League,2026-08-15T14:00:00+00:00,Worthing,Forest Green,,,
+1585158,43,National League,2026-08-15T14:00:00+00:00,Wealdstone,Harrogate Town,,Grosvenor Vale,London
+1585162,43,National League,2026-08-22T11:30:00+00:00,Carlisle,AFC Hornchurch,,Brunton Park,Carlisle
+1585172,43,National League,2026-08-22T11:30:00+00:00,Yeovil Town,Gateshead,,Huish Park,Yeovil
+1585165,43,National League,2026-08-22T11:30:00+00:00,Forest Green,Boreham Wood,,The New Lawn,Nailsworth
+1585163,43,National League,2026-08-22T11:30:00+00:00,Eastleigh,Scunthorpe,,Silverlake Stadium,Eastleigh
+1585168,43,National League,2026-08-22T11:30:00+00:00,Solihull Moors,Southend,,Damson Park,Solihull
+1585169,43,National League,2026-08-22T11:30:00+00:00,Sutton Utd,Hartlepool,,VBS Community Stadium,London
+1585170,43,National League,2026-08-22T11:30:00+00:00,Woking,AFC Fylde,,Kingfield Stadium,Woking
+1585164,43,National League,2026-08-22T11:30:00+00:00,FC Halifax Town,Tamworth,,The Shay,Halifax
+1585166,43,National League,2026-08-22T11:30:00+00:00,Harrogate Town,Barrow,,Exercise Stadium,Harrogate
+1585167,43,National League,2026-08-22T11:30:00+00:00,Kidderminster Harriers,Aldershot Town,,Aggborough Stadium,Kidderminster
+1585171,43,National League,2026-08-22T11:30:00+00:00,Worthing,Wealdstone,,,
+1585161,43,National League,2026-08-22T11:30:00+00:00,Boston United,Altrincham,,Jakemans Community Stadium,Boston
+1585177,43,National League,2026-08-27T18:45:00+00:00,Boreham Wood,Boston United,,Meadow Park,Borehamwood
+1585181,43,National League,2026-08-28T18:45:00+00:00,Scunthorpe,Solihull Moors,21312.0,Attis Arena,Scunthorpe
+1585182,43,National League,2026-08-28T18:45:00+00:00,Southend,Kidderminster Harriers,,Roots Hall,Southend on Sea
+1585179,43,National League,2026-08-28T18:45:00+00:00,Hartlepool,Eastleigh,,Victoria Park,Hartlepool
+1585174,43,National League,2026-08-28T18:45:00+00:00,Aldershot Town,Harrogate Town,,EBB Stadium at Recreation Ground,Aldershot
+1585176,43,National League,2026-08-28T18:45:00+00:00,Barrow,Yeovil Town,,Holker Street,Barrow in Furness
+1585178,43,National League,2026-08-28T18:45:00+00:00,Gateshead,Sutton Utd,,Gateshead International Stadium,Gateshead
+1585173,43,National League,2026-08-28T18:45:00+00:00,AFC Fylde,Forest Green,,Mill Farm,Wesham
+1585175,43,National League,2026-08-28T18:45:00+00:00,Altrincham,FC Halifax Town,,Moss Lane,Altrincham
+1585180,43,National League,2026-08-28T18:45:00+00:00,AFC Hornchurch,Woking,,,
+1585183,43,National League,2026-08-28T18:45:00+00:00,Tamworth,Worthing,,The Lamb Ground,Tamworth
+1585184,43,National League,2026-08-28T18:45:00+00:00,Wealdstone,Carlisle,,Grosvenor Vale,London
+1585186,43,National League,2026-08-31T14:00:00+00:00,Carlisle,Scunthorpe,,Brunton Park,Carlisle
+1585196,43,National League,2026-08-31T14:00:00+00:00,Yeovil Town,Tamworth,,Huish Park,Yeovil
+1585189,43,National League,2026-08-31T14:00:00+00:00,Forest Green,Altrincham,,The New Lawn,Nailsworth
+1585187,43,National League,2026-08-31T14:00:00+00:00,Eastleigh,Aldershot Town,,Silverlake Stadium,Eastleigh
+1585192,43,National League,2026-08-31T14:00:00+00:00,Solihull Moors,AFC Fylde,,Damson Park,Solihull
+1585193,43,National League,2026-08-31T14:00:00+00:00,Sutton Utd,Wealdstone,,VBS Community Stadium,London
+1585194,43,National League,2026-08-31T14:00:00+00:00,Woking,Southend,,Kingfield Stadium,Woking
+1585190,43,National League,2026-08-31T14:00:00+00:00,Harrogate Town,Gateshead,,Exercise Stadium,Harrogate
+1585191,43,National League,2026-08-31T14:00:00+00:00,Kidderminster Harriers,Barrow,,Aggborough Stadium,Kidderminster
+1585195,43,National League,2026-08-31T14:00:00+00:00,Worthing,Boreham Wood,,,
+1585185,43,National League,2026-08-31T14:00:00+00:00,Boston United,AFC Hornchurch,,Jakemans Community Stadium,Boston
+1585188,43,National League,2026-09-01T18:45:00+00:00,FC Halifax Town,Hartlepool,,The Shay,Halifax
+1585197,43,National League,2026-09-04T18:45:00+00:00,Altrincham,Eastleigh,,Moss Lane,Altrincham
+1585199,43,National League,2026-09-05T11:30:00+00:00,Southend,Yeovil Town,,Roots Hall,Southend on Sea
+1585198,43,National League,2026-09-05T11:30:00+00:00,Aldershot Town,FC Halifax Town,,EBB Stadium at Recreation Ground,Aldershot
+1585205,43,National League,2026-09-05T14:00:00+00:00,Scunthorpe,Harrogate Town,21312.0,Attis Arena,Scunthorpe
+1585203,43,National League,2026-09-05T14:00:00+00:00,Hartlepool,Woking,,Victoria Park,Hartlepool
+1585201,43,National League,2026-09-05T14:00:00+00:00,Barrow,Sutton Utd,,Holker Street,Barrow in Furness
+1585202,43,National League,2026-09-05T14:00:00+00:00,Gateshead,Solihull Moors,,Gateshead International Stadium,Gateshead
+1585200,43,National League,2026-09-05T14:00:00+00:00,AFC Fylde,Worthing,,Mill Farm,Wesham
+1585204,43,National League,2026-09-05T14:00:00+00:00,AFC Hornchurch,Forest Green,,,
+1585206,43,National League,2026-09-05T14:00:00+00:00,Tamworth,Boston United,,The Lamb Ground,Tamworth
+1585207,43,National League,2026-09-05T14:00:00+00:00,Wealdstone,Kidderminster Harriers,,Grosvenor Vale,London
+1585208,43,National League,2026-09-05T16:30:00+00:00,Boreham Wood,Carlisle,,Meadow Park,Borehamwood
+1585209,43,National League,2026-09-11T18:45:00+00:00,Kidderminster Harriers,Hartlepool,,Aggborough Stadium,Kidderminster
+1585210,43,National League,2026-09-12T11:30:00+00:00,Harrogate Town,Tamworth,,Exercise Stadium,Harrogate
+1585211,43,National League,2026-09-12T11:30:00+00:00,Worthing,Barrow,,,
+1585219,43,National League,2026-09-12T14:00:00+00:00,Yeovil Town,AFC Fylde,,Huish Park,Yeovil
+1585215,43,National League,2026-09-12T14:00:00+00:00,Forest Green,Gateshead,,The New Lawn,Nailsworth
+1585213,43,National League,2026-09-12T14:00:00+00:00,Eastleigh,Boreham Wood,,Silverlake Stadium,Eastleigh
+1585216,43,National League,2026-09-12T14:00:00+00:00,Solihull Moors,Aldershot Town,,Damson Park,Solihull
+1585217,43,National League,2026-09-12T14:00:00+00:00,Sutton Utd,Scunthorpe,,VBS Community Stadium,London
+1585218,43,National League,2026-09-12T14:00:00+00:00,Woking,Altrincham,,Kingfield Stadium,Woking
+1585214,43,National League,2026-09-12T14:00:00+00:00,FC Halifax Town,AFC Hornchurch,,The Shay,Halifax
+1585212,43,National League,2026-09-12T14:00:00+00:00,Boston United,Wealdstone,,Jakemans Community Stadium,Boston
+1585220,43,National League,2026-09-12T16:30:00+00:00,Carlisle,Southend,,Brunton Park,Carlisle
+1585226,43,National League,2026-09-15T18:45:00+00:00,Southend,Tamworth,,Roots Hall,Southend on Sea
+1585223,43,National League,2026-09-15T18:45:00+00:00,Carlisle,Forest Green,,Brunton Park,Carlisle
+1585221,43,National League,2026-09-15T18:45:00+00:00,Aldershot Town,Yeovil Town,,EBB Stadium at Recreation Ground,Aldershot
+1585225,43,National League,2026-09-15T18:45:00+00:00,Solihull Moors,Barrow,,Damson Park,Solihull
+1585227,43,National League,2026-09-15T18:45:00+00:00,Sutton Utd,Eastleigh,,VBS Community Stadium,London
+1585224,43,National League,2026-09-15T18:45:00+00:00,Harrogate Town,AFC Fylde,,Exercise Stadium,Harrogate
+1585229,43,National League,2026-09-15T18:45:00+00:00,Worthing,AFC Hornchurch,,,
+1585222,43,National League,2026-09-15T18:45:00+00:00,Boston United,Woking,,Jakemans Community Stadium,Boston
+1585228,43,National League,2026-09-15T18:45:00+00:00,Wealdstone,FC Halifax Town,,Grosvenor Vale,London
+1585232,43,National League,2026-09-16T18:45:00+00:00,Scunthorpe,Boreham Wood,21312.0,Attis Arena,Scunthorpe
+1585231,43,National League,2026-09-16T18:45:00+00:00,Kidderminster Harriers,Gateshead,,Aggborough Stadium,Kidderminster
+1585230,43,National League,2026-09-16T18:45:00+00:00,Altrincham,Hartlepool,,Moss Lane,Altrincham
+1585233,43,National League,2026-09-18T18:45:00+00:00,Yeovil Town,Solihull Moors,,Huish Park,Yeovil
+1585234,43,National League,2026-09-19T11:30:00+00:00,Hartlepool,Worthing,,Victoria Park,Hartlepool
+1585235,43,National League,2026-09-19T11:30:00+00:00,Tamworth,Wealdstone,,The Lamb Ground,Tamworth
+1585241,43,National League,2026-09-19T14:00:00+00:00,Forest Green,Boston United,,The New Lawn,Nailsworth
+1585237,43,National League,2026-09-19T14:00:00+00:00,Barrow,Aldershot Town,,Holker Street,Barrow in Furness
+1585239,43,National League,2026-09-19T14:00:00+00:00,Eastleigh,Carlisle,,Silverlake Stadium,Eastleigh
+1585242,43,National League,2026-09-19T14:00:00+00:00,Gateshead,Southend,,Gateshead International Stadium,Gateshead
+1585238,43,National League,2026-09-19T14:00:00+00:00,Boreham Wood,Harrogate Town,,Meadow Park,Borehamwood
+1585243,43,National League,2026-09-19T14:00:00+00:00,Woking,Kidderminster Harriers,,Kingfield Stadium,Woking
+1585236,43,National League,2026-09-19T14:00:00+00:00,AFC Fylde,Altrincham,,Mill Farm,Wesham
+1585240,43,National League,2026-09-19T14:00:00+00:00,FC Halifax Town,Sutton Utd,,The Shay,Halifax
+1585244,43,National League,2026-09-19T16:30:00+00:00,AFC Hornchurch,Scunthorpe,,,
+1585251,43,National League,2026-09-26T14:00:00+00:00,Scunthorpe,Hartlepool,21312.0,Attis Arena,Scunthorpe
+1585253,43,National League,2026-09-26T14:00:00+00:00,Southend,Barrow,,Roots Hall,Southend on Sea
+1585248,43,National League,2026-09-26T14:00:00+00:00,Carlisle,Woking,,Brunton Park,Carlisle
+1585245,43,National League,2026-09-26T14:00:00+00:00,Aldershot Town,Tamworth,,EBB Stadium at Recreation Ground,Aldershot
+1585252,43,National League,2026-09-26T14:00:00+00:00,Solihull Moors,Boreham Wood,,Damson Park,Solihull
+1585254,43,National League,2026-09-26T14:00:00+00:00,Sutton Utd,Forest Green,,VBS Community Stadium,London
+1585249,43,National League,2026-09-26T14:00:00+00:00,Harrogate Town,Eastleigh,,Exercise Stadium,Harrogate
+1585250,43,National League,2026-09-26T14:00:00+00:00,Kidderminster Harriers,Yeovil Town,,Aggborough Stadium,Kidderminster
+1585246,43,National League,2026-09-26T14:00:00+00:00,Altrincham,AFC Hornchurch,,Moss Lane,Altrincham
+1585256,43,National League,2026-09-26T14:00:00+00:00,Worthing,FC Halifax Town,,,
+1585247,43,National League,2026-09-26T14:00:00+00:00,Boston United,AFC Fylde,,Jakemans Community Stadium,Boston
+1585255,43,National League,2026-09-26T14:00:00+00:00,Wealdstone,Gateshead,,Grosvenor Vale,London
+1585262,43,National League,2026-09-29T18:45:00+00:00,Hartlepool,Harrogate Town,,Victoria Park,Hartlepool
+1585265,43,National League,2026-09-29T18:45:00+00:00,Yeovil Town,Worthing,,Huish Park,Yeovil
+1585260,43,National League,2026-09-29T18:45:00+00:00,Forest Green,Wealdstone,,The New Lawn,Nailsworth
+1585258,43,National League,2026-09-29T18:45:00+00:00,Barrow,Scunthorpe,,Holker Street,Barrow in Furness
+1585261,43,National League,2026-09-29T18:45:00+00:00,Gateshead,Altrincham,,Gateshead International Stadium,Gateshead
+1585264,43,National League,2026-09-29T18:45:00+00:00,Woking,Solihull Moors,,Kingfield Stadium,Woking
+1585257,43,National League,2026-09-29T18:45:00+00:00,AFC Fylde,Carlisle,,Mill Farm,Wesham
+1585259,43,National League,2026-09-29T18:45:00+00:00,FC Halifax Town,Boston United,,The Shay,Halifax
+1585263,43,National League,2026-09-29T18:45:00+00:00,AFC Hornchurch,Aldershot Town,,,
+1585266,43,National League,2026-09-30T18:00:00+00:00,Boreham Wood,Kidderminster Harriers,,Meadow Park,Borehamwood
+1585267,43,National League,2026-09-30T18:45:00+00:00,Eastleigh,Southend,,Silverlake Stadium,Eastleigh
+1585268,43,National League,2026-09-30T18:45:00+00:00,Tamworth,Sutton Utd,,The Lamb Ground,Tamworth
+1585277,43,National League,2026-10-03T14:00:00+00:00,Scunthorpe,Forest Green,21312.0,Attis Arena,Scunthorpe
+1585279,43,National League,2026-10-03T14:00:00+00:00,Southend,AFC Fylde,,Roots Hall,Southend on Sea
+1585275,43,National League,2026-10-03T14:00:00+00:00,Hartlepool,Tamworth,,Victoria Park,Hartlepool
+1585280,43,National League,2026-10-03T14:00:00+00:00,Yeovil Town,Boston United,,Huish Park,Yeovil
+1585269,43,National League,2026-10-03T14:00:00+00:00,Aldershot Town,Carlisle,,EBB Stadium at Recreation Ground,Aldershot
+1585270,43,National League,2026-10-03T14:00:00+00:00,Barrow,Wealdstone,,Holker Street,Barrow in Furness
+1585272,43,National League,2026-10-03T14:00:00+00:00,Eastleigh,Woking,,Silverlake Stadium,Eastleigh
+1585273,43,National League,2026-10-03T14:00:00+00:00,Gateshead,Worthing,,Gateshead International Stadium,Gateshead
+1585271,43,National League,2026-10-03T14:00:00+00:00,Boreham Wood,Altrincham,,Meadow Park,Borehamwood
+1585278,43,National League,2026-10-03T14:00:00+00:00,Solihull Moors,FC Halifax Town,,Damson Park,Solihull
+1585274,43,National League,2026-10-03T14:00:00+00:00,Harrogate Town,AFC Hornchurch,,Exercise Stadium,Harrogate
+1585276,43,National League,2026-10-03T14:00:00+00:00,Kidderminster Harriers,Sutton Utd,,Aggborough Stadium,Kidderminster
+1585281,43,National League,2026-10-09T18:45:00+00:00,Sutton Utd,Boreham Wood,,VBS Community Stadium,London
+1585283,43,National League,2026-10-10T11:30:00+00:00,Carlisle,Kidderminster Harriers,,Brunton Park,Carlisle
+1585282,43,National League,2026-10-10T11:30:00+00:00,Altrincham,Aldershot Town,,Moss Lane,Altrincham
+1585290,43,National League,2026-10-10T14:00:00+00:00,Woking,Harrogate Town,,Kingfield Stadium,Woking
+1585284,43,National League,2026-10-10T14:00:00+00:00,AFC Fylde,Scunthorpe,,Mill Farm,Wesham
+1585286,43,National League,2026-10-10T14:00:00+00:00,FC Halifax Town,Gateshead,,The Shay,Halifax
+1585287,43,National League,2026-10-10T14:00:00+00:00,AFC Hornchurch,Eastleigh,,,
+1585288,43,National League,2026-10-10T14:00:00+00:00,Tamworth,Barrow,,The Lamb Ground,Tamworth
+1585291,43,National League,2026-10-10T14:00:00+00:00,Worthing,Solihull Moors,,,
+1585285,43,National League,2026-10-10T14:00:00+00:00,Boston United,Southend,,Jakemans Community Stadium,Boston
+1585289,43,National League,2026-10-10T14:00:00+00:00,Wealdstone,Yeovil Town,,Grosvenor Vale,London
+1585292,43,National League,2026-10-10T16:30:00+00:00,Forest Green,Hartlepool,,The New Lawn,Nailsworth
+1585293,43,National League,2026-10-23T18:45:00+00:00,Gateshead,Tamworth,,Gateshead International Stadium,Gateshead
+1585294,43,National League,2026-10-24T11:30:00+00:00,Eastleigh,Boston United,,Silverlake Stadium,Eastleigh
+1585295,43,National League,2026-10-24T11:30:00+00:00,Harrogate Town,Sutton Utd,,Exercise Stadium,Harrogate
+1585300,43,National League,2026-10-24T14:00:00+00:00,Scunthorpe,Woking,21312.0,Attis Arena,Scunthorpe
+1585302,43,National League,2026-10-24T14:00:00+00:00,Southend,FC Halifax Town,,Roots Hall,Southend on Sea
+1585299,43,National League,2026-10-24T14:00:00+00:00,Hartlepool,AFC Hornchurch,,Victoria Park,Hartlepool
+1585303,43,National League,2026-10-24T14:00:00+00:00,Yeovil Town,Altrincham,,Huish Park,Yeovil
+1585296,43,National League,2026-10-24T14:00:00+00:00,Aldershot Town,Wealdstone,,EBB Stadium at Recreation Ground,Aldershot
+1585297,43,National League,2026-10-24T14:00:00+00:00,Barrow,Forest Green,,Holker Street,Barrow in Furness
+1585298,43,National League,2026-10-24T14:00:00+00:00,Boreham Wood,AFC Fylde,,Meadow Park,Borehamwood
+1585301,43,National League,2026-10-24T14:00:00+00:00,Solihull Moors,Carlisle,,Damson Park,Solihull
+1585304,43,National League,2026-10-24T16:30:00+00:00,Kidderminster Harriers,Worthing,,Aggborough Stadium,Kidderminster
+1585312,43,National League,2026-10-27T19:45:00+00:00,Woking,Boreham Wood,,Kingfield Stadium,Woking
+1585305,43,National League,2026-10-27T19:45:00+00:00,AFC Fylde,Hartlepool,,Mill Farm,Wesham
+1585308,43,National League,2026-10-27T19:45:00+00:00,FC Halifax Town,Barrow,,The Shay,Halifax
+1585306,43,National League,2026-10-27T19:45:00+00:00,Altrincham,Kidderminster Harriers,,Moss Lane,Altrincham
+1585309,43,National League,2026-10-27T19:45:00+00:00,AFC Hornchurch,Yeovil Town,,,
+1585310,43,National League,2026-10-27T19:45:00+00:00,Tamworth,Scunthorpe,,The Lamb Ground,Tamworth
+1585313,43,National League,2026-10-27T19:45:00+00:00,Worthing,Southend,,,
+1585307,43,National League,2026-10-27T19:45:00+00:00,Boston United,Gateshead,,Jakemans Community Stadium,Boston
+1585311,43,National League,2026-10-27T19:45:00+00:00,Wealdstone,Solihull Moors,,Grosvenor Vale,London
+1585314,43,National League,2026-10-28T19:45:00+00:00,Carlisle,Harrogate Town,,Brunton Park,Carlisle
+1585315,43,National League,2026-10-28T19:45:00+00:00,Forest Green,Eastleigh,,The New Lawn,Nailsworth
+1585316,43,National League,2026-10-28T19:45:00+00:00,Sutton Utd,Aldershot Town,,VBS Community Stadium,London
+1585317,43,National League,2026-10-30T19:45:00+00:00,AFC Fylde,AFC Hornchurch,,Mill Farm,Wesham
+1585319,43,National League,2026-10-31T12:30:00+00:00,Forest Green,Harrogate Town,,The New Lawn,Nailsworth
+1585318,43,National League,2026-10-31T12:30:00+00:00,FC Halifax Town,Yeovil Town,,The Shay,Halifax
+1585320,43,National League,2026-10-31T15:00:00+00:00,Aldershot Town,Gateshead,,EBB Stadium at Recreation Ground,Aldershot
+1585322,43,National League,2026-10-31T15:00:00+00:00,Barrow,Eastleigh,,Holker Street,Barrow in Furness
+1585323,43,National League,2026-10-31T15:00:00+00:00,Boreham Wood,Hartlepool,,Meadow Park,Borehamwood
+1585324,43,National League,2026-10-31T15:00:00+00:00,Solihull Moors,Kidderminster Harriers,,Damson Park,Solihull
+1585321,43,National League,2026-10-31T15:00:00+00:00,Altrincham,Carlisle,,Moss Lane,Altrincham
+1585325,43,National League,2026-10-31T15:00:00+00:00,Tamworth,Woking,,The Lamb Ground,Tamworth
+1585327,43,National League,2026-10-31T15:00:00+00:00,Worthing,Sutton Utd,,,
+1585326,43,National League,2026-10-31T15:00:00+00:00,Wealdstone,Southend,,Grosvenor Vale,London
+1585328,43,National League,2026-10-31T17:30:00+00:00,Boston United,Scunthorpe,,Jakemans Community Stadium,Boston
+1585336,43,National League,2026-11-14T15:00:00+00:00,Scunthorpe,Worthing,21312.0,Attis Arena,Scunthorpe
+1585337,43,National League,2026-11-14T15:00:00+00:00,Southend,Aldershot Town,,Roots Hall,Southend on Sea
+1585333,43,National League,2026-11-14T15:00:00+00:00,Hartlepool,Wealdstone,,Victoria Park,Hartlepool
+1585329,43,National League,2026-11-14T15:00:00+00:00,Carlisle,Boston United,,Brunton Park,Carlisle
+1585340,43,National League,2026-11-14T15:00:00+00:00,Yeovil Town,Boreham Wood,,Huish Park,Yeovil
+1585330,43,National League,2026-11-14T15:00:00+00:00,Eastleigh,AFC Fylde,,Silverlake Stadium,Eastleigh
+1585331,43,National League,2026-11-14T15:00:00+00:00,Gateshead,Barrow,,Gateshead International Stadium,Gateshead
+1585338,43,National League,2026-11-14T15:00:00+00:00,Sutton Utd,Solihull Moors,,VBS Community Stadium,London
+1585339,43,National League,2026-11-14T15:00:00+00:00,Woking,Forest Green,,Kingfield Stadium,Woking
+1585332,43,National League,2026-11-14T15:00:00+00:00,Harrogate Town,Altrincham,,Exercise Stadium,Harrogate
+1585335,43,National League,2026-11-14T15:00:00+00:00,Kidderminster Harriers,FC Halifax Town,,Aggborough Stadium,Kidderminster
+1585334,43,National League,2026-11-14T15:00:00+00:00,AFC Hornchurch,Tamworth,,,
+1585341,43,National League,2026-11-20T19:45:00+00:00,Southend,Boreham Wood,,Roots Hall,Southend on Sea
+1585342,43,National League,2026-11-21T12:30:00+00:00,Solihull Moors,Altrincham,,Damson Park,Solihull
+1585343,43,National League,2026-11-21T12:30:00+00:00,Tamworth,Eastleigh,,The Lamb Ground,Tamworth
+1585344,43,National League,2026-11-21T15:00:00+00:00,Aldershot Town,Scunthorpe,,EBB Stadium at Recreation Ground,Aldershot
+1585345,43,National League,2026-11-21T15:00:00+00:00,Barrow,Carlisle,,Holker Street,Barrow in Furness
+1585347,43,National League,2026-11-21T15:00:00+00:00,Gateshead,Hartlepool,,Gateshead International Stadium,Gateshead
+1585349,43,National League,2026-11-21T15:00:00+00:00,Sutton Utd,Boston United,,VBS Community Stadium,London
+1585346,43,National League,2026-11-21T15:00:00+00:00,FC Halifax Town,Woking,,The Shay,Halifax
+1585348,43,National League,2026-11-21T15:00:00+00:00,Kidderminster Harriers,AFC Fylde,,Aggborough Stadium,Kidderminster
+1585351,43,National League,2026-11-21T15:00:00+00:00,Worthing,Harrogate Town,,,
+1585350,43,National League,2026-11-21T15:00:00+00:00,Wealdstone,AFC Hornchurch,,Grosvenor Vale,London
+1585352,43,National League,2026-11-21T17:30:00+00:00,Yeovil Town,Forest Green,,Huish Park,Yeovil
+1585360,43,National League,2026-11-24T19:45:00+00:00,Scunthorpe,Gateshead,21312.0,Attis Arena,Scunthorpe
+1585356,43,National League,2026-11-24T19:45:00+00:00,Carlisle,Tamworth,,Brunton Park,Carlisle
+1585358,43,National League,2026-11-24T19:45:00+00:00,Forest Green,Southend,,The New Lawn,Nailsworth
+1585357,43,National League,2026-11-24T19:45:00+00:00,Eastleigh,Yeovil Town,,Silverlake Stadium,Eastleigh
+1585361,43,National League,2026-11-24T19:45:00+00:00,Woking,Worthing,,Kingfield Stadium,Woking
+1585353,43,National League,2026-11-24T19:45:00+00:00,AFC Fylde,FC Halifax Town,,Mill Farm,Wesham
+1585354,43,National League,2026-11-24T19:45:00+00:00,Altrincham,Wealdstone,,Moss Lane,Altrincham
+1585359,43,National League,2026-11-24T19:45:00+00:00,AFC Hornchurch,Sutton Utd,,,
+1585355,43,National League,2026-11-24T19:45:00+00:00,Boston United,Barrow,,Jakemans Community Stadium,Boston
+1585362,43,National League,2026-11-25T19:00:00+00:00,Boreham Wood,Aldershot Town,,Meadow Park,Borehamwood
+1585364,43,National League,2026-11-25T19:45:00+00:00,Hartlepool,Solihull Moors,,Victoria Park,Hartlepool
+1585363,43,National League,2026-11-25T19:45:00+00:00,Harrogate Town,Kidderminster Harriers,,Exercise Stadium,Harrogate
+1585365,43,National League,2026-11-27T19:45:00+00:00,Scunthorpe,Wealdstone,21312.0,Attis Arena,Scunthorpe
+1585367,43,National League,2026-11-28T12:30:00+00:00,Woking,Barrow,,Kingfield Stadium,Woking
+1585366,43,National League,2026-11-28T12:30:00+00:00,AFC Fylde,Aldershot Town,,Mill Farm,Wesham
+1585371,43,National League,2026-11-28T15:00:00+00:00,Carlisle,Sutton Utd,,Brunton Park,Carlisle
+1585373,43,National League,2026-11-28T15:00:00+00:00,Forest Green,Tamworth,,The New Lawn,Nailsworth
+1585372,43,National League,2026-11-28T15:00:00+00:00,Eastleigh,FC Halifax Town,,Silverlake Stadium,Eastleigh
+1585369,43,National League,2026-11-28T15:00:00+00:00,Boreham Wood,Gateshead,,Meadow Park,Borehamwood
+1585374,43,National League,2026-11-28T15:00:00+00:00,Harrogate Town,Yeovil Town,,Exercise Stadium,Harrogate
+1585368,43,National League,2026-11-28T15:00:00+00:00,Altrincham,Worthing,,Moss Lane,Altrincham
+1585375,43,National League,2026-11-28T15:00:00+00:00,AFC Hornchurch,Solihull Moors,,,
+1585370,43,National League,2026-11-28T15:00:00+00:00,Boston United,Kidderminster Harriers,,Jakemans Community Stadium,Boston
+1585376,43,National League,2026-11-28T17:30:00+00:00,Hartlepool,Southend,,Victoria Park,Hartlepool
+1585377,43,National League,2026-12-04T19:45:00+00:00,Wealdstone,Woking,,Grosvenor Vale,London
+1585378,43,National League,2026-12-05T12:30:00+00:00,Barrow,Boreham Wood,,Holker Street,Barrow in Furness
+1585379,43,National League,2026-12-05T12:30:00+00:00,Gateshead,AFC Hornchurch,,Gateshead International Stadium,Gateshead
+1585383,43,National League,2026-12-05T15:00:00+00:00,Southend,Harrogate Town,,Roots Hall,Southend on Sea
+1585387,43,National League,2026-12-05T15:00:00+00:00,Yeovil Town,Hartlepool,,Huish Park,Yeovil
+1585380,43,National League,2026-12-05T15:00:00+00:00,Aldershot Town,Forest Green,,EBB Stadium at Recreation Ground,Aldershot
+1585382,43,National League,2026-12-05T15:00:00+00:00,Solihull Moors,Eastleigh,,Damson Park,Solihull
+1585384,43,National League,2026-12-05T15:00:00+00:00,Sutton Utd,AFC Fylde,,VBS Community Stadium,London
+1585381,43,National League,2026-12-05T15:00:00+00:00,Kidderminster Harriers,Scunthorpe,,Aggborough Stadium,Kidderminster
+1585385,43,National League,2026-12-05T15:00:00+00:00,Tamworth,Altrincham,,The Lamb Ground,Tamworth
+1585386,43,National League,2026-12-05T15:00:00+00:00,Worthing,Boston United,,,
+1585388,43,National League,2026-12-05T17:30:00+00:00,FC Halifax Town,Carlisle,,The Shay,Halifax
+1585394,43,National League,2026-12-08T19:45:00+00:00,Scunthorpe,AFC Fylde,21312.0,Attis Arena,Scunthorpe
+1585396,43,National League,2026-12-08T19:45:00+00:00,Southend,Boston United,,Roots Hall,Southend on Sea
+1585392,43,National League,2026-12-08T19:45:00+00:00,Hartlepool,Forest Green,,Victoria Park,Hartlepool
+1585389,43,National League,2026-12-08T19:45:00+00:00,Aldershot Town,Altrincham,,EBB Stadium at Recreation Ground,Aldershot
+1585390,43,National League,2026-12-08T19:45:00+00:00,Eastleigh,AFC Hornchurch,,Silverlake Stadium,Eastleigh
+1585395,43,National League,2026-12-08T19:45:00+00:00,Solihull Moors,Worthing,,Damson Park,Solihull
+1585391,43,National League,2026-12-08T19:45:00+00:00,Harrogate Town,Woking,,Exercise Stadium,Harrogate
+1585393,43,National League,2026-12-08T19:45:00+00:00,Kidderminster Harriers,Carlisle,,Aggborough Stadium,Kidderminster
+1585397,43,National League,2026-12-09T19:00:00+00:00,Boreham Wood,Sutton Utd,,Meadow Park,Borehamwood
+1585400,43,National League,2026-12-09T19:45:00+00:00,Yeovil Town,Wealdstone,,Huish Park,Yeovil
+1585398,43,National League,2026-12-09T19:45:00+00:00,Barrow,Tamworth,,Holker Street,Barrow in Furness
+1585399,43,National League,2026-12-09T19:45:00+00:00,Gateshead,FC Halifax Town,,Gateshead International Stadium,Gateshead
+1585401,43,National League,2026-12-18T19:45:00+00:00,AFC Fylde,Southend,,Mill Farm,Wesham
+1585404,43,National League,2026-12-19T12:30:00+00:00,Sutton Utd,Kidderminster Harriers,,VBS Community Stadium,London
+1585405,43,National League,2026-12-19T12:30:00+00:00,Woking,Eastleigh,,Kingfield Stadium,Woking
+1585403,43,National League,2026-12-19T12:30:00+00:00,AFC Hornchurch,Harrogate Town,,,
+1585402,43,National League,2026-12-19T12:30:00+00:00,Boston United,Yeovil Town,,Jakemans Community Stadium,Boston
+1585407,43,National League,2026-12-19T17:30:00+00:00,Forest Green,Scunthorpe,,The New Lawn,Nailsworth
+1585406,43,National League,2026-12-19T17:30:00+00:00,Altrincham,Boreham Wood,,Moss Lane,Altrincham
+1585408,43,National League,2026-12-19T17:30:00+00:00,Worthing,Gateshead,,,
+1585409,43,National League,2026-12-19T19:45:00+00:00,Tamworth,Hartlepool,,The Lamb Ground,Tamworth
+1585410,43,National League,2026-12-20T12:00:00+00:00,FC Halifax Town,Solihull Moors,,The Shay,Halifax
+1585411,43,National League,2026-12-20T14:00:00+00:00,Wealdstone,Barrow,,Grosvenor Vale,London
+1585412,43,National League,2026-12-20T16:00:00+00:00,Carlisle,Aldershot Town,,Brunton Park,Carlisle
+1585413,43,National League,2026-12-26T12:30:00+00:00,Aldershot Town,Woking,,EBB Stadium at Recreation Ground,Aldershot
+1585421,43,National League,2026-12-26T15:00:00+00:00,Scunthorpe,Altrincham,21312.0,Attis Arena,Scunthorpe
+1585423,43,National League,2026-12-26T15:00:00+00:00,Southend,AFC Hornchurch,,Roots Hall,Southend on Sea
+1585419,43,National League,2026-12-26T15:00:00+00:00,Hartlepool,Boston United,,Victoria Park,Hartlepool
+1585424,43,National League,2026-12-26T15:00:00+00:00,Yeovil Town,Sutton Utd,,Huish Park,Yeovil
+1585414,43,National League,2026-12-26T15:00:00+00:00,Barrow,AFC Fylde,,Holker Street,Barrow in Furness
+1585416,43,National League,2026-12-26T15:00:00+00:00,Eastleigh,Worthing,,Silverlake Stadium,Eastleigh
+1585417,43,National League,2026-12-26T15:00:00+00:00,Gateshead,Carlisle,,Gateshead International Stadium,Gateshead
+1585415,43,National League,2026-12-26T15:00:00+00:00,Boreham Wood,Wealdstone,,Meadow Park,Borehamwood
+1585422,43,National League,2026-12-26T15:00:00+00:00,Solihull Moors,Tamworth,,Damson Park,Solihull
+1585418,43,National League,2026-12-26T15:00:00+00:00,Harrogate Town,FC Halifax Town,,Exercise Stadium,Harrogate
+1585420,43,National League,2026-12-26T15:00:00+00:00,Kidderminster Harriers,Forest Green,,Aggborough Stadium,Kidderminster
+1585428,43,National League,2026-12-28T15:00:00+00:00,Carlisle,Hartlepool,,Brunton Park,Carlisle
+1585432,43,National League,2026-12-28T15:00:00+00:00,Sutton Utd,Southend,,VBS Community Stadium,London
+1585435,43,National League,2026-12-28T15:00:00+00:00,Woking,Yeovil Town,,Kingfield Stadium,Woking
+1585425,43,National League,2026-12-28T15:00:00+00:00,AFC Fylde,Gateshead,,Mill Farm,Wesham
+1585429,43,National League,2026-12-28T15:00:00+00:00,FC Halifax Town,Scunthorpe,,The Shay,Halifax
+1585426,43,National League,2026-12-28T15:00:00+00:00,Altrincham,Barrow,,Moss Lane,Altrincham
+1585431,43,National League,2026-12-28T15:00:00+00:00,AFC Hornchurch,Boreham Wood,,,
+1585433,43,National League,2026-12-28T15:00:00+00:00,Tamworth,Kidderminster Harriers,,The Lamb Ground,Tamworth
+1585436,43,National League,2026-12-28T15:00:00+00:00,Worthing,Aldershot Town,,,
+1585430,43,National League,2026-12-29T19:00:00+00:00,Forest Green,Solihull Moors,,The New Lawn,Nailsworth
+1585427,43,National League,2026-12-29T19:45:00+00:00,Boston United,Harrogate Town,,Jakemans Community Stadium,Boston
+1585434,43,National League,2026-12-29T19:45:00+00:00,Wealdstone,Eastleigh,,Grosvenor Vale,London
+1585440,43,National League,2027-01-02T15:00:00+00:00,Carlisle,Solihull Moors,,Brunton Park,Carlisle
+1585442,43,National League,2027-01-02T15:00:00+00:00,Forest Green,Barrow,,The New Lawn,Nailsworth
+1585444,43,National League,2027-01-02T15:00:00+00:00,Sutton Utd,Harrogate Town,,VBS Community Stadium,London
+1585447,43,National League,2027-01-02T15:00:00+00:00,Woking,Scunthorpe,,Kingfield Stadium,Woking
+1585437,43,National League,2027-01-02T15:00:00+00:00,AFC Fylde,Boreham Wood,,Mill Farm,Wesham
+1585441,43,National League,2027-01-02T15:00:00+00:00,FC Halifax Town,Southend,,The Shay,Halifax
+1585438,43,National League,2027-01-02T15:00:00+00:00,Altrincham,Yeovil Town,,Moss Lane,Altrincham
+1585443,43,National League,2027-01-02T15:00:00+00:00,AFC Hornchurch,Hartlepool,,,
+1585445,43,National League,2027-01-02T15:00:00+00:00,Tamworth,Gateshead,,The Lamb Ground,Tamworth
+1585448,43,National League,2027-01-02T15:00:00+00:00,Worthing,Kidderminster Harriers,,,
+1585439,43,National League,2027-01-02T15:00:00+00:00,Boston United,Eastleigh,,Jakemans Community Stadium,Boston
+1585446,43,National League,2027-01-02T15:00:00+00:00,Wealdstone,Aldershot Town,,Grosvenor Vale,London
+1585449,43,National League,2027-01-08T19:45:00+00:00,Aldershot Town,Sutton Utd,,EBB Stadium at Recreation Ground,Aldershot
+1585451,43,National League,2027-01-09T12:30:00+00:00,Hartlepool,AFC Fylde,,Victoria Park,Hartlepool
+1585450,43,National League,2027-01-09T12:30:00+00:00,Boreham Wood,Woking,,Meadow Park,Borehamwood
+1585456,43,National League,2027-01-09T15:00:00+00:00,Scunthorpe,Tamworth,21312.0,Attis Arena,Scunthorpe
+1585458,43,National League,2027-01-09T15:00:00+00:00,Southend,Worthing,,Roots Hall,Southend on Sea
+1585459,43,National League,2027-01-09T15:00:00+00:00,Yeovil Town,AFC Hornchurch,,Huish Park,Yeovil
+1585452,43,National League,2027-01-09T15:00:00+00:00,Eastleigh,Forest Green,,Silverlake Stadium,Eastleigh
+1585453,43,National League,2027-01-09T15:00:00+00:00,Gateshead,Boston United,,Gateshead International Stadium,Gateshead
+1585457,43,National League,2027-01-09T15:00:00+00:00,Solihull Moors,Wealdstone,,Damson Park,Solihull
+1585454,43,National League,2027-01-09T15:00:00+00:00,Harrogate Town,Carlisle,,Exercise Stadium,Harrogate
+1585455,43,National League,2027-01-09T15:00:00+00:00,Kidderminster Harriers,Altrincham,,Aggborough Stadium,Kidderminster
+1585460,43,National League,2027-01-09T17:30:00+00:00,Barrow,FC Halifax Town,,Holker Street,Barrow in Furness
+1585461,43,National League,2027-01-22T19:45:00+00:00,Eastleigh,Kidderminster Harriers,,Silverlake Stadium,Eastleigh
+1585463,43,National League,2027-01-23T12:30:00+00:00,Woking,Gateshead,,Kingfield Stadium,Woking
+1585462,43,National League,2027-01-23T12:30:00+00:00,Boston United,Solihull Moors,,Jakemans Community Stadium,Boston
+1585470,43,National League,2027-01-23T15:00:00+00:00,Hartlepool,Aldershot Town,,Victoria Park,Hartlepool
+1585467,43,National League,2027-01-23T15:00:00+00:00,Carlisle,Yeovil Town,,Brunton Park,Carlisle
+1585468,43,National League,2027-01-23T15:00:00+00:00,Forest Green,Worthing,,The New Lawn,Nailsworth
+1585466,43,National League,2027-01-23T15:00:00+00:00,Boreham Wood,FC Halifax Town,,Meadow Park,Borehamwood
+1585464,43,National League,2027-01-23T15:00:00+00:00,AFC Fylde,Tamworth,,Mill Farm,Wesham
+1585469,43,National League,2027-01-23T15:00:00+00:00,Harrogate Town,Wealdstone,,Exercise Stadium,Harrogate
+1585465,43,National League,2027-01-23T15:00:00+00:00,Altrincham,Sutton Utd,,Moss Lane,Altrincham
+1585471,43,National League,2027-01-23T15:00:00+00:00,AFC Hornchurch,Barrow,,,
+1585472,43,National League,2027-01-23T17:30:00+00:00,Scunthorpe,Southend,21312.0,Attis Arena,Scunthorpe
+1585481,43,National League,2027-01-26T19:45:00+00:00,Yeovil Town,Eastleigh,,Huish Park,Yeovil
+1585473,43,National League,2027-01-26T19:45:00+00:00,Aldershot Town,Boreham Wood,,EBB Stadium at Recreation Ground,Aldershot
+1585474,43,National League,2027-01-26T19:45:00+00:00,Barrow,Boston United,,Holker Street,Barrow in Furness
+1585475,43,National League,2027-01-26T19:45:00+00:00,Gateshead,Scunthorpe,,Gateshead International Stadium,Gateshead
+1585477,43,National League,2027-01-26T19:45:00+00:00,Solihull Moors,Hartlepool,,Damson Park,Solihull
+1585478,43,National League,2027-01-26T19:45:00+00:00,Sutton Utd,AFC Hornchurch,,VBS Community Stadium,London
+1585476,43,National League,2027-01-26T19:45:00+00:00,Kidderminster Harriers,Harrogate Town,,Aggborough Stadium,Kidderminster
+1585479,43,National League,2027-01-26T19:45:00+00:00,Tamworth,Carlisle,,The Lamb Ground,Tamworth
+1585480,43,National League,2027-01-26T19:45:00+00:00,Worthing,Woking,,,
+1585483,43,National League,2027-01-27T19:45:00+00:00,Southend,Forest Green,,Roots Hall,Southend on Sea
+1585482,43,National League,2027-01-27T19:45:00+00:00,FC Halifax Town,AFC Fylde,,The Shay,Halifax
+1585484,43,National League,2027-01-27T19:45:00+00:00,Wealdstone,Altrincham,,Grosvenor Vale,London
+1585485,43,National League,2027-01-29T19:45:00+00:00,Solihull Moors,Harrogate Town,,Damson Park,Solihull
+1585487,43,National League,2027-01-30T12:30:00+00:00,Yeovil Town,Scunthorpe,,Huish Park,Yeovil
+1585486,43,National League,2027-01-30T12:30:00+00:00,Wealdstone,AFC Fylde,,Grosvenor Vale,London
+1585493,43,National League,2027-01-30T15:00:00+00:00,Southend,Altrincham,,Roots Hall,Southend on Sea
+1585488,43,National League,2027-01-30T15:00:00+00:00,Aldershot Town,Boston United,,EBB Stadium at Recreation Ground,Aldershot
+1585489,43,National League,2027-01-30T15:00:00+00:00,Barrow,Hartlepool,,Holker Street,Barrow in Furness
+1585491,43,National League,2027-01-30T15:00:00+00:00,Gateshead,Eastleigh,,Gateshead International Stadium,Gateshead
+1585494,43,National League,2027-01-30T15:00:00+00:00,Sutton Utd,Woking,,VBS Community Stadium,London
+1585490,43,National League,2027-01-30T15:00:00+00:00,FC Halifax Town,Forest Green,,The Shay,Halifax
+1585492,43,National League,2027-01-30T15:00:00+00:00,Kidderminster Harriers,AFC Hornchurch,,Aggborough Stadium,Kidderminster
+1585495,43,National League,2027-01-30T15:00:00+00:00,Tamworth,Boreham Wood,,The Lamb Ground,Tamworth
+1585496,43,National League,2027-01-30T17:30:00+00:00,Worthing,Carlisle,,,
+1585507,43,National League,2027-02-06T15:00:00+00:00,Scunthorpe,Aldershot Town,21312.0,Attis Arena,Scunthorpe
+1585505,43,National League,2027-02-06T15:00:00+00:00,Hartlepool,Gateshead,,Victoria Park,Hartlepool
+1585501,43,National League,2027-02-06T15:00:00+00:00,Carlisle,Barrow,,Brunton Park,Carlisle
+1585503,43,National League,2027-02-06T15:00:00+00:00,Forest Green,Yeovil Town,,The New Lawn,Nailsworth
+1585502,43,National League,2027-02-06T15:00:00+00:00,Eastleigh,Tamworth,,Silverlake Stadium,Eastleigh
+1585499,43,National League,2027-02-06T15:00:00+00:00,Boreham Wood,Southend,,Meadow Park,Borehamwood
+1585508,43,National League,2027-02-06T15:00:00+00:00,Woking,FC Halifax Town,,Kingfield Stadium,Woking
+1585497,43,National League,2027-02-06T15:00:00+00:00,AFC Fylde,Kidderminster Harriers,,Mill Farm,Wesham
+1585504,43,National League,2027-02-06T15:00:00+00:00,Harrogate Town,Worthing,,Exercise Stadium,Harrogate
+1585498,43,National League,2027-02-06T15:00:00+00:00,Altrincham,Solihull Moors,,Moss Lane,Altrincham
+1585506,43,National League,2027-02-06T15:00:00+00:00,AFC Hornchurch,Wealdstone,,,
+1585500,43,National League,2027-02-06T15:00:00+00:00,Boston United,Sutton Utd,,Jakemans Community Stadium,Boston
+1585516,43,National League,2027-02-13T15:00:00+00:00,Hartlepool,Scunthorpe,,Victoria Park,Hartlepool
+1585520,43,National League,2027-02-13T15:00:00+00:00,Yeovil Town,Kidderminster Harriers,,Huish Park,Yeovil
+1585514,43,National League,2027-02-13T15:00:00+00:00,Forest Green,Sutton Utd,,The New Lawn,Nailsworth
+1585510,43,National League,2027-02-13T15:00:00+00:00,Barrow,Southend,,Holker Street,Barrow in Furness
+1585512,43,National League,2027-02-13T15:00:00+00:00,Eastleigh,Harrogate Town,,Silverlake Stadium,Eastleigh
+1585515,43,National League,2027-02-13T15:00:00+00:00,Gateshead,Wealdstone,,Gateshead International Stadium,Gateshead
+1585511,43,National League,2027-02-13T15:00:00+00:00,Boreham Wood,Solihull Moors,,Meadow Park,Borehamwood
+1585519,43,National League,2027-02-13T15:00:00+00:00,Woking,Carlisle,,Kingfield Stadium,Woking
+1585509,43,National League,2027-02-13T15:00:00+00:00,AFC Fylde,Boston United,,Mill Farm,Wesham
+1585513,43,National League,2027-02-13T15:00:00+00:00,FC Halifax Town,Worthing,,The Shay,Halifax
+1585517,43,National League,2027-02-13T15:00:00+00:00,AFC Hornchurch,Altrincham,,,
+1585518,43,National League,2027-02-13T15:00:00+00:00,Tamworth,Aldershot Town,,The Lamb Ground,Tamworth
+1585526,43,National League,2027-02-16T19:45:00+00:00,Scunthorpe,Barrow,21312.0,Attis Arena,Scunthorpe
+1585527,43,National League,2027-02-16T19:45:00+00:00,Southend,Eastleigh,,Roots Hall,Southend on Sea
+1585523,43,National League,2027-02-16T19:45:00+00:00,Carlisle,AFC Fylde,,Brunton Park,Carlisle
+1585528,43,National League,2027-02-16T19:45:00+00:00,Sutton Utd,Tamworth,,VBS Community Stadium,London
+1585524,43,National League,2027-02-16T19:45:00+00:00,Harrogate Town,Hartlepool,,Exercise Stadium,Harrogate
+1585525,43,National League,2027-02-16T19:45:00+00:00,Kidderminster Harriers,Boreham Wood,,Aggborough Stadium,Kidderminster
+1585521,43,National League,2027-02-16T19:45:00+00:00,Altrincham,Gateshead,,Moss Lane,Altrincham
+1585522,43,National League,2027-02-16T19:45:00+00:00,Boston United,FC Halifax Town,,Jakemans Community Stadium,Boston
+1585529,43,National League,2027-02-16T19:45:00+00:00,Wealdstone,Forest Green,,Grosvenor Vale,London
+1585530,43,National League,2027-02-17T19:45:00+00:00,Aldershot Town,AFC Hornchurch,,EBB Stadium at Recreation Ground,Aldershot
+1585531,43,National League,2027-02-17T19:45:00+00:00,Solihull Moors,Woking,,Damson Park,Solihull
+1585532,43,National League,2027-02-17T19:45:00+00:00,Worthing,Yeovil Town,,,
+1585539,43,National League,2027-02-20T15:00:00+00:00,Scunthorpe,AFC Hornchurch,21312.0,Attis Arena,Scunthorpe
+1585541,43,National League,2027-02-20T15:00:00+00:00,Southend,Gateshead,,Roots Hall,Southend on Sea
+1585536,43,National League,2027-02-20T15:00:00+00:00,Carlisle,Eastleigh,,Brunton Park,Carlisle
+1585533,43,National League,2027-02-20T15:00:00+00:00,Aldershot Town,Barrow,,EBB Stadium at Recreation Ground,Aldershot
+1585540,43,National League,2027-02-20T15:00:00+00:00,Solihull Moors,Yeovil Town,,Damson Park,Solihull
+1585542,43,National League,2027-02-20T15:00:00+00:00,Sutton Utd,FC Halifax Town,,VBS Community Stadium,London
+1585537,43,National League,2027-02-20T15:00:00+00:00,Harrogate Town,Boreham Wood,,Exercise Stadium,Harrogate
+1585538,43,National League,2027-02-20T15:00:00+00:00,Kidderminster Harriers,Woking,,Aggborough Stadium,Kidderminster
+1585534,43,National League,2027-02-20T15:00:00+00:00,Altrincham,AFC Fylde,,Moss Lane,Altrincham
+1585544,43,National League,2027-02-20T15:00:00+00:00,Worthing,Hartlepool,,,
+1585535,43,National League,2027-02-20T15:00:00+00:00,Boston United,Forest Green,,Jakemans Community Stadium,Boston
+1585543,43,National League,2027-02-20T15:00:00+00:00,Wealdstone,Tamworth,,Grosvenor Vale,London
+1585551,43,National League,2027-02-23T19:45:00+00:00,Hartlepool,Altrincham,,Victoria Park,Hartlepool
+1585553,43,National League,2027-02-23T19:45:00+00:00,Yeovil Town,Aldershot Town,,Huish Park,Yeovil
+1585549,43,National League,2027-02-23T19:45:00+00:00,Forest Green,Carlisle,,The New Lawn,Nailsworth
+1585546,43,National League,2027-02-23T19:45:00+00:00,Barrow,Solihull Moors,,Holker Street,Barrow in Furness
+1585547,43,National League,2027-02-23T19:45:00+00:00,Eastleigh,Sutton Utd,,Silverlake Stadium,Eastleigh
+1585550,43,National League,2027-02-23T19:45:00+00:00,Gateshead,Kidderminster Harriers,,Gateshead International Stadium,Gateshead
+1585545,43,National League,2027-02-23T19:45:00+00:00,AFC Fylde,Harrogate Town,,Mill Farm,Wesham
+1585548,43,National League,2027-02-23T19:45:00+00:00,FC Halifax Town,Wealdstone,,The Shay,Halifax
+1585552,43,National League,2027-02-23T19:45:00+00:00,Tamworth,Southend,,The Lamb Ground,Tamworth
+1585554,43,National League,2027-02-24T19:00:00+00:00,Boreham Wood,Scunthorpe,,Meadow Park,Borehamwood
+1585556,43,National League,2027-02-24T19:45:00+00:00,Woking,Boston United,,Kingfield Stadium,Woking
+1585555,43,National League,2027-02-24T19:45:00+00:00,AFC Hornchurch,Worthing,,,
+1585565,43,National League,2027-02-27T15:00:00+00:00,Scunthorpe,Eastleigh,21312.0,Attis Arena,Scunthorpe
+1585566,43,National League,2027-02-27T15:00:00+00:00,Southend,Solihull Moors,,Roots Hall,Southend on Sea
+1585563,43,National League,2027-02-27T15:00:00+00:00,Hartlepool,Sutton Utd,,Victoria Park,Hartlepool
+1585558,43,National League,2027-02-27T15:00:00+00:00,Aldershot Town,Kidderminster Harriers,,EBB Stadium at Recreation Ground,Aldershot
+1585560,43,National League,2027-02-27T15:00:00+00:00,Barrow,Harrogate Town,,Holker Street,Barrow in Furness
+1585562,43,National League,2027-02-27T15:00:00+00:00,Gateshead,Yeovil Town,,Gateshead International Stadium,Gateshead
+1585561,43,National League,2027-02-27T15:00:00+00:00,Boreham Wood,Forest Green,,Meadow Park,Borehamwood
+1585557,43,National League,2027-02-27T15:00:00+00:00,AFC Fylde,Woking,,Mill Farm,Wesham
+1585559,43,National League,2027-02-27T15:00:00+00:00,Altrincham,Boston United,,Moss Lane,Altrincham
+1585564,43,National League,2027-02-27T15:00:00+00:00,AFC Hornchurch,Carlisle,,,
+1585567,43,National League,2027-02-27T15:00:00+00:00,Tamworth,FC Halifax Town,,The Lamb Ground,Tamworth
+1585568,43,National League,2027-02-27T15:00:00+00:00,Wealdstone,Worthing,,Grosvenor Vale,London
+1585570,43,National League,2027-03-06T15:00:00+00:00,Carlisle,Wealdstone,,Brunton Park,Carlisle
+1585580,43,National League,2027-03-06T15:00:00+00:00,Yeovil Town,Barrow,,Huish Park,Yeovil
+1585573,43,National League,2027-03-06T15:00:00+00:00,Forest Green,AFC Fylde,,The New Lawn,Nailsworth
+1585571,43,National League,2027-03-06T15:00:00+00:00,Eastleigh,Hartlepool,,Silverlake Stadium,Eastleigh
+1585576,43,National League,2027-03-06T15:00:00+00:00,Solihull Moors,Scunthorpe,,Damson Park,Solihull
+1585577,43,National League,2027-03-06T15:00:00+00:00,Sutton Utd,Gateshead,,VBS Community Stadium,London
+1585578,43,National League,2027-03-06T15:00:00+00:00,Woking,AFC Hornchurch,,Kingfield Stadium,Woking
+1585572,43,National League,2027-03-06T15:00:00+00:00,FC Halifax Town,Altrincham,,The Shay,Halifax
+1585574,43,National League,2027-03-06T15:00:00+00:00,Harrogate Town,Aldershot Town,,Exercise Stadium,Harrogate
+1585575,43,National League,2027-03-06T15:00:00+00:00,Kidderminster Harriers,Southend,,Aggborough Stadium,Kidderminster
+1585579,43,National League,2027-03-06T15:00:00+00:00,Worthing,Tamworth,,,
+1585569,43,National League,2027-03-06T15:00:00+00:00,Boston United,Boreham Wood,,Jakemans Community Stadium,Boston
+1585586,43,National League,2027-03-09T19:45:00+00:00,Scunthorpe,Carlisle,21312.0,Attis Arena,Scunthorpe
+1585587,43,National League,2027-03-09T19:45:00+00:00,Southend,Woking,,Roots Hall,Southend on Sea
+1585583,43,National League,2027-03-09T19:45:00+00:00,Barrow,Kidderminster Harriers,,Holker Street,Barrow in Furness
+1585584,43,National League,2027-03-09T19:45:00+00:00,Gateshead,Harrogate Town,,Gateshead International Stadium,Gateshead
+1585581,43,National League,2027-03-09T19:45:00+00:00,AFC Fylde,Solihull Moors,,Mill Farm,Wesham
+1585582,43,National League,2027-03-09T19:45:00+00:00,Altrincham,Forest Green,,Moss Lane,Altrincham
+1585585,43,National League,2027-03-09T19:45:00+00:00,AFC Hornchurch,Boston United,,,
+1585588,43,National League,2027-03-09T19:45:00+00:00,Tamworth,Yeovil Town,,The Lamb Ground,Tamworth
+1585589,43,National League,2027-03-09T19:45:00+00:00,Wealdstone,Sutton Utd,,Grosvenor Vale,London
+1585590,43,National League,2027-03-10T19:00:00+00:00,Boreham Wood,Worthing,,Meadow Park,Borehamwood
+1585592,43,National League,2027-03-10T19:45:00+00:00,Hartlepool,FC Halifax Town,,Victoria Park,Hartlepool
+1585591,43,National League,2027-03-10T19:45:00+00:00,Aldershot Town,Eastleigh,,EBB Stadium at Recreation Ground,Aldershot
+1585594,43,National League,2027-03-13T15:00:00+00:00,Carlisle,Boreham Wood,,Brunton Park,Carlisle
+1585604,43,National League,2027-03-13T15:00:00+00:00,Yeovil Town,Southend,,Huish Park,Yeovil
+1585597,43,National League,2027-03-13T15:00:00+00:00,Forest Green,AFC Hornchurch,,The New Lawn,Nailsworth
+1585595,43,National League,2027-03-13T15:00:00+00:00,Eastleigh,Altrincham,,Silverlake Stadium,Eastleigh
+1585600,43,National League,2027-03-13T15:00:00+00:00,Solihull Moors,Gateshead,,Damson Park,Solihull
+1585601,43,National League,2027-03-13T15:00:00+00:00,Sutton Utd,Barrow,,VBS Community Stadium,London
+1585602,43,National League,2027-03-13T15:00:00+00:00,Woking,Hartlepool,,Kingfield Stadium,Woking
+1585596,43,National League,2027-03-13T15:00:00+00:00,FC Halifax Town,Aldershot Town,,The Shay,Halifax
+1585598,43,National League,2027-03-13T15:00:00+00:00,Harrogate Town,Scunthorpe,,Exercise Stadium,Harrogate
+1585599,43,National League,2027-03-13T15:00:00+00:00,Kidderminster Harriers,Wealdstone,,Aggborough Stadium,Kidderminster
+1585603,43,National League,2027-03-13T15:00:00+00:00,Worthing,AFC Fylde,,,
+1585593,43,National League,2027-03-13T15:00:00+00:00,Boston United,Tamworth,,Jakemans Community Stadium,Boston
+1585613,43,National League,2027-03-20T12:30:00+00:00,Scunthorpe,Sutton Utd,21312.0,Attis Arena,Scunthorpe
+1585614,43,National League,2027-03-20T12:30:00+00:00,Southend,Carlisle,,Roots Hall,Southend on Sea
+1585611,43,National League,2027-03-20T12:30:00+00:00,Hartlepool,Kidderminster Harriers,,Victoria Park,Hartlepool
+1585606,43,National League,2027-03-20T12:30:00+00:00,Aldershot Town,Solihull Moors,,EBB Stadium at Recreation Ground,Aldershot
+1585608,43,National League,2027-03-20T12:30:00+00:00,Barrow,Worthing,,Holker Street,Barrow in Furness
+1585610,43,National League,2027-03-20T12:30:00+00:00,Gateshead,Forest Green,,Gateshead International Stadium,Gateshead
+1585609,43,National League,2027-03-20T12:30:00+00:00,Boreham Wood,Eastleigh,,Meadow Park,Borehamwood
+1585605,43,National League,2027-03-20T12:30:00+00:00,AFC Fylde,Yeovil Town,,Mill Farm,Wesham
+1585607,43,National League,2027-03-20T12:30:00+00:00,Altrincham,Woking,,Moss Lane,Altrincham
+1585612,43,National League,2027-03-20T12:30:00+00:00,AFC Hornchurch,FC Halifax Town,,,
+1585615,43,National League,2027-03-20T12:30:00+00:00,Tamworth,Harrogate Town,,The Lamb Ground,Tamworth
+1585616,43,National League,2027-03-20T12:30:00+00:00,Wealdstone,Boston United,,Grosvenor Vale,London
+1585625,43,National League,2027-03-26T15:00:00+00:00,Scunthorpe,FC Halifax Town,21312.0,Attis Arena,Scunthorpe
+1585627,43,National League,2027-03-26T15:00:00+00:00,Southend,Sutton Utd,,Roots Hall,Southend on Sea
+1585623,43,National League,2027-03-26T15:00:00+00:00,Hartlepool,Carlisle,,Victoria Park,Hartlepool
+1585628,43,National League,2027-03-26T15:00:00+00:00,Yeovil Town,Woking,,Huish Park,Yeovil
+1585617,43,National League,2027-03-26T15:00:00+00:00,Aldershot Town,Worthing,,EBB Stadium at Recreation Ground,Aldershot
+1585618,43,National League,2027-03-26T15:00:00+00:00,Barrow,Altrincham,,Holker Street,Barrow in Furness
+1585620,43,National League,2027-03-26T15:00:00+00:00,Eastleigh,Wealdstone,,Silverlake Stadium,Eastleigh
+1585621,43,National League,2027-03-26T15:00:00+00:00,Gateshead,AFC Fylde,,Gateshead International Stadium,Gateshead
+1585619,43,National League,2027-03-26T15:00:00+00:00,Boreham Wood,AFC Hornchurch,,Meadow Park,Borehamwood
+1585626,43,National League,2027-03-26T15:00:00+00:00,Solihull Moors,Forest Green,,Damson Park,Solihull
+1585622,43,National League,2027-03-26T15:00:00+00:00,Harrogate Town,Boston United,,Exercise Stadium,Harrogate
+1585624,43,National League,2027-03-26T15:00:00+00:00,Kidderminster Harriers,Tamworth,,Aggborough Stadium,Kidderminster
+1585632,43,National League,2027-03-29T14:00:00+00:00,Carlisle,Gateshead,,Brunton Park,Carlisle
+1585634,43,National League,2027-03-29T14:00:00+00:00,Forest Green,Kidderminster Harriers,,The New Lawn,Nailsworth
+1585636,43,National League,2027-03-29T14:00:00+00:00,Sutton Utd,Yeovil Town,,VBS Community Stadium,London
+1585639,43,National League,2027-03-29T14:00:00+00:00,Woking,Aldershot Town,,Kingfield Stadium,Woking
+1585629,43,National League,2027-03-29T14:00:00+00:00,AFC Fylde,Barrow,,Mill Farm,Wesham
+1585633,43,National League,2027-03-29T14:00:00+00:00,FC Halifax Town,Harrogate Town,,The Shay,Halifax
+1585630,43,National League,2027-03-29T14:00:00+00:00,Altrincham,Scunthorpe,,Moss Lane,Altrincham
+1585635,43,National League,2027-03-29T14:00:00+00:00,AFC Hornchurch,Southend,,,
+1585637,43,National League,2027-03-29T14:00:00+00:00,Tamworth,Solihull Moors,,The Lamb Ground,Tamworth
+1585640,43,National League,2027-03-29T14:00:00+00:00,Worthing,Eastleigh,,,
+1585631,43,National League,2027-03-29T14:00:00+00:00,Boston United,Hartlepool,,Jakemans Community Stadium,Boston
+1585638,43,National League,2027-03-29T14:00:00+00:00,Wealdstone,Boreham Wood,,Grosvenor Vale,London
+1585648,43,National League,2027-04-03T14:00:00+00:00,Scunthorpe,Boston United,21312.0,Attis Arena,Scunthorpe
+1585649,43,National League,2027-04-03T14:00:00+00:00,Southend,Wealdstone,,Roots Hall,Southend on Sea
+1585645,43,National League,2027-04-03T14:00:00+00:00,Hartlepool,Boreham Wood,,Victoria Park,Hartlepool
+1585641,43,National League,2027-04-03T14:00:00+00:00,Carlisle,Altrincham,,Brunton Park,Carlisle
+1585652,43,National League,2027-04-03T14:00:00+00:00,Yeovil Town,FC Halifax Town,,Huish Park,Yeovil
+1585642,43,National League,2027-04-03T14:00:00+00:00,Eastleigh,Barrow,,Silverlake Stadium,Eastleigh
+1585643,43,National League,2027-04-03T14:00:00+00:00,Gateshead,Aldershot Town,,Gateshead International Stadium,Gateshead
+1585650,43,National League,2027-04-03T14:00:00+00:00,Sutton Utd,Worthing,,VBS Community Stadium,London
+1585651,43,National League,2027-04-03T14:00:00+00:00,Woking,Tamworth,,Kingfield Stadium,Woking
+1585644,43,National League,2027-04-03T14:00:00+00:00,Harrogate Town,Forest Green,,Exercise Stadium,Harrogate
+1585647,43,National League,2027-04-03T14:00:00+00:00,Kidderminster Harriers,Solihull Moors,,Aggborough Stadium,Kidderminster
+1585646,43,National League,2027-04-03T14:00:00+00:00,AFC Hornchurch,AFC Fylde,,,
+1585660,43,National League,2027-04-10T14:00:00+00:00,Forest Green,Woking,,The New Lawn,Nailsworth
+1585654,43,National League,2027-04-10T14:00:00+00:00,Aldershot Town,Southend,,EBB Stadium at Recreation Ground,Aldershot
+1585656,43,National League,2027-04-10T14:00:00+00:00,Barrow,Gateshead,,Holker Street,Barrow in Furness
+1585657,43,National League,2027-04-10T14:00:00+00:00,Boreham Wood,Yeovil Town,,Meadow Park,Borehamwood
+1585661,43,National League,2027-04-10T14:00:00+00:00,Solihull Moors,Sutton Utd,,Damson Park,Solihull
+1585653,43,National League,2027-04-10T14:00:00+00:00,AFC Fylde,Eastleigh,,Mill Farm,Wesham
+1585659,43,National League,2027-04-10T14:00:00+00:00,FC Halifax Town,Kidderminster Harriers,,The Shay,Halifax
+1585655,43,National League,2027-04-10T14:00:00+00:00,Altrincham,Harrogate Town,,Moss Lane,Altrincham
+1585662,43,National League,2027-04-10T14:00:00+00:00,Tamworth,AFC Hornchurch,,The Lamb Ground,Tamworth
+1585664,43,National League,2027-04-10T14:00:00+00:00,Worthing,Scunthorpe,,,
+1585658,43,National League,2027-04-10T14:00:00+00:00,Boston United,Carlisle,,Jakemans Community Stadium,Boston
+1585663,43,National League,2027-04-10T14:00:00+00:00,Wealdstone,Hartlepool,,Grosvenor Vale,London
+1585675,43,National League,2027-04-17T14:00:00+00:00,Scunthorpe,Kidderminster Harriers,21312.0,Attis Arena,Scunthorpe
+1585673,43,National League,2027-04-17T14:00:00+00:00,Hartlepool,Yeovil Town,,Victoria Park,Hartlepool
+1585669,43,National League,2027-04-17T14:00:00+00:00,Carlisle,FC Halifax Town,,Brunton Park,Carlisle
+1585671,43,National League,2027-04-17T14:00:00+00:00,Forest Green,Aldershot Town,,The New Lawn,Nailsworth
+1585670,43,National League,2027-04-17T14:00:00+00:00,Eastleigh,Solihull Moors,,Silverlake Stadium,Eastleigh
+1585667,43,National League,2027-04-17T14:00:00+00:00,Boreham Wood,Barrow,,Meadow Park,Borehamwood
+1585676,43,National League,2027-04-17T14:00:00+00:00,Woking,Wealdstone,,Kingfield Stadium,Woking
+1585665,43,National League,2027-04-17T14:00:00+00:00,AFC Fylde,Sutton Utd,,Mill Farm,Wesham
+1585672,43,National League,2027-04-17T14:00:00+00:00,Harrogate Town,Southend,,Exercise Stadium,Harrogate
+1585666,43,National League,2027-04-17T14:00:00+00:00,Altrincham,Tamworth,,Moss Lane,Altrincham
+1585674,43,National League,2027-04-17T14:00:00+00:00,AFC Hornchurch,Gateshead,,,
+1585668,43,National League,2027-04-17T14:00:00+00:00,Boston United,Worthing,,Jakemans Community Stadium,Boston
+1585683,43,National League,2027-04-24T11:30:00+00:00,Southend,Hartlepool,,Roots Hall,Southend on Sea
+1585688,43,National League,2027-04-24T11:30:00+00:00,Yeovil Town,Harrogate Town,,Huish Park,Yeovil
+1585677,43,National League,2027-04-24T11:30:00+00:00,Aldershot Town,AFC Fylde,,EBB Stadium at Recreation Ground,Aldershot
+1585678,43,National League,2027-04-24T11:30:00+00:00,Barrow,Woking,,Holker Street,Barrow in Furness
+1585680,43,National League,2027-04-24T11:30:00+00:00,Gateshead,Boreham Wood,,Gateshead International Stadium,Gateshead
+1585682,43,National League,2027-04-24T11:30:00+00:00,Solihull Moors,AFC Hornchurch,,Damson Park,Solihull
+1585684,43,National League,2027-04-24T11:30:00+00:00,Sutton Utd,Carlisle,,VBS Community Stadium,London
+1585679,43,National League,2027-04-24T11:30:00+00:00,FC Halifax Town,Eastleigh,,The Shay,Halifax
+1585681,43,National League,2027-04-24T11:30:00+00:00,Kidderminster Harriers,Boston United,,Aggborough Stadium,Kidderminster
+1585685,43,National League,2027-04-24T11:30:00+00:00,Tamworth,Forest Green,,The Lamb Ground,Tamworth
+1585687,43,National League,2027-04-24T11:30:00+00:00,Worthing,Altrincham,,,
+1585686,43,National League,2027-04-24T11:30:00+00:00,Wealdstone,Scunthorpe,,Grosvenor Vale,London

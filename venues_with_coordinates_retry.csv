@@ -1,0 +1,897 @@
+venue_id,name,address,city,country,capacity,latitude,longitude
+566,Wembley Stadium,"Wembley, London HA9 0WS",London,England,90000,51.5560695,-0.2796034
+556,Old Trafford,Sir Matt Busby Way,Manchester,England,76212,53.4631096,-2.2913865
+562,St. James' Park,St. James&apos; Street,Newcastle upon Tyne,England,52758,54.975116,-1.6193261
+504,Vitality Stadium,"Dean Court, Kings Park","Bournemouth, Dorset",England,12000,50.7351815,-1.8383279
+535,Craven Cottage,Stevenage Road,London,England,29589,51.4749218,-0.2217448
+543,John Smith's Stadium,Stadium Way,"Huddersfield, West Yorkshire",England,24554,53.6543494,-1.7682999
+596,Vicarage Road,Vicarage Road,Watford,England,22200,51.649759,-0.4013489
+600,Molineux Stadium,Waterloo Road,"Wolverhampton, West Midlands",England,34624,52.5902723,-2.1304079
+550,Anfield,Anfield Road,Liverpool,England,61276,53.4309011,-2.9609719
+585,St. Mary's Stadium,Britannia Road,"Southampton, Hampshire",England,32689,50.9058615,-1.3908774
+494,Emirates Stadium,Hornsey Road,London,England,60383,51.5550407,-0.1109754
+512,Turf Moor,Harry Potts Way,Burnley,England,22546,53.7893606,-2.2298547
+22033,Hill Dickinson Stadium,"35 Regent Road, Bramley-Moore Dock, Vauxhall","Liverpool, Merseyside",England,52888,53.4250024,-3.0027092
+547,King Power Stadium,Filbert Way,"Leicester, Leicestershire",England,34310,52.620397,-1.1423352
+593,Tottenham Hotspur Stadium,"Bill Nicholson Way, 748 High Road",London,England,62850,51.604157,-0.0662604
+598,London Stadium,"Marshgate Lane, Stratford",London,England,64472,51.5338036,-0.0119647
+519,Stamford Bridge,Fulham Road,London,England,41841,51.4811343,-0.1900941
+555,Etihad Stadium,Rowsley Street,Manchester,England,55097,53.482122,-2.203542
+508,American Express Stadium,Village Way,"Falmer, East Sussex",England,31872,50.8615471,-0.0836931
+525,Selhurst Park,Holmesdale Road,London,England,26309,51.4220535,-0.3156543
+12052,Select Car Leasing Stadium,"Shooters Way / Junction 11, M4","Reading, Berkshire",England,24200,51.4223346,-0.9831238
+12596,St Andrew's Stadium,St. Andrew&apos;s Road,Birmingham,England,30009,52.4755671,-1.868041
+10503,Gtech Community Stadium,"166 Lionel Rd N, Brentford","Brentford, Middlesex",England,17250,51.490713,-0.2889802
+20106,Ashton Gate Stadium,Ashton Road,Bristol,England,27000,51.4398694,-2.6203405
+545,Portman Road,Portman Road,"Ipswich, Suffolk",England,30311,52.0559733,1.1461406
+559,The Den,"Zampa Road, Bermondsey",London,England,20146,51.4859656,-0.0509103
+574,Deepdale,Deepdale Road,Preston,England,23408,53.7710364,-2.6907362
+597,The Hawthorns,Halfords Lane,West Bromwich,England,28003,52.5101727,-1.965852
+599,DW Stadium,"Robin Park, Loire Drive",Wigan,England,25138,53.5463194,-2.652331
+581,Bramall Lane,Bramall Lane,Sheffield,England,32702,53.3703429,-1.4707145
+546,Elland Road,Elland Road,"Leeds, West Yorkshire",England,40204,53.7671529,-1.5778028
+12051,The MKM Stadium,Walton Street / Anlaby Road,Hull,England,25504,53.7462257,-0.3678239
+495,Villa Park,Trinity Road,Birmingham,England,42824,52.5091264,-1.8850354
+500,Ewood Park,Nuttall Street,"Blackburn, Lancashire",England,31367,53.7285283,-2.4892251
+19923,Toughsheet Community Stadium,Burnden Way,Bolton,England,28723,53.5805396,-2.5356648
+527,Pride Park Stadium,"Pride Park, Royal Way",Derby,England,33597,52.9140328,-1.4474309
+558,Riverside Stadium,Dockside Road,Middlesbrough,England,34988,54.5777968,-1.2024451
+565,Carrow Road,Carrow Road,"Norwich, Norfolk",England,27606,52.6220315,1.3093222
+20414,MATRADE Loftus Road,"South Africa Road, Shepherd&apos;s Bush",London,England,18360,51.5094016,-0.2321136
+578,AESSEAL New York Stadium,Don Street,"Rotherham, South Yorkshire",England,12021,53.4275513,-1.3604972
+582,Hillsborough,"Penistone Road North, Hillsborough",Sheffield,England,39814,53.411379,-1.5006311
+588,bet365 Stadium,Stanley Matthews Way,"Stoke-on-Trent, Staffordshire",England,30089,52.9883401,-2.1755919
+589,Stadium of Light,Millenium Way,Sunderland,England,49000,54.9143953,-1.3882579
+497,Oakwell,Grove Street,"Barnsley, South Yorkshire",England,23009,53.5522037,-1.4676968
+513,Pirelli Stadium,Princess Way,"Burton-upon-Trent, Staffordshire",England,6912,52.8208214,-1.6270581
+12456,The Cherry Red Records Stadium,"Plough Lane, Wimbledon",London,England,9300,51.4312154,-0.184423
+510,Memorial Stadium,"Filton Avenue, Horfield","Bristol, Gloucestershire",England,11916,51.4960648,-2.5733927
+518,The Valley,"Floyd Road, Charlton",London,England,27111,51.4863915,0.0361585
+533,Highbury Stadium,Park Avenue,"Fleetwood, Lancashire",England,5327,53.916397,-3.0246936
+11881,Sixfields Stadium,Upton Way,"Northampton, East Midlands",England,7798,52.2352633,-0.9335741
+569,The Kassam Stadium,Grenoble Road,"Oxford, Oxfordshire",England,12500,51.7133523,-1.2030744
+577,Crown Oil Arena,Sandy Lane,"Rochdale, Greater Manchester",England,10249,53.6207953,-2.1799129
+21312,Attis Arena,Doncaster Road,Scunthorpe,England,9088,53.590142,-0.6829317
+586,Roots Hall,"Victoria Avenue, Prittlewell","Southend-on-Sea, Essex",England,12392,51.5426921,0.7098745
+18620,Poundland Bescot Stadium,"Bescot Crescent, Bescot","Walsall, West Midlands",England,11300,52.5655014,-1.9904976
+19198,University of Bradford Stadium,Valley Parade,"Bradford, West Yorkshire",England,25136,53.8043367,-1.7593645
+514,Gigg Lane,Gigg Lane,"Bury, Lancashire",England,11840,53.5805538,-2.2949212
+19924,SMH Group Stadium,"1866 Sheffield Road, Whittington Moor","Chesterfield, Derbyshire",England,10338,53.2535581,-1.4258193
+11896,The Coventry Building Society Arena,"Phoenix Way, Rowleys Green","Coventry, West Midlands",England,32609,,
+537,Priestfield Stadium,Redfern Avenue,"Gillingham, Kent",England,11582,51.3842253,0.5609658
+560,Stadium mk,Stadium Way West,"Milton Keynes, Buckinghamshire",England,30500,52.009625,-0.7335404
+568,Boundary Park,"Furtherwood Road, Royton","Oldham, Greater Manchester",England,10638,53.5552236,-2.1283398
+570,Weston Homes Stadium,London Road,Peterborough,England,15142,52.5644502,-0.2400569
+572,Vale Park,"Hamil Road, Burslem","Stoke-on-Trent, Staffordshire",England,19052,53.0499557,-2.1926977
+19925,The Croud Meadow,Oteley Road,"Shrewsbury, Shropshire",England,9875,52.6909336,-2.7521556
+592,The County Ground,County Road,"Swindon, Wiltshire",England,15728,51.5644464,-1.7709719
+12676,Eco-Power Stadium,"Stadium Way, Lakeside","Doncaster, South Yorkshire",England,15231,53.5097785,-1.1137713
+573,Fratton Park,Frogmore Road,Portsmouth,England,20821,50.7963238,-1.0638836
+501,Bloomfield Road,Seasiders Way,"Blackpool, Lancashire",England,17625,53.8047875,-3.0482513
+571,Home Park,Gilbert Lane,Plymouth,England,19500,50.3868582,-4.1500476
+602,Adams Park,Hillbottom Road,"High Wycombe, Buckinghamshire",England,10000,51.6304108,-0.8002826
+551,Kenilworth Road,1 Maple Road,"Luton, Bedfordshire",England,11500,51.8848937,-0.4284145
+490,Wham Stadium,Livingston Road,"Accrington, Lancashire",England,5397,53.7654011,-2.370969
+522,JobServe Community Stadium,United Way,"Colchester, Essex",England,10083,51.9234391,0.8976478
+19200,Broadfield Stadium,Brighton Road,"Crawley, West Sussex",England,6134,51.1092075,-0.191108
+11876,Mornflake Stadium,Gresty Road,"Crewe, Cheshire",England,10153,53.087402,-2.4357333
+532,St James Park,Stadium Way,"Exeter, Devon",England,8830,50.730637,-3.5194755
+538,Blundell Park,Blundell Park,"Cleethorpes, North East Lincolnshire",England,9546,53.5702297,-0.0465117
+12677,The Suit Direct Stadium,Clarence Road,"Hartlepool, County Durham",England,7856,54.6897646,-1.2117039
+587,The Lamex Stadium,Broadhall Way,"Stevenage, Hertfordshire",England,7100,51.8896479,-0.1937405
+496,The Hive Stadium,"Camrose Avenue, Canons Park, Edgware",London,England,6418,51.6026364,-0.2917085
+515,Abbey Stadium,Newmarket Road,"Cambridge, Cambridgeshire",England,10847,52.2120297,0.1541831
+517,Brunton Park,Warwick Road,"Carlisle, Cumbria",England,18202,54.8955532,-2.9136003
+18617,Completely-Suzuki Stadium,Whaddon Road,"Cheltenham, Gloucestershire",England,7066,51.9061648,-2.0602259
+18618,Brisbane Road,"Brisbane Road, Leyton",London,England,9271,51.5600713,-0.0125999
+557,One Call Stadium,Quarry Lane,"Mansfield, Nottinghamshire",England,9186,53.1380561,-1.2009171
+11880,Mazuma Stadium,Morecambe Road,"Morecambe, Lancashire",England,6476,54.0607379,-2.8269067
+567,Meadow Lane,Meadow Lane,"Nottingham, Nottinghamshire",England,19588,52.9186928,-1.2261595
+603,Huish Park Stadium,"Lufton Way, Lufton","Yeovil, Somerset",England,9665,50.9502102,-2.6740629
+19201,The Bolt New Lawn,Smiths Way,"Nailsworth, Gloucestershire",England,5140,51.6990021,-2.2378877
+10610,LNER Stadium,Sincil Bank,"Lincoln, Lincolnshire",England,10780,53.2183,-0.5408655
+12213,The Leasing.com Stadium,London Road,"Macclesfield, Cheshire",England,6355,53.2460967,-2.123566
+594,Prenton Park,Prenton Road West,"Birkenhead, Merseyside",England,16567,53.3693513,-3.0253596
+489,Wembley Stadium,"Stadium Way, Wembley, Brent",London,England,90000,51.5570553,-0.2855462
+493,Electrical Services Stadium,High Street,"Aldershot, Hampshire",England,7100,51.2498875,-0.762159
+19197,SO Legal Stadium,Holker Street,"Barrow-in-Furness, Cumbria",England,6500,54.1189701,-3.2285204
+21313,Deva Stadium,Bumpers Lane,"Chester, Cheshire",England,5376,53.1892245,-2.923472
+526,Chigwell Construction Stadium,Victoria Road,"Dagenham, Essex",England,6078,51.5475442,0.1598273
+530,Silverlake Stadium,Stoneham Lane,"Eastleigh, Hampshire",England,5250,50.9524511,-1.3719149
+536,Gateshead International Stadium,Neilson Road,"Gateshead, Tyne and Wear",England,11750,54.960946,-1.5798031
+2691,Nethermoor Park,Otley Road,"Guiseley, West Yorkshire",England,3000,53.8740597,-1.7133838
+554,Gallagher Stadium,James Whatman Way,"Maidstone, Kent",England,4200,51.2799663,0.5169647
+19705,The BIG HELP Stadium,Haig Avenue,"Southport, Merseyside",England,6008,53.6381177,-2.978788
+2692,Plainmoor Ground,"Marnham Road, Plainmoor","Torquay, Devon",England,6104,50.4767895,-3.5245031
+11929,LNER Community Stadium,"Kathryn Avenue, Huntington","York, North Yorkshire",England,8500,53.984291,-1.052743
+529,The Perrys Crabble Stadium,"Lewisham Road, River","Dover, Kent",England,6500,51.1390887,1.2842017
+503,Meadow Park,Broughinge Road,"Borehamwood, Hertfordshire",England,4502,51.6620315,-0.2724395
+11894,Cressing Road Stadium,Clockhouse Way,"Braintree, Essex",England,4222,51.8764146,0.5707697
+20413,RELOC8 EM Community Stadium,"Hayes Lane, Bromley",London,England,5150,51.3938701,-0.0016847
+2693,Eon Visual Media Stadium,Church Road,"North Ferriby, East Yorkshire",England,2700,53.7197175,-0.5028622
+19204,ARMCO Arena,Damson Parkway,"Solihull, West Midlands",England,5500,52.4373945,-1.7569257
+12272,VBS Community Stadium,Gander Green Lane,"Sutton, Surrey",England,7032,51.3749491,-0.212018
+2689,The Laithwaite Community Stadium,Kingfield Road,"Woking, Surrey",England,6036,51.3068009,-0.5556453
+553,York Road Stadium,York Road,"Maidenhead, Berkshire",England,4000,51.5197686,-0.7179159
+491,Mill Farm Stadium,Coronation Way,Wesham,England,6000,53.7973998,-2.8897122
+11897,Kuflink Stadium,Stonebridge Road,"Northfleet, Kent",England,5011,51.4494972,0.3223574
+539,The Shay Stadium,Skircoat Road,"Halifax, West Yorkshire",England,10061,53.716094,-1.8591039
+11878,EnviroVent Stadium,Wetherby Road,"Harrogate, North Yorkshire",England,3800,53.9859282,-1.497608
+542,Westleigh Park,"Martin Road, West Leigh","Havant, Hampshire",England,5250,50.866507,-0.9731156
+579,The Peninsula Stadium,Moor Lane,"Salford, Greater Manchester",England,5100,53.5136044,-2.2769071
+22764,St. Andrew's @ Knighthead Park,St. Andrew&apos;s Road,Birmingham,England,30009,52.4755671,-1.868041
+22757,St Helens Stadium,"McManus Drive, Peasley Cross","St Helens, Merseyside",England,17980,53.4475324,-2.7259061
+7736,Eppleton Colliery Football Ground,Park View / Welfare Road,"Hetton-le-Hole, Tyne and Wear",England,2000,,
+10607,Kingsmeadow,Jack Goodchild Way,"Kingston upon Thames, Surrey",England,5339,51.4051256,-0.2819645
+22557,Joie Stadium,400 Ashton New Road,Manchester,England,7000,53.4828487,-2.1896508
+8560,Goodison Park,Goodison Road,Liverpool,England,40569,53.4386898,-2.9664193
+3526,The Impact Arena,North Street,"Alfreton, Derbyshire",England,3600,53.0942121,-1.3792828
+3527,AGP Arena,Blunts Wall Road,"Billericay, Essex",England,3500,51.6211323,0.4024005
+21314,Victory Park,Duke Street,"Chorley, Lancashire",England,4100,53.6460264,-2.6294423
+3529,Beveree Stadium,Beaver Close,"Hampton, Middlesex",England,3350,51.4151462,-0.3632963
+3530,Coles Park,"Tottenham, Borough of Haringey",London,England,2710,51.6054675,-0.0934807
+3531,Top Field,Fishponds Road,"Hitchin, Hertfordshire",England,4000,51.9537275,-0.279657
+3532,Imber Court,Ember Lane,"East Molesey, Surrey",England,3000,51.3930104,-0.354193
+19771,RAW Charging Stadium,"Marsh Road, Marston","Oxford, Oxfordshire",England,6075,,
+3534,Arbour Park,Stoke Road,"Slough, Buckinghamshire",England,2205,51.5222359,-0.5897965
+3535,Edgeley Park,"Hardcastle Road, Edgeley","Stockport, Greater Manchester",England,10852,53.3996432,-2.1664844
+21315,The Optima Stadium,Winterstoke Road,"Weston-super-Mare, Somerset",England,3000,51.3384607,-2.9572328
+3537,New Bucks Head Ground,"Watling Street, Wellington","Telford, Shropshire",England,6300,52.6961813,-2.5043609
+11942,Melbourne Stadium,Salerno Way,"Chelmsford, Essex",England,3500,51.7506327,0.4511843
+3539,Princes Park,"Darenth Road, Grassbanks","Dartford, Kent",England,4100,51.4366224,0.2303001
+21316,Kal Group Stadium,North Street,"Gainsborough, Lincolnshire",England,4304,53.4033299,-0.7744664
+3541,Edgar Street Athletic Ground,Edgar Street,"Hereford, Herefordshire",England,8843,52.060846,-2.7176732
+21964,First Call Community Stadium,"Scraley Road, Heybridge","Maldon, Essex",England,3000,51.7485111,0.7080938
+21317,Project Solar UK Stadium,Grange Road,"Hyde, Cheshire",England,4100,53.4453747,-2.0654946
+3544,Aggborough Stadium,Hoo Road,"Kidderminster, Worcestershire",England,6453,52.3804787,-2.2427359
+3545,Fetcham Grove,Guildford Road,"Leatherhead, Surrey",England,3400,51.292032,-0.3368868
+12605,Optimum Pay Stadium,Water Lode,"Nantwich, Cheshire",England,3500,53.0684124,-2.524507
+3547,Sheerien Park,"Ollerton Road, Athersley North","Barnsley, South Yorkshire",England,2000,53.5860777,-1.4748013
+21318,Truro Sports Hub,"Langarth Close, Threemilestone","Truro, Cornwall",England,3000,50.2670454,-5.1237019
+3549,The J. Davidson Stadium,Moss Lane,"Altrincham, Cheshire",England,6085,53.3833838,-2.3352283
+11943,St. James Park,Churchill Way,"Brackley, Northamptonshire",England,3500,52.0244301,-1.1441646
+3551,The Meadow,Amy Lane,"Chesham, Buckinghamshire",England,5000,51.6998719,-0.6129301
+3552,Tameside Stadium,Richmond Street,"Ashton-under-Lyne, Lancashire",England,4000,53.4942466,-2.1152425
+21319,ReachTV Stadium,"Priory Lane, Langney","Eastbourne, East Sussex",England,5644,50.8042125,0.3203734
+3554,Earlsmead Stadium,Carlyon Avenue,"South Harrow, Middlesex",England,3070,,
+3555,Moatside Stadium,Weldon Way,"Merstham, Surrey",England,2000,51.2576183,-0.1445237
+3556,The Brewery Field,Wood Vue,"Spennymoor, County Durham",England,6000,54.7045414,-1.5991581
+3557,Clarence Park,York Road,"St. Albans, Hertfordshire",England,4500,51.7551138,-0.3231252
+3558,The Zeeco Stadium,Ryhall Road,"Stamford, Lincolnshire",England,2000,52.6573756,-0.4672372
+3559,War Memorial Athletic Ground,"High Street, Amblecote","Stourbridge, West Midlands",England,3550,52.4600508,-2.1493867
+3560,Cygnet Health Care Stadium,Wordsworth Drive,"Taunton, Somerset",England,3001,51.0160802,-3.0874088
+11676,Allpay Park,Widemarsh Common,"Hereford, Herefordshire",England,2000,52.0657968,-2.7206617
+3561,The Enclosed Ground,East Brighton Park / Off Wilsons Avenue,"Brighton, East Sussex",England,2000,50.8214103,-0.0962838
+10726,Leigh Sports Village Stadium,Sale Way,"Leigh, Greater Manchester",England,11000,53.4917917,-2.5319182
+22758,BetWright Stadium,"Brisbane Road, Leyton",London,England,9271,51.5600713,-0.0125999
+4940,Shielfield Park,"Etal Road, Tweedmouth","Berwick-upon-Tweed, Northumberland",England,4476,55.7539667,-2.0171326
+5201,Colney Training Centre,Hethersett Lane,"Colney, Norfolk",England,1000,52.6221592,1.2153608
+5202,Bodymoor Heath Training Ground,"Bond Street, Nr. Tamworth","Bodymoor Heath, Warwickshire",England,1000,52.5708246,-1.7178563
+21181,American Express Elite Football Performance Centre,"New Monks Farm, Gravelly Crescent","Lancing, West Sussex",England,1000,50.8308067,-0.3090501
+5205,Motspur Park,Motspur Park,"New Malden, Surrey",England,2000,51.3956813,-0.238836
+22342,LCFC Training Ground,Park Hill Lane,"Sileby, Leicestershire",England,500,,
+5206,Liverpool’s Academy Ground,"The Liverpool Way, Kirkby","Knowsley, Merseyside",England,1000,,
+3543,Ewen Fields,Grange Road,"Hyde, Cheshire",England,4100,53.4503796,-2.0679986
+21220,Avant Training Centre,Hethersett Lane,"Colney, Norfolk",England,1000,52.6221592,1.2153608
+5208,Staplewood Training Ground,"Long Lane, Marchwood","Southampton, Hampshire",England,3000,,
+21182,Lamex Stadium,Broadhall Way,"Stevenage, Hertfordshire",England,7100,51.8896479,-0.1937405
+21183,The Rush Green Stadium,Rush Green Road,"Romford, Greater London",England,4500,51.5656939,0.1809213
+10612,MEL Group Stadium,Brundon Lane,"Sudbury, Suffolk",England,2500,52.040684,0.7155327
+5210,The Homelands,"Ashford Road, Kingsnorth","Ashford, Kent",England,3535,51.1244888,0.8627245
+5211,Parkside Stadium,Park Lane,"Aveley, Essex",England,3000,51.5004075,0.2594433
+5212,Mayesbrook Park,Lodge Avenue,"Dagenham, Essex",England,2500,51.5448734,0.1108283
+5213,Mill Road,Mill Road,"Barnstaple, Devon",England,5000,51.0825649,-4.0644981
+19793,The Ho Ho Stadium,Gardiners Close,"Basildon, Essex",England,4000,51.585781,0.4798462
+5215,Bedfont Sports Recreation Ground,Hatton Road,"Bedfont, Greater London",England,3000,51.4643663,-0.4237915
+5216,The Oval,Coventry Road,"Bedworth, Warwickshire",England,3000,52.4684755,-1.439064
+5217,Broadwater,Broadwater,"Berkhamsted, Hertfordshire",England,2500,51.7623466,-0.5640269
+5218,The Sports Ground,Kingsley Road,"Bideford, Devon",England,2000,51.0232276,-4.208848
+5219,The Brentwood Centre Arena,Doddinghurst Road,"Brentwood, Essex",England,1500,51.6290487,0.2985314
+20344,Home Call Carpets Community Stadium,Maple Drive,"Burgess Hill, West Sussex",England,2000,50.9654261,-0.1318369
+21965,FWD-IP Community Stadium,West Way,"Sawston, Cambridgeshire",England,1459,,
+5222,High Road,High Road,"Chipstead, Surrey",England,2000,51.299925,-0.1669593
+5223,The Causeway,"Edge Hills Road, Hilldene","Cinderford, Gloucestershire",England,3500,51.8267964,-2.4935311
+5224,Steel Park,Rockingham Road,"Corby, Northamptonshire",England,3893,52.5000897,-0.6901462
+21320,Christchurch Homes Loop Meadow,Bowmont Water,"Didcot, Oxfordshire",England,3000,51.6146056,-1.2432756
+5226,Butcher's Arms Ground,"Market Street, Tameside","Droylsden, Greater Manchester",England,3000,53.477606,-2.1462538
+21966,The Vistavis Community Stadium,College Lane,"East Grinstead, West Sussex",England,3000,51.1241411,-0.003443
+5228,The Stadium Cheshunt,Theobalds Lane,"Cheshunt, Hertfordshire",England,3000,51.6943962,-0.0424266
+5229,AlderSmith Stadium,"Badgers Hill, Berkley Road","Frome, Somerset",England,5000,,
+20129,The Asgard Engineering Stadium,Surrey Street,"Glossop, Derbyshire",England,2374,53.4459449,-1.9581453
+5231,Burroughs Park,Burroughs Park,"Great Wakering, Essex",England,3500,51.555624,0.7978098
+5232,Footes Lane Stadium,Footes Lane,"St. Peter Port (Guernsey, Channel Islands)",England,5000,49.4647628,-2.5629629
+5233,The Pilot Field,Elphinstone Road,"Hastings, Sussex",England,4050,50.8745219,0.5870566
+10613,Winch's Field,Stanley Gardens,"Herne Bay, Kent",England,4000,51.3646747,1.1299491
+5235,Save On Tyres Stadium,,"Highworth, Wiltshire",England,1000,51.6305435,-1.7112996
+10614,Glassworld Stadium,Bridge Road,"Impington, Cambridgeshire",England,3750,52.240271,0.112935
+5236,Reachfields Stadium,Fort Road,"Hythe, Kent",England,3000,51.0693723,1.0727579
+5237,New Manor Ground,Awsworth Road,"Ilkeston, Derbyshire",England,3500,52.9839996,-1.3000047
+20873,The Westmoreland Flooring Stadium,Parkside Road,"Kendal, Cumbria",England,2400,54.3223581,-2.7271297
+5239,The Plain Ham Ground,Larkhall,"Bath, Somerset",England,1000,51.3966581,-2.3471766
+21321,F. Ball Community Stadium,Macclesfield Road,"Leek, Staffordshire",England,3600,53.1103818,-2.0399414
+5241,Greenfields Sports Ground,Greenfields Lane,"Market Drayton, Shropshire",England,1000,52.9085437,-2.494197
+21967,Oakfield Stadium,Snowberry Lane,"Melksham, Wiltshire",England,1000,51.366755,-2.1276049
+12460,Red Industries Lyme Valley Stadium,"Buckmaster Avenue, Clayton","Newcastle-under-Lyme, Staffordshire",England,4000,52.9997203,-2.218762
+21968,Skyline Roofing Stadium,"Chestnut Avenue, Northwood, Hillingdon",London,England,3075,51.6034851,-0.4178941
+10622,Athletic Field,"Winterfield Road, Paulton","Paulton, Somerset",England,2200,51.3024987,-2.4977571
+5246,Phoenix Sports FC Ground,Mayplace Road East,"Bexleyheath, Kent",England,1000,51.4590477,0.1568028
+5247,Mill Lane,Mill Lane,"Pickering, North Yorkshire",England,2000,54.2399752,-0.7805286
+21969,The Hunters Stadium,Skinner Lane,"Pontefract, West Yorkshire",England,1429,53.6952283,-1.3110057
+12283,The Bourne Stadium,192A Seal Road,"Sevenoaks, Kent",England,1000,51.2886581,0.1945012
+10623,Woodstock Park,Broadoak Road,"Sittingbourne, Kent",England,1200,51.3490096,0.762083
+5251,King George's Field,"Whitehall Lane, South Park","Reigate, Surrey",England,700,51.2227184,-0.2149355
+5252,Bracken Moor,Bracken Moor Lane,"Stocksbridge, South Yorkshire",England,3500,53.4769834,-1.5879878
+5253,Central Ground,Coles Lane,"Sutton Coldfield, West Midlands",England,2000,52.5572947,-1.8191742
+5254,Waterside Park,Chamberhouse Mill Lane,"Thatcham, Berkshire",England,1500,51.3913762,-1.2423924
+5255,Chadfields,St. Chads Road,"Tilbury, Essex",England,4000,51.4701508,0.363317
+20130,Tooting & Mitcham Community Sports Club,Bishopsford Road,"Morden, Surrey",England,3500,51.3908779,-0.1780849
+5257,Honeycroft,"Horton Road, West Drayton",London,England,3770,51.5110784,-0.4606787
+5258,The Oakwood,Old Road,"Crayford, Kent",England,1400,51.4540529,0.1741191
+5259,Capershotts,Sewardstone,"Waltham Abbey, Essex",England,3500,51.6651725,-0.0088321
+5260,Alfredian Park,,"Wantage, Oxfordshire",England,1500,51.5878072,-1.4249258
+5261,Woking Park,Westfield,"Woking, Surrey",England,1000,51.3103406,-0.5570385
+5262,Church Road,Church Road,"Whyteleafe, Surrey",England,2000,51.3049512,-0.0810556
+5263,The Stan Robinson Stadium,Silver Street,"Willand, Devon",England,1000,50.89303,-3.3679518
+5264,Simarco Stadium,Spa Road,"Witham, Essex",England,2500,51.8018216,0.6278978
+5265,Borough Park,New Bridge Road,"Workington, Cumbria",England,3101,54.6487596,-3.5510962
+19723,Windsor Foodservice Stadium,Babbage Way / Sandy Lane,"Worksop, Nottinghamshire",England,3200,,
+10624,Leading Drove,Leading Drove,"Yaxley, Cambridgeshire",England,1500,52.5097562,-0.2569658
+5477,Creasey Park Community Football Centre,Creasey Park Drive,"Dunstable, Bedfordshire",England,3200,51.8923999,-0.5392239
+5478,Hillgrounds Leisure,"Hillgrounds Leisure, Hillgrounds Road","Kempston, Bedfordshire",England,2000,,
+10625,Snows Stadium,Salisbury Road,"Totton, Hampshire",England,3500,50.923158,-1.4962721
+5480,The Robert Parker Stadium,Short Lane,"Stanwell, Surrey",England,2550,51.4496334,-0.4638033
+5481,Sharpenhoe Road,Sharpenhoe Road,"Barton-Le-Clay, Bedfordshire",England,4000,51.9655557,-0.4303179
+19956,Charters Community Stadium,Hillier Way,"Winchester, Hampshire",England,4500,51.0707186,-1.3096892
+5483,The New Eyrie,Meadow Lane,"Cardington, Bedfordshire",England,4000,52.1294828,-0.4128041
+21322,Raygar Stadium,Bridge Street,"Belper, Derbyshire",England,2650,53.0276585,-1.4855634
+19957,The SB Stadium,2 Old Forge End,"Sandhurst, Berkshire",England,1950,51.3432178,-0.7959023
+5487,The Yorkshire Payments Stadium,St Giles Road,"Brighouse, West Yorkshire",England,800,,
+5488,The Creek,Portway,Bristol,England,2000,51.4815538,-2.650714
+18813,Atalian Servest Stadium,Cotton Lane,"Bury St Edmunds, Suffolk",England,3500,52.2490641,0.7175701
+22013,The Steves Taxis Stadium,Park Lane,"Canvey Island, Essex",England,4308,51.5178138,0.6154589
+10615,Bill Stokeld Stadium,"Stoke Lane, Gedling, Carlton","Nottingham, East Midlands",England,600,52.9710071,-1.0623298
+5492,Mill Meadow,Gravel Hill,"Chalfont St Peter, Buckinghamshire",England,1500,51.6152936,-0.5502646
+5493,The Scholars Ground,"Church Street, Chasetown","Burntwood, Staffordshire",England,2000,52.6702567,-1.9380367
+5494,Alwyns Lane Football Ground,Alwyns Lane,"Chertsey, Surrey",England,2500,51.3930287,-0.5063338
+5495,Oaklands Park,Oaklands Way,"Chichester, West Sussex",England,2000,50.8426765,-0.7753862
+5496,The Corinium Stadium,Kingshill Lane,"Cirencester, Gloucestershire",England,4500,51.711821,-1.9452911
+21970,DCBL Stadium,Lowerhouse Lane,"Widnes, Cheshire",England,13350,53.3621317,-2.7415665
+12045,The myenergi Stadium,Clee Road,"Grimsby, Lincolnshire",England,1000,53.5565758,-0.0489825
+21971,The Loom Loft Stadium,off Pendle Road,"Clitheroe, Lancashire",England,2000,53.8502215,-2.3400206
+5500,West Street,West Street,"Coggeshall, Essex",England,1000,51.8703755,0.6805101
+5501,Pack Meadow,Packington Lane,"Coleshill, Warwickshire",England,2070,52.4780461,-1.6952952
+21323,Haffners Stadium,"Holt House, Harrison Drive","Colne, Lancashire",England,1800,,
+20432,The Artic Stadium,"Middle Park Avenue, Eltham",London,England,1000,51.4472936,0.0379347
+5504,Communications Park,Browns Road,"Daventry, Northamptonshire",England,5000,52.257246,-1.1896145
+5505,Aldiss Park,,"Dereham, Norfolk",England,3000,52.6802052,0.9386329
+5506,UTS Stadium,"Wellington Road, Dunston","Gateshead, Tyne and Wear",England,2500,54.9558611,-1.6445162
+5507,The Spiers & Hartwell Jubilee Stadium,Cheltenham Road,"Evesham, Worcestershire",England,2000,52.0786417,-1.952399
+10626,Salters Lane,Salters Lane,"Faversham, Kent",England,2000,51.3068848,0.8940787
+20875,AGL Arena,Dellwood Avenue,"Felixstowe, Suffolk",England,2000,51.9697518,1.3559589
+5510,Westfield Lane Stadium,Westfield Lane,"South Elmsall, West Yorkshire",England,2087,53.5911589,-1.2937234
+5511,The Grove,Old Hawne Lane,"Halesowen, West Midlands",England,5000,52.4538788,-2.05762
+5512,The Powerday Stadium,"Perivale, Borough of Ealing",London,England,2000,51.5364952,-0.3225887
+11678,McCulloch's Stadium,Roydon Road / Off Elizabeth Way,"Harlow, Essex",England,3500,,
+5514,Hanbury Park,3 Allen Road,Haywards Heath,England,5000,51.000483,-0.0901608
+5515,Hertingfordbury Park,West Street,"Hertford, Hertfordshire",England,6500,51.7917031,-0.0883369
+5516,Lower Road,Lower Road,Hullbridge,England,1000,51.6172278,0.6092727
+5517,Yarnton Road,Yarnton Road,"Kidlington, Oxfordshire",England,1500,51.8164615,-1.2917515
+10617,Autonet Insurance Stadium,Hollinwood Road,"Kidsgrove, Staffordshire",England,2000,53.0815033,-2.2526903
+5519,Sun Hat Villas & Resorts Stadium,Ashby Avenue,"Lincoln, Lincolnshire",England,2200,53.212674,-0.5824388
+5520,Nanpantan Sports Ground,Nanpantan Road,"Loughborough, Leicestershire",England,1500,52.7557772,-1.2350475
+21972,Drewitt-Barlow Stadium,Park Drive,"Maldon, Essex",England,2000,51.7226539,0.6899556
+5522,Cossham Street Stadium,Cossham Street,"Mangotsfield, South Gloucestershire",England,2500,51.4835309,-2.4829831
+5523,The Marine Travel Arena,College Road,"Crosby, Merseyside",England,2800,53.487142,-3.0336394
+5524,Alfred Davis Memorial Ground,Oak Tree Road,"Marlow, Buckinghamshire",England,1500,51.5803122,-0.7745168
+5525,GER Stadium,Mount Pleasant Avenue,"Marske-by-the-Sea, Redcar and Cleveland",England,2500,54.5902412,-1.015028
+21973,The John Jenkins Stadium,Dover Road &amp; Moneyfields Avenue,"Portsmouth, Hampshire",England,2000,,
+5527,Seel Park,Market Street,"Mossley, Greater Manchester",England,4000,53.5177422,-2.0459121
+5528,Eynsham Hall Park,Nursery Road,"North Leigh, Oxfordshire",England,426,51.8145968,-1.4293704
+10627,Ingfield Stadium,Prospect Road,"Ossett, West Yorkshire",England,2000,53.6794694,-1.5769559
+21324,The Auto Safety Centre Stadium,Eaton Street / Hope Street,"Prescot, Merseyside",England,3200,,
+5531,The Harry Williams Riverside Stadium,Acrebottom,"Ramsbottom, Greater Manchester",England,2000,53.6448908,-2.3133349
+11960,WW Martin Community Stadium,Price&apos;s Avenue,"Ramsgate, Kent",England,3000,,
+20345,Runcorn Linnets' APEC Taxi's Stadium,Murdishaw Avenue,"Runcorn, Cheshire",England,1600,53.3226061,-2.6589957
+21974,Home of Football Stadium,Sheffield Road,"Dronfield, North East Derbyshire",England,2089,53.3096183,-1.477624
+5535,Mackoy Stadium,"Portsmouth Road, Old Netley, Sholing","Southampton, Hampshire",England,1000,,
+5536,Thornhill Park,Wisloe Road,"Cambridge, Gloucestershire",England,1500,51.7221215,-2.3678551
+5537,Julius Martin Lane,Julius Martin Lane,"Soham, Cambridgeshire",England,2000,52.340204,0.330989
+5538,Sir Halley Stewart Field,Winfrey Avenue,"Spalding, Lincolnshire",England,3500,52.7888863,-0.1534218
+10618,Rowley Park Stadium,Kester Way,"St Neots, Cambridgeshire",England,2000,52.2319507,-0.2455904
+5540,Wheatsheaf Park,Wheatsheaf Lane,"Staines, Surrey",England,3002,51.4197267,-0.5020433
+21975,Young Guns Arena,Ings Lane,"Tadcaster, North Yorkshire",England,1500,,
+5542,ASM Stadium,Tythrop Way (Kingsey Road),"Thame, Oxfordshire",England,2500,51.7558106,-0.9759699
+5543,Jubilee Field,"Three Bridges Road, Three Bridges","Crawley, West Sussex",England,1500,51.1156108,-0.1724089
+21976,Pennybridge Lane,Pennybridge Lane,"Flixton, Greater Manchester",England,2500,53.4483811,-2.373206
+5545,Wodson Park,Wadesmill Road,"Ware, Hertfordshire",England,3300,51.8243123,-0.0352133
+10629,Herns Way,"Herns Way, Panshanger","Welwyn Garden City, Hertfordshire",England,1000,51.8072618,-0.1847596
+5547,The Belmont Ground,Belmont Road,"Whitstable, Kent",England,3000,51.3546786,1.0281382
+5548,Select Security Stadium,Lowerhouse Lane,"Widnes, Cheshire",England,13350,53.3621317,-2.7415665
+19845,Fountain Fresh Park,"Lynn Road, Walsoken","Wisbech, Cambridgeshire",England,1118,52.6773634,0.1796506
+5552,Hornchurch Stadium,"Bridge Avenue, Upminster, Havering",London,England,3800,51.5565905,0.2383171
+5553,Hayden Road,Hayden Road,"Rushden, Northamptonshire",England,1500,52.2911176,-0.586067
+5554,Lye Meadow,Redditch Road,"Alvechurch, Worcestershire",England,3000,52.3448534,-1.956175
+5555,Hurst Cross,Surrey Street,"Ashton-under-Lyne, Greater Manchester",England,4500,53.5007308,-2.0796358
+5556,The Skuna Stadium,Alder Street,"Atherton, Greater Manchester",England,2500,53.5239755,-2.4860279
+5557,Sir Tom Finney Stadium,"Brownedge Road, Bamber Bridge","Preston, Lancashire",England,2264,53.7279184,-2.6720138
+10659,Banbury Plant Hire Community Stadium,Bridge Street,"Banbury, Oxfordshire",England,6500,52.0620226,-1.3328052
+5559,Kirkby Road,Kirkby Road,"Barwell, Leicestershire",England,2500,52.5726901,-1.3412017
+5560,Greenwich Avenue,"Greenwich Avenue, Basford","Nottingham, Nottinghamshire",England,1000,52.9860097,-1.1907061
+5561,Holloways Park,Slough Road,"Beaconsfield, Buckinghamshire",England,3500,51.4258432,-0.2169819
+5485,The Carlsberg Stadium,Langford Road,"Biggleswade, Bedfordshire",England,3000,52.0775673,-0.2653518
+20882,The RDA Stadium,Dunmow Road,"Bishop&apos;s Stortford, Hertfordshire",England,4525,51.8698684,0.1720985
+5563,Gang Warily Community & Recreation Centre,Newlands Road,"Blackfield, Hampshire",England,1500,50.8238139,-1.3653985
+20433,MKM Arena,Nyewood Lane,"Bognor Regis, West Sussex",England,4000,50.7841467,-0.6867877
+5565,North Road,North Road,"Brightlingsea, Essex",England,1000,51.8143846,1.0255225
+5566,The Victoria Ground,Birmingham Road,"Bromsgrove, Worcestershire",England,4893,52.4274746,-2.1239499
+5567,The Silverlands,The Silverlands,"Buxton, Derbyshire",England,5200,52.4819012,-2.0051245
+5568,War Memorial Sports Ground,Colston Avenue,"Carshalton, Surrey",England,5000,51.368077,-0.1696473
+5569,Owen Street Sports Ground,Owen Street,"Coalville, Leicestershire",England,1500,52.7237777,-1.3770029
+5570,King George's Field,"Queen Mary Close, Tolworth, Surbiton",London,England,2700,51.3865252,-0.2167093
+21325,Flamingo Park,"Sidcup By-Pass, Chislehurst",London,England,1500,51.5487404,-0.0876151
+5571,Clayson Stadium,Weymouth Avenue,"Dorchester, Dorset",England,5009,50.7032486,-2.44492
+5572,Rookery Hill,Rookery Hill,"Corringham, Essex",England,4000,51.5209189,0.4620468
+21326,Dave Bryant Stadium,"Donkey Lane, off Carterhatch Lane, Enfield Town, Enfield",London,England,2000,,
+20311,Saunders Transport Community Stadium,Cherrywood Road,"Farnborough, Hampshire",England,4267,51.3103368,-0.7622684
+22775,The Alcaline Stadium,Cheriton Road,"Folkestone, Kent",England,4000,51.0865399,1.151034
+5576,Privett Park,Privett Road,"Gosport, Hampshire",England,4500,50.7947611,-1.156577
+5577,South Kesteven Stadium,Trent Road,"Grantham, Lincolnshire",England,7500,52.9057479,-0.6668353
+5578,The Memorial Playing Fields,Green Lane,"Hartley Wintney, Hampshire",England,2000,51.3014362,-0.9038631
+5579,The SKYex Community Stadium,"Beaconsfield Road, Hayes, Hillingdon",London,England,2500,51.5091253,-0.3970004
+5580,Keys Park,Keys Park Road,"Hednesford, Staffordshire",England,6500,52.6977773,-1.9890111
+5581,Silver Jubilee Park,"Townsend Lane, West Hendon",London,England,1990,51.5815724,-0.2558291
+5582,The Camping World Community Stadium,Worthing Road,"Horsham, West Sussex",England,1980,51.0468182,-0.3405959
+5583,The Orbital Fasteners Stadium,Hempstead Road,"Kings Langley, Hertfordshire",England,1000,51.721234,-0.4513318
+19710,Giant Axe Stadium,West Road,"Lancaster, Lancashire",England,3513,54.0510035,-2.8109763
+5585,Victory Road,Victory Road,"Leiston, Suffolk",England,2500,52.2056584,1.573264
+5586,The Dripping Pan,Mountfield Road,"Lewes, East Sussex",England,3000,50.8690118,0.0122719
+5587,Crown Meadow,Love Road,"Lowestoft, Suffolk",England,2250,52.4800729,1.7475499
+5588,Hartsdown Park,Hartsdown Road,"Margate, Kent",England,2100,51.3804122,1.3740457
+5589,The Proctor Cars Stadium,Causeway Lane,"Matlock, Derbyshire",England,2757,53.1367717,-1.5523622
+5591,Don Amott Leisure Group Arena,Station Road,"Derby, Derbyshire",England,1500,52.9030782,-1.3831149
+5592,Craik Park,,"Morpeth, Northumberland",England,1637,55.1675437,-1.6907444
+21327,Ecologic Stadium at Bloomfields,Quinton Road,"Needham Market, Suffolk",England,4000,52.1516008,1.0468453
+5594,The A1 Gasforce Stadium,Liberty Way,"Nuneaton, Warwickshire",England,6250,52.5196095,-1.4452573
+5595,Lincoln Road,651 Lincoln Road,Peterborough,England,1000,52.6349182,-0.2962064
+10652,Tatnam Ground,"School Lane, Oakdale","Poole, Dorset",England,2000,50.7292331,-1.9831759
+22776,The Lantern Stadium,Watkins Rise,"Potters Bar, Hertfordshire",England,2500,51.6957726,-0.1793682
+10661,Neuven Stadium,Pilkington Road,"Radcliffe, Greater Manchester",England,3100,53.5682621,-2.3393482
+5599,The Valley Stadium,"Bromsgrove Road, Batchley","Redditch, Worcestershire",England,5000,52.3032547,-1.9642038
+10662,Garden Walk,Garden Walk,"Royston, Hertfordshire",England,4000,52.0528777,-0.0136445
+5601,Dales Lane,"Daw End, Bosty Lane, Rushall","Walsall, West Midlands",England,1400,52.6019487,-1.9512209
+5602,The Raymond McEnhill Stadium,"Partridge Way, Old Sarum","Salisbury, Wiltshire",England,5000,,
+5603,Flamingo Land Stadium,Ashburn Road,"Scarborough, North Yorkshire",England,3392,54.2735726,-0.4114832
+19711,1st Cloud Arena,Shaftesbury Avenue,"South Shields, Tyne and Wear",England,7000,54.9714158,-1.4629011
+10663,Westwood Road,Westwood Road,"St Ives, Cambridgeshire",England,2000,52.3285926,-0.0811183
+21977,The Stan Robinson Stadium,Marston Road,"Stafford, Staffordshire",England,4150,52.81867,-2.1168487
+5607,Bower Fold,Mottram Road,"Stalybridge, Greater Manchester",England,6500,53.4752905,-2.0438436
+5608,The Arden Garages Stadium,"Knights Lane, Tiddington","Stratford-upon-Avon, Warwickshire",England,2800,52.1992661,-1.6777899
+5609,The Webbs Wood Stadium,"Supermarine Road, South Marston","Swindon, Wiltshire",England,3000,,
+5610,The Lamb Ground,"Meadow Street, Kettlebrook","Tamworth, Staffordshire",England,4065,52.6285326,-1.6875063
+5611,Ladysmead,Kenndy Way,"Tiverton, Devon",England,3500,52.0052126,1.0393975
+5612,Broadhurst Park,310 Lightbowne Road. Moston,Manchester,England,4400,53.5165978,-2.1803853
+5613,Elmbridge Xcel Sports Hub,Waterside Drive,"Walton-on-Thames, Surrey",England,2000,51.3962096,-0.409715
+21328,Cal.Delivery Stadium,Common Lane,"Latchford, Warrington",England,3500,53.3775833,-2.5698183
+21329,Towbar Express Stadium at the Turnbull Ground,Upgang Lane,"Whitby, North Yorkshire",England,3200,54.4864609,-0.621726
+10653,The Cuthbury Stadium,Cowgrove Road,"Wimborne Minster, Dorset",England,3250,50.8026135,-1.9951293
+5617,The Maurice Rebak Stadium,"Summers Lane, North Finchley",London,England,1500,51.6068627,-0.1714792
+21978,U-Lock It Stadium,"Chapel Street, Wincham","Northwich, Cheshire",England,4813,,
+20346,Sussex Transport Community Stadium,Woodside Road,"Worthing, West Sussex",England,4000,50.8199911,-0.3834762
+10654,The Jelf Stadium,Lodge Road,"Yate, South Gloucestershire",England,6745,51.4663403,-2.4373639
+12199,Len Salmon Stadium,"Crown Avenue, Pitsea","Basildon, Essex",England,2661,,
+21469,Cobham Training Centre,,"Stoke d&apos;Abernon, Surrey",England,1000,51.3210307,-0.386805
+21471,Tottenham Hotspur Academy Spurs Lodge,Luxborough Lane,"Chigwell, Essex",England,1000,51.6151054,0.0648391
+12133,The Jakemans Community Stadium,"Pilgrim Way, Wyberton","Boston, Lincolnshire",England,5000,52.9562277,-0.0286799
+5770,Hardenhuish Park,Bristol Road,"Chippenham, Wiltshire",England,2815,51.4685984,-2.1426173
+5771,Blackwell Meadows,Grange Road,"Darlington, Durham",England,3299,54.6304244,-1.7184578
+5772,Champion Hill Stadium,"Edgar Kail Way, East Dulwich",London,England,3336,51.4626415,-0.0826761
+6181,Croft Park,Plessey Road,"Blyth, Northumberland",England,4450,55.1209878,-1.5113802
+6182,Horsfall Stadium,Cemetery Road,"Bradford, West Yorkshire",England,5000,53.7590079,-1.7761057
+6183,Throstle Nest,"Bransby Rise, Newlands","Farsley, West Yorkshire",England,3900,53.8092369,-1.6649092
+11964,New Meadow Park,"Sudmeadow Road, Hempsted","Gloucester, Gloucestershire",England,4000,51.8616188,-2.2615467
+6184,Latimer Park,"Polwell Lane, Burton Latimer","Kettering, Northamptonshire",England,1500,52.3694878,-0.6915057
+6185,The Walks,Exton&apos;s Road,"King&apos;s Lynn, Norfolk",England,5733,52.7489626,0.406991
+21330,Your Co-op Community Stadium,"Harbury Lane, Whitnash","Royal Leamington Spa, Warwickshire",England,2300,,
+6187,Twerton Park Stadium,"Dominion Road, Twerton","Bath, Somerset",England,8840,51.379926,-2.3973633
+11965,The Aspect Arena,Thames Road,"Canvey Island, Essex",England,3300,51.5148214,0.5745028
+6189,Meadowbank Stadium,Church Gardens,"Dorking, Surrey",England,3732,51.233542,-0.3316739
+21331,Focus Community Arena,Vauxhall Road,"Hemel Hempstead, Hertfordshire",England,3152,51.7522838,-0.4447367
+6191,Bulpit Lane,Bulpit Lane,"Hungerford, Berkshire",England,2500,51.4089339,-1.5134685
+6192,Longmead Stadium,Darenth Avenue,"Tonbridge, Kent",England,3000,51.2102554,0.2733681
+6193,Grosvenor Vale,Grosvenor Vale,"Ruislip, Middlesex",England,3607,51.569433,-0.4167036
+21987,Acclaim Handling Community Stadium,Park View Road,"Welling, Kent",England,5500,51.4603551,0.1165364
+6195,Bob Lucas Stadium,Radipole Lane,"Weymouth, Dorset",England,6600,50.6328055,-2.4697086
+6196,Townfield Lane,"Townfield Lane, Barnton","Northwich, Cheshire",England,1000,53.2332132,-2.9338038
+11680,The Mayfield Stadium,Thornton Heath,London,England,1500,51.39911,-0.0986059
+6197,Farm Park,Kingshill Avenue,London,England,1500,51.5333161,-0.3970885
+5497,Berry Street Garage Stadium,Vesty Road,"Bootle, Merseyside",England,2500,53.471943,-2.9622272
+6198,Forest Town Stadium,"Clipstone Road W, Forest Town","Mansfield, Nottinghamshire",England,500,53.1500682,-1.1690127
+18814,The OnSite Group Stadium,"Cranleigh Road PO16 9 Fareham, Hants","Portchester, Hampshire",England,1000,,
+11682,Stoneham Lane Football Complex,Stoneham Lane,"Eastleigh, Hampshire",England,1000,50.948498,-1.377378
+20876,Prestige Midlands Arena,"Castlecroft Road, Castlecroft","Wolverhampton, West Midlands",England,2000,52.5793155,-2.1716268
+21332,The Abbey Stadium,Goredale Avenue,"Gorton, Greater Manchester",England,1000,53.4547822,-2.166734
+11684,Addlestone Moor,Addlestone Moor,"Addlestone, Surrey",England,1000,51.3814658,-0.4904045
+21979,The Northcourt,Northcourt Road,"Abingdon, Oxfordshire",England,2000,51.6820075,-1.2746437
+11685,Arlesbury Park,New Alresford,"Winchester, Hampshire",England,1000,51.0906159,-1.1614397
+11686,Bonnymead Park,Recreation Road,"Amesbury, Salisbury, Wiltshire",England,1000,51.1682441,-1.786045
+20877,DH PROPERTY SERVICES STADIUM,Foxcotte Lane,"Andover, Hampshire",England,1000,,
+11687,Cropston Road,Cropston Road,"Leicester, Leicestershire",England,2000,52.679709,-1.1789022
+11688,The Playing Fields,Oxford Road,"Ardley, Oxfordshire",England,1000,51.3823263,-0.1993901
+6200,Armadillo Stadium,Hitchin Road,"Arlesey, Bedfordshire",England,2920,51.9916953,-0.2663018
+11689,Ascot Racecourse,Winkfield Road,"Ascot, Berkshire",England,1150,51.4176393,-0.679991
+18815,The dwmedia Stadium,Woodhorn Lane,"Ashington, Northumberland",England,2000,,
+6201,Brocstedes Park,Brocstedes Road,"Ashton-in-Makerfield, Wigan, Greater Manchester",England,1000,53.5021004,-2.6646487
+20878,Gam Civils Stadium,Sheepy Road,"Atherstone, Warwickshire",England,3500,52.583501,-1.5467615
+6203,Vestacare Stadium,White Bank Road,"Oldham, Greater Manchester",England,1500,53.5156047,-2.1213371
+11691,The Greenfleets Stadium,Haywood Way,"Aylesbury, Buckinghamshire",England,1300,51.8299502,-0.8420561
+11692,Westfield Lane Stadium,"Westfield Lane, Waverley",Wrecclesham,England,1000,51.1973179,-0.8245194
+11693,PMC Stadium,Eastern Road,"Portsmouth, Hampshire",England,1000,50.8147515,-1.0437357
+11694,Merland Rise,Merland Rise,"Tadworth, Surrey",England,4000,51.2993383,-0.2353967
+6204,Cricklefield Stadium,"486 High Road, Waltham Forest","Ilford, Essex",England,3500,,
+6205,Silentnight Stadium,Greenberfield Lane,"Barnoldswick, Lancashire",England,1500,53.9299821,-2.1729508
+20879,Easy Buy Stadium,Pasture Road North / Marsh Lane,"Barton-upon-Humber, Lincolnshire",England,1500,,
+21980,The Veho Community Stadium,"Bashley Road, New Milton","Bashley, Hampshire",England,4250,50.7720858,-1.6578719
+18816,Otham Sports Ground,Honey Lane,"Otham, Kent",England,1000,51.2460405,0.5742255
+6207,Eden Park Avenue,374 Eden Park Avenue,"Beckenham, Kent",England,4000,51.3950503,-0.0401625
+18967,Westwood Recreation Ground,"Western Way, Bemerton Heath","Salisbury, Wiltshire",England,2500,51.0801794,-1.833632
+19848,Priory Lane,Priory Lane,"Eastbourne, East Sussex",England,1000,50.8042125,0.3203734
+20880,Verdant Stadium,Fairfield Road,"Biggleswade, Bedfordshire",England,2000,52.0925514,-0.2660469
+11699,Bedford Terrace,Bedford Terrace,"Billingham, County Durham",England,3000,54.6021794,-1.2827347
+21981,The Iconic Stadium,Stubbs Lane / Hill Farm Lane,Binfield,England,1000,,
+7734,Heritage Park,Stadium Way,"Bishop Auckland, County Durham",England,2004,54.6392612,-1.6915922
+6208,Kayte Lane,Kayte Lane,"Bishop&apos;s Cleeve, Gloucestershire",England,1500,51.9413873,-2.059014
+11700,The Recreation Ground,Bath Road,"Bitton, South Gloucestershire",England,1000,51.4490215,-2.4631004
+21982,The Amber Arena and Community Stadium,"Church Road, Boldmere","Sutton Coldfield, West Midlands",England,2500,52.5412546,-1.8409374
+21983,Barrett Steel Stadium,"Ontario Road, Bottesford",Scunthorpe,England,1000,,
+11703,Victoria Park,Boundary Road / Namu Road,"Bournemouth, Dorset",England,3000,50.7469927,-1.8867463
+11704,Bradford on Avon Sports and Social Club,Trowbridge Road,"Bradford on Avon, Wiltshire",England,1000,51.3345902,-2.2382998
+11705,Brantham Leisure Centre,New Village,"Brantham, Suffolk",England,1200,51.9576496,1.0594338
+6209,Fairfax Park,"College Way, Bath Road","Bridgwater, Somerset",England,2500,51.1305323,-2.9871063
+12168,The Neil Hudgell Law Stadium,Queensgate,"Bridlington, East Yorkshire",England,2740,54.093131,-0.1836641
+11706,St. Mary's Field,,"Bridport, Dorset",England,1500,50.729985,-2.7615184
+11707,Brimscombe & Thrupp FC Ground,The Meadow London Road Brimscombe,"Stroud, Gloucestershire",England,1000,,
+11708,Brislington Stadium,Ironmould Lane,"Brislington, Bristol",England,3000,51.4332771,-2.5296517
+21984,The BodyMould Mattresses Stadium,"Wickhurst Lane, Broadbridge Heath","Horsham, West Sussex",England,1000,51.0654962,-0.3585614
+11710,Rayners Lane,Lucas Avenue,London,England,1000,51.5698431,-0.3651493
+11711,Meadens Skoda Arena,Grigg Lane,"Brockenhurst, Hampshire",England,2000,50.8198207,-1.575677
+11712,Homers Heath,Kingskerswell Road,"Newton Abbot, Devon",England,1000,50.5175446,-3.5972306
+12169,Birds Close,CAMP HILL,"Bugbrooke, Northamptonshire",England,2000,52.2061104,-1.0066113
+19849,The 1878 Stadium,Wymers Wood Road,"Burnham, Buckinghamshie",England,2500,51.5378065,-0.6669018
+18817,The Community Ground,Bobby Langton Way,"Burscough, Lancashire",England,1500,53.6045827,-2.8442702
+11713,Hounslow Sports Club,"Green Lane, Hounslow",London,England,1000,51.4648733,-0.3971024
+11714,Springfield,Cadbury Heath Road,"Cadbury Heath, Bristol",England,2000,51.4513102,-2.4783593
+11715,Krooner Park,Krooner Road,"Camberley, Surrey",England,2500,51.326977,-0.7557462
+21985,Anytime Couriers Stadium,"50 Scotchman Road, Manningham","Bradford, West Yorkshire",England,1000,53.8106576,-1.7825122
+6212,Mossie Park,Charter Lane,Charnock Richard,England,1500,53.6316544,-2.6725542
+18818,Bauvill Stadium,Bourneville Avenue,"Chatham, Kent",England,2000,51.3686381,0.5213368
+11716,The Ridings,Wickwar Road,"Chipping Sodbury, Bristol",England,1000,51.5418644,-2.3956591
+11717,Hurn Bridge Sports Ground,,"Christchurch, Dorset",England,2000,50.7651081,-1.8145131
+11718,The Rush Green Bowl,,"Clacton-on-Sea, Essex",England,1500,51.7883997,1.1527865
+11719,Terence MacMillan Stadium,281 Prince Regent Lane,London,England,2000,51.5191462,0.0359798
+20347,Everyone Active Stadium,Davis Lane,"Clevedon, Somerset",England,3900,51.546729,0.1111666
+21986,The Reg Madgwick Stadium,Downside Bridge Road,"Cobham, Surrey",England,2000,51.3248063,-0.4125856
+11721,Cockfosters Sport Ground,"Chalk Lane, Barnet",London,England,1000,51.6539333,-0.1534053
+11722,Wibbandune Sports Ground,"Kingston By Passm, Borough of Merton",London,England,2000,,
+11723,The Recreation Ground,High Street,"Colney Heath, Hertfordshire",England,1000,51.7389044,-0.2574541
+19850,The Cleric Stadium,"Booth Street, Ivy Gardens, off Crescent Road","Congleton, Cheshire",England,1450,,
+11724,Belle Vue Park,Delves Lane,"Consett, County Durham",England,4000,54.8393951,-1.8101026
+11966,Corinthian Sports Club,Gay Dawn Farm,"Longfield, Kent",England,1000,,
+6216,Sphinx Drive,Sphinx Drive,"Coventry, West Midlands",England,1000,52.4023778,-1.4732639
+11725,Butts Park Arena,"Butts Road, Spon End","Coventry, West Midlands",England,3000,52.4061896,-1.5259715
+21333,The Zilch Waste Stadium,Reynolds Close,"Cowes, Isle of Wight",England,500,50.7573199,-1.3079677
+6217,The Haven Sportsfield,Hophurst Lane,"Crawley Down, West Sussex",England,1500,51.1284881,-0.0674856
+11727,The Brache,307 Park Street,"Luton, Bedfordshire",England,1000,51.8734736,-0.4020776
+11728,The Lawns,"Station Road, Henbury",Bristol,England,1000,51.5084995,-2.6308508
+11729,Crowborough Community Stadium,Fermor Road,"Crowborough, East Sussex",England,2000,51.0427859,0.1670466
+11730,The Charles Sports Ground,St Leonards Road,"Deal, Kent",England,1000,-34.1048595,18.8384175
+11731,Deeping Sports Club,Outgang Road,"Market Deeping, Lincolnshire",England,2000,52.688402,-0.3074605
+19851,SG Pathway Academy Arena,Braybrooke Road,"Desborough, Northamptonshire",England,1000,52.4509283,-0.856827
+11733,Addison Road,Addison Road,"Banbury, Oxfordshire",England,1000,52.0478191,-1.3389013
+11734,Lashmar Recreation Ground,Roundstone Drive,"East Preston, West Sussex",England,2000,50.8148941,-0.4791801
+6218,The Saffrons Football Ground,Compton Place Road / Mead Road,"Eastbourne, East Sussex",England,4500,,
+11735,The Oval,Channel View Road,"Eastbourne, East Sussex",England,4100,50.779937,0.3045275
+11736,Mitton Group Stadium,Kingsway,"Wrose Bradford, West Yorkshire",England,2225,53.8280251,-1.7462381
+6219,The Runnymede Stadium,Wards Place,"Egham, Surrey",England,1565,,
+11737,The Unwin Ground,Downham Road,"Ely, Cambridgeshire",England,2000,52.4082178,0.2545572
+11858,Bayliss Avenue,"Bayliss Avenue, Thamesmead",London,England,6000,51.50679,0.1281059
+11738,King George V Ground,Southern Road,"Exmouth, Devonshire",England,1000,50.6264452,-3.4124643
+11739,The Alfred Hall Memorial Ground,Hall Road,"Eynesbury, St. Neots",England,1000,52.2179849,-0.267375
+21988,The Acorn Property Stadium,Cinder Lane,Fairford,England,1500,51.708134,-1.7684061
+12170,Clipbush Park,Clipbush Lane,"Fakenham, Norfolk",England,2000,52.8406798,0.8716634
+11741,Cams Alders Stadium,,"Fareham, Hampshire",England,5500,50.8526637,-1.1783134
+12171,The Memorial Ground Farnham,Mead Lane / West Street,"Farnham, Surrey",England,1500,51.2124351,-0.8066893
+11742,St Pauls’ Sports Ground,"Salter Road, London Borough of Southwark",London,England,1000,51.5040069,-0.0464688
+11743,Wilks Park,Heath End Road,"Flackwell Heath, Buckinghamshire",England,1000,51.6044371,-0.7161734
+21334,Easy As HGV Stadium,Crookham Road,"Fleet, Hampshire",England,2000,51.273561,-0.8499943
+11744,The Frimley Green Recreation Ground,,"Frimley Green, Camberley",England,2000,51.3205861,-0.7079197
+21335,Bannister Prentice Community Stadium,Brierlands Lane off Cedar Ridge,"Garforth, West Yorkshire",England,3000,,
+11745,Foxbury Avenue,Foxbury Avenue (off Perry Street),"Chiselhurst, Greater London",England,1000,51.4181904,0.081373
+11746,Bearscroft Lane,Bearscroft Lane,"Godmanchester, Cambridgeshire",England,1050,52.3091355,-0.1627883
+6224,Victoria Pleasure Grounds,Marcus Street,"Goole, East Yorkshire",England,3000,53.7031615,-0.8806292
+11747,Emerald Park,Woodfarm Lane,"Gorleston-On-Sea, Norfolk",England,3000,52.5630667,1.7094738
+21336,Wellesley Recreation Ground,,"Great Yarmouth, Norfolk",England,4000,52.6071742,1.7314845
+5503,DGS Marine Stadium,"Middle Park Avenue, Eltham",London,England,1000,51.4472936,0.0379347
+6225,The Moat Ground,Moat Street,"Church Gresley, Derbyshire",England,2400,52.7622001,-1.5627934
+11748,Bradley Community Stadium,Bradley Road,"Grimsby, Lincolnshire",England,1000,53.5506072,-0.1197862
+6226,Guildford Spectrum Athletics Stadium,,"Guildford, Surrey",England,1135,51.2356068,-0.5732063
+11749,King George V Ground,,"Guisborough, North Yorkshire",England,3500,54.4773081,-0.65843
+21989,The Old Spotted Dog Ground,"The spotted Dog Inn, 212 Upton Lane, Newham",London,England,1000,,
+11750,Millfield,Tinkers Lane,"Hadleigh, Suffolk",England,3000,52.0401557,0.9557994
+11751,Hadley Sports Ground,"Brickfield Lane, Arkley, Barnet",London,England,1000,51.6425289,-0.2420118
+18968,Sandygate Road,Sandygate Road,Sheffield,England,1000,53.3772758,-1.5283403
+11752,The Hallen Centre,Moorhouse Lane,"Hallen, Gloucestershire",England,2000,51.5161718,-2.6506233
+20885,Milbank Stadium,Rosemary Lane,"Halstead, Essex",England,1000,51.9446229,0.6339583
+11753,The Abbey,Hamble Lane,"Hamble-le-Rice, Hampshire",England,1000,50.8607321,-1.3259754
+18688,The Sunseeker International County Ground,"Blandford Close, Hamworthy","Poole, Dorset",England,1000,50.7145244,-2.0021025
+21990,Express Worktops Stadium at Handsworth Junior Sporting Club,"Olivers Mount, Darnall","Sheffield, South Yorkshire",England,1000,53.383572,-1.4028912
+11756,Rectory Meadow,"Park Road, Hanworth","Hanworth, Middlesex",England,600,51.4333914,-0.3960938
+11757,Bowden Park,Northampton Road,"Market Harborough, Leicestershire",England,1000,52.4767258,-0.919207
+11758,Preston Park,"Harefield, Borough of Hillingdon",London,England,1500,51.607028,-0.483481
+11759,Rothamsted Park,33 High Street,"Harpenden, Hertfordshire",England,1000,51.8175367,-0.35746
+6228,Station View,Station View,"Harrogate, West Yorkshire",England,3500,53.9993047,-1.502474
+21991,Royal Oak Ground,"Main Road, Tendring","Harwich, Essex",England,1500,51.9409262,1.2866291
+11760,The Beacon Ground,Brighton Road,"Hassocks, West Sussex",England,1500,50.9240405,-0.1531022
+11761,Shrewsbury Sports Village,Sundorne Rd,Shrewsbury,England,1000,52.7267209,-2.7164769
+11762,The New Croft,Chalkestone Way,"Haverhill, Suffolk",England,2000,53.4397565,-2.5529193
+12172,The Town Ground,Mayfield Avenue,"Heanor, Derbyshire",England,1000,53.011066,-1.3563522
+11763,St. John's Park,Ravenstone Road,"Heather, Leicestershire",England,1000,52.7050346,-1.4190006
+11764,The Energy Check Sports Ground,North Drive / Victoria Road West,"Hebburn, Tyne and Wear",England,1500,,
+11765,The MDC Sports Stadium,"Wakefield Road, Fitzwilliam","Hemsworth, West Yorkshire",England,2000,53.6234084,-1.3657291
+11766,The Stewart Edwards Stadium,Park View,"Hoddesdon, Hertfordshire",England,3000,51.7582708,-0.0158936
+11767,Carters Park,,"Holbeach, Lincolnshire",England,2000,52.805874,0.0157207
+11768,Star Meadow Sports Club,Darland Avenue,"Gillingham, Kent",England,1000,51.3699889,0.5619455
+11769,Airedale Park,Watchet Lane,"Holmer Green, Buckinghamshire",England,1000,51.6685065,-0.7023493
+11770,The New Defence,Anderson Way,"Horley, Surrey",England,2000,51.176306,-0.1808965
+11771,Five Heads Park,Park Five Heads Road,"Horndean, Hampshire",England,1000,,
+6229,Gorings Mead,Brighton Road,"Horsham, West Sussex",England,1500,50.9181795,-0.2418781
+18689,Hythe Garage Stadium,Claypits Lane,Dibden,England,1000,50.8646921,-1.4287219
+21992,The Silver Street Stadium,"Silver Street, Irlam","Salford, Greater Manchester",England,500,53.4539438,-2.4135788
+11773,K Sports,"Station Road, Ditton","Aylesford, Kent",England,1000,51.2995146,0.4568246
+11774,The AJN Stadium,Bristol Road,"Keynsham, Somerset",England,3001,51.4179912,-2.5011172
+11775,Walmer Road,Walmer Road,"Kirkley, Suffolk",England,1500,52.4577856,1.7296785
+11776,Redding Way,,"Knaphill, Surrey",England,1000,51.3106785,-0.6252991
+21993,The Hummel Stadium,3 Manse Lane,Knaresborough,England,1000,54.0038603,-1.4490066
+11778,Culver Road,Culver Road,"Lancing, West Sussex",England,2000,50.8289044,-0.3225312
+11779,Hamilton Park,Sandhills Avenue,"Leicester, Leicestershire",England,1000,52.66372,-1.0718708
+12135,The Greene King Stadium (De Montfort Park),Leicester Road,"Hinckley, Leicestershire",England,4329,52.5490575,-1.3589732
+21994,Freed Veneers Community Stadium,Lake Street,"Leighton Buzzard, Bedfordshire",England,2800,51.9160569,-0.6601135
+19238,The LORDS Builders Merchants Stadium,"Pancake Lane, Leverstock Green","Hemel Hempstead, Hertfordshire",England,1500,51.7480137,-0.4269824
+18820,Trade Tyre Community Stadium,Brownsfield Road,Lichfield,England,1000,52.6907277,-1.8158851
+6232,Litherland Sports Park,Bootle,Liverpool,England,1000,53.4506931,-2.9948834
+19853,Little Common Recreation Ground,Channel View Road,Bexhill,England,1000,50.848497,0.4393447
+11967,Clayborn Stadium,Quaker Lane,"Cleckheaton, West Yorkshire",England,2200,53.7190052,-1.7169066
+11782,Cotlandswick Playing Fields,North Orbital Road,"London Colney, Hertfordshire",England,1000,51.7316145,-0.299298
+11783,Grange Park,Station Road,"Long Eaton, Derbyshire",England,1500,52.8981772,-1.259256
+11784,Stoneylands,New Rd,"Long Melford, Sudbury, Suffolk",England,1000,52.0746684,0.7126439
+11785,Saw Mills End,Corinium Avenue,Gloucester,England,500,51.8660484,-2.1977105
+21995,Inglewhite Road,Inglewhite Road,"Longridge, Lancashire",England,1000,53.8356711,-2.6086963
+11786,Martyn Grove,North Dane Way,"Chatham, Kent",England,2000,51.3628379,0.5475551
+11120,Loughborough University Football Stadium,Loughborough University Road,"Loughborough, Leicestershire",England,2500,52.763845,-1.2372582
+12137,Anfield Sports Community Centre,"132 Lower Breck Road, Anfield",Liverpool,England,1000,53.4273065,-2.9497983
+18821,Loxwood Sports Association,Sports Pavilion Plaistow Road,"Loxwood, West Sussex",England,1000,51.0626054,-0.5184272
+11788,Dunley Way,Dunley Way,"Lutterworth, Leicestershire",England,1000,52.4645692,-1.2020934
+11789,Lydney Recreation Ground,Swan Rd,Lydney,England,1000,51.7250813,-2.5307717
+11790,The Sports Ground,Stourbridge Road,"Lye, West Midlands",England,1000,52.4583968,-2.1185351
+11791,Lymington Sports Ground,Southampton Road,"Lymington, Hampshire",England,1000,50.7683029,-1.5527068
+21338,The Flying Monk Ground,Poole Road,"Malmesbury, Wiltshire",England,1000,51.5906127,-2.1017182
+11792,Muglet Lane,Muglet Lane,"Maltby, South Yorkshire",England,2150,53.4215684,-1.1960192
+12174,HD Anywhere Stadium,Langland Avenue,"Malvern, Worcestershire",England,4000,52.116597,-2.3054937
+12175,GER Sports Ground,10 Robingoodfellow&apos;s Lane,"March, Cambridgeshire",England,1000,52.5559993,0.0864475
+12138,Sign Right Park,Burton Road,"Melton Mowbray, Leicestershire",England,1000,52.7610941,-0.8840912
+6234,Mildenhall Town Football Club Stadium,Recreation Way,"Mildenhall, Suffolk",England,2000,52.3428231,0.5124012
+6235,The Herds Renault Stadium,Walton Road,"West Molesey, Surrey",England,4000,51.4030357,-0.3689512
+12176,Mulberry Park,"New Village Hall, The Common","Mulbarton, Norfolk",England,1000,52.5612862,1.2381592
+11793,Sam Smith's Park,"37 Cherrywood, Walkergate","Newcastle upon Tyne, Tyne and Wear",England,2000,,
+11794,Trafalgar Ground,Fort Road,Newhaven,England,3000,50.789598,0.0516227
+11795,Cricket Field Road,Cricket Field Road,"Newmarket, Suffolk",England,2750,52.2396396,0.4125684
+11796,Willen Road,Willen Road,"Newport Pagnell, Buckinghamshire",England,500,52.0802414,-0.7215011
+20312,Securicorp Stadium,Moore Lane,"Newton Aycliffe, County Durham",England,1000,54.617222,-1.5584036
+6236,Berkeley Fields,"Berkeley Avenue, Greenford, Ealing",London,England,2000,52.7147906,-2.7780196
+11798,Daren Persson Stadium,West Percy Road,"North Shields, Tyne and Wear",England,1000,55.0061359,-1.458323
+12692,The Calvert Stadium,Ainderby Road,"Northallerton, North Yorkshire",England,1500,38.9925099,-76.9466116
+11800,Old Northamptonians Private Sports Ground,111 Ardington Road,"Northampton, Northamptonshire",England,1000,52.2458325,-0.8699886
+6237,Plantation Park,"Plantation Road, Biofield",Norwich,England,3000,52.6290984,1.2819859
+21339,Riverside Pavilion,Braunstone Lane East 40,"Leicester, Leicestershire",England,1000,52.6115963,-1.163763
+11802,Lew Hill Memorial Ground,"Combe Hay Lane, Odd Down","Bath, Somerset",England,1160,51.3536627,-2.3824301
+11803,The Boundary Stadium,"Altham Way, South Oxhey","Watford, Hertfordshire",England,2000,51.619276,-0.3832735
+6238,Ruby Civil Arena,Well Street,"Padiham, Lancashire",England,1688,53.8015159,-2.3214023
+11804,Nyetimber Lane,Nyetimber Lane,"Pagham, West Sussex",England,1500,50.7790129,-0.7291871
+18970,Centenary Park,Piddinghoe Avenue,"Peacehaven, East Sussex",England,1500,50.7886084,0.0087587
+21996,Parker Roofing Memorial Ground,"Church View Road, Penistone","Barnsley, South Yorkshire",England,1000,53.5244856,-1.625648
+21997,The Frenchfield Stadium,Frenchfield Park,Penrith,England,1000,,
+11807,Branch Bros Stadium,"Chestnut Avenue, Dogsthorpe","Peterborough, Cambridgeshire",England,1500,52.5935338,-0.2260794
+11968,Manadon Sports Hub,"St. Peters Road, Manadon","Plymouth, Devon",England,1000,50.4083202,-4.148576
+18822,The Camp & Satherley Stadium,Grove Road,"Portland, Dorset",England,1000,50.5514431,-2.4289497
+11809,The Hollow,,"Potton, Bedfordshire",England,1000,52.1231738,-0.2171236
+11810,Elite Venue,Dunkirk Close,"Gravesend, Kent",England,1000,51.4168387,0.3770153
+11811,Farley Way Stadium,Farley Way,"Quorn, Leicestershire",England,1400,52.7494912,-1.1776702
+11812,Townsend Meadow,Hampton Road,"Warwick, Warwickshire",England,2000,52.2770826,-1.5985409
+11813,Prince George's Fields,"Grand Drive, Raynes Park, Merton",London,England,1500,51.4038379,-0.2292465
+11814,Rivermoor Stadium,Scours Lane,"Reading, Berkshire",England,2162,51.4656031,-1.0139857
+6241,Oakside Stadium,"Station Road, Barkingside","Ilford, Essex",England,3000,51.5868709,0.0879691
+6242,Kiln Brow,,"Redhill, Surrey",England,1500,51.2404691,-0.1682816
+11815,Oaklands Park Stadium,Gloucester Road,"Almondsbury, South Gloucestershire",England,1000,51.5461785,-2.5676052
+11817,Sergeants Lawn,Desborough Road,"Rothwell, Northamptonshire",England,1000,52.4259892,-0.8081334
+11818,Gerrard Buxton Sports Ground,Rylands Way,"Royal Wootton Bassett, Wiltshire",England,2000,51.5446964,-1.8954122
+6243,Butlin Road,Butlin Road,"Rugby, Warwikshire",England,6000,52.3738002,-1.2390453
+6244,Viridor Community Stadium,Sandy Lane,"Runcorn, Cheshire",England,1530,53.3270084,-2.754141
+12177,The Jockey Stadium,Nellington Road,Rusthall,England,1000,51.1365309,0.2235286
+21340,The Hive Arena,Gorsey Lane,"Warrington, Cheshire",England,1000,53.4005699,-2.577357
+11819,Catons Lane,1 Catons Lane,"Saffron Walden, Essex",England,2000,52.0268438,0.2420334
+12139,Kimberley Stadium,Callington Road,"Saltash, Cornwall",England,1000,50.4122217,-4.2296369
+11820,Hill Park,"Hill Park, Coombe Vale","Brighton, East Sussex",England,1000,50.8355331,-0.1237878
+18823,Crofters End Stadium,Crofters End,"Sawbridgeworth, Hertfordshire",England,1500,51.8178773,0.1463425
+21341,The Alexandra Steakhouse Stadium,Byron Terrace,"Seaham, County Durham",England,500,54.8443396,-1.3677391
+18824,Mansfield Road,Mansfield Road,Selston,England,1000,53.0606169,-1.2799905
+11824,Cockrams Ground,Coppice Street,"Shaftesbury, Dorset",England,1000,51.0059498,-2.1903722
+18971,Eastwood Leisure Centre,"247A Albert Drive, Sheerwater","Woking, Surrey",England,1000,51.3346991,-0.5238744
+12693,The Total Power Stadium,"Holm Place, Minster on Sea",Sheerness,England,1450,,
+6246,The Dovecote,Butthole Lane,"Shepshed, Leicestershire",England,2500,52.7738783,-1.286488
+11826,The Playing Fields,Old Wells Road,"Shepton Mallet, Somerset",England,2500,51.187914,-2.5610615
+12178,Debdale Park,Mallard Court,"Mansfield Woodhouse, Nottinghamshire",England,1000,53.1613555,-1.2027361
+21998,J Denham Metals Stadium,Dean Street,"Shildon, County Durham",England,4700,54.6336239,-1.649405
+6247,Middle Road,Middle Road,"Shoreham-by-Sea, West Sussex",England,1500,50.8365211,-0.2619688
+6248,The Meadowbank Ground,"Shortwood Road, Shortwood","Nailsworth, Gloucestershire",England,2000,51.6921891,-2.2394867
+11828,The Recreation Ground,,"Shrivenham, Oxfordshire",England,1000,51.5979927,-1.6608617
+11829,The Asda Foundation Stadium,Keighley Road,"Silsden, Keighley, West Yorkshire",England,2300,53.9098307,-1.9390786
+6249,JMO Sports Park,Liverpool Road,"Skelmersdale, Lancashire",England,1000,53.5469627,-2.8085307
+11830,Eslaforde Park,Boston Road,"Sleaford, Lincolnshire",England,1000,52.9970285,-0.4068645
+11831,The Arena Stadium,Northumberland Crescent,"Southend-on-Sea, Essex",England,6000,51.5339609,0.736319
+11832,Spelthorne Sports Club,"296 Staines Road West, Ashford Common","Ashford, Middlesex",England,1000,51.4205841,-0.4295417
+11833,Mile End Stadium,"190 Burdett Road, Tower Hamlets",London,England,2000,51.5190214,-0.0334207
+19239,Guardian Warehousing Arena,Noose Lane,"Willenhall, West Midlands",England,3660,52.5873043,-2.071813
+6250,The Brian Addison Stadium,"School Road, Squires Gate","Blackpool, Lancashire",England,2000,,
+21342,Poltair Park,73 Trevarthian Road,"St Austell, Cornwall",England,6000,50.3421191,-4.7868737
+11835,The Recreation Ground,,"Stanstead Abbotts, Hertfordshire",England,1000,51.7848499,-0.0026217
+11836,Hargrave Park Stadium,,"Stansted Mountfitchet, Essex",England,2000,51.9027838,0.1998025
+11837,The Hawthorns,"New Farm Road, Stanway","Colchester, Essex",England,567,51.8858441,0.8418764
+11838,Inkersall Road,Inkersall Road,"Staveley, Derbyshire",England,5000,53.2546939,-1.3672393
+11839,Steyning Town Community Football Club,Shooting Field,"Steyning, West Sussex",England,1000,50.8913582,-0.3261813
+11840,The Map Group UK Stadium,Bishopton Road West,Stockton-on-Tees,England,1800,54.571212,-1.3473565
+18865,The JSJ Stadium,"New Roker Park, Arlesey Rd",Stotfold,England,1000,,
+6251,Walshes Meadow,Harrold Davies Drive,"Stourport-on-Severn, Worcestershire",England,2000,52.3355397,-2.2844604
+12180,Greens Meadow Ground,Bury Road,"Stowmarket, Suffolk",England,1000,52.2004854,0.9839286
+6252,The Tannery Ground,Middle Brooks Street,"Street, Somerset",England,1000,51.1131405,-2.7441576
+18825,Sunderland LGV Park,"Beechbrooke, Ryhope",Sunderland,England,1500,54.8670192,-1.3666565
+11842,Ryhope Recreation Park,Ryhope Recreation Park,Sunderland,England,1000,,
+21999,Lower Road,Lower Road,"Hextable, Kent",England,1000,51.4128434,0.1902778
+11843,Shoemakers Lane,Shoemakers Lane,"Swaffham, Norfolk",England,1000,52.644923,0.6834925
+11844,Barlow's Park,Silchester Road,"Tadley, Hampshire",England,1000,51.3570544,-1.1433783
+22000,Full Vision Stadium,Station Road,"Takeley, Essex",England,2000,51.8653216,0.2666415
+11846,Langsford Park,,"Tavistock, Devon",England,2000,50.5496154,-4.1446358
+22001,Meridian Stadium at Dennyfield,Ainsbury Avenue,"Thackley, West Yorkshire",England,3000,53.8494705,-1.7329801
+11848,Mundford Road,Mundford Road,"Thetford, Norfolk",England,1500,52.5100622,0.6569231
+11849,Teesdale Park,Acklam Road,"Thornaby-on-Tees, North Yorkshire",England,5000,54.552763,-1.2819426
+12181,Mundy Playing Fields,Kington Lane,"Thornbury, South Gloucestershire",England,1000,51.6076561,-2.5428295
+6253,The Beeches,Packwood Road,"Tividale, West Midlands",England,3000,52.5107716,-2.0512006
+20886,The Michael Anthony Stadium,Cow Lane,"Tring, Hertfordshire",England,2000,51.7963837,-0.641448
+11851,Glevum Park,Lower Tuffley Lane,"Gloucester, Gloucestershire",England,1000,51.8371211,-2.2616038
+11852,Culverden Stadium,Culverden Down,Royal Tunbridge Wells,England,3750,51.1422293,0.2531698
+11853,The Oaks,Framfield,"Uckfield, East Sussex",England,1000,50.9637774,0.1408459
+19855,HMS Temeraire Sports Ground,"St George&apos;s Road, Portsmouth",Portsmouth,England,1000,50.8476615,-1.065116
+12183,Withdean Stadium,"Withdean Road, Withdean","Brighton, East Sussex",England,8850,50.8521518,-0.1593261
+12184,The vanEupen Arena,"Rivacre Road, Hooton","Ellesmere Port, Cheshire",England,2500,53.3022103,-2.9465441
+11854,Stag Meadow,St. Leonards Road,"Windsor, Berkshire",England,4500,51.4694946,-0.6229496
+11855,Oak Park,Coppice Road,"Walsall Wood, West Midlands",England,1500,52.6322981,-1.9294669
+11856,Sumner Road,Sumner Road,"Walsham-le-Willows, Suffolk",England,1000,51.3828754,-0.1078559
+11857,Wadham Lodge Stadium,"Kitchener Road, Walthamstow",London,England,4000,51.5986278,-0.0121276
+6256,Dog & Duck Ground,London Road,"Wellingborough, Northamptonshire",England,2500,52.2918977,-0.6834238
+20354,The Playing Field Wellington,12 Courtland Road,"Wellington, Somerset",England,1500,50.9791357,-3.2327902
+11859,Vale Farm Stadium,"Watford Road, Wembley",London,England,3348,51.5778413,-0.3261181
+22002,The Northern Metal Recycling Stadium,Darlington Road,"West Auckland, County Durham",England,6728,54.6300053,-1.717246
+18866,Step Places Stadium,"Brookburn Road, Chorlton-cum-Hardy",Manchester,England,1000,53.4356867,-2.2815153
+11861,Meadow Lane,Meadow Lane,"Westbury, Wiltshire",England,1000,51.2645715,-2.1870403
+11862,The Glebe Ground,Rose Avenue,"Whickham, Tyne and Wear",England,2000,54.944439,-1.6788909
+11863,KMJ Mortgages Stadium,Black Park Road,"Whitchurch, Shropshire",England,1000,52.9820647,-2.6538242
+11864,Hillheads Park,,"Whitley Bay, Tyne and Wear",England,4500,55.0347273,-1.4546377
+11865,King George V Playing Field,Old Norwich Road,"Ipswich, Suffolk",England,1000,52.0833053,1.1239346
+6258,Barton Stadium,Kingsway,"Winsford, Cheshire",England,7000,53.1934392,-2.5128749
+21343,Elmfields Gate,Elmfields Gate,"Winslow, Buckinghamshire",England,2000,51.9446984,-0.8788003
+19856,MKM Stadium,West Street,"Winterton, Lincolnshire",England,3000,53.6559029,-0.5969901
+12185,Brinsford Lane,"Brinsford Lane, Coven Heath",Wolverhampton,England,1000,52.6446981,-2.1227354
+11866,Notcutts Park,Fynn Road,"Woodbridge, Suffolk",England,1500,52.0866001,1.2932298
+22003,Ashton Playing Fields,"598 Chigwell Road, Woodford Bridge","Woodford Green, Greater London",England,1000,51.6073283,0.0503267
+11867,Claines Lane,Claines Lane,"Worcester, Worcestershire",England,1000,52.2274646,-2.2186102
+6259,Trafford Park,Skinners Lane,"Wroxham, Norfolk",England,2000,52.6997439,1.3909543
+11868,The Bracken Edge,Bracken Edge,"Leeds, West Yorkshire",England,1550,53.8221804,-1.5193392
+19846,The Citadel,"Bransby Rise, Newlands","Farsley, West Yorkshire",England,3900,53.8092369,-1.6649092
+10665,Liberty Way,Liberty Way,"Nuneaton, Warwickshire",England,6250,52.5196095,-1.4452573
+11119,Swansea City FC Youth Academy Training Centre,"Beaufort Road, Plasmarl",Swansea,England,1000,,
+7732,The County Ground (Lancashire FA HQ),Thurston Road,"Leyland, Lancashire",England,4000,53.694524,-2.6942007
+2694,Haig Avenue,Haig Avenue,"Southport, Merseyside",England,6008,53.6381177,-2.978788
+7733,Holmes Park,"Dog and Gun Lane, Whetstone","Leicester, Leicestershire",England,1030,53.721392,-1.9453083
+11117,Lotus Training Center,Hethersett Lane,"Colney, Norfolk",England,1000,52.6221592,1.2153608
+7735,Clayton Wood Training Ground,"Rosetree Avenue, Trent Vale","Stoke-on-Trent, Staffordshire",England,1000,,
+7737,Palm Training Ground,"430 Birmingham Road, Great Barr","Walsall, West Midlands",England,1000,52.5711031,-1.95604
+12140,The Welfare Ground,Off Upper Lane,"Emley, West Yorkshire",England,2330,,
+12186,The Lancer Scott Stadium,West Town Road,"Backwell, Somerset",England,1000,51.4101562,-2.7459067
+7738,Haywood Way,Haywood Way,"Aylesbury, Buckinghamshire",England,1300,51.8299502,-0.8420561
+7739,Priory Park,,,England,3000,52.5718973,1.1104829
+21344,Silkmore Lane Sports Ground,Silkmore Lane,"Brocton, Staffordshire",England,1500,52.7902169,-2.0981277
+7740,Leslie Fields,Springfield Road,"Burnham-on-Crouch, Essex",England,2000,51.6336207,0.8053232
+22004,Emplas Commercial North Stadium,Andrew Street,"Chadderton, Greater Manchester",England,1500,53.5466951,-2.1435855
+11869,Compton Park,,"Cogenhoe, Northamptonshire",England,5000,52.2357435,-0.79173
+12187,Sir Tom Cowie Millfield Ground,West Road,"Crook, County Durham",England,1500,54.7122632,-1.7559084
+7741,Esh Group Stadium,,,England,3000,52.5310214,-1.2649062
+7742,Weycourt Meadow,"Wey Court, Meadrow","Godalming, Surrey",England,3000,,
+22005,Fruehauf Stadium,Harrowby Lane,Grantham,England,1500,52.9199831,-0.6289907
+18974,Grounsell Park,,Newcastle upon Tyne,England,2000,54.9738474,-1.6131572
+22006,Crown Skip Hire Stadium,Kirkby Road,"Barwell, Leicestershire",England,2500,52.5750587,-1.3453777
+12188,Oakley Road,"Oakley Road, Borough of Greenwich",London,England,1000,51.5429062,-0.0869094
+12189,Summerleaze Village Ground,35 North Town Moor,"Maidenhead, Berkshire",England,1000,51.5350011,-0.7200846
+21346,GBS Stadium,"Humber Doucy Lane, Rushmere","Ipswich, Suffolk",England,1000,52.0695638,1.1988062
+12190,The Sportsfield,St Floras Road,"Littlehampton, West Sussex",England,1500,55.7689618,-4.0725677
+12191,Station Road,Station Road,"Long Buckby, Northamptonshire",England,2000,52.2997546,-1.0831063
+20888,Potash Lane Ground,Potash Lane,"Milton Heights, Oxfordshire",England,1000,51.6209766,-1.3038918
+7743,Church Lane,Church Lane,"New Mills, Derbyshire",England,1400,53.3664061,-1.993912
+22007,Fawcetts Field Sports Ground,Christchurch Road,"New Milton, Hampshire",England,1500,50.7473863,-1.6633889
+7744,WareHouse Systems Stadium,Dimple Wells,"Ossett, West Yorkshire",England,3000,53.6745845,-1.5801444
+5529,The Stade France Ingfield,Prospect Road,"Ossett, West Yorkshire",England,2000,53.6794694,-1.5769559
+22008,Parkgate Sports & Social Club,"Green Lane, Rawmarsh","Rotherham, South Yorkshire",England,1000,53.4604221,-1.3360963
+20135,The Southdowns Builders Stadium,Love Lane,"Petersfield, Hampshire",England,3000,51.0074205,-0.9311735
+7746,Welfare Ground,Kirklington Road,"Rainworth, Nottinghamshire",England,2000,53.1205545,-1.101156
+7747,Cannon Park,,,England,2000,52.3858979,-1.5498721
+12192,Windsor Playing Fields,Horsenden Lane,"Princes Risborough, Buckinghamshire",England,1500,51.7172142,-0.8471621
+20889,The GMS Windows Arena,,"Sherborne, Dorset",England,1150,50.950265,-2.5179235
+21348,Langwith Road Ground,Langwith Road,"Shirebrook, Derbyshire",England,1000,53.2058261,-1.2071022
+22009,O'Riordan Bond Stadium,"Talavera Way, Moulton Park","Northampton, Northamptonshire",England,1000,52.273279,-0.8630336
+7748,Thurrock Hotel,"Ship Lane, Grays","Thurrock, Essex",England,3500,51.48875,0.2653543
+7749,Tipton Sports Academy,,,England,1500,52.5452985,-2.0525993
+18976,West Clewes,North Rd,Midsomer Norton,England,2400,51.2883509,-2.4830018
+21350,Wincanton Sports Ground,,Wincanton,England,1000,51.0477973,-2.4031973
+20890,The Exclusive Networks Stadium,Anstey Park,"Alton, Hampshire",England,1500,51.1601237,-0.9638479
+12194,Ribbesford Meadows,B4194,"Bewdley, Worcestershire",England,200,52.3729713,-2.3127417
+7750,Kirklands Stadium,"St. Peters Road, Rock Ferry","Birkenhead, Merseyside",England,1500,,
+12195,Southbank,Lacock Road,"Corsham, Wiltshire",England,1200,51.4309529,-2.1693721
+7751,The Keith Tuckey Stadium,,,England,3000,52.5310214,-1.2649062
+21351,The Brian Whitehead Sports Ground,Wick,"Downton, Wiltshire",England,2000,50.9922811,-1.7601266
+12196,Marlborough Park,Marlborough Way,"Ilfracombe, Devonshire",England,1000,51.2024603,-4.1167116
+7752,Norton Cricket Club & Miners Welfare Institute,"Community Drive, Smallthorne",Stoke-on-Trent,England,2000,53.0503171,-2.1720704
+7753,Nene Park,,,England,6441,52.5705572,-0.2693141
+18977,The Beehive,Abbeyfields Drive,"Studley, Warwickshire",England,1500,51.5200322,-0.1572992
+18978,The Mill,Mill Lane,"Torpoint, Cornwall",England,1500,50.3738438,-4.206035
+22010,Blackstones Sports & Social Club,Lincoln Road,"Stamford, Lincolnshire",England,2000,52.6609407,-0.4693558
+12197,Bremhill View,Bremhill View,"Calne, Wiltshire",England,2500,51.4461567,-2.0106114
+21352,The Ground Up Solutions Stadium,"Park Road, Cheadle","Stockport, Greater Mancheste",England,2000,53.3939405,-2.2052214
+22011,Beatrice Avenue,Beatrice Avenue,"East Cowes, Isle of Wight",England,1000,50.7484742,-1.2797846
+8594,Coronation Park,Chewton Street,"Eastwood, Nottinghamshire",England,2500,53.0104025,-1.2994271
+21353,RM Stadium,Aerial Way,"Hucknall, Nottinghamshire",England,1000,53.0261585,-1.2148231
+18979,Rowley Lane,"Rowley Lane, Arkley, Barnet",London,England,1500,51.6546783,-0.2497217
+20892,Aitchison Playing Field,Castle Rd,Oldland Common,England,1000,51.4401236,-2.4686808
+20893,Blaise Park,,"St Blazey, Cornwall",England,3500,50.3630055,-4.7156518
+18980,Ironworks Road,Ironworks Road,"Tow Law, County Durham",England,3000,54.7449367,-1.8212752
+7757,Belle Vue,Doncaster Road,"Wakefield, West Yorkshire",England,12600,53.6699011,-1.4793142
+7758,Byfield Road,,,England,3000,52.2510141,-0.1144684
+7759,Crilly Park,Spa Road,"Atherton, Lancashire",England,1500,53.5310659,-2.4839095
+20894,The Birtley Sports Complex,Durham Road,"Birtley, Tyne and Wear",England,380,54.896151,-1.5777049
+22012,Kalkut’s Community Stadium,"Oxford Street, Rossington","Doncaster, South Yorkshire",England,1290,53.4797528,-1.0749688
+20895,The Acoustafoam Stadium,Coppice Green Lane,"Shifnal, Shropshire",England,1500,52.6721127,-2.3618734
+5486,Larges Lane,Larges Lane,"Bracknell, Berkshire",England,2500,51.4144495,-0.7437807
+7760,Neil Rourke Memorial Stadium,,,England,2000,53.4308649,-2.1035838
+7761,The Portway Stadium,,,England,3000,52.5310214,-1.2649062
+7762,The Orchard,,,England,2100,52.177577,0.0963979
+11870,The Recreation Ground Alfold,Dunsfold Road,"Cranleigh, Surrey",England,1000,51.1379748,-0.5306453
+12200,Kellaway Park,Clodgey Lane,"Helston, Cornwall",England,1000,50.092537,-5.2632372
+12201,Memorial Ground Little Oakley,Harwich Road,"Little Oakley, Essex",England,1000,51.9183497,1.2285236
+12202,Jenkins Park,Mill Road,"Millbrook, Cornwall",England,1000,,
+22014,Altrincham Road,"Hollyhedge Park Footpath, Wythenshawe","Manchester, Cheshire",England,1000,53.397113,-2.2599509
+11872,The Coppice,"Tythe Barn Lane, Shirley","Solihull, West Midlands",England,2000,52.3906694,-1.8463449
+21354,Hillcrest Avenue,"Hillcrest Avenue, High Ercal","Dudley, West Midlands",England,2000,52.4661726,-2.0899211
+10731,Blue Flames Ground (Northumberland FA),"Whitley Road, Benton","North Tyneside, Tyne and Wear",England,1000,55.0207298,-1.5390663
+21458,Blackburn Rovers Training Centre,Gleneagles Drive,"Brockhall Village, Lancashire",England,1000,53.826918,-2.4621038
+21459,Burnley FC Training Centre,"Stockbridge Drive, Ightenhill","Burnley, Lancashire",England,1500,53.8000211,-2.3008153
+21460,Moor Farm Training Centre,"Morley Road, Oakwood","Derby, Derbyshire",England,1000,52.9387986,-1.4227585
+21461,Finch Farm Training Ground,"Finch Lane, Halewood",Liverpool,England,1000,53.360149,-2.8157589
+21462,Thorp Arch Grange,"46 Walton Chase, Thorp Arch","Wetherby, West Yorkshire",England,1000,53.9190144,-1.3328005
+21463,City Football Academy,400 Ashton New Road,Manchester,England,1000,53.4801641,-2.1890978
+21464,Trafford Training Centre,Birch Road / Off Isherwood Road,"Carrington, Greater Manchester",England,1000,53.4184109,-2.3751686
+21465,Rockliffe Park,,"Hurworth Place, County Durham",England,1000,54.9773676,-1.4912404
+21466,Newcastle United Football Academy,"Off Greenlee Drive, Little Benton",Newcastle upon Tyne,England,1000,,
+21467,Academy of Light Training Ground,"Sunderland Road, Cleadon","Sunderland, Tyne and Wear",England,1000,54.9685679,-1.4086891
+21468,Sir Jack Hayward Training Ground,"Douglas Turner Way, Compton Park","Wolverhampton, West Midlands",England,2000,52.5920855,-2.161677
+21491,Sobha Realty Training Centre,"Bell Lane, London Colney","Shenley, Hertfordshire",England,1000,51.7106078,-0.2920808
+21470,Crystal Palace Training Ground,Copers Cope Road,"Beckenham, Kent",England,1000,51.4223818,-0.0271939
+21219,LCFC Training Ground Match Pitch 1,Park Hill Lane,"Sileby, Leicestershire",England,499,,
+21472,West Bromwich Albion Training Ground,"430 Birmingham Road, Great Barr","Walsall, West Midlands",England,1000,52.5642218,-1.9469228
+21473,Little Heath Sports Ground,Hainault Road,"Romford, Essex",England,1000,51.5877227,0.1692395
+22765,Maiden Castle Sports Park,"Stockton Road, Maiden Castle","Durham, County Durham",England,2381,54.766334,-1.5577792
+22759,Copperjax Community Stadium,"Hayes Lane, Bromley",London,England,5150,51.3994185,-0.0161914
+19778,USW Sports Park,"Main Avenue, Upper Boat","Treforest, Pontypridd",England,1000,,
+22766,The Martello Ground,Dellwood Avenue,"Felixstowe, Suffolk",England,2000,51.9697518,1.3559589
+10628,i2i Stadium,Ings Lane,"Tadcaster, North Yorkshire",England,1500,,
+11118,Academy Stadium,400 Ashton New Road,Manchester,England,7000,53.4817576,-2.1944576
+509,Ashton Gate,Ashton Road,Bristol,England,27000,51.4398694,-2.6203405
+516,Cardiff City Stadium,Leckwith Road,Caerdydd,England,33280,51.4728209,-3.2029602
+11121,Hull University Sports Ground,356 Inglemire Lane,Hull,England,1000,53.7745141,-0.3706327
+19011,Lancashire FA County Ground,Thurston Road,"Leyland, Lancashire",England,4000,53.694524,-2.6942007
+22015,MoreSeaFood Ground,25 Wall Park Road,"Brixham, Devonshire",England,1000,50.3960381,-3.5027737
+12204,Hereford Lads Club FC County Ground,Widemarsh Common,"Hereford, Herefordshire",England,1000,52.0657968,-2.7206617
+12205,Springfield Stadium,Janvrin Road,"St. Helier (Jersey, Channel Islands)",England,1992,49.1916715,-2.1000765
+12206,The Nest Lakenheath,Back Street,"Lakenheath, Suffolk",England,1000,52.4149622,0.5216324
+18826,The Irish Centre,Pavilion Manor Field,"Milton Keynes, Buckinghamshire",England,1500,53.7971206,-1.515784
+22016,Interiora Trungle Parc,,"Paul, Cornwall",England,1000,50.0896383,-5.5464449
+18981,The Dransfield Stadium,Church Road,"North Ferriby, East Yorkshire",England,3000,53.7197175,-0.5028622
+12143,Adie Moran Park,Sandgate Road,"Prestwich, Greater Manchester",England,1000,53.5433377,-2.2738418
+12209,Green Lane,Green Lane,"Redcar, North Yorkshire",England,1000,54.6039874,-1.0410756
+12210,Vertigo Stadium,Wainfleet Rd,"Skegness, Lincolnshire",England,1000,53.1430111,0.3154652
+12211,Oldfields Sports Ground,1 Springfield Road,Uttoxeter,England,1000,52.9001351,-1.8722362
+12212,Ericstan Park,"Timpson Road, Wythenshawe",Manchester,England,1000,53.3998299,-2.299973
+20897,Skye Direct Stadium,Longfield Avenue,"Golcar, West Yorkshire",England,1000,53.6413799,-1.8463755
+21474,Nottingham Forest Football Academy,,"West Bridgford, Nottingham",England,1000,52.9310754,-1.1256663
+22587,St George’s Park - Pitch 6,"Michael Owen, Scotch Hill","Burton upon Trent, Staffordshire",England,1000,,
+18887,The Bowl,Groves Road,Douglas,England,3500,51.1600748,-0.5789234
+19265,Bartholomew Way,Bartholomew Way,"Horsham, West Sussex",England,1000,51.0834756,-0.300854
+18983,Myrak Park,Roding Lane,"Buckhurst Hill, Essex",England,1000,51.6269659,0.0590268
+22017,Gillford Park Stadium,Petteril Bank Road,"Carlisle, Cumbria",England,3000,54.8760067,-2.9075769
+18984,The Paycare Ground,"Bentley Road North, Bentley","Darlaston, West Midlands",England,1000,52.5841251,-2.023526
+22018,Bickland Park,Bickland Water Road,Falmouth,England,1000,50.1375633,-5.0922203
+18986,Old School Lane,Old School Lane,"Hereford, Herefordshire",England,2000,52.0704964,-2.7107434
+18987,The Middlesex Stadium,Breakspear Road,"Ruislip, Middlesex",England,3587,51.5869954,-0.4427218
+18988,The Stag Ground,Newdigate Street,Nottingham,England,1000,52.9580781,-1.1649164
+18989,The Dell,"Church Road, Laverstock","Salisbury, Wiltshire",England,1000,51.0783438,-1.7720699
+19859,The Rotherfield,"Dodsley Grove, Easebourne","Midhurst, West Sussex",England,1000,50.9951652,-0.7336754
+18990,Shefford Sports Club,Hitchin Road,"Shefford, Bedfordshire",England,1000,52.0288846,-0.3198256
+22019,DOADC Stadium,Claines Lane,"Worcester, Worcestershire",England,1000,52.2257,-2.2148811
+18992,Weybourne Road,Weybourne Road,"Sheringham, Norfolk",England,1000,52.9429912,1.1417292
+22343,AFC Bournemouth Performance Centre,"Canford Magna, Wimborne","Bournemouth, Dorset",England,1000,50.7883504,-1.9516221
+21222,Cardiff International Sports Stadium,Leckwith Road,Cardiff (Caerdydd),England,4953,51.4726855,-3.2103748
+21223,University College London,"Bell Lane, London Colney","Shenley, Hertfordshire",England,1000,51.7106078,-0.2920808
+21224,Robins High Performance Centre,Clevedon Road,"Failand, Somerset",England,1223,51.4476,-2.7149726
+22344,Florence Park,Grange Road,Tiptree,England,1000,51.8160568,0.7366723
+21226,The Alan Higgs Centre Field 1,"Allard Way, Pinley","Coventry, West Midlands",England,1000,,
+21227,Ipswich Town Training Centre,Playford Road,"Ipswich, Suffolk",England,1000,52.0624322,1.2046897
+21477,Millwall FC Training Ground,,"Bromley, London",England,1000,51.4028046,0.0148142
+19718,Swansway Chester Stadium,Bumpers Lane,"Chester, Cheshire",England,5376,53.1892245,-2.923472
+22020,Droitwich Spa Football Field,"Kingys, Briar Mill","Droitwich, Worcestershire",England,1000,,
+22021,The Element Ground,Lower Packington Rd,Ashby-de-la-Zouch,England,1000,52.7397408,-1.4710728
+20899,Linwood Playing Fields,Saffron Lane,"Leicester, Leicestershire",England,1000,52.5899581,-1.1411067
+22022,Phoenix Park,156 Saltersgill Avenue,Middlesbrough,England,1000,54.5490825,-1.2324594
+20901,Memorial Field,,"Downham Market, Norfolk",England,1000,52.6096623,0.3839836
+20902,The Jack Carter Centre,The Drive,"Ilford, Greater London",England,2000,51.5901585,0.0217667
+20903,The Recreation Ground,Wilderness Lane,"Harleston, Norfolk",England,1000,52.4004407,1.2944035
+22023,4ED Hartpury Stadium with Vodafone,Hartpury House,"Gloucester, Gloucestershire",England,1000,51.9092565,-2.3071147
+20904,Station Road,Heacham,"King&apos;s Lynn, Norfolk",England,1000,52.9105208,0.4955132
+20905,The Lindsey Field,Dengemarsh Road,"Lydd, Kent",England,1000,50.9358268,0.909804
+20906,Fryth Way,Fryth Way,"Nailsea, Somerset",England,1000,51.4350084,-2.7731838
+21356,PSD Stadium,"Ruskin Drive, Denton&apos;s Green",Saint Helens,England,1000,50.128031,8.7231876
+20908,McMullen Park,Meadow Lane,"Cardington, Bedfordshire",England,1500,52.1294828,-0.4128041
+22024,Rugby Borough Sports Trust,Kilsby Lane,"Rugby, Warwickshire",England,2000,52.354244,-1.2046711
+20910,Potyn's Sports Field,Paddlesworth Road,"Snodland, Kent",England,1000,51.333228,0.4224581
+21357,Life Leisure Stockport Sports Village,"Lambeth Grove, Woodley","Stockport, Greater Manchester",England,2384,53.4285303,-2.104034
+20911,Wallingford Sports Park,Hithercroft Road,"Wallingford, Oxfordshire",England,1500,51.5981029,-1.1357243
+21228,Poolfoot Farm,Butts Road,"Thornton, Lancashire",England,1000,53.8865601,-3.0054907
+22562,Mangata Pay UK Stadium,Broughinge Road,"Borehamwood, Hertfordshire",England,4502,51.6628426,-0.2720159
+21475,Canford Park Arena,Magna Road,"Wimborne, Dorset",England,1000,,
+21492,Alexandra Park,"Wettenhall Road, Reaseheath","Nantwich, Cheshire",England,1000,51.5932384,-0.1278929
+21476,Bishop Burton College,York Road,Beverley,England,1000,53.8501179,-0.5036038
+21478,Harper’s Park,,"Plymouth, Devon",England,1000,50.4669267,-4.0835464
+21479,TSG Training Centre,Crane Lodge Road,"Hounslow, Greater London",England,1000,51.489685,-0.403008
+21480,Sheffield United Football Academy,"Firshill Crescent, Shirecliffe","Sheffield, South Yorkshire",England,1000,53.406464,-1.4693969
+21481,Middlewood Training Ground,Middlewood Road,"Sheffield, South Yorkshire",England,1000,53.416357,-1.510909
+21482,The Nigel Eady County Ground,County Road,"Swindon, Wiltshire",England,15728,51.5644464,-1.7709719
+21358,Spratley's Meadow,School Lane,"Amersham, Buckinghamshire",England,1500,51.6704027,-0.6242231
+21359,Norwood Recreation Ground,Norwood,"Beverley, East Yorkshire",England,1000,53.8458531,-0.4299655
+22025,Gateway Park,Sandringham Drive,"Blyth, Northumberland",England,1000,55.1073077,-1.5197356
+21361,Abbey Lawn,Abbey Road,"Bourne, Lincolnshire",England,1000,52.7666256,-0.3715851
+21362,Blackhouse Lane,Blackhouse Lane,"Great Cornard, Suffolk",England,2000,52.0200503,0.7529307
+21363,Welfare Park,Memorial Avenue,"Easington, County Durham",England,1000,54.7894305,-1.3287593
+22026,The BJM Stadium,"Magna Road, Canford Magna, Merley","Bournemouth, Dorset",England,1000,50.7813002,-1.9550765
+21365,Erme Valley,Ermington Road,"Ivybridge, Devon",England,1000,50.3854389,-3.9259835
+21366,Larkfield & New Hythe Wanderers Ground,251 New Hythe Lane,"Larkfield, Kent",England,1000,51.3080526,0.4430265
+21367,Test Park Sports Ground,Lower Brownhill Road,"Southampton, Hampshire",England,1000,50.9344773,-1.4625661
+21368,YMCA Newark and Sherwood Community and Activity Village,Lord Hawke Way,"Newark, Nottinghamshire",England,1000,53.0622197,-0.8028115
+21369,Scotswood Ground,Denton Road,"Newcastle, Tyne and Wear",England,1000,54.9773818,-1.6929411
+21370,Community Stadium,King George&apos;s Way,"Pershore, Worcestershire",England,1000,50.8615471,-0.0836931
+21371,Bristol Road,Bristol Rd,Bristol,England,2000,51.4431098,-2.7349714
+21372,Jericho Lane Sports Hub,Otterspool Drive,"Liverpool, Merseyside",England,1000,53.3636912,-2.9346358
+22027,The Inkberrow Recreation Ground,Sands Road,"Inkberrow, Worcestershire",England,1000,52.2198885,-1.9788066
+21374,SMS Pro Soccer Park,"Windleshaw Rd, Denton&apos;s Green","Saint Helens, Merseyside",England,1000,,
+21375,Crabtree Park,,Wick,England,1000,52.1066735,-2.0575599
+21376,Wormley Playing Fields,Church Lane,"Wormley, Hertfordshire",England,1000,51.7338017,-0.0315895
+12690,Mortgages For You Stadium,Tattershall Road,"Boston, Lincolnshire",England,6000,52.9880649,-0.0353435
+511,Hayes Lane,"Hayes Lane, Bromley",London,England,5150,51.3887483,0.0173678
+21378,Lowther Road,"61 Emmbrook Road, Lowther Road","Wokingham, Berkshire",England,1000,51.4225475,-0.8570117
+21493,Portsmouth FC Training Ground,Stoneham Lane,"Eastleigh, Hantshire",England,1000,50.9494763,-1.3741502
+21494,Stevenage FC Sports Hub,Broadhall Way,"Stevenage, Hertfordshire",England,1000,51.8896479,-0.1937405
+21495,Colliers Park,,Gresford,England,1500,53.4385247,-2.28445
+22028,Fox Lane,Fox Lane,"Eversley, Hampshire",England,1000,51.345801,-0.8526652
