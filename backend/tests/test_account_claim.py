@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 
 from account_claim import claim_anonymous_user
 from database import engine
-from identity import SupabaseAuthConfig, VerifiedProviderIdentity, resolve_identity
+from identity import ResolvedIdentity, SupabaseAuthConfig, VerifiedProviderIdentity, resolve_identity
+from main import get_fixture_social, update_meeting_intent
 from models import (
     AnonymousSession,
     AwayDayReview,
@@ -26,6 +27,7 @@ from models import (
     UserProfile,
     VenueVisit,
 )
+from schemas import MeetingIntentUpdate
 
 
 ISSUER = "https://phase4c.test/auth/v1"
@@ -203,6 +205,35 @@ class AccountClaimTests(unittest.TestCase):
             self.db.query(UserIdentity).filter_by(issuer=ISSUER, subject="empty-subject").count(),
             1,
         )
+
+    def test_pending_meeting_intent_after_claim_and_onboarding_is_idempotent(self):
+        user_id, session_id = self.new_anonymous("pending-meeting")
+        self.db.add(InterestedFixture(user_id=user_id, fixture_id=self.fixture_id))
+        self.db.commit()
+
+        claimed = self.claim(session_id, "pending-meeting-subject")
+        self.assertFalse(claimed.profile_complete)
+        profile_db = Session(bind=engine)
+        try:
+            profile_db.add(UserProfile(user_id=user_id, display_name="Pending Supporter", username="pending_supporter"))
+            profile_db.commit()
+        finally:
+            profile_db.close()
+
+        identity = ResolvedIdentity(user_id, "registered", True, "bearer")
+        first = update_meeting_intent(self.fixture_id, MeetingIntentUpdate(open_to_meet=True), identity)
+        retry = update_meeting_intent(self.fixture_id, MeetingIntentUpdate(open_to_meet=True), identity)
+        refreshed = get_fixture_social(self.fixture_id, identity)
+
+        verify = Session(bind=engine)
+        try:
+            self.assertTrue(first["open_to_meet"] and first["interested"])
+            self.assertTrue(retry["open_to_meet"] and retry["interested"])
+            self.assertTrue(refreshed["open_to_meet"] and refreshed["interested"])
+            self.assertEqual(verify.query(FixtureMeetingIntent).filter_by(user_id=user_id, fixture_id=self.fixture_id).count(), 1)
+            self.assertEqual(verify.query(InterestedFixture).filter_by(user_id=user_id, fixture_id=self.fixture_id).count(), 1)
+        finally:
+            verify.close()
 
     def test_identity_mapped_to_another_user_is_never_merged(self):
         user_a, session_a = self.new_anonymous("a")

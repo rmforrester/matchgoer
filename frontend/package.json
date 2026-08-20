@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:pending-auth": "node --experimental-strip-types --test lib/pending-auth-action.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
