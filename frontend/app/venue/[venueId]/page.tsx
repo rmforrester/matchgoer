@@ -1,18 +1,24 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import api from "../../../lib/api";
 
 import VenueHeader from "../../components/VenueHeader";
 import AwayDayScore from "../../components/AwayDayScore";
 import MatchdayTips from "../../components/MatchdayTips";
+import AccountConversionPrompt from "../../components/AccountConversionPrompt";
+import FixtureTeams from "../../components/FixtureTeams";
+import type { MyGround } from "../../types/grounds";
+import { fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
 
 type Venue = {
   venue_id: number;
   name: string;
   city: string;
   country: string;
-  capacity: number;
+  capacity: number | null;
 };
 
 type Tip = {
@@ -44,26 +50,8 @@ type VenueFixture = {
   home_team: string;
   away_team: string;
   league_name: string;
+  status: string | null;
   interested_count: number;
-};
-
-type MyReview = {
-  review_id: number;
-  venue_id: number;
-  venue_name: string;
-  venue_city: string | null;
-  fixture_id: number | null;
-  fixture_date: string | null;
-  home_team: string | null;
-  away_team: string | null;
-  visit_date: string | null;
-  recommend: boolean | null;
-  overall_score: number | null;
-  atmosphere_score: number | null;
-  pubs_score: number | null;
-  getting_there_score: number | null;
-  facilities_score: number | null;
-  created_at: string;
 };
 
 type Props = {
@@ -76,6 +64,7 @@ export default function VenuePage({
   params,
 }: Props) {
   const { venueId } = use(params);
+  const router = useRouter();
 
   const [venue, setVenue] =
     useState<Venue | null>(null);
@@ -86,21 +75,27 @@ export default function VenuePage({
   const [awayDayScore, setAwayDayScore] =
     useState<AwayDayScoreData | null>(null);
 
-  const [myReview, setMyReview] =
-    useState<MyReview | null>(null);
+  const [myGround, setMyGround] =
+    useState<MyGround | null>(null);
 
 const [venueFixtures, setVenueFixtures] =
   useState<VenueFixture[]>([]);
 
 const [interestedFixtureIds, setInterestedFixtureIds] =
   useState<number[]>([]);
+const [updatingInterestedFixtureIds, setUpdatingInterestedFixtureIds] = useState<number[]>([]);
+const [showAccountPrompt, setShowAccountPrompt] = useState(false);
 
   const [loading, setLoading] =
     useState(true);
 
-  useEffect(() => {
-  setLoading(true);
+  const [addingVisited, setAddingVisited] =
+    useState(false);
 
+  const [visitedError, setVisitedError] =
+    useState("");
+
+  useEffect(() => {
   // -------------------------------------------------
   // Establish anonymous session first
   // -------------------------------------------------
@@ -139,11 +134,6 @@ const [interestedFixtureIds, setInterestedFixtureIds] =
           `/venues/${venueId}/away-day-score`
         )
         .then((response) => {
-          console.log(
-            "AWAY DAY SCORE RESPONSE:",
-            response.data
-          );
-
           setAwayDayScore(
             response.data
           );
@@ -200,20 +190,20 @@ api
       // -------------------------------------------------
 
       return api
-        .get("/my-reviews")
+        .get("/my-grounds")
         .then((response) => {
-          const reviews: MyReview[] =
+          const grounds: MyGround[] =
             response.data;
 
-          const currentReview =
-            reviews.find(
-              (review) =>
-                Number(review.venue_id) ===
+          const currentGround =
+            grounds.find(
+              (ground) =>
+                Number(ground.venue_id) ===
                 Number(venueId)
             );
 
-          setMyReview(
-            currentReview ?? null
+          setMyGround(
+            currentGround ?? null
           );
         });
     })
@@ -229,27 +219,11 @@ api
 }, [venueId]);
 
   if (loading) {
-    return (
-      <main
-        style={{
-          padding: "40px",
-        }}
-      >
-        Loading...
-      </main>
-    );
+    return <main className="mx-auto w-full max-w-5xl p-4 sm:p-6"><p className="tt-kicker">01 / The ground</p><p className="mt-3 font-semibold">Loading ground…</p></main>;
   }
 
   if (!venue) {
-    return (
-      <main
-        style={{
-          padding: "40px",
-        }}
-      >
-        Stadium not found.
-      </main>
-    );
+    return <main className="mx-auto w-full max-w-5xl p-4 sm:p-6"><p className="tt-kicker">01 / The ground</p><h1 className="tt-display mt-2 text-5xl">Ground not found</h1></main>;
   }
 
   // -------------------------------------------------
@@ -257,111 +231,102 @@ api
   // -------------------------------------------------
 
   const hasVisited =
-    myReview !== null;
+    myGround !== null;
 
-  const hasCompletedReview =
-    myReview !== null &&
-    myReview.recommend !== null &&
-    myReview.atmosphere_score !== null &&
-    myReview.pubs_score !== null &&
-    myReview.getting_there_score !== null &&
-    myReview.facilities_score !== null;
+  const reviewState = myGround?.review?.state;
+
+  const openReview = () => {
+    router.push(`/my-football?tab=visited&review=${venueId}`);
+  };
+
+  const addToVisited = async () => {
+    if (addingVisited || myGround !== null) {
+      return;
+    }
+
+    setAddingVisited(true);
+    setVisitedError("");
+
+    try {
+      await api.post(`/venues/${venueId}/visits`, {});
+
+      const response = await api.get("/my-grounds");
+      const grounds = response.data as MyGround[];
+      const currentGround = grounds.find(
+        (ground) => Number(ground.venue_id) === Number(venueId)
+      );
+
+      if (!currentGround) {
+        throw new Error("Visited record was not returned after creation.");
+      }
+
+      setMyGround(currentGround);
+    } catch (error: unknown) {
+      const status =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof error.response === "object" &&
+        error.response !== null &&
+        "status" in error.response
+          ? error.response.status
+          : undefined;
+
+      if (status === 409) {
+        try {
+          const response = await api.get("/my-grounds");
+          const grounds = response.data as MyGround[];
+          const currentGround = grounds.find(
+            (ground) => Number(ground.venue_id) === Number(venueId)
+          );
+
+          if (currentGround) {
+            setMyGround(currentGround);
+            return;
+          }
+        } catch {
+          // Use the same user-facing error as other failed add attempts.
+        }
+      }
+
+      console.error("Add to Visited error:", error);
+      setVisitedError("Unable to add this ground to My Grounds.");
+    } finally {
+      setAddingVisited(false);
+    }
+  };
+
+  const upcomingFixtures = venueFixtures
+    .filter((fixture) => new Date(fixture.fixture_date) >= new Date())
+    .sort((left, right) => new Date(left.fixture_date).getTime() - new Date(right.fixture_date).getTime());
+  const featuredFixtures = upcomingFixtures.slice(0, 4);
 
   return (
-    <main
-      style={{
-        padding: "40px",
-        maxWidth: "900px",
-        margin: "0 auto",
-      }}
-    >
+    <main className="mx-auto w-full min-w-0 max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+      <AccountConversionPrompt open={showAccountPrompt} kind="interested" onDismiss={() => setShowAccountPrompt(false)} />
 
-<VenueHeader
-  venue={venue}
-  hasVisited={hasVisited}
-  hasCompletedReview={hasCompletedReview}
-  onAddStadium={() => {
-    window.location.href =
-      "/my-stadiums";
-  }}
-  onCompleteReview={() => {
-    window.location.href =
-      `/my-stadiums?review=${venueId}`;
-  }}
-  onEditReview={() => {
-    window.location.href =
-      `/my-stadiums?review=${venueId}`;
-  }}
-/>
+      <VenueHeader venue={venue} score={awayDayScore?.away_day_score} reviewCount={awayDayScore?.review_count} recommendPercentage={awayDayScore?.recommend_percentage} />
 
+      {visitedError && (
+        <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{visitedError}</p>
+      )}
 
-      <hr />
+      <AwayDayScore reviewCount={awayDayScore?.review_count} recommendPercentage={awayDayScore?.recommend_percentage} categoryScores={awayDayScore?.category_scores} />
 
- <AwayDayScore
-  score={
-    awayDayScore?.away_day_score ??
-    undefined
-  }
-  reviewCount={
-    awayDayScore?.review_count
-  }
-  recommendPercentage={
-    awayDayScore?.recommend_percentage
-  }
-  categoryScores={
-    awayDayScore?.category_scores
-  }
-  myScore={
-    myReview?.overall_score ?? null
-  }
-/>
+      <section className="tt-section-rule mt-10 pt-4" aria-labelledby="visit-heading">
+        <p className="tt-kicker">03 / Your visit</p>
+        <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">{hasVisited ? "Been here" : "Make it one of yours"}</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">{reviewState === "completed" ? "This ground is in My Grounds and your review is complete." : hasVisited ? `This ground is in My Grounds${myGround && myGround.visit_count > 1 ? ` with ${myGround.visit_count} recorded visits` : ""}. Your rating is optional.` : "Add this ground to My Grounds. You can rate it separately whenever you are ready."}</p></div>
+          {!hasVisited ? <button type="button" onClick={addToVisited} disabled={addingVisited} className="tt-action px-5">{addingVisited ? "Adding…" : "Add to My Grounds"}</button> : <button type="button" onClick={openReview} className="tt-action px-5">{reviewState === "completed" ? "Edit my review" : reviewState === "partial" ? "Continue review" : "Rate this ground"}</button>}
+        </div>
+      </section>
 
-      <hr />
+      <MatchdayTips tips={tips} venueId={Number(venueId)} />
 
-      <MatchdayTips
-        tips={tips}
-      />
-
-      {/* -------------------------------------------------
-    UPCOMING FIXTURES
-------------------------------------------------- */}
-
-<div
-  style={{
-    marginTop: "32px",
-  }}
->
-  <h2
-    style={{
-      fontSize: "24px",
-      fontWeight: "800",
-      marginBottom: "16px",
-      color: "#fff",
-    }}
-  >
-    📅 Upcoming Fixtures
-  </h2>
-
-  {venueFixtures.filter(
-    (fixture) =>
-      new Date(fixture.fixture_date) >=
-      new Date()
-  ).length === 0 ? (
-    <p
-      style={{
-        color: "#fff",
-      }}
-    >
-      No upcoming fixtures found.
-    </p>
-  ) : (
-    venueFixtures
-      .filter(
-        (fixture) =>
-          new Date(fixture.fixture_date) >=
-          new Date()
-      )
-      .map((fixture) => {
+      <section className="tt-section-rule mt-10 pt-4" aria-labelledby="fixtures-heading">
+        <p className="tt-kicker">05 / What&apos;s on</p>
+        <h2 id="fixtures-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">Upcoming fixtures</h2>
+        {upcomingFixtures.length === 0 ? <div className="mt-5 border-y-2 border-[var(--tt-ink)] py-6"><p className="tt-display text-3xl">Nothing scheduled yet.</p><p className="mt-2 text-[var(--tt-muted)]">There are no upcoming fixtures for this ground in Terrace Talk.</p></div> : <><div className="mt-5 grid gap-3 sm:grid-cols-2">{featuredFixtures.map((fixture) => {
         const isInterested =
           interestedFixtureIds.includes(
             Number(fixture.fixture_id)
@@ -371,75 +336,21 @@ api
           new Date(
             fixture.fixture_date
           );
+        const statusGroup = fixtureStatusGroup(fixture.status);
 
         return (
-          <div
-            key={fixture.fixture_id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "18px",
-              marginBottom: "12px",
-              background: "#fff",
-            }}
-          >
-
-            <p
-              style={{
-                margin: "0 0 6px 0",
-                fontSize: "14px",
-                color: "#666",
-                fontWeight: "600",
-              }}
-            >
-              {fixtureDate.toLocaleDateString(
-                undefined,
-                {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                }
-              )}
-            </p>
-
-            <h3
-              style={{
-                margin: "0 0 8px 0",
-                fontSize: "19px",
-                fontWeight: "800",
-                color: "#111827",
-              }}
-            >
-              {fixture.home_team} vs{" "}
-              {fixture.away_team}
-            </h3>
-
-            <p
-              style={{
-                margin: "0 0 12px 0",
-                color: "#555",
-              }}
-            >
-              🏟️ {venue.name}
-            </p>
-
-            <p
-              style={{
-                margin: "0 0 14px 0",
-                fontSize: "14px",
-                color: "#555",
-              }}
-            >
-              {fixture.interested_count}{" "}
-              {fixture.interested_count === 1
-                ? "Terrace Talk user"
-                : "Terrace Talk users"}{" "}
-              interested
-            </p>
-
+          <article key={fixture.fixture_id} className="tt-panel flex min-w-0 flex-col overflow-hidden">
+            <Link href={`/fixture/${fixture.fixture_id}`} className="min-w-0 flex-1 p-4 hover:text-[var(--tt-blue)] sm:p-5" aria-label={`${fixture.home_team} versus ${fixture.away_team}`}>
+              <p className="tt-kicker">{fixture.league_name}</p>
+              <FixtureTeams homeTeam={fixture.home_team} awayTeam={fixture.away_team} className="mt-3" teamClassName="text-[1.65rem] leading-[0.9]" separatorClassName="my-1 text-[0.65rem] tracking-[0.16em]" />
+              <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.08em]">{statusGroup === "postponed" || statusGroup === "cancelled" ? fixtureStatusLabel(fixture.status) : <>{fixtureDate.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {fixtureDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}</p>
+              <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">{fixture.interested_count} interested</p>
+            </Link>
             <button
               type="button"
 onClick={() => {
+  if (updatingInterestedFixtureIds.includes(fixture.fixture_id)) return;
+  setUpdatingInterestedFixtureIds((current) => [...current, fixture.fixture_id]);
   if (isInterested) {
 
     api
@@ -480,7 +391,7 @@ onClick={() => {
           "Remove Interested error:",
           error
         );
-      });
+      }).finally(() => setUpdatingInterestedFixtureIds((current) => current.filter((id) => id !== fixture.fixture_id)));
 
     return;
   }
@@ -489,7 +400,8 @@ onClick={() => {
     .post(
       `/fixtures/${fixture.fixture_id}/interested`
     )
-    .then(() => {
+    .then((sessionResponse) => {
+      const anonymous = sessionResponse.data.anonymous !== false;
 
       setInterestedFixtureIds(
         (current) => [
@@ -512,6 +424,7 @@ onClick={() => {
                 : item
           )
       );
+      if (anonymous) setShowAccountPrompt(true);
 
     })
     .catch((error) => {
@@ -519,32 +432,21 @@ onClick={() => {
         "Add Interested error:",
         error
       );
-    });
+    }).finally(() => setUpdatingInterestedFixtureIds((current) => current.filter((id) => id !== fixture.fixture_id)));
 }}
-              style={{
-                border: "1px solid #111827",
-                borderRadius: "8px",
-                padding: "9px 14px",
-                background: isInterested
-                  ? "#111827"
-                  : "#fff",
-                color: isInterested
-                  ? "#fff"
-                  : "#111827",
-                fontWeight: "600",
-cursor: "pointer",
-              }}
+              disabled={updatingInterestedFixtureIds.includes(fixture.fixture_id)}
+              aria-pressed={isInterested}
+              className={`tt-action rounded-none border-x-0 border-b-0 px-4 ${isInterested ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}
             >
               {isInterested
-                ? "★ Interested"
-                : "☆ Interested"}
+                ? "✓ Interested"
+                : "Interested"}
             </button>
 
-          </div>
+          </article>
         );
-      })
-  )}
-</div>
+      })}</div>{upcomingFixtures.length > 4 && <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-muted)]">Showing the next 4 of {upcomingFixtures.length} upcoming fixtures.</p>}</>}
+      </section>
 
     </main>
   );

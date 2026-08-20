@@ -1,5 +1,7 @@
 # Terrace Talk — Architecture, Current State & MVP Roadmap
 
+> **Historical document — superseded 14 August 2026.** For the current implementation and approved architecture, see [`docs/architecture.md`](docs/architecture.md) and [`docs/mvp.md`](docs/mvp.md). Statements below describe the repository at an earlier point and may now be obsolete.
+
 **Last updated:** 10 August 2026  
 **Status:** Non-production MVP / proof of concept  
 **Current phase:** Core stadium experience working; discovery/navigation polish next

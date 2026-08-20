@@ -1,0 +1,9 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.backend"
+watchPatterns = ["backend/**", "config/**", "ingestion/**", "refresh_fixture_states.py", "requirements.txt", "Dockerfile.backend", "railway.cron.toml"]
+
+[deploy]
+startCommand = "python /app/refresh_fixture_states.py --write --confirm-write"
+cronSchedule = "20 4 * * *"
+restartPolicyType = "NEVER"

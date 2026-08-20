@@ -1,0 +1,354 @@
+{
+  "audit_date": "2026-08-14",
+  "status": "review candidates only; no merges or reassignments performed",
+  "method": "The named audit pairs were checked against exact stored metadata and ownership counts. Similar names alone are not evidence of identity.",
+  "candidates": [
+    {
+      "pair": [
+        "Friends Arena",
+        "Strawberry Arena"
+      ],
+      "records": [
+        {
+          "venue_id": 22828,
+          "provider_venue_id": 1501,
+          "name": "Friends Arena",
+          "address": "Råsta Strandväg 1",
+          "city": "Solna",
+          "latitude": 59.372504,
+          "longitude": 18.001667,
+          "fixture_count": 0,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": [
+            {
+              "team_id": 377,
+              "team_name": "AIK Stockholm"
+            }
+          ]
+        },
+        {
+          "venue_id": 22833,
+          "provider_venue_id": 21411,
+          "name": "Strawberry Arena",
+          "address": null,
+          "city": "Solna",
+          "latitude": 59.372504,
+          "longitude": 18.001667,
+          "fixture_count": 15,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        }
+      ],
+      "evidence_supporting_same_identity": "Exact coordinates and/or exact stored address; naming pattern is consistent with a rename or sponsorship change.",
+      "evidence_against_or_uncertain": "Different API-Football provider venue IDs; provider continuity has not been independently established.",
+      "recommended_canonical_venue_id_if_approved": 22833,
+      "confidence": "high",
+      "recommended_action": "Manual provider/source review before any reference reassignment; do not fuzzy-merge."
+    },
+    {
+      "pair": [
+        "St Andrew's Stadium",
+        "St. Andrew's @ Knighthead Park"
+      ],
+      "records": [
+        {
+          "venue_id": 12596,
+          "provider_venue_id": 12596,
+          "name": "St Andrew's Stadium",
+          "address": "St. Andrew&apos;s Road",
+          "city": "Birmingham",
+          "latitude": 52.475567,
+          "longitude": -1.868041,
+          "fixture_count": 23,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": [
+            {
+              "team_id": 54,
+              "team_name": "Birmingham"
+            }
+          ]
+        },
+        {
+          "venue_id": 22764,
+          "provider_venue_id": 22764,
+          "name": "St. Andrew's @ Knighthead Park",
+          "address": "St. Andrew&apos;s Road",
+          "city": "Birmingham",
+          "latitude": 52.475567,
+          "longitude": -1.868041,
+          "fixture_count": 0,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        }
+      ],
+      "evidence_supporting_same_identity": "Exact coordinates and/or exact stored address; naming pattern is consistent with a rename or sponsorship change.",
+      "evidence_against_or_uncertain": "Different API-Football provider venue IDs; provider continuity has not been independently established.",
+      "recommended_canonical_venue_id_if_approved": 12596,
+      "confidence": "high",
+      "recommended_action": "Manual provider/source review before any reference reassignment; do not fuzzy-merge."
+    },
+    {
+      "pair": [
+        "Swansway Chester Stadium",
+        "Deva Stadium"
+      ],
+      "records": [
+        {
+          "venue_id": 19718,
+          "provider_venue_id": 19718,
+          "name": "Swansway Chester Stadium",
+          "address": "Bumpers Lane",
+          "city": "Chester, Cheshire",
+          "latitude": 53.189225,
+          "longitude": -2.923472,
+          "fixture_count": 0,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        },
+        {
+          "venue_id": 21313,
+          "provider_venue_id": 21313,
+          "name": "Deva Stadium",
+          "address": "Bumpers Lane",
+          "city": "Chester, Cheshire",
+          "latitude": 53.189225,
+          "longitude": -2.923472,
+          "fixture_count": 23,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": [
+            {
+              "team_id": 1820,
+              "team_name": "Chester"
+            }
+          ]
+        }
+      ],
+      "evidence_supporting_same_identity": "Exact coordinates and/or exact stored address; naming pattern is consistent with a rename or sponsorship change.",
+      "evidence_against_or_uncertain": "Different API-Football provider venue IDs; provider continuity has not been independently established.",
+      "recommended_canonical_venue_id_if_approved": 21313,
+      "confidence": "high",
+      "recommended_action": "Manual provider/source review before any reference reassignment; do not fuzzy-merge."
+    },
+    {
+      "pair": [
+        "Brisbane Road",
+        "BetWright Stadium"
+      ],
+      "records": [
+        {
+          "venue_id": 18618,
+          "provider_venue_id": 18618,
+          "name": "Brisbane Road",
+          "address": "Brisbane Road, Leyton",
+          "city": "London",
+          "latitude": 51.560071,
+          "longitude": -0.0126,
+          "fixture_count": 23,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": [
+            {
+              "team_id": 1373,
+              "team_name": "Leyton Orient"
+            }
+          ]
+        },
+        {
+          "venue_id": 22758,
+          "provider_venue_id": 22758,
+          "name": "BetWright Stadium",
+          "address": "Brisbane Road, Leyton",
+          "city": "London",
+          "latitude": 51.560071,
+          "longitude": -0.0126,
+          "fixture_count": 0,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        }
+      ],
+      "evidence_supporting_same_identity": "Exact coordinates and/or exact stored address; naming pattern is consistent with a rename or sponsorship change.",
+      "evidence_against_or_uncertain": "Different API-Football provider venue IDs; provider continuity has not been independently established.",
+      "recommended_canonical_venue_id_if_approved": 18618,
+      "confidence": "medium",
+      "recommended_action": "Manual provider/source review before any reference reassignment; do not fuzzy-merge."
+    },
+    {
+      "pair": [
+        "Haig Avenue",
+        "The BIG HELP Stadium"
+      ],
+      "records": [
+        {
+          "venue_id": 2694,
+          "provider_venue_id": 2694,
+          "name": "Haig Avenue",
+          "address": "Haig Avenue",
+          "city": "Southport, Merseyside",
+          "latitude": 53.638118,
+          "longitude": -2.978788,
+          "fixture_count": 0,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        },
+        {
+          "venue_id": 19705,
+          "provider_venue_id": 19705,
+          "name": "The BIG HELP Stadium",
+          "address": "Haig Avenue",
+          "city": "Southport, Merseyside",
+          "latitude": 53.638118,
+          "longitude": -2.978788,
+          "fixture_count": 23,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": [
+            {
+              "team_id": 1826,
+              "team_name": "Southport"
+            }
+          ]
+        }
+      ],
+      "evidence_supporting_same_identity": "Exact coordinates and/or exact stored address; naming pattern is consistent with a rename or sponsorship change.",
+      "evidence_against_or_uncertain": "Different API-Football provider venue IDs; provider continuity has not been independently established.",
+      "recommended_canonical_venue_id_if_approved": 19705,
+      "confidence": "high",
+      "recommended_action": "Manual provider/source review before any reference reassignment; do not fuzzy-merge."
+    },
+    {
+      "pair": [
+        "The County Ground",
+        "The Nigel Eady County Ground"
+      ],
+      "records": [
+        {
+          "venue_id": 592,
+          "provider_venue_id": 592,
+          "name": "The County Ground",
+          "address": "County Road",
+          "city": "Swindon, Wiltshire",
+          "latitude": 51.564446,
+          "longitude": -1.770972,
+          "fixture_count": 23,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": [
+            {
+              "team_id": 1353,
+              "team_name": "Swindon Town"
+            }
+          ]
+        },
+        {
+          "venue_id": 21482,
+          "provider_venue_id": 21482,
+          "name": "The Nigel Eady County Ground",
+          "address": "County Road",
+          "city": "Swindon, Wiltshire",
+          "latitude": 51.564446,
+          "longitude": -1.770972,
+          "fixture_count": 0,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        }
+      ],
+      "evidence_supporting_same_identity": "Exact coordinates and/or exact stored address; naming pattern is consistent with a rename or sponsorship change.",
+      "evidence_against_or_uncertain": "Different API-Football provider venue IDs; provider continuity has not been independently established.",
+      "recommended_canonical_venue_id_if_approved": 592,
+      "confidence": "high",
+      "recommended_action": "Manual provider/source review before any reference reassignment; do not fuzzy-merge."
+    },
+    {
+      "pair": [
+        "Select Security Stadium",
+        "DCBL Stadium"
+      ],
+      "records": [
+        {
+          "venue_id": 5548,
+          "provider_venue_id": 5548,
+          "name": "Select Security Stadium",
+          "address": "Lowerhouse Lane",
+          "city": "Widnes, Cheshire",
+          "latitude": 53.362132,
+          "longitude": -2.741567,
+          "fixture_count": 0,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        },
+        {
+          "venue_id": 21970,
+          "provider_venue_id": 21970,
+          "name": "DCBL Stadium",
+          "address": "Lowerhouse Lane",
+          "city": "Widnes, Cheshire",
+          "latitude": 53.362132,
+          "longitude": -2.741567,
+          "fixture_count": 0,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        }
+      ],
+      "evidence_supporting_same_identity": "Exact coordinates and/or exact stored address; naming pattern is consistent with a rename or sponsorship change.",
+      "evidence_against_or_uncertain": "Different API-Football provider venue IDs; provider continuity has not been independently established.",
+      "recommended_canonical_venue_id_if_approved": 21970,
+      "confidence": "high",
+      "recommended_action": "Manual provider/source review before any reference reassignment; do not fuzzy-merge."
+    },
+    {
+      "pair": [
+        "Visma Arena (provider 11916)",
+        "Visma Arena (provider 22781)"
+      ],
+      "records": [
+        {
+          "venue_id": 22843,
+          "provider_venue_id": 11916,
+          "name": "Visma Arena",
+          "address": "Bollgatan 1",
+          "city": "Växjö",
+          "latitude": 56.880234,
+          "longitude": 14.776073,
+          "fixture_count": 10,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": [
+            {
+              "team_id": 2174,
+              "team_name": "Osters IF"
+            }
+          ]
+        },
+        {
+          "venue_id": 22850,
+          "provider_venue_id": 22781,
+          "name": "Visma Arena",
+          "address": null,
+          "city": "Vaxjo",
+          "latitude": 56.880234,
+          "longitude": 14.776073,
+          "fixture_count": 5,
+          "review_count": 0,
+          "tip_count": 0,
+          "teams": []
+        }
+      ],
+      "evidence_supporting_same_identity": "Exact coordinates and/or exact stored address; naming pattern is consistent with a rename or sponsorship change.",
+      "evidence_against_or_uncertain": "Different API-Football provider venue IDs; provider continuity has not been independently established.",
+      "recommended_canonical_venue_id_if_approved": 22843,
+      "confidence": "medium",
+      "recommended_action": "Manual provider/source review before any reference reassignment; do not fuzzy-merge."
+    }
+  ]
+}

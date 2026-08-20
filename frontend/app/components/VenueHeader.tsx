@@ -1,155 +1,23 @@
-type Venue = {
-  name: string;
-  city: string;
-  country: string;
-  capacity: number;
-};
+type Venue = { name: string; city: string; country: string; capacity: number | null };
 
-type Props = {
-  venue: Venue;
-  hasVisited?: boolean;
-  hasCompletedReview?: boolean;
-  onAddStadium?: () => void;
-  onCompleteReview?: () => void;
-  onEditReview?: () => void;
-};
+type Props = { venue: Venue; score?: number | null; reviewCount?: number; recommendPercentage?: number | null };
 
-export default function VenueHeader({
-  venue,
-  hasVisited = false,
-  hasCompletedReview = false,
-  onAddStadium,
-  onCompleteReview,
-  onEditReview,
-}: Props) {
+export default function VenueHeader({ venue, score, reviewCount = 0, recommendPercentage }: Props) {
+  const hasRating = reviewCount > 0 && score !== undefined && score !== null;
   return (
-    <div
-      style={{
-        marginBottom: "30px",
-      }}
-    >
-      <h1
-        style={{
-          margin: "0 0 6px 0",
-          fontSize: "32px",
-          fontWeight: "800",
-          color: "#fff",
-        }}
-      >
-        {venue.name}
-      </h1>
-
-      <p
-        style={{
-          margin: "0 0 4px 0",
-          color: "#fff",
-        }}
-      >
-        {venue.city}, {venue.country}
-      </p>
-
-      <p
-        style={{
-          margin: "0 0 16px 0",
-          color: "#fff",
-        }}
-      >
-        Capacity: {venue.capacity.toLocaleString()}
-      </p>
-
-      {/* User stadium status */}
-
-      {!hasVisited && (
-        <button
-          type="button"
-          onClick={onAddStadium}
-          style={{
-            border: "1px solid #111827",
-            borderRadius: "8px",
-            padding: "9px 14px",
-            background: "#111827",
-            color: "#fff",
-            fontWeight: "600",
-            cursor: "pointer",
-          }}
-        >
-          + Add to My Stadiums
-        </button>
-      )}
-
-      {hasVisited &&
-        !hasCompletedReview && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            <span
-              style={{
-                fontWeight: "600",
-                color: "#fff",
-              }}
-            >
-              ✓ You've visited this stadium
-            </span>
-
-            <button
-              type="button"
-              onClick={onCompleteReview}
-              style={{
-                border: "1px solid #111827",
-                borderRadius: "8px",
-                padding: "8px 13px",
-                background: "#fff",
-                color: "#111827",
-                fontWeight: "600",
-                cursor: "pointer",
-              }}
-            >
-              Complete your review →
-            </button>
-          </div>
-        )}
-
-      {hasVisited &&
-        hasCompletedReview && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            <span
-              style={{
-                fontWeight: "600",
-                color: "#fff",
-              }}
-            >
-              ✓ You've visited this stadium
-            </span>
-
-            <button
-              type="button"
-              onClick={onEditReview}
-              style={{
-                border: "1px solid #111827",
-                borderRadius: "8px",
-                padding: "8px 13px",
-                background: "#fff",
-                color: "#111827",
-                fontWeight: "600",
-                cursor: "pointer",
-              }}
-            >
-              Edit your review
-            </button>
-          </div>
-        )}
-    </div>
+    <header className="tt-panel overflow-hidden" aria-labelledby="venue-heading">
+      <div className="border-b-2 border-[var(--tt-ink)] bg-[var(--tt-blue)] px-4 py-3 text-[var(--tt-paper)] sm:px-7"><p className="text-xs font-extrabold uppercase tracking-[0.14em]">01 / The ground</p></div>
+      <div className="grid min-w-0 gap-6 px-4 py-6 sm:px-7 sm:py-8 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-end">
+        <div className="min-w-0">
+          <h1 id="venue-heading" className="tt-display break-words text-[clamp(3.2rem,10vw,7rem)] leading-[0.82]">{venue.name}</h1>
+          <p className="mt-5 font-extrabold uppercase tracking-[0.1em] text-[var(--tt-blue)]">{venue.city}{venue.country ? ` · ${venue.country}` : ""}</p>
+          {venue.capacity !== null && venue.capacity > 0 && <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">Capacity · {venue.capacity.toLocaleString()}</p>}
+        </div>
+        <div className="border-t-2 border-[var(--tt-ink)] pt-4 lg:border-l-2 lg:border-t-0 lg:pl-6 lg:pt-0">
+          <p className="tt-kicker">Terrace Rating</p>
+          {hasRating ? <><p className="tt-display mt-1 text-6xl leading-none">{score.toFixed(1)}</p><p className="mt-2 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">From {reviewCount} supporter {reviewCount === 1 ? "review" : "reviews"}</p>{recommendPercentage !== undefined && recommendPercentage !== null && <p className="mt-4 border-t border-[var(--tt-rule)] pt-3 text-sm font-extrabold uppercase tracking-[0.08em]">{Math.round(recommendPercentage)}% would recommend</p>}</> : <><p className="tt-display mt-1 text-5xl leading-none text-[var(--tt-muted)]">Unrated</p><p className="mt-2 text-xs leading-5 text-[var(--tt-muted)]">No supporter rating yet.</p></>}
+        </div>
+      </div>
+    </header>
   );
 }

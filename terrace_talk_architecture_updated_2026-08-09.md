@@ -1,5 +1,7 @@
 # Terrace Talk --- Architecture & MVP Roadmap
 
+> **Historical document — superseded 14 August 2026.** See [`docs/architecture.md`](docs/architecture.md) and [`docs/mvp.md`](docs/mvp.md) for canonical current documentation.
+
 **Last updated:** 9 August 2026\
 **Status:** Non-production MVP / proof of concept
 

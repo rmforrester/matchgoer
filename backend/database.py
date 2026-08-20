@@ -7,15 +7,17 @@ from sqlalchemy.orm import sessionmaker
 
 dotenv_path = Path(__file__).parent / ".env"
 
-print("Looking for:", dotenv_path)
-print("Exists:", dotenv_path.exists())
-
 load_dotenv(dotenv_path)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-print("DATABASE_URL =", DATABASE_URL)
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not configured")
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=int(os.getenv("DATABASE_POOL_RECYCLE_SECONDS", "300")),
+)
 
 SessionLocal = sessionmaker(
     autocommit=False,

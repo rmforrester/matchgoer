@@ -5,13 +5,20 @@ import {
   TileLayer,
   Marker,
   Popup,
+  useMap,
+  useMapEvents,
 } from "react-leaflet";
 
 import L from "leaflet";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import "leaflet/dist/leaflet.css";
 
 import type { Fixture } from "../types/fixture";
+import { groupFixturesByVenue, hasMeaningfulMapMovement, type FixtureVenueGroup } from "../../lib/fixtureDiscovery";
+import { createGroundMarkerIcon } from "./groundMarkerIcon";
+import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
 
 type Venue = {
   venue_id: number;
@@ -27,7 +34,87 @@ type Props = {
   latitude: number;
   longitude: number;
   visitedVenueIds: number[];
+  showAllStadiums: boolean;
+  radius: number;
+  viewportLatitude: number;
+  viewportLongitude: number;
+  viewportRevision: number;
+  searchingArea: boolean;
+  onSearchArea: (area: MapSearchArea) => Promise<void>;
 };
+
+export type MapSearchArea = {
+  center: { latitude: number; longitude: number };
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+};
+
+type FixtureVenueMarkerProps = {
+  group: FixtureVenueGroup;
+  visited: boolean;
+  icon: L.DivIcon;
+};
+
+function FixtureVenueMarker({ group, visited, icon }: FixtureVenueMarkerProps) {
+  const map = useMap();
+  const [fixtureIndex, setFixtureIndex] = useState(0);
+  const fixture = group.fixtures[fixtureIndex];
+  const fixtureCount = group.fixtures.length;
+  const move = (offset: number) => setFixtureIndex((current) => (current + offset + fixtureCount) % fixtureCount);
+  const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
+  const statusGroup = fixtureStatusGroup(fixture.status);
+
+  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => setFixtureIndex(0) }}>
+    <Popup closeButton={false} autoPan={false}>
+      <div className="mb-2 flex justify-end"><button type="button" onClick={() => map.closePopup()} aria-label="Close fixture details" className="min-h-11 min-w-11 border border-[var(--tt-ink)] text-lg font-bold leading-none">×</button></div>
+      <strong>{fixture.home_team}</strong><br />vs<br /><strong>{fixture.away_team}</strong>
+      <br /><br /><strong>{fixture.venue_name}</strong>
+      {fixture.venue_city && <><br />{fixture.venue_city}</>}
+      <br /><br />
+      {statusGroup === "postponed" || statusGroup === "cancelled"
+        ? fixtureStatusLabel(fixture.status)
+        : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {new Date(fixture.fixture_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}
+      <br />{fixture.distance_miles} miles away
+      {fixtureCount > 1 && <div className="mt-3 flex items-center justify-between gap-3" aria-label="Fixtures at this stadium">
+        <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="min-h-11 px-2 text-lg">←</button>
+        <span>{fixtureIndex + 1} of {fixtureCount}</span>
+        <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="min-h-11 px-2 text-lg">→</button>
+      </div>}
+      <div><Link href={`/fixture/${fixture.fixture_id}`} className="mt-3 inline-flex min-h-11 items-center font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">View match →</Link></div>
+      {visited && <><br /><br /><strong>✓ You&apos;ve visited this stadium</strong></>}
+    </Popup>
+  </Marker>;
+}
+
+function ViewportController({ latitude, longitude, revision }: { latitude: number; longitude: number; revision: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView([latitude, longitude], map.getZoom(), { animate: false });
+  }, [latitude, longitude, map, revision]);
+  return null;
+}
+
+function MapMovementMonitor({
+  appliedCenter,
+  radius,
+  onCandidateChange,
+}: {
+  appliedCenter: { latitude: number; longitude: number };
+  radius: number;
+  onCandidateChange: (moved: boolean) => void;
+}) {
+  useMapEvents({
+    moveend(event) {
+      const center = event.target.getCenter();
+      const candidate = { latitude: center.lat, longitude: center.lng };
+      onCandidateChange(hasMeaningfulMapMovement(appliedCenter, candidate, radius));
+    },
+    zoomend() { onCandidateChange(true); },
+  });
+  return null;
+}
 
 export default function FixtureMap({
   fixtures,
@@ -35,143 +122,22 @@ export default function FixtureMap({
   latitude,
   longitude,
   visitedVenueIds = [],
+  showAllStadiums,
+  radius,
+  viewportLatitude,
+  viewportLongitude,
+  viewportRevision,
+  searchingArea,
+  onSearchArea,
 }: Props) {
+  const fixtureGroups = useMemo(() => groupFixturesByVenue(fixtures), [fixtures]);
+  const [areaSearchAvailable, setAreaSearchAvailable] = useState(false);
+  const [tileError, setTileError] = useState(false);
+  const mapRef = useRef<L.Map | null>(null);
+  const groundIcon = useMemo(() => createGroundMarkerIcon(false), []);
+  const visitedGroundIcon = useMemo(() => createGroundMarkerIcon(true), []);
 
-  // ---------------------------------------------------------
-  // Stadium pin
-  //
-  // Blue pin = stadium
-  // ---------------------------------------------------------
-
-  const createStadiumIcon = (
-    visited: boolean
-  ) => {
-    return L.divIcon({
-      className: "",
-      html: `
-        <div style="
-          position: relative;
-          width: 32px;
-          height: 42px;
-        ">
-
-          <div style="
-            width: 30px;
-            height: 30px;
-            background: #2563eb;
-            border: 3px solid white;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            position: absolute;
-            top: 0;
-            left: 0;
-          "></div>
-
-          ${
-            visited
-              ? `
-                <div style="
-                  position: absolute;
-                  top: -7px;
-                  right: -7px;
-                  width: 19px;
-                  height: 19px;
-                  background: white;
-                  border: 2px solid #16a34a;
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  color: #16a34a;
-                  font-size: 12px;
-                  font-weight: 700;
-                  z-index: 10;
-                ">
-                  ✓
-                </div>
-              `
-              : ""
-          }
-
-        </div>
-      `,
-      iconSize: [32, 42],
-      iconAnchor: [16, 42],
-      popupAnchor: [0, -42],
-    });
-  };
-
-
-  // ---------------------------------------------------------
-  // Fixture pin
-  //
-  // Football = fixture occurring at the stadium
-  // ---------------------------------------------------------
-
-  const createFixtureIcon = (
-    visited: boolean
-  ) => {
-    return L.divIcon({
-      className: "",
-      html: `
-        <div style="
-          position: relative;
-          width: 38px;
-          height: 38px;
-        ">
-
-          <div style="
-            width: 34px;
-            height: 34px;
-            background: white;
-            border: 3px solid #111827;
-            border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            position: absolute;
-            top: 0;
-            left: 0;
-          ">
-            ⚽
-          </div>
-
-          ${
-            visited
-              ? `
-                <div style="
-                  position: absolute;
-                  top: -7px;
-                  right: -7px;
-                  width: 19px;
-                  height: 19px;
-                  background: white;
-                  border: 2px solid #16a34a;
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  color: #16a34a;
-                  font-size: 12px;
-                  font-weight: 700;
-                  z-index: 10;
-                ">
-                  ✓
-                </div>
-              `
-              : ""
-          }
-
-        </div>
-      `,
-      iconSize: [38, 38],
-      iconAnchor: [19, 19],
-      popupAnchor: [0, -19],
-    });
-  };
+  // Fixture and venue locations share the same editorial ground marker.
 
 
   // ---------------------------------------------------------
@@ -181,10 +147,7 @@ export default function FixtureMap({
   // ---------------------------------------------------------
 
   const fixtureVenueIds = new Set(
-    fixtures.map(
-      (fixture) =>
-        Number(fixture.venue_id)
-    )
+    fixtureGroups.flatMap((group) => group.venueId === null ? [] : [group.venueId])
   );
 
 
@@ -202,19 +165,21 @@ export default function FixtureMap({
 
 
   return (
-    <MapContainer
-      center={[latitude, longitude]}
-      zoom={8}
-      style={{
-        height: "600px",
-        width: "100%",
-        borderRadius: "12px",
-      }}
+<div className="relative">
+<MapContainer
+  ref={mapRef}
+  center={[latitude, longitude]}
+  zoom={8}
+  closePopupOnClick
+      className="tt-map"
     >
+      <ViewportController latitude={viewportLatitude} longitude={viewportLongitude} revision={viewportRevision} />
+      <MapMovementMonitor appliedCenter={{ latitude, longitude }} radius={radius} onCandidateChange={setAreaSearchAvailable} />
 
       <TileLayer
         attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        eventHandlers={{ tileerror: () => setTileError(true), load: () => setTileError(false) }}
       />
 
 
@@ -225,7 +190,7 @@ export default function FixtureMap({
           fixture currently being displayed there.
       --------------------------------------------------- */}
 
-      {venues.map((venue) => {
+      {showAllStadiums && venues.map((venue) => {
 
         if (
           venue.latitude === null ||
@@ -256,9 +221,9 @@ export default function FixtureMap({
               venue.latitude,
               venue.longitude,
             ]}
-            icon={createStadiumIcon(
-              visited
-            )}
+            icon={visited ? visitedGroundIcon : groundIcon}
+            title={`${venue.name}${visited ? ", visited ground" : ""}`}
+            alt={`${venue.name}${visited ? ", visited ground" : ""}`}
           >
 
             <Popup>
@@ -280,7 +245,7 @@ export default function FixtureMap({
                   <br />
 
                   <strong>
-                    ✓ You've visited this stadium
+                    ✓ You&apos;ve visited this stadium
                   </strong>
                 </>
               )}
@@ -299,83 +264,23 @@ export default function FixtureMap({
           Fixture pins take precedence over stadium pins.
       --------------------------------------------------- */}
 
-      {fixtures.map((fixture) => {
-
-        const visited =
-          isVisited(
-            Number(fixture.venue_id)
-          );
-
-        return (
-          <Marker
-            key={`fixture-${fixture.fixture_id}`}
-            position={[
-              fixture.latitude,
-              fixture.longitude,
-            ]}
-            icon={createFixtureIcon(
-              visited
-            )}
-          >
-
-            <Popup>
-
-              <strong>
-                {fixture.home_team}
-              </strong>
-
-              <br />
-
-              vs
-
-              <br />
-
-              <strong>
-                {fixture.away_team}
-              </strong>
-
-              <br />
-              <br />
-
-              <strong>
-                {fixture.venue_name}
-              </strong>
-
-              {fixture.venue_city && (
-                <>
-                  <br />
-                  {fixture.venue_city}
-                </>
-              )}
-
-              <br />
-              <br />
-
-              {new Date(
-                fixture.fixture_date
-              ).toLocaleDateString()}
-
-              <br />
-
-              {fixture.distance_miles} miles away
-
-              {visited && (
-                <>
-                  <br />
-                  <br />
-
-                  <strong>
-                    ✓ You've visited this stadium
-                  </strong>
-                </>
-              )}
-
-            </Popup>
-
-          </Marker>
-        );
+      {fixtureGroups.map((group) => {
+        const visited = group.venueId !== null && isVisited(group.venueId);
+        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icon={visited ? visitedGroundIcon : groundIcon} />;
       })}
 
     </MapContainer>
+    {areaSearchAvailable && <button type="button" disabled={searchingArea} onClick={async () => {
+      const center = mapRef.current?.getCenter();
+      const bounds = mapRef.current?.getBounds();
+      if (!center || !bounds) return;
+      const liveCenter = { latitude: center.lat, longitude: center.lng };
+      console.info("[discovery] Search this area pressed", { appliedCenter: { latitude, longitude }, liveCenter });
+      console.assert(hasMeaningfulMapMovement({ latitude, longitude }, liveCenter, radius), "Search this area must use a meaningfully changed live map center");
+      await onSearchArea({ center: liveCenter, north: bounds.getNorth(), south: bounds.getSouth(), east: bounds.getEast(), west: bounds.getWest() });
+      setAreaSearchAvailable(false);
+    }} className="tt-action absolute left-1/2 top-4 z-[1000] -translate-x-1/2 px-5 shadow-[3px_3px_0_var(--tt-ink)] disabled:opacity-60">{searchingArea ? "Searching…" : "Search this area"}</button>}
+    {tileError && <p role="status" className="absolute bottom-3 left-3 right-3 z-[1000] border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">The map background could not load. Fixture cards and ground links are still available below.</p>}
+</div>
   );
 }

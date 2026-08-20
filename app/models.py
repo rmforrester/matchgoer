@@ -8,7 +8,7 @@ class Fixture(Base):
     __tablename__ = "fixtures"
 
     fixture_id = Column(Integer, primary_key=True)
-    fixture_date = Column(DateTime)
+    fixture_date = Column(DateTime(timezone=True))
     venue_id = Column(Integer, ForeignKey("venues.venue_id"))
     venue = relationship("Venue")
     venue_name = Column(String)
@@ -30,6 +30,7 @@ class Venue(Base):
     __tablename__ = "venues"
 
     venue_id = Column(Integer, primary_key=True)
+    provider_venue_id = Column(Integer, unique=True, nullable=True)
     name = Column(String)
     address = Column(String)
     city = Column(String)

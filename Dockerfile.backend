@@ -1,0 +1,17 @@
+FROM python:3.14-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/backend:/app
+
+WORKDIR /app
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --requirement requirements.txt
+
+COPY backend ./backend
+COPY config ./config
+COPY ingestion ./ingestion
+COPY refresh_fixture_states.py ./
+
+CMD ["sh", "-c", "uvicorn main:app --app-dir /app/backend --host 0.0.0.0 --port ${PORT:-8000}"]

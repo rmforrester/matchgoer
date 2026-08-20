@@ -6,6 +6,9 @@ venv/
 
 # Environment
 .env
+.env.*
+!.env.example
+!**/.env.example
 
 # Node / Next.js
 node_modules/
@@ -26,3 +29,15 @@ htmlcov/
 
 # Logs
 *.log
+
+# Local ingestion artifacts
+.cache/
+reports/
+.cache/
+
+# Keep the reviewed venue-identity evidence; other generated reports stay local.
+!reports/
+reports/*
+!reports/ingestion/
+reports/ingestion/*
+!reports/ingestion/venue-identity-review-candidates-2026-08-14.json

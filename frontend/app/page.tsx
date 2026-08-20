@@ -1,37 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import axios from "axios";
 import api from "../lib/api";
+import { apiErrorMessage } from "../lib/api-error";
 import dynamic from "next/dynamic";
 
 import SearchBar from "./components/SearchBar";
+import type { LeagueGroup } from "./components/SearchBar";
+import NearbyFixtureCarousel from "./components/NearbyFixtureCarousel";
+import WorthTheTrip from "./components/WorthTheTrip";
+import AccountConversionPrompt from "./components/AccountConversionPrompt";
 import type { Fixture } from "./types/fixture";
-
-const USE_TEST_LOCATION = true;
-
-const TEST_LATITUDE = 53.4631;
-const TEST_LONGITUDE = -2.2913;
+import type { MapSearchArea } from "./components/FixtureMap";
+import {
+  bufferedApiDateBound,
+  applyMapAreaOrigin,
+  discoveryDateRangeError,
+  localCalendarDateValue,
+  normalizeDiscoveryStartDate,
+  selectDiscoveryFixtures,
+} from "../lib/fixtureDiscovery";
 
 const FixtureMap = dynamic(
   () => import("./components/FixtureMap"),
   { ssr: false }
 );
-
-type League = {
-  league_id: number;
-  league_name: string;
-};
-
-type InterestedFixture = {
-  interested_id: number;
-  fixture_id: number;
-  fixture_date: string;
-  home_team: string;
-  away_team: string;
-  venue_id: number;
-  venue_name: string | null;
-  venue_city: string | null;
-};
 
 type Venue = {
   venue_id: number;
@@ -40,6 +40,27 @@ type Venue = {
   latitude: number | null;
   longitude: number | null;
 };
+
+type GeocodingResult = {
+  lat: string;
+  lon: string;
+  display_name: string;
+};
+
+type AppliedSearch = {
+  latitude: number;
+  longitude: number;
+  locationName: string;
+  radius: number;
+  startDate: string;
+  endDate: string;
+  leagueIds: number[];
+  showAllStadiums: boolean;
+  mode: "radius" | "viewport";
+  totalMatches: number;
+  resultsLimited: boolean;
+};
+
 export default function Home() {
   // -------------------------
   // State
@@ -49,12 +70,15 @@ export default function Home() {
     useState<Fixture[]>([]);
 
   const [leagues, setLeagues] =
-    useState<League[]>([]);
-
-  const [interestedFixtures, setInterestedFixtures] =
-    useState<InterestedFixture[]>([]);
+    useState<LeagueGroup[]>([]);
 
   const [visitedVenueIds, setVisitedVenueIds] =
+    useState<number[]>([]);
+
+  const [interestedFixtureIds, setInterestedFixtureIds] =
+    useState<number[]>([]);
+
+  const [updatingInterestedFixtureIds, setUpdatingInterestedFixtureIds] =
     useState<number[]>([]);
 
   const [venues, setVenues] =
@@ -63,76 +87,83 @@ export default function Home() {
   const [loading, setLoading] =
     useState(false);
 
-  const [interestedLoading, setInterestedLoading] =
-    useState(false);
-
-  const [visitedLoading, setVisitedLoading] =
-    useState(false);
-
   const [sessionReady, setSessionReady] =
     useState(false);
 
-  const [selectedLeague, setSelectedLeague] =
-    useState("");
+  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [showAccountPrompt, setShowAccountPrompt] = useState(false);
+
+  const [selectedLeagueIds, setSelectedLeagueIds] =
+    useState<number[]>([]);
 
   const [radius, setRadius] =
-    useState(50);
+    useState(25);
 
-  const [startDate, setStartDate] =
-    useState("2026-08-01");
+  const [showAllStadiums, setShowAllStadiums] =
+    useState(false);
+
+  const [appliedSearch, setAppliedSearch] =
+    useState<AppliedSearch | null>(null);
+
+  const [editingSearch, setEditingSearch] =
+    useState(true);
+  const [mapViewportTarget, setMapViewportTarget] = useState({ latitude: 0, longitude: 0, revision: 0 });
+
+  const [discoveryNow, setDiscoveryNow] =
+    useState(() => new Date());
+
+  const today = localCalendarDateValue(discoveryNow);
+
+  const [selectedStartDate, setSelectedStartDate] =
+    useState(() => today);
+
+  const startDate = normalizeDiscoveryStartDate(
+    selectedStartDate,
+    today
+  );
 
   const [endDate, setEndDate] =
     useState("2026-09-30");
 
+  const [dateError, setDateError] = useState("");
+  const [discoveryError, setDiscoveryError] = useState("");
+  const [hasCompletedDiscovery, setHasCompletedDiscovery] = useState(false);
+  const discoveryRequest = useRef<{
+    version: number;
+    controller: AbortController;
+  } | null>(null);
+  const discoveryRequestVersion = useRef(0);
+
   // -------------------------
-  // User / test location
+  // Discovery location
   // -------------------------
 
-  const [latitude, setLatitude] =
-    useState<number | null>(null);
+  const [locationQuery, setLocationQuery] =
+    useState("");
 
-  const [longitude, setLongitude] =
-    useState<number | null>(null);
+  const [draftCoordinates, setDraftCoordinates] =
+    useState<{ latitude: number; longitude: number } | null>(null);
 
-  // -------------------------
-  // Load Interested fixtures
-  // -------------------------
+  const [locationLoading, setLocationLoading] =
+    useState(false);
 
-  const loadInterestedFixtures = () => {
-    setInterestedLoading(true);
-
-    api
-      .get("/interested")
-      .then((response) => {
-        setInterestedFixtures(response.data);
-      })
-      .catch((error) => {
-        console.error(
-          "Interested loading error:",
-          error
-        );
-      })
-      .finally(() => {
-        setInterestedLoading(false);
-      });
-  };
+  const [locationError, setLocationError] =
+    useState("");
 
   // -------------------------
   // Load visited stadiums
   // -------------------------
 
-  const loadVisitedStadiums = () => {
-  setVisitedLoading(true);
-
+const loadVisitedStadiums = () => {
   api
-    .get("/my-reviews")
+    .get("/my-grounds")
     .then((response) => {
-      const reviews = response.data as {
+      const grounds = response.data as {
         venue_id: number | string;
       }[];
 
-      const venueIds = reviews.map(
-        (review) => Number(review.venue_id)
+      const venueIds = grounds.map(
+        (ground) => Number(ground.venue_id)
       );
 
       setVisitedVenueIds(venueIds);
@@ -143,104 +174,258 @@ export default function Home() {
         error
       );
     })
-    .finally(() => {
-      setVisitedLoading(false);
-    });
 };
 
-  // -------------------------
-  // Toggle Interested
-  // -------------------------
-
-  const toggleInterested = (
-    event: React.MouseEvent,
-    fixtureId: number
-  ) => {
-    event.stopPropagation();
-
-    const isInterested =
-      interestedFixtures.some(
-        (fixture) =>
-          fixture.fixture_id === fixtureId
-      );
-
-    if (isInterested) {
-      api
-        .delete(
-          `/fixtures/${fixtureId}/interested`
-        )
-        .then(() => {
-          setInterestedFixtures((current) =>
-            current.filter(
-              (fixture) =>
-                fixture.fixture_id !== fixtureId
-            )
-          );
-        })
-        .catch((error) => {
-          console.error(
-            "Remove Interested error:",
-            error
-          );
-        });
-
-      return;
-    }
-
+  const loadInterestedFixtures = () => {
     api
-      .post(
-        `/fixtures/${fixtureId}/interested`
-      )
-      .then(() => {
-        loadInterestedFixtures();
+      .get("/interested")
+      .then((response) => {
+        setInterestedFixtureIds(
+          response.data.map(
+            (fixture: { fixture_id: number }) => fixture.fixture_id
+          )
+        );
       })
       .catch((error) => {
-        console.error(
-          "Add Interested error:",
-          error
-        );
+        console.error("Interested loading error:", error);
       });
   };
 
-  // -------------------------
-  // Load nearby fixtures
-  // -------------------------
-
-  const loadFixtures = () => {
-    if (
-      latitude === null ||
-      longitude === null
-    ) {
+  const toggleInterested = (fixtureId: number) => {
+    if (updatingInterestedFixtureIds.includes(fixtureId)) {
       return;
     }
 
-    setLoading(true);
+    const isInterested = interestedFixtureIds.includes(fixtureId);
+    setUpdatingInterestedFixtureIds((current) => [...current, fixtureId]);
 
-    api
-      .get("/nearby", {
-        params: {
-          latitude,
-          longitude,
-          radius,
-          start_date: startDate,
-          end_date: endDate,
-          league:
-            selectedLeague || undefined,
-        },
-      })
-      .then((response) => {
-        setFixtures(response.data);
+    const request = isInterested
+      ? api.delete(`/fixtures/${fixtureId}/interested`)
+      : api.post(`/fixtures/${fixtureId}/interested`);
+
+    request
+      .then(() => {
+        setInterestedFixtureIds((current) =>
+          isInterested
+            ? current.filter((id) => id !== fixtureId)
+            : [...current, fixtureId]
+        );
+        if (!isInterested && isAnonymous) {
+          setShowAccountPrompt(true);
+        }
       })
       .catch((error) => {
-        console.error(
-          "Fixture loading error:",
-          error
-        );
+        console.error("Interested update error:", error);
       })
       .finally(() => {
-        setLoading(false);
+        setUpdatingInterestedFixtureIds((current) =>
+          current.filter((id) => id !== fixtureId)
+        );
       });
   };
+
+  const submitDiscovery = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loading) return;
+
+    const requestVersion = discoveryRequestVersion.current + 1;
+    discoveryRequestVersion.current = requestVersion;
+    discoveryRequest.current?.controller.abort();
+
+    const rangeError = discoveryDateRangeError(startDate, endDate);
+    if (rangeError) {
+      setDateError(rangeError);
+      setDiscoveryError("");
+      setFixtures([]);
+      setLoading(false);
+      setHasCompletedDiscovery(false);
+      return;
+    }
+
+    const query = locationQuery.trim();
+    if (!query) {
+      setLocationError("Enter a city or location to search.");
+      return;
+    }
+
+    const controller = new AbortController();
+    discoveryRequest.current = { version: requestVersion, controller };
+    setFixtures([]);
+    setVenues([]);
+    setLoading(true);
+    setLocationLoading(true);
+    setHasCompletedDiscovery(false);
+    setDateError("");
+    setDiscoveryError("");
+    setLocationError("");
+    let resolvingLocation = !draftCoordinates;
+
+    try {
+      let origin = draftCoordinates;
+      let locationName = query;
+
+      if (!origin) {
+        const searchParams = new URLSearchParams({ q: query, format: "jsonv2", limit: "1" });
+        const locationResponse = await fetch(
+          `https://nominatim.openstreetmap.org/search?${searchParams.toString()}`,
+          { headers: { Accept: "application/json" }, signal: controller.signal }
+        );
+        if (!locationResponse.ok) throw new Error("Location search failed");
+        const results = await locationResponse.json() as GeocodingResult[];
+        if (!results[0]) {
+          setLocationError("No matching location was found. Try a more specific search.");
+          return;
+        }
+        origin = { latitude: Number(results[0].lat), longitude: Number(results[0].lon) };
+        locationName = results[0].display_name;
+        resolvingLocation = false;
+      }
+
+      const startBound = startDate ? bufferedApiDateBound(startDate, -1) : undefined;
+      const endBound = endDate ? bufferedApiDateBound(endDate, 1) : undefined;
+      const response = await api.get("/nearby", {
+        signal: controller.signal,
+        params: {
+          latitude: origin.latitude,
+          longitude: origin.longitude,
+          radius,
+          start_date: startBound,
+          end_date: endBound,
+          league_id: selectedLeagueIds.length ? selectedLeagueIds : undefined,
+          limit: 100,
+        },
+        paramsSerializer: { indexes: null },
+      });
+
+      if (discoveryRequestVersion.current !== requestVersion) return;
+      const nextSearch: AppliedSearch = {
+        ...origin,
+        locationName,
+        radius,
+        startDate,
+        endDate,
+        leagueIds: [...selectedLeagueIds],
+        showAllStadiums,
+        mode: "radius",
+        totalMatches: Number(response.headers["x-total-matches"] ?? response.data.length),
+        resultsLimited: response.headers["x-results-limited"] === "true",
+      };
+      setFixtures(response.data);
+      setAppliedSearch(nextSearch);
+      setMapViewportTarget((current) => ({ ...origin, revision: current.revision + 1 }));
+      setLocationQuery(locationName);
+      setDraftCoordinates(origin);
+      setHasCompletedDiscovery(true);
+      setEditingSearch(false);
+
+      if (showAllStadiums) {
+        api.get("/venues", {
+          signal: controller.signal,
+          params: { latitude: origin.latitude, longitude: origin.longitude, radius, limit: 100 },
+        }).then((venueResponse) => {
+          if (discoveryRequestVersion.current === requestVersion) setVenues(venueResponse.data);
+        }).catch((error) => {
+          if (!controller.signal.aborted) console.error("Venue loading error:", error);
+        });
+      }
+    } catch (error) {
+      if (controller.signal.aborted || axios.isCancel(error) || discoveryRequestVersion.current !== requestVersion) return;
+      console.error("Discovery loading error:", error);
+      setFixtures([]);
+      setHasCompletedDiscovery(false);
+      if (resolvingLocation) {
+        setLocationError("Unable to search for that location. Please try again.");
+      } else {
+        setDiscoveryError(apiErrorMessage(error, "Unable to load nearby fixtures. Please try again."));
+      }
+    } finally {
+      if (discoveryRequestVersion.current === requestVersion) {
+        setLoading(false);
+        setLocationLoading(false);
+        discoveryRequest.current = null;
+      }
+    }
+  };
+
+  const searchMapArea = async (area: MapSearchArea) => {
+    if (loading || !appliedSearch) return;
+    const origin = area.center;
+    const previousOrigin = { latitude: appliedSearch.latitude, longitude: appliedSearch.longitude };
+    console.info("[discovery] Applying map-area origin", { previousOrigin, requestedOrigin: origin });
+    const requestVersion = discoveryRequestVersion.current + 1;
+    discoveryRequestVersion.current = requestVersion;
+    discoveryRequest.current?.controller.abort();
+    const controller = new AbortController();
+    discoveryRequest.current = { version: requestVersion, controller };
+    setLoading(true);
+    setDiscoveryError("");
+
+    try {
+      const startBound = appliedSearch.startDate ? bufferedApiDateBound(appliedSearch.startDate, -1) : undefined;
+      const endBound = appliedSearch.endDate ? bufferedApiDateBound(appliedSearch.endDate, 1) : undefined;
+      const response = await api.get("/nearby", {
+        signal: controller.signal,
+        params: {
+          latitude: origin.latitude,
+          longitude: origin.longitude,
+          north: area.north,
+          south: area.south,
+          east: area.east,
+          west: area.west,
+          start_date: startBound,
+          end_date: endBound,
+          league_id: appliedSearch.leagueIds.length ? appliedSearch.leagueIds : undefined,
+          limit: 250,
+        },
+        paramsSerializer: { indexes: null },
+      });
+      if (discoveryRequestVersion.current !== requestVersion) return;
+
+      const nextSearch: AppliedSearch = {
+        ...applyMapAreaOrigin(appliedSearch, origin),
+        mode: "viewport",
+        totalMatches: Number(response.headers["x-total-matches"] ?? response.data.length),
+        resultsLimited: response.headers["x-results-limited"] === "true",
+      };
+      console.assert(
+        nextSearch.latitude === origin.latitude && nextSearch.longitude === origin.longitude,
+        "Applied discovery coordinates must match the live map center"
+      );
+      setFixtures(response.data);
+      setAppliedSearch(nextSearch);
+      setLocationQuery("Map area");
+      setDraftCoordinates(origin);
+      setRadius(nextSearch.radius);
+      setSelectedStartDate(nextSearch.startDate);
+      setEndDate(nextSearch.endDate);
+      setSelectedLeagueIds([...nextSearch.leagueIds]);
+      setShowAllStadiums(nextSearch.showAllStadiums);
+      setHasCompletedDiscovery(true);
+
+      if (nextSearch.showAllStadiums) {
+        const venueResponse = await api.get("/venues", {
+          signal: controller.signal,
+          params: { north: area.north, south: area.south, east: area.east, west: area.west, limit: 250 },
+        });
+        if (discoveryRequestVersion.current === requestVersion) setVenues(venueResponse.data);
+      } else {
+        setVenues([]);
+      }
+    } catch (error) {
+      if (controller.signal.aborted || axios.isCancel(error) || discoveryRequestVersion.current !== requestVersion) return;
+      console.error("Map-area discovery error:", error);
+      setDiscoveryError(apiErrorMessage(error, "Unable to search this map area. Please try again."));
+    } finally {
+      if (discoveryRequestVersion.current === requestVersion) {
+        setLoading(false);
+        discoveryRequest.current = null;
+      }
+    }
+  };
+
+  useEffect(() => () => {
+    discoveryRequest.current?.controller.abort();
+  }, []);
 
   // -------------------------
   // Establish anonymous session
@@ -256,6 +441,7 @@ export default function Home() {
         );
 
         setSessionReady(true);
+        setIsAnonymous(response.data.anonymous !== false);
       })
       .catch((error) => {
         console.error(
@@ -283,37 +469,6 @@ export default function Home() {
       });
   }, []);
 
-useEffect(() => {
-  if (
-    latitude === null ||
-    longitude === null
-  ) {
-    return;
-  }
-
-  api
-    .get("/venues", {
-      params: {
-        latitude,
-        longitude,
-        radius,
-        limit: 100,
-      },
-    })
-    .then((response) => {
-      setVenues(response.data);
-    })
-    .catch((error) => {
-      console.error(
-        "Venue loading error:",
-        error
-      );
-    });
-}, [
-  latitude,
-  longitude,
-  radius,
-]);
   // -------------------------
   // Load user-specific data
   // session is ready
@@ -324,186 +479,238 @@ useEffect(() => {
       return;
     }
 
-    loadInterestedFixtures();
-    loadVisitedStadiums();
+    const timeout = window.setTimeout(() => {
+      loadVisitedStadiums();
+      loadInterestedFixtures();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [sessionReady]);
 
   // -------------------------
-  // Get location
+  // Set discovery location
   // -------------------------
 
-  useEffect(() => {
-    // Development/testing location
-    if (USE_TEST_LOCATION) {
-      setLatitude(TEST_LATITUDE);
-      setLongitude(TEST_LONGITUDE);
+  const useCurrentLocation = () => {
+    if (!window.isSecureContext) {
+      setLocationError("Current location requires HTTPS. Search for a city or location instead.");
+      setLocationLoading(false);
       return;
     }
-
-    // Production browser location
     if (!navigator.geolocation) {
-      console.log(
-        "Geolocation not supported."
+      setLocationError(
+        "Location services are not supported by this browser."
       );
       return;
     }
 
+    setLocationLoading(true);
+    setLocationError("");
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLatitude(
-          position.coords.latitude
-        );
-
-        setLongitude(
-          position.coords.longitude
-        );
+        setDraftCoordinates({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setLocationQuery("Current location");
+        setLocationLoading(false);
       },
-      () => {
-        console.log(
-          "Unable to get location."
-        );
-      }
+      (positionError) => {
+        const messages: Record<number, string> = {
+          1: "Location permission was denied. Allow location access or search for a city instead.",
+          2: "Your position is currently unavailable. Search for a city or location instead.",
+          3: "Finding your location timed out. Try again or search for a city instead.",
+        };
+        setLocationError(messages[positionError.code] ?? "Unable to get your location. Search for a city or location instead.");
+        setLocationLoading(false);
+      },
+      { timeout: 10_000, maximumAge: 60_000 }
     );
-  }, []);
-
-  // -------------------------
-  // Load fixtures when
-  // location changes
-  // -------------------------
+  };
 
   useEffect(() => {
-    if (
-      latitude === null ||
-      longitude === null
-    ) {
-      return;
-    }
+    const clock = window.setInterval(
+      () => setDiscoveryNow(new Date()),
+      60_000
+    );
 
-    loadFixtures();
-  }, [latitude, longitude]);
+    return () => window.clearInterval(clock);
+  }, []);
 
   // -------------------------
   // UI
   // -------------------------
 
-  return (
-    <main className="max-w-6xl mx-auto p-6">
+  const visibleFixtures = useMemo(
+    () => selectDiscoveryFixtures(
+      fixtures,
+      appliedSearch?.radius ?? radius,
+      discoveryNow,
+      appliedSearch?.startDate ?? startDate,
+      appliedSearch?.endDate ?? endDate,
+      appliedSearch?.mode !== "viewport",
+    ),
+    [appliedSearch, discoveryNow, endDate, fixtures, radius, startDate]
+  );
 
-      <SearchBar
-        leagues={leagues}
-        selectedLeague={selectedLeague}
-        setSelectedLeague={setSelectedLeague}
-        radius={radius}
-        setRadius={setRadius}
-        startDate={startDate}
-        setStartDate={setStartDate}
-        endDate={endDate}
-        setEndDate={setEndDate}
-        onSearch={loadFixtures}
-        loading={loading}
-      />
+  const formatSummaryDate = (value: string) => value
+    ? new Date(`${value}T12:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short" })
+    : "Any date";
+
+  return (
+    <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-4 sm:px-6 sm:py-8">
+      <AccountConversionPrompt open={showAccountPrompt} kind="interested" onDismiss={() => setShowAccountPrompt(false)} />
+
+      <header className="mb-4 border-b-2 border-[var(--tt-ink)] pb-3 sm:mb-6 sm:pb-5">
+        <p className="tt-kicker">01 / Match discovery</p>
+        <h1 className="tt-display mt-1 text-4xl leading-[0.9] sm:mt-2 sm:text-6xl">Find a game</h1>
+        <p className="mt-2 max-w-xl text-sm text-[var(--tt-muted)] sm:text-base">
+          Pick a place. Find a ground. Make a day of it.
+        </p>
+      </header>
+
+      <section className="tt-panel mb-5 w-full min-w-0 p-3 sm:p-4" aria-labelledby="search-heading">
+        {!editingSearch && appliedSearch ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="tt-kicker" id="search-heading">Current search</p>
+              <p className="mt-1 font-extrabold">
+                {appliedSearch.locationName.split(",")[0]} · {formatSummaryDate(appliedSearch.startDate)}–{formatSummaryDate(appliedSearch.endDate)} · {appliedSearch.mode === "viewport" ? "Matches in this area" : `${appliedSearch.radius} mi`} · {appliedSearch.leagueIds.length === 0 ? "All leagues" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "league" : "leagues"}`}
+              </p>
+              {appliedSearch.showAllStadiums && <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--tt-blue)]">All stadiums shown</p>}
+            </div>
+            <button type="button" onClick={() => setEditingSearch(true)} className="tt-action tt-action-secondary px-4">Edit search</button>
+          </div>
+        ) : (
+          <form onSubmit={submitDiscovery}>
+            <p className="tt-kicker mb-2" id="search-heading">Plan your matchday</p>
+            <div className="grid gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
+              Where
+              <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <input
+                  id="location-search"
+                  type="search"
+                  value={locationQuery}
+                  onChange={(event) => {
+                    setLocationQuery(event.target.value);
+                    setDraftCoordinates(null);
+                  }}
+                  placeholder="Search a city or location"
+                  aria-label="Where"
+                  className="tt-control w-full min-w-0 px-4 py-2 normal-case tracking-normal"
+                />
+                <button
+                  type="button"
+                  onClick={useCurrentLocation}
+                  disabled={locationLoading || loading}
+                  className="tt-action tt-action-secondary w-full px-4 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                >
+                  {locationLoading && !loading ? "Finding location..." : "Use my location"}
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-3 border-t border-[var(--tt-rule)] pt-3">
+              <SearchBar
+                leagues={leagues}
+                selectedLeagueIds={selectedLeagueIds}
+                setSelectedLeagueIds={setSelectedLeagueIds}
+                radius={radius}
+                setRadius={setRadius}
+                startDate={startDate}
+                setStartDate={setSelectedStartDate}
+                minimumStartDate={today}
+                endDate={endDate}
+                setEndDate={setEndDate}
+              />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--tt-rule)] pt-3">
+              <label className="flex min-h-11 cursor-pointer items-center gap-3 text-xs font-extrabold uppercase tracking-[0.1em]">
+                <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-5 w-5 accent-[var(--tt-blue)]" />
+                <span>Show all stadiums</span>
+              </label>
+              <button type="submit" disabled={loading || locationLoading} className="tt-action min-w-28 px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-40">
+                {loading ? "Searching..." : "Search"}
+              </button>
+            </div>
+
+            {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
+            {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
+          </form>
+        )}
+      </section>
 
       {/* Map */}
 
-      {latitude !== null &&
-        longitude !== null && (
-          <section className="mb-8">
+      {appliedSearch && (
+          <section className="mb-8 w-full min-w-0 max-w-full overflow-x-clip">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="tt-kicker">02 / Map</p>
+                <h2 className="tt-display mt-1 text-3xl leading-none sm:text-4xl">
+                  {`Matches near ${appliedSearch.locationName.split(",")[0]}`}
+                </h2>
+              </div>
+              <span className="border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] px-3 py-1 text-xs font-extrabold uppercase tracking-wider">
+                {appliedSearch.mode === "viewport" ? "Matches in this area" : `Matches / ${appliedSearch.radius} mi`}
+              </span>
+            </div>
+            <div className="border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-1.5">
 <FixtureMap
-  fixtures={fixtures}
+  fixtures={visibleFixtures}
   venues={venues}
-  latitude={latitude}
-  longitude={longitude}
+  latitude={appliedSearch.latitude}
+  longitude={appliedSearch.longitude}
   visitedVenueIds={visitedVenueIds}
+  showAllStadiums={appliedSearch.showAllStadiums}
+  radius={appliedSearch.radius}
+  viewportLatitude={mapViewportTarget.revision ? mapViewportTarget.latitude : appliedSearch.latitude}
+  viewportLongitude={mapViewportTarget.revision ? mapViewportTarget.longitude : appliedSearch.longitude}
+  viewportRevision={mapViewportTarget.revision}
+  searchingArea={loading}
+  onSearchArea={searchMapArea}
 />
+            </div>
+            <NearbyFixtureCarousel
+              fixtures={visibleFixtures}
+              radius={appliedSearch.radius}
+              viewportMode={appliedSearch.mode === "viewport"}
+              totalMatches={appliedSearch.totalMatches}
+              resultsLimited={appliedSearch.resultsLimited}
+              interestedFixtureIds={interestedFixtureIds}
+              updatingFixtureIds={updatingInterestedFixtureIds}
+              onToggleInterested={toggleInterested}
+            />
+            <WorthTheTrip fixtures={visibleFixtures} />
           </section>
         )}
 
+      {!appliedSearch && !loading && (
+        <section className="tt-panel border-l-[8px] border-l-[var(--tt-blue)] p-5">
+          <h2 className="tt-display text-2xl">Find football near you</h2>
+          <p className="mt-1 text-sm text-[var(--tt-muted)]">
+            Search a city or use your location to see upcoming matches.
+          </p>
+        </section>
+      )}
+
+      {discoveryError && (
+        <p role="alert" className="border-l-4 border-[var(--tt-blue)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">{discoveryError}</p>
+      )}
+
       {!loading &&
-        fixtures.length === 0 && (
-          <p>No fixtures found.</p>
+        !dateError &&
+        !discoveryError &&
+        hasCompletedDiscovery &&
+        visibleFixtures.length === 0 && (
+          <div className="tt-panel border-l-[8px] border-l-[var(--tt-blue)] p-5"><p className="font-semibold">No fixtures found.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a wider radius, more leagues, or different dates.</p></div>
         )}
 
       {loading && (
-        <p>Loading fixtures...</p>
+        <p className="tt-kicker py-4" aria-live="polite">Loading fixtures...</p>
       )}
-
-      {/* Fixture list */}
-
-      {!loading &&
-        fixtures.map((fixture) => {
-          const isInterested =
-            interestedFixtures.some(
-              (item) =>
-                item.fixture_id ===
-                fixture.fixture_id
-            );
-
-          const isVisited =
-            visitedVenueIds.includes(
-              fixture.venue_id
-            );
-
-          return (
-            <div
-              key={fixture.fixture_id}
-              className="border rounded-xl p-5 mb-4 shadow cursor-pointer hover:bg-gray-100"
-              onClick={() =>
-                (window.location.href =
-                  `/venue/${fixture.venue_id}`)
-              }
-            >
-              <div className="flex justify-between items-start gap-4">
-
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    {fixture.home_team} vs{" "}
-                    {fixture.away_team}
-                  </h2>
-
-                  <p>
-                    {fixture.venue_name}
-                  </p>
-
-                  <p>
-                    {fixture.venue_city}
-                  </p>
-
-                  <p>
-                    {new Date(
-                      fixture.fixture_date
-                    ).toLocaleDateString()}
-                  </p>
-
-                  <p>
-                    {fixture.distance_miles} miles away
-                  </p>
-
-                  {isVisited && (
-                    <p className="text-sm font-medium mt-2">
-                      ✓ Visited
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={(event) =>
-                    toggleInterested(
-                      event,
-                      fixture.fixture_id
-                    )
-                  }
-                  className="border rounded-lg px-3 py-2 whitespace-nowrap hover:bg-gray-200"
-                >
-                  {isInterested
-                    ? "★ Interested"
-                    : "☆ Interested"}
-                </button>
-
-              </div>
-            </div>
-          );
-        })}
 
     </main>
   );

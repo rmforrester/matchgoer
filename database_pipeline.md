@@ -1,5 +1,7 @@
 # Football Finder - Database Pipeline
 
+> **Historical document — superseded 14 August 2026.** The canonical import process is [`docs/data-ingestion.md`](docs/data-ingestion.md); current architecture and MVP scope are in [`docs/architecture.md`](docs/architecture.md) and [`docs/mvp.md`](docs/mvp.md).
+
 ## Overview
 
 Football Finder uses API-Football as the source for football fixtures and stadium data.
