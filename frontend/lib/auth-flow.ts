@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Session } from "@supabase/supabase-js";
 
-import api, { anonymousApi } from "./api";
+import api from "./api";
 
 export type AuthDestination = {
   route: string;
@@ -44,6 +44,7 @@ async function registeredDestination(returnTo: string): Promise<AuthDestination>
 export async function completeAuthenticatedFlow(
   session: Session,
   requestedReturnTo?: string | null,
+  handoffToken?: string | null,
 ): Promise<AuthDestination> {
   const returnTo = safeReturnTo(requestedReturnTo);
   const authorization = { Authorization: `Bearer ${session.access_token}` };
@@ -55,20 +56,13 @@ export async function completeAuthenticatedFlow(
   }
 
   try {
-    const claim = await api.post("/account/claim", {}, { headers: authorization });
+    const claim = await api.post("/account/claim", { handoff_token: handoffToken || null }, { headers: authorization });
     if (!claim.data.profile_complete) {
       return { kind: "onboarding", route: accountRoute("/account/onboarding", returnTo) };
     }
     return { kind: "ready", route: accountRoute("/account/ready", returnTo) };
   } catch (error) {
     const code = errorCode(error);
-    if (code === "ANONYMOUS_SESSION_REQUIRED" || code === "ANONYMOUS_SESSION_INVALID") {
-      await anonymousApi.get("/session");
-      const claim = await api.post("/account/claim", {}, { headers: authorization });
-      return claim.data.profile_complete
-        ? { kind: "ready", route: accountRoute("/account/ready", returnTo) }
-        : { kind: "onboarding", route: accountRoute("/account/onboarding", returnTo) };
-    }
     if (code === "IDENTITY_ALREADY_LINKED" || code === "ACCOUNT_ALREADY_REGISTERED") {
       return { kind: "conflict", route: accountRoute("/account/conflict", returnTo) };
     }
@@ -85,5 +79,6 @@ export function userFacingAuthError(error: unknown, fallback: string) {
   const code = errorCode(error);
   if (code === "TOKEN_EXPIRED") return "Your session has expired. Sign in again.";
   if (code === "IDENTITY_NOT_LINKED") return "This account is not connected to Terrace Talk yet.";
+  if (code === "ANONYMOUS_SESSION_REQUIRED" || code === "ANONYMOUS_SESSION_INVALID" || code === "ACCOUNT_HANDOFF_INVALID" || code === "ACCOUNT_HANDOFF_EXPIRED" || code === "ACCOUNT_HANDOFF_USED" || code === "ACCOUNT_HANDOFF_SESSION_MISMATCH" || code === "ACCOUNT_HANDOFF_OWNER_MISMATCH") return "We couldn't verify the matchdays saved before signup. Your account was not switched to another supporter. Return to the original browser and try again.";
   return fallback;
 }

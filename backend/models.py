@@ -369,6 +369,27 @@ class AnonymousSession(Base):
 
     user = relationship("User", foreign_keys=[user_id])
 
+
+class AccountConversionHandoff(Base):
+    __tablename__ = "account_conversion_handoffs"
+    __table_args__ = (
+        CheckConstraint("token_digest ~ '^[0-9a-f]{64}$'", name="ck_account_conversion_handoff_digest"),
+        CheckConstraint("(claimed_issuer IS NULL) = (claimed_subject IS NULL)", name="ck_account_conversion_handoff_claim_pair"),
+        CheckConstraint("(consumed_at IS NULL) = (claimed_issuer IS NULL)", name="ck_account_conversion_handoff_consumption"),
+    )
+
+    token_digest = Column(String(64), primary_key=True)
+    session_id = Column(String, ForeignKey("anonymous_sessions.session_id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    consumed_at = Column(DateTime(timezone=True), nullable=True)
+    claimed_issuer = Column(String, nullable=True)
+    claimed_subject = Column(String, nullable=True)
+
+    session = relationship("AnonymousSession", foreign_keys=[session_id])
+    user = relationship("User", foreign_keys=[user_id])
+
 class InterestedFixture(Base):
     __tablename__ = "interested_fixtures"
 

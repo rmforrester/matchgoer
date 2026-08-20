@@ -7,6 +7,25 @@ import {
   parsePendingWhosGoingAction,
   pendingWhosGoingReturnTo,
 } from "./pending-auth-action.ts";
+import {
+  applyPendingWhosGoing,
+  clearConversionHandoff,
+  clearPendingWhosGoing,
+  loadConversionHandoff,
+  loadPendingWhosGoing,
+  saveConversionHandoff,
+  savePendingWhosGoingFromReturnTo,
+  type BrowserStorage,
+} from "./account-conversion-checkpoint.ts";
+
+function memoryStorage(): BrowserStorage {
+  const values = new Map<string, string>();
+  return {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => { values.set(key, value); },
+    removeItem: (key) => { values.delete(key); },
+  };
+}
 
 test("builds and parses the single allowlisted pending action", () => {
   const now = 1_800_000_000_000;
@@ -36,5 +55,42 @@ test("rejects arbitrary actions, invalid or mismatched fixtures, and expired int
 test("rejects invalid fixture ids when creating intent", () => {
   assert.throws(() => pendingWhosGoingReturnTo(0));
   assert.throws(() => pendingWhosGoingReturnTo(Number.NaN));
+});
+
+test("persists an expiring handoff and pending action outside the confirmation URL", () => {
+  const target = memoryStorage();
+  const now = 1_800_000_000_000;
+  const returnTo = pendingWhosGoingReturnTo(12345, now);
+  saveConversionHandoff({ token: "x".repeat(43), expiresAt: new Date(now + 60_000).toISOString(), returnTo }, target);
+  savePendingWhosGoingFromReturnTo(returnTo, now, target);
+  assert.equal(loadConversionHandoff(now, target)?.returnTo, returnTo);
+  assert.equal(loadPendingWhosGoing(12345, now, target)?.fixtureId, 12345);
+  clearConversionHandoff(target);
+  clearPendingWhosGoing(target);
+  assert.equal(loadConversionHandoff(now, target), null);
+  assert.equal(loadPendingWhosGoing(12345, now, target), null);
+});
+
+test("expired handoff and mismatched pending action fail closed", () => {
+  const target = memoryStorage();
+  const now = 1_800_000_000_000;
+  saveConversionHandoff({ token: "x".repeat(43), expiresAt: new Date(now - 1).toISOString(), returnTo: "/fixture/9" }, target);
+  savePendingWhosGoingFromReturnTo(pendingWhosGoingReturnTo(9, now), now, target);
+  assert.equal(loadConversionHandoff(now, target), null);
+  assert.equal(loadPendingWhosGoing(10, now, target), null);
+});
+
+test("applies Who's Going once and verifies authoritative Interested state", async () => {
+  let puts = 0;
+  let reads = 0;
+  const pending = { action: WHOS_GOING_ENABLE, fixtureId: 9, issuedAt: Date.now() } as const;
+  const result = await applyPendingWhosGoing(
+    pending,
+    async (fixtureId) => { puts += 1; assert.equal(fixtureId, 9); return { interested: true, open_to_meet: true }; },
+    async () => { reads += 1; return { interested: true, open_to_meet: true }; },
+  );
+  assert.deepEqual(result, { interested: true, open_to_meet: true });
+  assert.equal(puts, 1);
+  assert.equal(reads, 1);
 });
 

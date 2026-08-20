@@ -8,12 +8,13 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from account_claim import claim_anonymous_user
+from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from database import engine
 from identity import ResolvedIdentity, SupabaseAuthConfig, VerifiedProviderIdentity, resolve_identity
 from main import get_fixture_social, update_meeting_intent
 from models import (
     AnonymousSession,
+    AccountConversionHandoff,
     AwayDayReview,
     Fixture,
     FixtureMeetingIntent,
@@ -86,6 +87,7 @@ class AccountClaimTests(unittest.TestCase):
                 cleanup.query(AwayDayReview).filter(AwayDayReview.user_id == user_id).delete()
                 cleanup.query(UserProfile).filter(UserProfile.user_id == user_id).delete()
                 cleanup.query(UserIdentity).filter(UserIdentity.user_id == user_id).delete()
+                cleanup.query(AccountConversionHandoff).filter(AccountConversionHandoff.user_id == user_id).delete()
                 cleanup.query(AnonymousSession).filter(AnonymousSession.user_id == user_id).delete()
                 cleanup.query(User).filter(User.user_id == user_id).delete()
                 cleanup.commit()
@@ -104,12 +106,13 @@ class AccountClaimTests(unittest.TestCase):
         self.created_users.append(user.user_id)
         return user.user_id, session.session_id
 
-    def claim(self, session_id, subject="new-supporter", **kwargs):
+    def claim(self, session_id, subject="new-supporter", handoff_token=None, **kwargs):
         db = Session(bind=engine)
         try:
             return claim_anonymous_user(
                 db,
                 session_id=session_id,
+                handoff_token=handoff_token,
                 provider_identity=provider(subject),
                 **kwargs,
             )
@@ -234,6 +237,71 @@ class AccountClaimTests(unittest.TestCase):
             self.assertEqual(verify.query(InterestedFixture).filter_by(user_id=user_id, fixture_id=self.fixture_id).count(), 1)
         finally:
             verify.close()
+
+    def test_handoff_claim_without_cookie_preserves_owner_and_interest(self):
+        user_id, session_id = self.new_anonymous("handoff-no-cookie")
+        self.db.add(InterestedFixture(user_id=user_id, fixture_id=self.fixture_id))
+        self.db.commit()
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+        result = self.claim(None, "handoff-no-cookie-subject", handoff_token=token)
+        verify = Session(bind=engine)
+        try:
+            self.assertEqual(result.user_id, user_id)
+            self.assertEqual(verify.query(InterestedFixture).filter_by(user_id=user_id, fixture_id=self.fixture_id).count(), 1)
+            self.assertEqual(verify.query(UserIdentity).filter_by(user_id=user_id, subject="handoff-no-cookie-subject").count(), 1)
+        finally:
+            verify.close()
+
+    def test_missing_invalid_and_expired_handoff_fail_without_replacement_user(self):
+        user_id, session_id = self.new_anonymous("handoff-fail-closed")
+        before = self.db.query(User).count()
+        self.assert_error(401, "ANONYMOUS_SESSION_REQUIRED", lambda: self.claim(None, "missing-handoff"))
+        self.assert_error(401, "ACCOUNT_HANDOFF_INVALID", lambda: self.claim(None, "invalid-handoff", handoff_token="not-a-real-handoff"))
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_id, now=datetime(2026, 1, 1, tzinfo=timezone.utc))
+        finally:
+            issuer.close()
+        self.assert_error(401, "ACCOUNT_HANDOFF_EXPIRED", lambda: self.claim(
+            None, "expired-handoff", handoff_token=token, now=datetime(2026, 1, 3, tzinfo=timezone.utc),
+        ))
+        self.assertEqual(self.db.query(User).count(), before)
+        self.assertEqual(self.db.get(User, user_id).account_status, "anonymous")
+
+    def test_handoff_rejects_different_live_cookie_owner(self):
+        user_a, session_a = self.new_anonymous("handoff-owner-a")
+        user_b, session_b = self.new_anonymous("handoff-owner-b")
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_a)
+        finally:
+            issuer.close()
+        self.assert_error(409, "ACCOUNT_HANDOFF_SESSION_MISMATCH", lambda: self.claim(
+            session_b, "handoff-cross-owner", handoff_token=token,
+        ))
+        self.assertEqual(self.db.get(User, user_a).account_status, "anonymous")
+        self.assertEqual(self.db.get(User, user_b).account_status, "anonymous")
+
+    def test_handoff_replay_is_idempotent_for_same_identity_and_rejected_for_another(self):
+        user_id, session_id = self.new_anonymous("handoff-replay")
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+        first = self.claim(None, "handoff-replay-subject", handoff_token=token)
+        replay = self.claim(None, "handoff-replay-subject", handoff_token=token)
+        self.assertEqual(first.user_id, user_id)
+        self.assertFalse(first.idempotent)
+        self.assertEqual(replay.user_id, user_id)
+        self.assertTrue(replay.idempotent)
+        self.assert_error(409, "ACCOUNT_HANDOFF_USED", lambda: self.claim(
+            None, "different-replay-subject", handoff_token=token,
+        ))
 
     def test_identity_mapped_to_another_user_is_never_merged(self):
         user_a, session_a = self.new_anonymous("a")

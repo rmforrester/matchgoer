@@ -6,6 +6,7 @@ import { FormEvent, useState } from "react";
 import AccountShell from "@/app/components/AccountShell";
 import { accountRoute, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
 import { anonymousApi } from "@/lib/api";
+import { saveConversionHandoff, savePendingWhosGoingFromReturnTo } from "@/lib/account-conversion-checkpoint";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?: string }) {
@@ -19,13 +20,19 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
 
   const redirectUrl = () => `${window.location.origin}${accountRoute("/auth/callback", returnTo)}`;
 
+  async function prepareConversion() {
+    const handoff = await anonymousApi.post("/account/conversion-handoff");
+    saveConversionHandoff({ token: handoff.data.handoff_token, expiresAt: handoff.data.expires_at, returnTo });
+    savePendingWhosGoingFromReturnTo(returnTo);
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return setError("Account services are unavailable right now.");
     setSaving(true); setError(""); setMessage("");
     try {
-      await anonymousApi.get("/session");
+      await prepareConversion();
       const { data, error: signupError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -46,9 +53,14 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !email.trim()) return;
     setSaving(true); setError(""); setMessage("");
-    const { error: resendError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: redirectUrl() } });
-    if (resendError) setError(userFacingAuthError(resendError, "We couldn't resend the confirmation email."));
-    else setMessage("Confirmation email resent.");
+    try {
+      await prepareConversion();
+      const { error: resendError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: redirectUrl() } });
+      if (resendError) throw resendError;
+      setMessage("Confirmation email resent.");
+    } catch (requestError) {
+      setError(userFacingAuthError(requestError, "We couldn't resend the confirmation email."));
+    }
     setSaving(false);
   }
 

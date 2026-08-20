@@ -292,6 +292,15 @@ class MeetingIntentUpdate(BaseModel):
     open_to_meet: bool
 
 
+class AccountConversionHandoffResponse(BaseModel):
+    handoff_token: str
+    expires_at: datetime
+
+
+class AccountClaimRequest(BaseModel):
+    handoff_token: str | None = Field(default=None, min_length=32, max_length=256)
+
+
 class AccountClaimResponse(BaseModel):
     user_id: int
     account_status: str
