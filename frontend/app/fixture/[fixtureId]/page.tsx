@@ -9,6 +9,7 @@ import { fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-sta
 import AccountConversionPrompt from "../../components/AccountConversionPrompt";
 import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
+import { hasPendingAuthAction, parsePendingWhosGoingAction, pendingWhosGoingReturnTo } from "@/lib/pending-auth-action";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -27,8 +28,9 @@ type SocialFixture = {
   board_closed: boolean; posts: BoardPost[];
 };
 
-export default function FixturePage({ params }: { params: Promise<{ fixtureId: string }> }) {
+export default function FixturePage({ params, searchParams }: { params: Promise<{ fixtureId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { fixtureId } = use(params);
+  const pendingSearchParams = use(searchParams);
   const router = useRouter();
   const [data, setData] = useState<SocialFixture | null>(null);
   const [error, setError] = useState("");
@@ -40,6 +42,7 @@ export default function FixturePage({ params }: { params: Promise<{ fixtureId: s
   const [reporting, setReporting] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("other");
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const pendingActionStarted = useRef(false);
 
   const load = useCallback(
     () => api.get(`/fixtures/${fixtureId}/social`).then((response) => setData(response.data)),
@@ -60,6 +63,30 @@ export default function FixturePage({ params }: { params: Promise<{ fixtureId: s
       return load();
     }).catch(() => setError("Unable to load this fixture."));
   }, [load]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(pendingSearchParams)) {
+      if (typeof value === "string") params.set(key, value);
+    }
+    if (!hasPendingAuthAction(params) || pendingActionStarted.current) return;
+    const numericFixtureId = Number(fixtureId);
+    const pending = parsePendingWhosGoingAction(params, numericFixtureId);
+    if (!pending) {
+      pendingActionStarted.current = true;
+      router.replace(`/fixture/${fixtureId}`);
+      return;
+    }
+    if (!data || isAnonymous || !data.profile?.username) return;
+
+    pendingActionStarted.current = true;
+    void api.put(`/fixtures/${pending.fixtureId}/open-to-meet`, { open_to_meet: true })
+      .then(() => load())
+      .catch((requestError) => setError(requestMessage(requestError, "Your account is ready, but we couldn't enable Who's Going?. Try the button again.")))
+      .finally(() => {
+        router.replace(`/fixture/${fixtureId}`);
+      });
+  }, [data, fixtureId, isAnonymous, load, pendingSearchParams, router]);
 
   const toggleInterested = async () => {
     if (!data || saving) return;
@@ -206,7 +233,7 @@ export default function FixturePage({ params }: { params: Promise<{ fixtureId: s
       </div>
     </section>
 
-    <AccountConversionPrompt open={accountPrompt !== null} kind={accountPrompt ?? "interested"} onDismiss={() => setAccountPrompt(null)} />
+    <AccountConversionPrompt open={accountPrompt !== null} kind={accountPrompt ?? "interested"} onDismiss={() => setAccountPrompt(null)} returnTo={accountPrompt === "mate" ? pendingWhosGoingReturnTo(Number(fixtureId)) : undefined} />
     {error && <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
 
     {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
