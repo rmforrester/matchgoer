@@ -2,7 +2,7 @@
 
 ## Phase 4 transitional state
 
-Supabase Auth has been selected. Phase 4A introduced the database contract, Phase 4B centralized FastAPI identity resolution, Phase 4C implemented in-place claim, and Phase 4C.5 validated it against the development provider. Phase 4E adds confirmed-email signup/sign-in, automatic claim, minimum profile onboarding, restored bearer sessions and logout. Existing-account merge is not implemented. Anonymous `terrace_session` behavior remains live until a successful claim.
+Supabase Auth has been selected. Phase 4A introduced the database contract, Phase 4B centralized FastAPI identity resolution, Phase 4C implemented in-place claim, and Phase 4C.5 validated it against the development provider. Phase 4E adds confirmed-email signup/sign-in, automatic claim, minimum profile onboarding, restored bearer sessions and logout. A durable account-conversion handoff is implemented but still requires hosted migration/deployment and acceptance. Existing-account merge is not implemented. Anonymous `terrace_session` behavior remains live until a successful claim.
 
 ```mermaid
 flowchart LR
@@ -13,6 +13,14 @@ flowchart LR
     Resolver --> Owner
     Owner --> Activity[Interested · visits · reviews<br/>profile · Match Board · Who's Going?]
 ```
+
+### Durable account-conversion handoff
+
+Signup obtains an opaque expiring handoff while the original anonymous cookie is valid. Only a SHA-256 digest is stored in `account_conversion_handoffs`; the raw 256-bit token stays in origin-scoped browser storage and the claim request body. It is not a merge credential and never appears in a URL. The handoff permits the confirmation callback to recover the exact original owner if the cookie is unavailable, while cookie/handoff disagreement is rejected.
+
+The claim transaction locks the handoff, session, user and provider identity. It consumes all outstanding handoffs for the session and revokes the anonymous session only after same-user registration succeeds. Same-provider replay returns the existing result; cross-provider replay and invalid/expired ownership proof change nothing. The prior frontend path that created a replacement anonymous user after claim failure is removed.
+
+This design requires `backend/migrations/20260821_account_conversion_handoffs.sql`, backend deployment before frontend deployment, and hosted browser acceptance. It does not implement existing-account merging.
 
 Provider subjects attach through `user_identities`; email does not establish ownership. `POST /account/claim` now claims existing anonymous activity in place. Existing historical tips remain unchanged with `author_user_id=NULL`.
 
@@ -140,13 +148,15 @@ The browser Supabase SDK owns provider-session persistence and refresh. A shared
 
 Usernames are 3–30 ASCII letters, numbers or underscores, with case-insensitive uniqueness enforced by PostgreSQL. Display name is required; supported club, broad location and bio are optional. Reserved-name moderation remains required before broader public beta.
 
-### Phase 4E live acceptance — 20 August 2026
+### Phase 4E development acceptance and later hosted blocker — 20 August 2026
 
 The development Supabase project completed the product flow with a real confirmed-email identity. Anonymous user `339` was claimed in place, retained its existing Interested row for fixture `1564254`, completed one profile, enabled one Who's Going? intent, survived refresh/session restoration and retained both records after logout. The claim created one identity mapping and revoked the anonymous session; it created no duplicate ownership rows.
 
 The existing-account case was also exercised: registered user `53` signed in while the device cookie owned meaningful activity for user `339`. `/account/conflict` rendered, both owners remained unchanged and no merge audit was created. A brief provider/backend clock difference exposed JWT `iat` validation; the verifier now permits at most 60 seconds for `iat`/`nbf` skew while keeping expiry strict and continuing to enforce signature, issuer and audience.
 
 This acceptance proves the prepared Interested, profile and Who's Going? records used in the journey. Other ownership types remain covered by backend claim tests rather than being asserted as live rows for this particular user.
+
+Later hosted acceptance completed Supabase signup, email confirmation and onboarding but returned to the fixture without the anonymous Interested or requested Who's Going state. Diagnosis identified the replacement-owner frontend fallback described above. The durable handoff fix is locally validated but not deployed, so hosted beta is not yet account-conversion accepted.
 
 ### Phase 4F live acceptance — 20 August 2026
 
