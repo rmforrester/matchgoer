@@ -10,7 +10,7 @@ const markerSvg = (visited: boolean) => `
       stroke-linejoin="miter"
     />
     <path
-      d="M5 10H12M8.5 10V21M15 10H22M18.5 10V21"
+      d="M6 21V10H9L15 17L21 10H24V21"
       fill="none"
       stroke="#FCFAF5"
       stroke-width="2.5"

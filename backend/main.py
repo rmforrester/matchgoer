@@ -67,7 +67,7 @@ from fastapi import Cookie, Depends, FastAPI, Header, Response, HTTPException, Q
 
 
 app = FastAPI(
-    title="Terrace Talk API"
+    title="Matchgoer API"
 )
 
 logger = logging.getLogger(__name__)
@@ -97,7 +97,7 @@ app.add_middleware(
 @app.get("/")
 def home():
     return {
-        "message": "Terrace Talk API running"
+        "message": "Matchgoer API running"
     }
 
 
@@ -1943,7 +1943,7 @@ def _require_registered_social(identity: ResolvedIdentity):
             status_code=403,
             detail={
                 "code": "REGISTERED_ACCOUNT_REQUIRED",
-                "message": "Create a Terrace Talk account to join in",
+                "message": "Create a Matchgoer account to join in",
             },
         )
 
@@ -1955,7 +1955,7 @@ def _require_social_profile(db, user_id: int):
             status_code=403,
             detail={
                 "code": "PROFILE_REQUIRED",
-                "message": "Complete your Terrace Talk profile before joining in",
+                "message": "Complete your Matchgoer profile before joining in",
             },
         )
     return profile

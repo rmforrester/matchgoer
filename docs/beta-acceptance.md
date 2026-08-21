@@ -2,7 +2,7 @@
 
 **Status:** Automated stabilization complete; manual gate pending.
 
-Terrace Talk must not be called beta-ready until this script passes on the intended HTTPS deployment and real mobile devices.
+Matchgoer must not be called beta-ready until this script passes on the intended HTTPS deployment and real mobile devices.
 
 ## Fixture trust contract
 
@@ -10,7 +10,7 @@ Terrace Talk must not be called beta-ready until this script passes on the inten
 - PostgreSQL stores `fixtures.fixture_date` as `TIMESTAMPTZ` (an absolute instant).
 - SQLAlchemy uses `DateTime(timezone=True)` and backend responses are offset-aware.
 - Browsers convert that instant to the supporter's local timezone for display.
-- `NS`, live, `FT`, `AET`, `PEN`, postponed and cancelled states remain provider-authored. Terrace Talk never infers full time from elapsed time.
+- `NS`, live, `FT`, `AET`, `PEN`, postponed and cancelled states remain provider-authored. Matchgoer never infers full time from elapsed time.
 - Date filters currently use UTC calendar bounds. This is deterministic; venue-timezone-aware search dates remain a future data-model consideration for rare midnight-edge fixtures.
 
 Apply `backend/migrations/20260820_fixture_datetime_utc.sql` only after its documented timezone/sample preflight. Refresh mutable fixture data with a dry run first:
@@ -90,7 +90,7 @@ No provider is installed in Phase 5B.
 
 Never capture email, provider subject, tokens, exact coordinates, raw location queries, board text or tip text. Use short anonymous-search retention and pseudonymous identity for D1/D7 return.
 
-Ask voluntarily: **Did Terrace Talk help you find or attend a match you otherwise might not have?** Suggested answers: Yes; Maybe; No; Prefer not to say. Do not implement this prompt until timing and consent are approved.
+Ask voluntarily: **Did Matchgoer help you find or attend a match you otherwise might not have?** Suggested answers: Yes; Maybe; No; Prefer not to say. Do not implement this prompt until timing and consent are approved.
 
 ## Focus geography and decision
 

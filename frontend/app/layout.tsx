@@ -23,9 +23,8 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "Terrace Talk",
-  description:
-    "Discover football away days and track the stadiums you've visited.",
+  title: "Matchgoer",
+  description: "Find football worth going to. Discover matches wherever you are and know the matchday before you get there.",
 };
 
 export default function RootLayout({

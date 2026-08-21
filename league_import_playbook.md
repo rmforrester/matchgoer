@@ -1,4 +1,4 @@
-# Terrace Talk league import playbook
+# Matchgoer league import playbook
 
 > **Historical detail — superseded as the canonical guide on 14 August 2026.** Use [`docs/data-ingestion.md`](docs/data-ingestion.md). This file is retained for dated audit history and detailed import lessons.
 
@@ -74,7 +74,7 @@ Use `--no-geocode` when a reviewed import should defer coordinate enrichment.
 
 ## Canonical and provider venue identifiers
 
-`venues.venue_id` is the canonical internal Terrace Talk identifier used by
+`venues.venue_id` is the canonical internal Matchgoer identifier used by
 fixture, team, tip, and review relationships. `venues.provider_venue_id` is the
 nullable, unique API-Football identifier. Existing provider venues were
 backfilled without renumbering, so their two values initially match; new
@@ -136,7 +136,7 @@ or enrichment run may use the Nominatim ladder:
 6. stadium name
 
 HTML entities and whitespace are normalized first. Nominatim uses a named
-Terrace Talk user agent and waits at least 1.1 seconds after every request.
+Matchgoer user agent and waits at least 1.1 seconds after every request.
 Resolved venues are not geocoded again on later imports. Invalid results are
 never written. The QA report exposes records that still need retry/manual
 review; name-based repair must not guess ambiguous matches.

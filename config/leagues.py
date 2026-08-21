@@ -1,4 +1,4 @@
-"""Declarative league scopes used by the Terrace Talk ingestion tools."""
+"""Declarative league scopes used by the Matchgoer ingestion tools."""
 
 from dataclasses import dataclass
 

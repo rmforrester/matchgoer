@@ -54,7 +54,7 @@ def issue_account_conversion_handoff(
     now: datetime | None = None,
 ) -> tuple[str, datetime]:
     if not session_id:
-        raise _claim_error(401, "ANONYMOUS_SESSION_REQUIRED", "An anonymous Terrace Talk session is required")
+        raise _claim_error(401, "ANONYMOUS_SESSION_REQUIRED", "An anonymous Matchgoer session is required")
     issued_at = now or datetime.now(timezone.utc)
     expires_at = issued_at + timedelta(seconds=_handoff_max_age_seconds())
     raw_token = secrets.token_urlsafe(32)
@@ -63,10 +63,10 @@ def issue_account_conversion_handoff(
             AnonymousSession.session_id == session_id,
         ).with_for_update().first()
         if anonymous_session is None or anonymous_session.revoked_at is not None:
-            raise _claim_error(401, "ANONYMOUS_SESSION_INVALID", "The anonymous Terrace Talk session is invalid")
+            raise _claim_error(401, "ANONYMOUS_SESSION_INVALID", "The anonymous Matchgoer session is invalid")
         user = db.query(User).filter(User.user_id == anonymous_session.user_id).with_for_update().first()
         if user is None or user.account_status != "anonymous" or not user.is_anonymous:
-            raise _claim_error(403, "ACCOUNT_NOT_CLAIMABLE", "This Terrace Talk identity cannot be claimed")
+            raise _claim_error(403, "ACCOUNT_NOT_CLAIMABLE", "This Matchgoer identity cannot be claimed")
         db.add(AccountConversionHandoff(
             token_digest=_handoff_digest(raw_token),
             session_id=session_id,
@@ -86,7 +86,7 @@ def claim_anonymous_user(
     now: datetime | None = None,
 ) -> AccountClaimResult:
     if not session_id and not handoff_token:
-        raise _claim_error(401, "ANONYMOUS_SESSION_REQUIRED", "An anonymous Terrace Talk session is required")
+        raise _claim_error(401, "ANONYMOUS_SESSION_REQUIRED", "An anonymous Matchgoer session is required")
 
     claimed_at = now or datetime.now(timezone.utc)
     with db.begin():
@@ -121,7 +121,7 @@ def claim_anonymous_user(
             .first()
         )
         if anonymous_session is None:
-            raise _claim_error(401, "ANONYMOUS_SESSION_INVALID", "The anonymous Terrace Talk session is invalid")
+            raise _claim_error(401, "ANONYMOUS_SESSION_INVALID", "The anonymous Matchgoer session is invalid")
 
         user = (
             db.query(User)
@@ -130,7 +130,7 @@ def claim_anonymous_user(
             .first()
         )
         if user is None:
-            raise _claim_error(401, "ANONYMOUS_SESSION_INVALID", "The anonymous Terrace Talk session is invalid")
+            raise _claim_error(401, "ANONYMOUS_SESSION_INVALID", "The anonymous Matchgoer session is invalid")
         if handoff is not None and (handoff.user_id != user.user_id or handoff.session_id != anonymous_session.session_id):
             raise _claim_error(409, "ACCOUNT_HANDOFF_OWNER_MISMATCH", "Account conversion owner could not be verified")
 
@@ -159,13 +159,13 @@ def claim_anonymous_user(
                 raise _claim_error(
                     409,
                     "IDENTITY_ALREADY_LINKED",
-                    "This identity belongs to an existing Terrace Talk account",
+                    "This identity belongs to an existing Matchgoer account",
                 )
             if user.account_status != "registered" or user.is_anonymous:
                 raise _claim_error(
                     409,
                     "CLAIM_STATE_INVALID",
-                    "This Terrace Talk identity is not in a valid claimed state",
+                    "This Matchgoer identity is not in a valid claimed state",
                 )
             return _result(db, user, idempotent=True)
 
@@ -176,9 +176,9 @@ def claim_anonymous_user(
                     "ACCOUNT_ALREADY_REGISTERED",
                     "Account linking is not available through the new-account claim flow",
                 )
-            raise _claim_error(403, "ACCOUNT_NOT_CLAIMABLE", "This Terrace Talk identity cannot be claimed")
+            raise _claim_error(403, "ACCOUNT_NOT_CLAIMABLE", "This Matchgoer identity cannot be claimed")
         if anonymous_session.revoked_at is not None:
-            raise _claim_error(401, "ANONYMOUS_SESSION_REVOKED", "The anonymous Terrace Talk session is no longer active")
+            raise _claim_error(401, "ANONYMOUS_SESSION_REVOKED", "The anonymous Matchgoer session is no longer active")
 
         mapping = UserIdentity(
             user_id=user.user_id,

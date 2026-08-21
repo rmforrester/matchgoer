@@ -124,7 +124,7 @@ export default function InterestedTab() {
     })
     .catch((requestError) => {
       console.error("My Matchdays loading error:", requestError);
-      setError(apiErrorMessage(requestError, "Unable to establish your Terrace Talk session."));
+      setError(apiErrorMessage(requestError, "Unable to establish your Matchgoer session."));
     })
     .finally(() => setLoading(false)), []);
 

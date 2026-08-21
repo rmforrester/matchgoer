@@ -50,11 +50,11 @@ export default function ProfilePrompt({ open, purpose, onCancel, onCreated }: Pr
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center" role="presentation">
       <section role="dialog" aria-modal="true" aria-labelledby="profile-prompt-title" className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl sm:p-6">
-        <h2 id="profile-prompt-title" className="text-xl font-bold">Create your Terrace Talk profile</h2>
+        <h2 id="profile-prompt-title" className="text-xl font-bold">Create your Matchgoer profile</h2>
         <p className="mt-2 text-gray-700">
           {purpose === "meeting"
-            ? "Create a Terrace Talk profile to join Who's Going? and connect with other supporters."
-            : "Create a Terrace Talk profile to message other football fans."}
+            ? "Create a Matchgoer profile to join Who's Going? and connect with other supporters."
+            : "Create a Matchgoer profile to message other football fans."}
         </p>
         <form onSubmit={submit} className="mt-5 grid gap-4">
           <label className="grid gap-1 font-medium">Display name *

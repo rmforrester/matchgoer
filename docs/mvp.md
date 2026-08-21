@@ -1,12 +1,12 @@
-# Terrace Talk MVP
+# Matchgoer MVP
 
-> **Terrace Talk helps football fans find games to attend quickly, wherever they are in the world.**
+> **Find football worth going to.**
 
-Terrace Talk is the companion for people who go to football. Product decisions should support the real supporter lifecycle:
+Matchgoer is the companion for people who go to football. Product decisions should support the real supporter lifecycle:
 
 **DISCOVER → KNOW → CONNECT → ATTEND → REMEMBER → CONTRIBUTE**
 
-The canonical test is whether a supporter in an unfamiliar place can find a less-obvious match, gain enough practical confidence to attend, connect where useful, record the match and contribute knowledge for the next supporter. Personal ground history supports that journey; it must not turn Terrace Talk into primarily a stadium-tracker app.
+The canonical test is whether a supporter in an unfamiliar place can find a less-obvious match, gain enough practical confidence to attend, connect where useful, record the match and contribute knowledge for the next supporter. Personal ground history supports that journey; it must not turn Matchgoer into primarily a stadium-tracker app.
 
 ## Audience and journey
 
@@ -66,7 +66,7 @@ Map fixture markers use the venue as the grouping unit for the qualifying search
 - Visited, reviewed and editable review states in My Stadiums.
 - One optional review per user and venue, independent of repeat venue visits.
 
-Terrace Talk now uses `venue_visits` for repeat attendance/history, My Grounds membership, map visited state and distinct-ground profile counts. Completed fixtures record attendance independently of reviews; My Matchdays includes fixture-linked attended history; and My Grounds supports simple additional dated visits. Every legacy ground has a reconciled visit. Reviews remain one optional venue opinion, with legacy columns and blank migrated review rows retained only for Phase 4 compatibility.
+Matchgoer now uses `venue_visits` for repeat attendance/history, My Grounds membership, map visited state and distinct-ground profile counts. Completed fixtures record attendance independently of reviews; My Matchdays includes fixture-linked attended history; and My Grounds supports simple additional dated visits. Every legacy ground has a reconciled visit. Reviews remain one optional venue opinion, with legacy columns and blank migrated review rows retained only for Phase 4 compatibility.
 
 ## Social intent
 
@@ -74,7 +74,7 @@ Terrace Talk now uses `venue_visits` for repeat attendance/history, My Grounds m
 - Enabling Who's Going? implies Interested; anonymous supporters are offered account creation or sign-in before intent is created.
 - Removing Interested removes an associated Who's Going? intent.
 - Match Boards are fixture-specific and readable anonymously.
-- Match Board posting requires a registered account with a complete canonical Terrace Talk profile. Authors may delete only their own posts; registered supporters may report another author's post once.
+- Match Board posting requires a registered account with a complete canonical Matchgoer profile. Authors may delete only their own posts; registered supporters may report another author's post once.
 - Completed Match Boards remain readable, retain existing posts and reject new posts.
 
 Fixture actions follow the match lifecycle. Before full time, Interested and Who's Going? support planning and social intent. Once provider status is `FT`, `AET` or `PEN`, the fixture instead asks whether the supporter attended and routes them through the existing My Grounds review for that venue, followed by an optional prompt to add a supporter tip. Live fixtures retain the pre-match social actions until they are completed.
@@ -100,11 +100,11 @@ Coverage is constrained by provider availability and reviewed venue quality, not
 - Avoid fake distressing or novelty “fanzine” effects that reduce clarity.
 - Begin the visual-system work before broad public user testing.
 
-The homepage is the **Terrace Talk Reference Design / Design System V1**. Its direction combines Modern Fanzine × Away Day, Barlow Condensed editorial typography, Geist utility typography, the royal-blue/newsprint/near-black palette, flat paper surfaces, strong rules, restrained rounding, numbered editorial sections, vertical HOME / VS / AWAY fixtures and publication-style recommendations. Functional controls remain visually secondary to football content. Fixture detail applies the system as a matchday programme, while venue detail uses it as an editorial ground guide centred on Terrace Rating, the user’s visit, supporter tips and upcoming fixtures. Other core screens should follow these principles without copying these layouts literally. The working navigation labels are **Discover**, **My Matchdays** and **My Grounds**; routes and internal ownership concepts remain unchanged.
+The homepage is the **Matchgoer Reference Design / Design System V1**. Its direction combines Modern Fanzine × Away Day, Barlow Condensed editorial typography, Geist utility typography, the royal-blue/newsprint/near-black palette, flat paper surfaces, strong rules, restrained rounding, numbered editorial sections, vertical HOME / VS / AWAY fixtures and publication-style recommendations. Functional controls remain visually secondary to football content. Fixture detail applies the system as a matchday programme, while venue detail uses it as an editorial ground guide centred on Terrace Rating, the user’s visit, supporter tips and upcoming fixtures. Other core screens should follow these principles without copying these layouts literally. The working navigation labels are **Discover**, **My Matchdays** and **My Grounds**; routes and internal ownership concepts remain unchanged.
 
 ### Design System V1.1 — product surface differentiation
 
-Terrace Talk keeps one Modern Fanzine × Away Day identity while giving its three primary destinations different compositional roles:
+Matchgoer keeps one Modern Fanzine × Away Day identity while giving its three primary destinations different compositional roles:
 
 - **Discover = exploration / geography:** a compact planning sheet leads quickly into the map, fixture options and editorial recommendations.
 - **My Matchdays = timeline / diary:** dense chronological cards separate upcoming plans, decisions still needed and attended history.
@@ -116,7 +116,7 @@ My Grounds exposes one supporter-facing **Add a visit** flow. A remembered date 
 
 For a future app-shell experiment, compare the current top navigation with fixed bottom tabs for **Discover**, **Matchdays**, **Grounds** and **Profile / Account** after account/profile implementation exists. Do not ship both navigation systems concurrently during the current MVP.
 
-Map locations use the shared **Terrace Talk location marker**: a flat, angular royal-blue symbol with a near-black outline, pointed base and simple paper-white TT monogram. Visited grounds retain the blue TT marker and add a small paper-white badge with an explicit blue check, preserving the hierarchy of Terrace Talk ground first and visited state second. The visual symbol remains approximately 30px while retaining a 44px interaction target.
+Map locations use the shared **Matchgoer location marker**: a flat, angular royal-blue symbol with a near-black outline, pointed base and simple paper-white M monogram. Visited grounds retain the blue Matchgoer marker and add a small paper-white badge with an explicit blue check, preserving the hierarchy of Matchgoer ground first and visited state second. The visual symbol remains approximately 30px while retaining a 44px interaction target.
 
 ## Next roadmap gate: Phase 3.5
 
@@ -126,11 +126,11 @@ Before further major visual or feature expansion, run **Phase 3.5 — Real-World
 DISCOVER → DECIDE → PLAN → ATTEND → RECORD → REVIEW / CONTRIBUTE → REMEMBER → REPEAT
 ```
 
-This gate evaluates Terrace Talk around real football attendance rather than as isolated features. The 20 manual scenarios, state expectations, failure conditions and observation questions are defined in [Supporter journey QA](supporter-journey-qa.md). The previously planned **My Matchdays Design System V1** pass remains next, immediately after this QA gate and its findings review.
+This gate evaluates Matchgoer around real football attendance rather than as isolated features. The 20 manual scenarios, state expectations, failure conditions and observation questions are defined in [Supporter journey QA](supporter-journey-qa.md). The previously planned **My Matchdays Design System V1** pass remains next, immediately after this QA gate and its findings review.
 
 Where space permits, a vertical fixture always uses equal-weight team names with `VS` as a standalone separator: **HOME TEAM / VS / AWAY TEAM**. `VS` is never appended to either club name. Compact contexts may remain single-line where that is more usable.
 
-Preferred Terrace Talk product vocabulary includes **Terrace Rating**, **What the Terrace Says**, **From the Terrace** and **Make It One of Yours**. Use these phrases where they clarify the relevant rating, supporter-knowledge or ground-ownership context; they are not mandatory labels for every screen.
+Preferred Matchgoer product vocabulary includes **Terrace Rating**, **What the Terrace Says**, **From the Terrace** and **Make It One of Yours**. Use these phrases where they clarify the relevant rating, supporter-knowledge or ground-ownership context; they are not mandatory labels for every screen.
 
 ### Future homepage module: From the Terrace
 
@@ -138,11 +138,11 @@ Once genuine community activity exists, the homepage may introduce **From the Te
 
 ### Future beta experiment: recommendation order
 
-Test whether **Search → Map → Worth the Trip → All Matches** performs better than **Search → Map → What's On → Worth the Trip**. The hypothesis is that answering “What should I actually go to?” earlier may communicate Terrace Talk's differentiated value more effectively. Keep the current order until beta-user evidence supports a change.
+Test whether **Search → Map → Worth the Trip → All Matches** performs better than **Search → Map → What's On → Worth the Trip**. The hypothesis is that answering “What should I actually go to?” earlier may communicate Matchgoer's differentiated value more effectively. Keep the current order until beta-user evidence supports a change.
 
 ## Approved future: Import My Grounds
 
-> **Move your football history to Terrace Talk in minutes, not hours.**
+> **Move your football history to Matchgoer in minutes, not hours.**
 
 Import My Grounds is a future registered-account onboarding and migration capability for established fans and groundhoppers. It should populate My Stadiums without requiring someone to add hundreds of grounds individually.
 
@@ -155,7 +155,7 @@ The preferred import hierarchy is:
 
 ### Matching and review
 
-Imports must resolve to Terrace Talk's stable `venue_id`, using current names, reviewed aliases/name history, provider references, city, country, club/team and appropriate coordinate evidence. For example, an imported `Tele2 Arena` should resolve to the canonical `3Arena` venue when confidence is high. A differing name must not create a duplicate venue.
+Imports must resolve to Matchgoer's stable `venue_id`, using current names, reviewed aliases/name history, provider references, city, country, club/team and appropriate coordinate evidence. For example, an imported `Tele2 Arena` should resolve to the canonical `3Arena` venue when confidence is high. A differing name must not create a duplicate venue.
 
 Matches should be classified as:
 

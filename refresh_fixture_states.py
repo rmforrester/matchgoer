@@ -21,7 +21,7 @@ load_dotenv(ROOT / "backend" / ".env")
 
 
 def parser() -> argparse.ArgumentParser:
-    result = argparse.ArgumentParser(description="Refresh existing Terrace Talk fixture states from API-Football")
+    result = argparse.ArgumentParser(description="Refresh existing Matchgoer fixture states from API-Football")
     result.add_argument("--from-date", type=date.fromisoformat, default=date.today() - timedelta(days=7))
     result.add_argument("--to-date", type=date.fromisoformat, default=date.today() + timedelta(days=60))
     result.add_argument("--country", help="Optional existing fixture country scope")

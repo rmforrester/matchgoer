@@ -1,4 +1,4 @@
-# Terrace Talk architecture
+# Matchgoer architecture
 
 **Canonical current architecture — 19 August 2026.** Future items are labelled explicitly.
 
@@ -6,14 +6,14 @@
 
 ```mermaid
 flowchart LR
-    Fan[Football fan] -->|discovers games, stadiums and community| TT[Terrace Talk web app]
+    Fan[Football fan] -->|discovers games, stadiums and community| TT[Matchgoer web app]
     TT -->|application data| DB[(PostgreSQL)]
     AF[API-Football] -->|league, team, venue and fixture data| TT
     TT -->|city search and coordinate enrichment| OSM[OpenStreetMap / Nominatim]
     Auth[Supabase Auth<br/>confirmed email · CURRENT] -->|verified bearer identity| TT
 ```
 
-Terrace Talk helps football fans find games to attend and understand the stadium experience. PostgreSQL, rather than a provider response, is the application source of truth.
+Matchgoer helps supporters find football worth going to and understand the matchday before they get there. PostgreSQL, rather than a provider response, is the application source of truth.
 
 ## Containers and data flow
 
@@ -93,7 +93,7 @@ flowchart TB
 
 **Stadium identity is stable; venue names and provider references may change over time.**
 
-- PostgreSQL is Terrace Talk's application source of truth.
+- PostgreSQL is Matchgoer's application source of truth.
 - API-Football is the first data provider, not the application data model; canonical internal relationships remain provider-independent.
 - Provider IDs are preferred for fixture, team and venue linking. A fixture's direct provider venue ID is authoritative; its home-team provider venue is an inferred fallback.
 - A physical stadium has one stable `venues.venue_id`. `venues.name` is its current display name, `venue_names` stores searchable current and reviewed historical names, and `venue_provider_refs` maps provider identities without changing ownership.
@@ -135,7 +135,7 @@ Phase 4B centralizes runtime identity resolution in FastAPI:
 
 - A valid mapped bearer identity takes precedence over `terrace_session`; the two owners are never combined automatically.
 - A present malformed, expired, wrongly signed, wrong-issuer or wrong-audience bearer request is rejected and never falls back to the cookie.
-- A valid but unmapped provider identity returns `403 IDENTITY_NOT_LINKED`, because provider authentication succeeded but Terrace Talk ownership authorization did not.
+- A valid but unmapped provider identity returns `403 IDENTITY_NOT_LINKED`, because provider authentication succeeded but Matchgoer ownership authorization did not.
 - `account_status` is authoritative. `is_anonymous` is compatibility-only and drift is logged without exposing tokens, cookies, email or JWT payloads.
 - Bearer verification is enabled only by `SUPABASE_AUTH_ENABLED=true` with complete issuer, audience and JWKS configuration. JWKS keys are cached with bounded network timeouts and refresh on rotation/key miss.
 - Browser and future native clients use the same `Authorization: Bearer <access token>` contract directly with FastAPI; Next.js is not an authentication gateway.
@@ -152,7 +152,7 @@ Phase 4C implements new-account in-place claiming:
 Phase 4E provides product account orchestration:
 
 - A reusable browser Supabase client restores and refreshes provider sessions; Axios supplies the access token to FastAPI, which remains authoritative.
-- Signup establishes the anonymous Terrace Talk owner, requires email confirmation and returns through a safe internal callback.
+- Signup establishes the anonymous Matchgoer owner, requires email confirmation and returns through a safe internal callback.
 - An unmapped confirmed identity claims that owner automatically; supporters never handle identity-linking terminology.
 - `GET /account/context` distinguishes an empty anonymous shell from meaningful device activity when an existing account signs in. Meaningful activity produces a Phase 4D holding screen; nothing is merged or discarded.
 - Minimum onboarding updates the existing profile with username, display name and optional club/location/bio. Username uniqueness remains case-insensitive in PostgreSQL.
@@ -163,7 +163,7 @@ Phase 4E provides product account orchestration:
 - `user_profiles` provide canonical public attribution for registered social writes. They contain username/display metadata, not provider credentials or account identity.
 - Anonymous users can use discovery, Interested, My Stadiums/reviews and read the Match Board.
 - Who's Going? is account-gated in the UI and API; Interested remains available anonymously. Internal `open_to_meet` names are unchanged.
-- Match Board reading is anonymous. Posting, deleting one's own post and reporting another author's post require a resolved registered identity and complete Terrace Talk profile.
+- Match Board reading is anonymous. Posting, deleting one's own post and reporting another author's post require a resolved registered identity and complete Matchgoer profile.
 - `/signup`, `/signin` and `/auth/callback` provide confirmed-email account access and in-place conversion. `/auth-test` remains development-only and returns not-found in production.
 - `venue_visits` is the backend source for repeat attendance/history. `POST /fixtures/{fixture_id}/attendance` records fixture attendance, `POST /venues/{venue_id}/visits` records manual visits, and `GET /my-grounds` derives a ground summary from visits while joining the user's optional review.
 - Fixture social responses expose the current user's attendance state. Attendance writes are idempotent under the database uniqueness rules, and legacy review creation also ensures a matching visit during the transition.

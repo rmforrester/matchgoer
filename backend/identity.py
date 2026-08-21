@@ -1,4 +1,4 @@
-"""Central Terrace Talk identity resolution for anonymous and future bearer clients."""
+"""Central Matchgoer identity resolution for anonymous and future bearer clients."""
 
 from __future__ import annotations
 
@@ -344,10 +344,10 @@ def _resolved_user(user: User, auth_mode: str, issuer: str | None = None, subjec
     blocked_code = BLOCKED_ACCOUNT_CODES.get(status)
     if blocked_code:
         logger.info("Identity rejected by account status=%s user_id=%s", status, user.user_id)
-        raise _auth_error(403, blocked_code, "This Terrace Talk account is not active")
+        raise _auth_error(403, blocked_code, "This Matchgoer account is not active")
     if status not in ACTIVE_ACCOUNT_STATUSES:
         logger.warning("Identity rejected with unknown account status user_id=%s", user.user_id)
-        raise _auth_error(403, "ACCOUNT_INACTIVE", "This Terrace Talk account is not active")
+        raise _auth_error(403, "ACCOUNT_INACTIVE", "This Matchgoer account is not active")
     if auth_mode == "bearer" and status != "registered":
         logger.info("Mapped bearer identity is not registered user_id=%s", user.user_id)
         raise _auth_error(403, "IDENTITY_NOT_REGISTERED", "This identity is not linked to a registered account")
@@ -383,11 +383,11 @@ def resolve_identity(
         ).first()
         if mapping is None:
             logger.info("Valid bearer identity is not linked")
-            raise _auth_error(403, "IDENTITY_NOT_LINKED", "This identity is not linked to a Terrace Talk account")
+            raise _auth_error(403, "IDENTITY_NOT_LINKED", "This identity is not linked to a Matchgoer account")
         user = db.query(User).filter(User.user_id == mapping.user_id).first()
         if user is None:
             logger.error("Identity mapping references a missing internal user")
-            raise _auth_error(403, "IDENTITY_NOT_LINKED", "This identity is not linked to a Terrace Talk account")
+            raise _auth_error(403, "IDENTITY_NOT_LINKED", "This identity is not linked to a Matchgoer account")
         identity = _resolved_user(user, "bearer", issuer, subject)
         logger.info("Identity resolved mode=bearer user_id=%s", identity.user_id)
         return identity
@@ -402,7 +402,7 @@ def resolve_identity(
                 return identity
 
     if required:
-        raise _auth_error(401, "NO_ACTIVE_IDENTITY", "No active Terrace Talk identity")
+        raise _auth_error(401, "NO_ACTIVE_IDENTITY", "No active Matchgoer identity")
     return None
 
 

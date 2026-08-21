@@ -47,9 +47,9 @@ On success, A's `users.user_id` and every owned row remain unchanged, while the 
 
 ### Live-provider validation
 
-The development project uses confirmed email authentication and an EC P-256 / ES256 signing key. Its public JWKS endpoint exposed the expected EC key, and a real confirmed Supabase session successfully claimed a disposable anonymous Terrace Talk user in place. The same bearer subsequently resolved that internal user through My Grounds, Interested, profile and fixture-social reads. A different anonymous cookie did not override the bearer, and attempting to claim that second anonymous user with the already-mapped identity returned `409 IDENTITY_ALREADY_LINKED` without revoking or changing the second user.
+The development project uses confirmed email authentication and an EC P-256 / ES256 signing key. Its public JWKS endpoint exposed the expected EC key, and a real confirmed Supabase session successfully claimed a disposable anonymous Matchgoer user in place. The same bearer subsequently resolved that internal user through My Grounds, Interested, profile and fixture-social reads. A different anonymous cookie did not override the bearer, and attempting to claim that second anonymous user with the already-mapped identity returned `409 IDENTITY_ALREADY_LINKED` without revoking or changing the second user.
 
-The one-time claim retains the provider `/user` call. Local JWT validation proves token authenticity, issuer, audience and subject; the authenticated provider response additionally supplies current permanent-user and confirmation state that is not part of Terrace Talk's required JWT claim contract. This extra network dependency is limited to claiming rather than ordinary authenticated requests.
+The one-time claim retains the provider `/user` call. Local JWT validation proves token authenticity, issuer, audience and subject; the authenticated provider response additionally supplies current permanent-user and confirmation state that is not part of Matchgoer's required JWT claim contract. This extra network dependency is limited to claiming rather than ordinary authenticated requests.
 
 The resolution contract is:
 
@@ -72,7 +72,7 @@ Internally, `open_to_meet`, `FixtureMeetingIntent` and the existing route names 
 - `anonymous_sessions` maps the long-lived HttpOnly `terrace_session` cookie to that user.
 - `GET /session` reuses a valid session or creates an anonymous user/session.
 - `user_profiles` contain a display name and optional supported club. A profile is **not** authentication or a registered account.
-- `/signup`, `/signin` and `/auth/callback` now provide the product email account flow. Password handling and confirmation remain managed by Supabase; Terrace Talk never stores passwords.
+- `/signup`, `/signin` and `/auth/callback` now provide the product email account flow. Password handling and confirmation remain managed by Supabase; Matchgoer never stores passwords.
 
 Interested lives in `interested_fixtures`. `venue_visits` is the current source for My Grounds membership and repeat attendance/history, while `away_day_reviews` remains one optional opinion per user and venue. The visit backfill preserves the same `users.user_id` and canonical `venues.venue_id`. Legacy review creation still ensures a matching visit for compatibility. Who's Going? state lives internally in `fixture_meeting_intents`. Fixture posts, replies and reports live in the Match Board tables.
 
