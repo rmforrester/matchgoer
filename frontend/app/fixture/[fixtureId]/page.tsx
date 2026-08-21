@@ -11,6 +11,7 @@ import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
 import { hasPendingAuthAction, parsePendingWhosGoingAction, pendingWhosGoingReturnTo } from "@/lib/pending-auth-action";
 import { applyPendingWhosGoing, clearPendingWhosGoing, loadPendingWhosGoing } from "@/lib/account-conversion-checkpoint";
+import { guideSummary, type VenueGuide } from "../../../lib/venue-guide";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -40,6 +41,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [accountPrompt, setAccountPrompt] = useState<"interested" | "mate" | "board" | null>(null);
   const [saving, setSaving] = useState(false);
+  const [venueGuideResult, setVenueGuideResult] = useState<{ venueId: number; guide: VenueGuide | null } | null>(null);
   const [reporting, setReporting] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("other");
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -67,6 +69,14 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       return load();
     }).catch(() => setError("Unable to load this fixture."));
   }, [load]);
+
+  useEffect(() => {
+    const venueId = data?.fixture.venue_id;
+    if (!venueId) return;
+    api.get<VenueGuide>(`/venues/${venueId}/guide`)
+      .then((response) => setVenueGuideResult({ venueId, guide: response.data }))
+      .catch(() => setVenueGuideResult({ venueId, guide: null }));
+  }, [data?.fixture.venue_id]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -206,6 +216,8 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   if (!data) return <main className="mx-auto w-full max-w-5xl p-4 sm:p-6"><p className="tt-kicker">01 / Match</p><p className="mt-3 font-semibold" role={error ? "alert" : undefined}>{error || "Loading fixture…"}</p></main>;
   const kickoff = new Date(data.fixture.fixture_date);
   const statusGroup = fixtureStatusGroup(data.fixture.status);
+  const venueGuide = venueGuideResult?.venueId === data.fixture.venue_id ? venueGuideResult.guide : null;
+  const knowSummary = guideSummary(venueGuide);
   const completed = statusGroup === "finished";
   const hasResult = completed && data.fixture.home_goals !== null && data.fixture.away_goals !== null;
   const renderPost = (post: BoardPost, reply = false) => (
@@ -247,6 +259,13 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
 
     <AccountConversionPrompt open={accountPrompt !== null} kind={accountPrompt ?? "interested"} onDismiss={() => setAccountPrompt(null)} returnTo={accountPrompt === "mate" ? pendingWhosGoingReturnTo(Number(fixtureId)) : undefined} />
     {error && <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
+
+    {knowSummary && data.fixture.venue_id && <aside className="tt-panel mt-6 border-l-[8px] border-l-[var(--tt-blue)] p-5" aria-labelledby="know-before-heading">
+      <p className="tt-kicker">Know before you go</p>
+      <h2 id="know-before-heading" className="tt-display mt-1 text-3xl leading-none">Plan this matchday</h2>
+      <p className="mt-3 text-sm text-[var(--tt-muted)]">Practical guidance available: {knowSummary.labels.join(", ")}.</p>
+      <Link href={`/venue/${data.fixture.venue_id}#venue-guide-heading`} className="mt-3 inline-block text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Read the ground guide →</Link>
+    </aside>}
 
     {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
       <p className="tt-kicker">02 / Did you go?</p>

@@ -1,4 +1,4 @@
-type Venue = { name: string; city: string; country: string; capacity: number | null };
+type Venue = { name: string; address?: string | null; city: string; country: string; capacity: number | null; latitude?: number | null; longitude?: number | null };
 
 type Props = { venue: Venue; score?: number | null; reviewCount?: number; recommendPercentage?: number | null };
 
@@ -11,6 +11,8 @@ export default function VenueHeader({ venue, score, reviewCount = 0, recommendPe
         <div className="min-w-0">
           <h1 id="venue-heading" className="tt-display break-words text-[clamp(3.2rem,10vw,7rem)] leading-[0.82]">{venue.name}</h1>
           <p className="mt-5 font-extrabold uppercase tracking-[0.1em] text-[var(--tt-blue)]">{venue.city}{venue.country ? ` · ${venue.country}` : ""}</p>
+          {venue.address && <p className="mt-2 font-bold">{venue.address}</p>}
+          {venue.latitude != null && venue.longitude != null && <a className="mt-3 inline-block text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4" href={`https://www.openstreetmap.org/?mlat=${venue.latitude}&mlon=${venue.longitude}#map=16/${venue.latitude}/${venue.longitude}`} target="_blank" rel="noreferrer">Map & directions →</a>}
           {venue.capacity !== null && venue.capacity > 0 && <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">Capacity · {venue.capacity.toLocaleString()}</p>}
         </div>
         <div className="border-t-2 border-[var(--tt-ink)] pt-4 lg:border-l-2 lg:border-t-0 lg:pl-6 lg:pt-0">

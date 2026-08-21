@@ -13,6 +13,31 @@ class VenueResponse(BaseModel):
         from_attributes = True
 
 
+class VenueGuideProvenanceResponse(BaseModel):
+    label: str
+    source_url: str | None = None
+    last_checked: date | None = None
+
+
+class VenueGuideFactResponse(BaseModel):
+    topic: str
+    content: str
+    provenance: VenueGuideProvenanceResponse
+    freshness: str
+
+
+class VenueGuideSectionResponse(BaseModel):
+    key: str
+    label: str
+    facts: list[VenueGuideFactResponse]
+
+
+class VenueGuideResponse(BaseModel):
+    venue_id: int
+    has_current_information: bool
+    sections: list[VenueGuideSectionResponse]
+
+
 class FixtureResponse(BaseModel):
 
     fixture_id: int
