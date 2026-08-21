@@ -93,6 +93,50 @@ export function applyMapAreaOrigin<T extends { latitude: number; longitude: numb
   return { ...appliedSearch, ...liveCenter, locationName: "Map area" };
 }
 
+export type DiscoveryViewport = {
+  center: { latitude: number; longitude: number };
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+};
+
+export type DiscoveryRequestFilters = {
+  startDate?: string;
+  endDate?: string;
+  leagueIds: number[];
+  limit?: number;
+};
+
+export function discoveryZoomForRadius(radiusMiles: number) {
+  if (radiusMiles <= 10) return 10;
+  if (radiusMiles <= 25) return 8;
+  if (radiusMiles <= 50) return 7;
+  return 6;
+}
+
+export function buildViewportDiscoveryParams(
+  viewport: DiscoveryViewport,
+  filters: DiscoveryRequestFilters,
+) {
+  return {
+    latitude: viewport.center.latitude,
+    longitude: viewport.center.longitude,
+    north: viewport.north,
+    south: viewport.south,
+    east: viewport.east,
+    west: viewport.west,
+    start_date: filters.startDate,
+    end_date: filters.endDate,
+    league_id: filters.leagueIds.length ? filters.leagueIds : undefined,
+    limit: filters.limit ?? 250,
+  };
+}
+
+export function isCurrentDiscoveryRequest(currentVersion: number, responseVersion: number) {
+  return currentVersion === responseVersion;
+}
+
 export function groupFixturesByVenue(fixtures: Fixture[]): FixtureVenueGroup[] {
   const groups = new Map<string, FixtureVenueGroup>();
 
