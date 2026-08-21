@@ -26,6 +26,7 @@ from models import (
     Fixture,
     Venue,
     VenueName,
+    VenueGuideFact,
     MatchdayTip,
     AwayDayReview,
     VenueVisit,
@@ -43,6 +44,7 @@ from schemas import (
     FixtureResponse,
     FixtureWithVenueResponse,
     VenueResponse,
+    VenueGuideResponse,
     MatchdayTipCreate,
     AwayDayReviewCreate,
     AwayDayReviewUpdate,
@@ -64,6 +66,7 @@ from schemas import (
 )
 
 from fastapi import Cookie, Depends, FastAPI, Header, Response, HTTPException, Query
+from venue_guides import build_venue_guide
 
 
 app = FastAPI(
@@ -246,6 +249,18 @@ def get_venue(venue_id: int):
     if venue is None:
         raise HTTPException(status_code=404, detail="Ground not found")
     return venue
+
+
+@app.get("/venues/{venue_id}/guide", response_model=VenueGuideResponse)
+def get_venue_guide(venue_id: int):
+    db = SessionLocal()
+    try:
+        if not db.query(Venue.venue_id).filter(Venue.venue_id == venue_id).first():
+            raise HTTPException(status_code=404, detail="Ground not found")
+        facts = db.query(VenueGuideFact).filter(VenueGuideFact.venue_id == venue_id).all()
+        return build_venue_guide(venue_id, facts)
+    finally:
+        db.close()
 
 
 @app.get("/leagues")

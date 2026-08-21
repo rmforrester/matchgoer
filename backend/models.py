@@ -38,6 +38,56 @@ class Venue(Base):
 
     names = relationship("VenueName", back_populates="venue", cascade="all, delete-orphan")
     provider_refs = relationship("VenueProviderRef", back_populates="venue", cascade="all, delete-orphan")
+    guide_facts = relationship("VenueGuideFact", back_populates="venue", cascade="all, delete-orphan")
+
+
+class VenueGuideFact(Base):
+    """A small, sourced practical answer; not a generic venue article."""
+
+    __tablename__ = "venue_guide_facts"
+    __table_args__ = (
+        CheckConstraint(
+            "section IN ('getting_there', 'tickets_entry', 'before_match', 'at_ground', 'getting_back')",
+            name="ck_venue_guide_facts_section",
+        ),
+        CheckConstraint(
+            "source_type IN ('official', 'matchgoer_research', 'supporter')",
+            name="ck_venue_guide_facts_source_type",
+        ),
+        CheckConstraint(
+            "status IN ('current', 'needs_review', 'draft', 'archived')",
+            name="ck_venue_guide_facts_status",
+        ),
+        CheckConstraint(
+            "confidence IN ('high', 'medium', 'low')",
+            name="ck_venue_guide_facts_confidence",
+        ),
+        CheckConstraint("btrim(topic) <> ''", name="ck_venue_guide_facts_topic_not_blank"),
+        CheckConstraint("btrim(content) <> ''", name="ck_venue_guide_facts_content_not_blank"),
+        CheckConstraint(
+            "expires_at IS NULL OR reviewed_at IS NULL OR expires_at >= reviewed_at",
+            name="ck_venue_guide_facts_expiry_after_review",
+        ),
+    )
+
+    fact_id = Column(BigInteger, primary_key=True)
+    venue_id = Column(Integer, ForeignKey("venues.venue_id", ondelete="CASCADE"), nullable=False, index=True)
+    section = Column(String(30), nullable=False)
+    topic = Column(String(80), nullable=False)
+    content = Column(Text, nullable=False)
+    source_type = Column(String(30), nullable=False)
+    source_label = Column(String(160), nullable=True)
+    source_url = Column(Text, nullable=True)
+    reviewed_at = Column(Date, nullable=True)
+    confidence = Column(String(10), nullable=False, default="medium")
+    status = Column(String(20), nullable=False, default="draft", index=True)
+    review_after = Column(Date, nullable=True)
+    expires_at = Column(Date, nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    venue = relationship("Venue", back_populates="guide_facts")
 
 
 class VenueName(Base):

@@ -8,6 +8,8 @@ import api from "../../../lib/api";
 import VenueHeader from "../../components/VenueHeader";
 import AwayDayScore from "../../components/AwayDayScore";
 import MatchdayTips from "../../components/MatchdayTips";
+import VenueGuide from "../../components/VenueGuide";
+import type { VenueGuide as VenueGuideData } from "../../../lib/venue-guide";
 import AccountConversionPrompt from "../../components/AccountConversionPrompt";
 import FixtureTeams from "../../components/FixtureTeams";
 import type { MyGround } from "../../types/grounds";
@@ -19,6 +21,9 @@ type Venue = {
   city: string;
   country: string;
   capacity: number | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 type Tip = {
@@ -74,6 +79,7 @@ export default function VenuePage({
 
   const [awayDayScore, setAwayDayScore] =
     useState<AwayDayScoreData | null>(null);
+  const [guide, setGuide] = useState<VenueGuideData | null>(null);
 
   const [myGround, setMyGround] =
     useState<MyGround | null>(null);
@@ -122,6 +128,16 @@ const [showAccountPrompt, setShowAccountPrompt] = useState(false);
         .get(`/venues/${venueId}/tips`)
         .then((response) => {
           setTips(response.data);
+        });
+    })
+    .then(() => {
+      return api
+        .get(`/venues/${venueId}/guide`)
+        .then((response) => {
+          setGuide(response.data);
+        })
+        .catch(() => {
+          setGuide(null);
         });
     })
     .then(() => {
@@ -310,6 +326,8 @@ api
       {visitedError && (
         <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{visitedError}</p>
       )}
+
+      {guide && <VenueGuide guide={guide} />}
 
       <AwayDayScore reviewCount={awayDayScore?.review_count} recommendPercentage={awayDayScore?.recommend_percentage} categoryScores={awayDayScore?.category_scores} />
 
