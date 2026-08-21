@@ -1,6 +1,8 @@
-# Terrace Talk
+# Matchgoer
 
-Terrace Talk helps football fans find games to attend quickly, wherever they are in the world.
+**Find football worth going to.**
+
+Discover matches wherever you are. Know the matchday before you get there.
 
 ## Documentation
 

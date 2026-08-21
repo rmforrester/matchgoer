@@ -47,7 +47,7 @@ export default function ProfileOnboarding({ returnTo: requestedReturnTo }: { ret
     } finally { setSaving(false); }
   }
 
-  return <AccountShell kicker="Nearly there" title="Your Terrace Talk profile" intro="Choose how other supporters will know you. You can add the optional details now or later.">
+  return <AccountShell kicker="Nearly there" title="Your Matchgoer profile" intro="Choose how other supporters will know you. You can add the optional details now or later.">
     <form onSubmit={submit} className="mt-6 grid gap-4">
       <label className="grid gap-1 text-sm font-extrabold uppercase tracking-[0.06em]">Username *<input required maxLength={30} autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} className="tt-control px-3 font-normal normal-case tracking-normal" /><span className="font-normal normal-case tracking-normal text-[var(--tt-muted)]">3–30 letters, numbers or underscores.</span></label>
       <label className="grid gap-1 text-sm font-extrabold uppercase tracking-[0.06em]">Display name *<input required maxLength={40} autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} className="tt-control px-3 font-normal normal-case tracking-normal" /></label>

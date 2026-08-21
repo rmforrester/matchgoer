@@ -326,7 +326,7 @@ api
       <section className="tt-section-rule mt-10 pt-4" aria-labelledby="fixtures-heading">
         <p className="tt-kicker">05 / What&apos;s on</p>
         <h2 id="fixtures-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">Upcoming fixtures</h2>
-        {upcomingFixtures.length === 0 ? <div className="mt-5 border-y-2 border-[var(--tt-ink)] py-6"><p className="tt-display text-3xl">Nothing scheduled yet.</p><p className="mt-2 text-[var(--tt-muted)]">There are no upcoming fixtures for this ground in Terrace Talk.</p></div> : <><div className="mt-5 grid gap-3 sm:grid-cols-2">{featuredFixtures.map((fixture) => {
+        {upcomingFixtures.length === 0 ? <div className="mt-5 border-y-2 border-[var(--tt-ink)] py-6"><p className="tt-display text-3xl">Nothing scheduled yet.</p><p className="mt-2 text-[var(--tt-muted)]">There are no upcoming fixtures for this ground in Matchgoer.</p></div> : <><div className="mt-5 grid gap-3 sm:grid-cols-2">{featuredFixtures.map((fixture) => {
         const isInterested =
           interestedFixtureIds.includes(
             Number(fixture.fixture_id)

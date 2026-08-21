@@ -64,7 +64,7 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
     setSaving(false);
   }
 
-  if (confirmationPending) return <AccountShell kicker="Account setup" title="Check your email" intro="We've sent you a confirmation link. Confirm your email, then come back to Terrace Talk.">
+  if (confirmationPending) return <AccountShell kicker="Account setup" title="Check your email" intro="We've sent you a confirmation link. Confirm your email, then come back to Matchgoer.">
     <p className="mt-5 text-sm font-semibold">Use the same browser so your matchdays and grounds can stay with you.</p>
     {message && <p role="status" className="mt-4 border-l-4 border-[var(--tt-blue)] pl-3 font-semibold">{message}</p>}
     {error && <p role="alert" className="mt-4 text-sm font-bold text-red-800">{error}</p>}

@@ -11,7 +11,7 @@ from .schemas import (
     NearbyFixtureResponse
 )
 
-app = FastAPI(title="Terrace Talk API")
+app = FastAPI(title="Matchgoer API")
 
 
 @app.get("/fixtures", response_model=list[FixtureWithVenueResponse])

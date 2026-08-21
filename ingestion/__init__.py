@@ -1,1 +1,1 @@
-"""Reusable API-Football ingestion tooling for Terrace Talk."""
+"""Reusable API-Football ingestion tooling for Matchgoer."""

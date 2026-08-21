@@ -2,7 +2,7 @@
 
 **Status: next roadmap gate. Complete this manual journey QA before further major visual or feature expansion. The planned My Matchdays Design System V1 pass follows immediately afterward.**
 
-This phase tests Terrace Talk as a supporter would use it around real football attendance, rather than validating isolated controls or endpoints. Findings should be recorded before fixes are designed.
+This phase tests Matchgoer as a supporter would use it around real football attendance, rather than validating isolated controls or endpoints. Findings should be recorded before fixes are designed.
 
 ## Canonical supporter lifecycle
 
@@ -28,7 +28,7 @@ Run these in isolated browser profiles with disposable confirmed-email identitie
 - **Username:** Test 3 and 30 characters, invalid punctuation/spacing, case-insensitive collision, useful unavailable copy, and preservation of an existing lightweight profile during onboarding.
 - **Return safety:** Exercise fixture and My Matchdays return paths, plus external and protocol-relative inputs; only normalized internal routes may be followed.
 
-Observe whether account creation feels like unlocking existing Terrace Talk history rather than starting again, whether confirmation instructions are sufficient, and whether the account controls fit at 375–430px without crowding primary navigation.
+Observe whether account creation feels like unlocking existing Matchgoer history rather than starting again, whether confirmation instructions are sufficient, and whether the account controls fit at 375–430px without crowding primary navigation.
 
 ### Scenario A — Discovery and map
 
@@ -339,7 +339,7 @@ Phase 3.5 remains open pending these browser checks.
 ### 20. Accurate repeat-visit history
 
 - **Starting state:** One venue has fixture-linked visits, manual dated visits and possibly one undated historical visit.
-- **Motivation:** Trust Terrace Talk as the long-term record of multiple matchdays.
+- **Motivation:** Trust Matchgoer as the long-term record of multiple matchdays.
 - **Actions:** Compare My Grounds visit count, dates and expanded matches with My Matchdays Attended and source records.
 - **Expected product state:** One venue identity summarizes all visits; known fixtures are individually accessible; unknown history is labelled honestly.
 - **Expected state outcome:** Count equals all distinct visit rows allowed by uniqueness rules; only fixture-linked rows populate Attended; one venue review remains independent.

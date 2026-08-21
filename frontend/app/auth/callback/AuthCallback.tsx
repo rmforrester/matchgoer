@@ -41,7 +41,7 @@ export default function AuthCallback({ code, returnTo: requestedReturnTo, provid
     return () => { cancelled = true; };
   }, [code, providerError, returnTo, router]);
 
-  return <AccountShell kicker="Account setup" title={error ? "Setup paused" : "Saving your football"} intro={error || "Your email is confirmed. We're keeping your Terrace Talk history with your new account."}>
+  return <AccountShell kicker="Account setup" title={error ? "Setup paused" : "Saving your football"} intro={error || "Your email is confirmed. We're keeping your Matchgoer history with your new account."}>
     {error ? <div className="mt-6 flex flex-wrap gap-3"><a href={accountRoute("/auth/callback", returnTo)} className="tt-action inline-flex items-center justify-center px-5">Try again →</a><a href={accountRoute("/signin", returnTo)} className="tt-action tt-action-secondary inline-flex items-center justify-center px-5">Sign in</a></div> : <p role="status" className="mt-6 font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)]">Finishing account setup…</p>}
   </AccountShell>;
 }

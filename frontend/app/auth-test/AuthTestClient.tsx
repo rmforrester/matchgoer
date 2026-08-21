@@ -51,7 +51,7 @@ export default function AuthTestClient() {
   const [bearerOwnerId, setBearerOwnerId] = useState<number | null>(null);
   const [status, setStatus] = useState(
     supabaseUrl && supabasePublishableKey
-      ? "Establishing an isolated Terrace Talk session…"
+      ? "Establishing an isolated Matchgoer session…"
       : "Supabase public configuration is missing.",
   );
   const [busy, setBusy] = useState(false);
@@ -70,7 +70,7 @@ export default function AuthTestClient() {
     const initialization = window.setTimeout(() => {
       void establishTerraceSession()
         .then(() => setStatus("Development harness ready."))
-        .catch((error) => setStatus(`Terrace Talk session failed: ${safeError(error)}`));
+        .catch((error) => setStatus(`Matchgoer session failed: ${safeError(error)}`));
       void supabase.auth.getSession().then(({ data }) => setProviderSession(data.session));
     }, 0);
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -191,7 +191,7 @@ export default function AuthTestClient() {
       <section className="mt-8 border-2 border-neutral-900 p-4">
         <h2 className="font-black uppercase">Current state</h2>
         <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-          <dt>Terrace Talk</dt>
+          <dt>Matchgoer</dt>
           <dd>{terraceSession ? `user ${terraceSession.user_id} · ${terraceSession.anonymous ? "anonymous" : "registered"}` : "not established"}</dd>
           <dt>Supabase</dt>
           <dd>{providerSession ? "authenticated session present" : "signed out"}</dd>
@@ -220,7 +220,7 @@ export default function AuthTestClient() {
 
       <section className="mt-6 border-2 border-neutral-900 p-4">
         <h2 className="font-black uppercase">Claim and verify</h2>
-        <p className="mt-2 text-sm">Before claiming, use this same incognito browser to add representative anonymous activity through Terrace Talk.</p>
+        <p className="mt-2 text-sm">Before claiming, use this same incognito browser to add representative anonymous activity through Matchgoer.</p>
         <button disabled={busy || !providerSession} className="mt-4 min-h-11 border-2 border-neutral-900 bg-blue-700 px-4 font-black uppercase text-white disabled:opacity-50" type="button" onClick={claim}>Claim anonymous user</button>
         <label className="mt-5 grid gap-1 text-sm font-bold">
           Fixture ID for optional social-state probe
@@ -228,7 +228,7 @@ export default function AuthTestClient() {
         </label>
         <button disabled={busy || !providerSession} className="mt-3 min-h-11 border-2 border-neutral-900 px-4 font-black uppercase disabled:opacity-50" type="button" onClick={runBearerProbes}>Run bearer probes</button>
         {probes.length > 0 && <ul className="mt-4 text-sm">{probes.map((probe) => <li key={probe.endpoint}>{probe.endpoint}: HTTP {probe.status}</li>)}</ul>}
-        {bearerOwnerId !== null && <p className="mt-3 text-sm font-bold">Bearer resolved Terrace Talk user: {bearerOwnerId}</p>}
+        {bearerOwnerId !== null && <p className="mt-3 text-sm font-bold">Bearer resolved Matchgoer user: {bearerOwnerId}</p>}
       </section>
     </main>
   );

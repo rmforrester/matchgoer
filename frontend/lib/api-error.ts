@@ -8,6 +8,6 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
     const message = String(detail.message).trim();
     if (message) return message;
   }
-  if (!error.response) return "Terrace Talk is unavailable right now. Check your connection and try again.";
+  if (!error.response) return "Matchgoer is unavailable right now. Check your connection and try again.";
   return fallback;
 }

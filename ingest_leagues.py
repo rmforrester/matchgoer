@@ -1,4 +1,4 @@
-"""CLI entry point for the canonical Terrace Talk league importer."""
+"""CLI entry point for the canonical Matchgoer league importer."""
 
 import argparse
 import json
@@ -25,7 +25,7 @@ def resolve_scope(client: ApiFootballClient, scope: LeagueScope) -> LeagueScope:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Terrace Talk API-Football importer")
+    parser = argparse.ArgumentParser(description="Matchgoer API-Football importer")
     parser.add_argument("--profile", choices=sorted(COVERAGE_PROFILES))
     parser.add_argument("--country")
     parser.add_argument("--league-id", type=int)

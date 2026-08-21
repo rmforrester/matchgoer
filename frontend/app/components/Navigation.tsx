@@ -26,7 +26,7 @@ export default function Navigation() {
           href="/"
           className="tt-display shrink-0 text-2xl leading-none text-[var(--tt-ink)] hover:text-[var(--tt-blue)] sm:text-[2rem]"
         >
-          Terrace Talk
+          Matchgoer
         </Link>
 
         <nav aria-label="Primary navigation" className="flex min-w-0 flex-1 justify-end gap-x-3 text-[0.65rem] font-extrabold uppercase tracking-[0.06em] sm:gap-x-5 sm:text-xs sm:tracking-[0.1em]">
