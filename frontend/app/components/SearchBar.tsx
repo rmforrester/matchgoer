@@ -70,16 +70,16 @@ export default function SearchBar({
       </label>
 
       <label className="col-span-1 grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
-        Within
+        Area size
         <select
           value={radius}
           onChange={(event) => setRadius(Number(event.target.value))}
           className="tt-control w-full min-w-0 px-3 [color-scheme:light]"
         >
-          <option value={10}>10 miles</option>
-          <option value={25}>25 miles</option>
-          <option value={50}>50 miles</option>
-          <option value={100}>100 miles</option>
+          <option value={10}>Local · 10 mi scale</option>
+          <option value={25}>City · 25 mi scale</option>
+          <option value={50}>Region · 50 mi scale</option>
+          <option value={100}>Wide · 100 mi scale</option>
         </select>
       </label>
 

@@ -2,6 +2,7 @@
 
 import {
   FormEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -21,8 +22,9 @@ import type { Fixture } from "./types/fixture";
 import type { MapSearchArea } from "./components/FixtureMap";
 import {
   bufferedApiDateBound,
-  applyMapAreaOrigin,
+  buildViewportDiscoveryParams,
   discoveryDateRangeError,
+  isCurrentDiscoveryRequest,
   localCalendarDateValue,
   normalizeDiscoveryStartDate,
   selectDiscoveryFixtures,
@@ -59,6 +61,19 @@ type AppliedSearch = {
   mode: "radius" | "viewport";
   totalMatches: number;
   resultsLimited: boolean;
+};
+
+type DiscoveryRequestContext = {
+  requestVersion: number;
+  controller: AbortController;
+  origin: { latitude: number; longitude: number };
+  locationName: string;
+  radius: number;
+  startDate: string;
+  endDate: string;
+  leagueIds: number[];
+  showAllStadiums: boolean;
+  source: "location" | "map";
 };
 
 export default function Home() {
@@ -133,6 +148,7 @@ export default function Home() {
     controller: AbortController;
   } | null>(null);
   const discoveryRequestVersion = useRef(0);
+  const pendingResolvedSearch = useRef<DiscoveryRequestContext | null>(null);
 
   // -------------------------
   // Discovery location
@@ -224,6 +240,96 @@ const loadVisitedStadiums = () => {
       });
   };
 
+  const loadViewportDiscovery = useCallback(async (area: MapSearchArea, context: DiscoveryRequestContext) => {
+    const {
+      requestVersion,
+      controller,
+      origin,
+      locationName,
+      radius: requestRadius,
+      startDate: requestStartDate,
+      endDate: requestEndDate,
+      leagueIds,
+      showAllStadiums: requestShowAllStadiums,
+      source,
+    } = context;
+
+    try {
+      const response = await api.get("/nearby", {
+        signal: controller.signal,
+        params: buildViewportDiscoveryParams(area, {
+          startDate: requestStartDate ? bufferedApiDateBound(requestStartDate, -1) : undefined,
+          endDate: requestEndDate ? bufferedApiDateBound(requestEndDate, 1) : undefined,
+          leagueIds,
+        }),
+        paramsSerializer: { indexes: null },
+      });
+      if (!isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) return;
+
+      const nextSearch: AppliedSearch = {
+        latitude: area.center.latitude,
+        longitude: area.center.longitude,
+        locationName: source === "location" ? locationName : "Map area",
+        radius: requestRadius,
+        startDate: requestStartDate,
+        endDate: requestEndDate,
+        leagueIds: [...leagueIds],
+        showAllStadiums: requestShowAllStadiums,
+        mode: "viewport",
+        totalMatches: Number(response.headers["x-total-matches"] ?? response.data.length),
+        resultsLimited: response.headers["x-results-limited"] === "true",
+      };
+      setFixtures(response.data);
+      setAppliedSearch(nextSearch);
+      setLocationQuery(nextSearch.locationName);
+      setDraftCoordinates(source === "location" ? origin : area.center);
+      setRadius(nextSearch.radius);
+      setSelectedStartDate(nextSearch.startDate);
+      setEndDate(nextSearch.endDate);
+      setSelectedLeagueIds([...nextSearch.leagueIds]);
+      setShowAllStadiums(nextSearch.showAllStadiums);
+      setHasCompletedDiscovery(true);
+      setEditingSearch(false);
+
+      if (requestShowAllStadiums) {
+        const venueResponse = await api.get("/venues", {
+          signal: controller.signal,
+          params: {
+            north: area.north,
+            south: area.south,
+            east: area.east,
+            west: area.west,
+            limit: 250,
+          },
+        });
+        if (isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) setVenues(venueResponse.data);
+      } else {
+        setVenues([]);
+      }
+    } catch (error) {
+      if (controller.signal.aborted || axios.isCancel(error) || !isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) return;
+      console.error(source === "location" ? "Location discovery error:" : "Map-area discovery error:", error);
+      setFixtures([]);
+      setHasCompletedDiscovery(false);
+      setDiscoveryError(apiErrorMessage(error, source === "location"
+        ? "Unable to load fixtures for that location. Please try again."
+        : "Unable to search this map area. Please try again."));
+    } finally {
+      if (isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) {
+        setLoading(false);
+        setLocationLoading(false);
+        discoveryRequest.current = null;
+      }
+    }
+  }, []);
+
+  const handleResolvedViewport = useCallback((area: MapSearchArea) => {
+    const pending = pendingResolvedSearch.current;
+    if (!pending || !isCurrentDiscoveryRequest(discoveryRequestVersion.current, pending.requestVersion)) return;
+    pendingResolvedSearch.current = null;
+    void loadViewportDiscovery(area, pending);
+  }, [loadViewportDiscovery]);
+
   const submitDiscovery = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading) return;
@@ -259,6 +365,7 @@ const loadVisitedStadiums = () => {
     setDiscoveryError("");
     setLocationError("");
     let resolvingLocation = !draftCoordinates;
+    let awaitingViewport = false;
 
     try {
       let origin = draftCoordinates;
@@ -281,24 +388,22 @@ const loadVisitedStadiums = () => {
         resolvingLocation = false;
       }
 
-      const startBound = startDate ? bufferedApiDateBound(startDate, -1) : undefined;
-      const endBound = endDate ? bufferedApiDateBound(endDate, 1) : undefined;
-      const response = await api.get("/nearby", {
-        signal: controller.signal,
-        params: {
-          latitude: origin.latitude,
-          longitude: origin.longitude,
-          radius,
-          start_date: startBound,
-          end_date: endBound,
-          league_id: selectedLeagueIds.length ? selectedLeagueIds : undefined,
-          limit: 100,
-        },
-        paramsSerializer: { indexes: null },
-      });
-
-      if (discoveryRequestVersion.current !== requestVersion) return;
-      const nextSearch: AppliedSearch = {
+      if (!isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) return;
+      const context: DiscoveryRequestContext = {
+        requestVersion,
+        controller,
+        origin,
+        locationName,
+        radius,
+        startDate,
+        endDate,
+        leagueIds: [...selectedLeagueIds],
+        showAllStadiums,
+        source: "location",
+      };
+      pendingResolvedSearch.current = context;
+      awaitingViewport = true;
+      setAppliedSearch({
         ...origin,
         locationName,
         radius,
@@ -306,28 +411,14 @@ const loadVisitedStadiums = () => {
         endDate,
         leagueIds: [...selectedLeagueIds],
         showAllStadiums,
-        mode: "radius",
-        totalMatches: Number(response.headers["x-total-matches"] ?? response.data.length),
-        resultsLimited: response.headers["x-results-limited"] === "true",
-      };
-      setFixtures(response.data);
-      setAppliedSearch(nextSearch);
+        mode: "viewport",
+        totalMatches: 0,
+        resultsLimited: false,
+      });
       setMapViewportTarget((current) => ({ ...origin, revision: current.revision + 1 }));
       setLocationQuery(locationName);
       setDraftCoordinates(origin);
-      setHasCompletedDiscovery(true);
       setEditingSearch(false);
-
-      if (showAllStadiums) {
-        api.get("/venues", {
-          signal: controller.signal,
-          params: { latitude: origin.latitude, longitude: origin.longitude, radius, limit: 100 },
-        }).then((venueResponse) => {
-          if (discoveryRequestVersion.current === requestVersion) setVenues(venueResponse.data);
-        }).catch((error) => {
-          if (!controller.signal.aborted) console.error("Venue loading error:", error);
-        });
-      }
     } catch (error) {
       if (controller.signal.aborted || axios.isCancel(error) || discoveryRequestVersion.current !== requestVersion) return;
       console.error("Discovery loading error:", error);
@@ -339,7 +430,7 @@ const loadVisitedStadiums = () => {
         setDiscoveryError(apiErrorMessage(error, "Unable to load nearby fixtures. Please try again."));
       }
     } finally {
-      if (discoveryRequestVersion.current === requestVersion) {
+      if (!awaitingViewport && isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) {
         setLoading(false);
         setLocationLoading(false);
         discoveryRequest.current = null;
@@ -349,9 +440,6 @@ const loadVisitedStadiums = () => {
 
   const searchMapArea = async (area: MapSearchArea) => {
     if (loading || !appliedSearch) return;
-    const origin = area.center;
-    const previousOrigin = { latitude: appliedSearch.latitude, longitude: appliedSearch.longitude };
-    console.info("[discovery] Applying map-area origin", { previousOrigin, requestedOrigin: origin });
     const requestVersion = discoveryRequestVersion.current + 1;
     discoveryRequestVersion.current = requestVersion;
     discoveryRequest.current?.controller.abort();
@@ -360,71 +448,23 @@ const loadVisitedStadiums = () => {
     setLoading(true);
     setDiscoveryError("");
 
-    try {
-      const startBound = appliedSearch.startDate ? bufferedApiDateBound(appliedSearch.startDate, -1) : undefined;
-      const endBound = appliedSearch.endDate ? bufferedApiDateBound(appliedSearch.endDate, 1) : undefined;
-      const response = await api.get("/nearby", {
-        signal: controller.signal,
-        params: {
-          latitude: origin.latitude,
-          longitude: origin.longitude,
-          north: area.north,
-          south: area.south,
-          east: area.east,
-          west: area.west,
-          start_date: startBound,
-          end_date: endBound,
-          league_id: appliedSearch.leagueIds.length ? appliedSearch.leagueIds : undefined,
-          limit: 250,
-        },
-        paramsSerializer: { indexes: null },
-      });
-      if (discoveryRequestVersion.current !== requestVersion) return;
-
-      const nextSearch: AppliedSearch = {
-        ...applyMapAreaOrigin(appliedSearch, origin),
-        mode: "viewport",
-        totalMatches: Number(response.headers["x-total-matches"] ?? response.data.length),
-        resultsLimited: response.headers["x-results-limited"] === "true",
-      };
-      console.assert(
-        nextSearch.latitude === origin.latitude && nextSearch.longitude === origin.longitude,
-        "Applied discovery coordinates must match the live map center"
-      );
-      setFixtures(response.data);
-      setAppliedSearch(nextSearch);
-      setLocationQuery("Map area");
-      setDraftCoordinates(origin);
-      setRadius(nextSearch.radius);
-      setSelectedStartDate(nextSearch.startDate);
-      setEndDate(nextSearch.endDate);
-      setSelectedLeagueIds([...nextSearch.leagueIds]);
-      setShowAllStadiums(nextSearch.showAllStadiums);
-      setHasCompletedDiscovery(true);
-
-      if (nextSearch.showAllStadiums) {
-        const venueResponse = await api.get("/venues", {
-          signal: controller.signal,
-          params: { north: area.north, south: area.south, east: area.east, west: area.west, limit: 250 },
-        });
-        if (discoveryRequestVersion.current === requestVersion) setVenues(venueResponse.data);
-      } else {
-        setVenues([]);
-      }
-    } catch (error) {
-      if (controller.signal.aborted || axios.isCancel(error) || discoveryRequestVersion.current !== requestVersion) return;
-      console.error("Map-area discovery error:", error);
-      setDiscoveryError(apiErrorMessage(error, "Unable to search this map area. Please try again."));
-    } finally {
-      if (discoveryRequestVersion.current === requestVersion) {
-        setLoading(false);
-        discoveryRequest.current = null;
-      }
-    }
+    await loadViewportDiscovery(area, {
+      requestVersion,
+      controller,
+      origin: area.center,
+      locationName: "Map area",
+      radius: appliedSearch.radius,
+      startDate: appliedSearch.startDate,
+      endDate: appliedSearch.endDate,
+      leagueIds: [...appliedSearch.leagueIds],
+      showAllStadiums: appliedSearch.showAllStadiums,
+      source: "map",
+    });
   };
 
   useEffect(() => () => {
     discoveryRequest.current?.controller.abort();
+    pendingResolvedSearch.current = null;
   }, []);
 
   // -------------------------
@@ -671,6 +711,7 @@ const loadVisitedStadiums = () => {
   viewportRevision={mapViewportTarget.revision}
   searchingArea={loading}
   onSearchArea={searchMapArea}
+  onViewportReady={handleResolvedViewport}
 />
             </div>
             <NearbyFixtureCarousel

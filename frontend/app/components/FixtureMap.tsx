@@ -11,12 +11,18 @@ import {
 
 import L from "leaflet";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 
 import "leaflet/dist/leaflet.css";
 
 import type { Fixture } from "../types/fixture";
-import { groupFixturesByVenue, hasMeaningfulMapMovement, type FixtureVenueGroup } from "../../lib/fixtureDiscovery";
+import {
+  discoveryZoomForRadius,
+  groupFixturesByVenue,
+  hasMeaningfulMapMovement,
+  type DiscoveryViewport,
+  type FixtureVenueGroup,
+} from "../../lib/fixtureDiscovery";
 import { createGroundMarkerIcon } from "./groundMarkerIcon";
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
 
@@ -40,16 +46,11 @@ type Props = {
   viewportLongitude: number;
   viewportRevision: number;
   searchingArea: boolean;
+  onViewportReady: (area: MapSearchArea) => void;
   onSearchArea: (area: MapSearchArea) => Promise<void>;
 };
 
-export type MapSearchArea = {
-  center: { latitude: number; longitude: number };
-  north: number;
-  south: number;
-  east: number;
-  west: number;
-};
+export type MapSearchArea = DiscoveryViewport;
 
 type FixtureVenueMarkerProps = {
   group: FixtureVenueGroup;
@@ -88,30 +89,65 @@ function FixtureVenueMarker({ group, visited, icon }: FixtureVenueMarkerProps) {
   </Marker>;
 }
 
-function ViewportController({ latitude, longitude, revision }: { latitude: number; longitude: number; revision: number }) {
+function currentMapArea(map: L.Map): MapSearchArea {
+  const center = map.getCenter();
+  const bounds = map.getBounds();
+  return {
+    center: { latitude: center.lat, longitude: center.lng },
+    north: bounds.getNorth(),
+    south: bounds.getSouth(),
+    east: bounds.getEast(),
+    west: bounds.getWest(),
+  };
+}
+
+function ViewportController({
+  latitude,
+  longitude,
+  radius,
+  revision,
+  suppressMovementRef,
+  onViewportReady,
+}: {
+  latitude: number;
+  longitude: number;
+  radius: number;
+  revision: number;
+  suppressMovementRef: MutableRefObject<boolean>;
+  onViewportReady: (area: MapSearchArea) => void;
+}) {
   const map = useMap();
   useEffect(() => {
-    map.setView([latitude, longitude], map.getZoom(), { animate: false });
-  }, [latitude, longitude, map, revision]);
+    if (!revision) return;
+    suppressMovementRef.current = true;
+    map.setView([latitude, longitude], discoveryZoomForRadius(radius), { animate: false });
+    onViewportReady(currentMapArea(map));
+    suppressMovementRef.current = false;
+  }, [latitude, longitude, map, onViewportReady, radius, revision, suppressMovementRef]);
   return null;
 }
 
 function MapMovementMonitor({
   appliedCenter,
   radius,
+  suppressMovementRef,
   onCandidateChange,
 }: {
   appliedCenter: { latitude: number; longitude: number };
   radius: number;
+  suppressMovementRef: MutableRefObject<boolean>;
   onCandidateChange: (moved: boolean) => void;
 }) {
   useMapEvents({
     moveend(event) {
+      if (suppressMovementRef.current) return;
       const center = event.target.getCenter();
       const candidate = { latitude: center.lat, longitude: center.lng };
       onCandidateChange(hasMeaningfulMapMovement(appliedCenter, candidate, radius));
     },
-    zoomend() { onCandidateChange(true); },
+    zoomend() {
+      if (!suppressMovementRef.current) onCandidateChange(true);
+    },
   });
   return null;
 }
@@ -128,12 +164,14 @@ export default function FixtureMap({
   viewportLongitude,
   viewportRevision,
   searchingArea,
+  onViewportReady,
   onSearchArea,
 }: Props) {
   const fixtureGroups = useMemo(() => groupFixturesByVenue(fixtures), [fixtures]);
   const [areaSearchAvailable, setAreaSearchAvailable] = useState(false);
   const [tileError, setTileError] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
+  const suppressMovementRef = useRef(false);
   const groundIcon = useMemo(() => createGroundMarkerIcon(false), []);
   const visitedGroundIcon = useMemo(() => createGroundMarkerIcon(true), []);
 
@@ -169,12 +207,12 @@ export default function FixtureMap({
 <MapContainer
   ref={mapRef}
   center={[latitude, longitude]}
-  zoom={8}
+  zoom={discoveryZoomForRadius(radius)}
   closePopupOnClick
       className="tt-map"
     >
-      <ViewportController latitude={viewportLatitude} longitude={viewportLongitude} revision={viewportRevision} />
-      <MapMovementMonitor appliedCenter={{ latitude, longitude }} radius={radius} onCandidateChange={setAreaSearchAvailable} />
+      <ViewportController latitude={viewportLatitude} longitude={viewportLongitude} radius={radius} revision={viewportRevision} suppressMovementRef={suppressMovementRef} onViewportReady={onViewportReady} />
+      <MapMovementMonitor appliedCenter={{ latitude, longitude }} radius={radius} suppressMovementRef={suppressMovementRef} onCandidateChange={setAreaSearchAvailable} />
 
       <TileLayer
         attribution="&copy; OpenStreetMap contributors"
@@ -271,13 +309,12 @@ export default function FixtureMap({
 
     </MapContainer>
     {areaSearchAvailable && <button type="button" disabled={searchingArea} onClick={async () => {
-      const center = mapRef.current?.getCenter();
-      const bounds = mapRef.current?.getBounds();
-      if (!center || !bounds) return;
-      const liveCenter = { latitude: center.lat, longitude: center.lng };
+      if (!mapRef.current) return;
+      const area = currentMapArea(mapRef.current);
+      const liveCenter = area.center;
       console.info("[discovery] Search this area pressed", { appliedCenter: { latitude, longitude }, liveCenter });
       console.assert(hasMeaningfulMapMovement({ latitude, longitude }, liveCenter, radius), "Search this area must use a meaningfully changed live map center");
-      await onSearchArea({ center: liveCenter, north: bounds.getNorth(), south: bounds.getSouth(), east: bounds.getEast(), west: bounds.getWest() });
+      await onSearchArea(area);
       setAreaSearchAvailable(false);
     }} className="tt-action absolute left-1/2 top-4 z-[1000] -translate-x-1/2 px-5 shadow-[3px_3px_0_var(--tt-ink)] disabled:opacity-60">{searchingArea ? "Searching…" : "Search this area"}</button>}
     {tileError && <p role="status" className="absolute bottom-3 left-3 right-3 z-[1000] border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">The map background could not load. Fixture cards and ground links are still available below.</p>}
