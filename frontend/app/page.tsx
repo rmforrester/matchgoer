@@ -27,6 +27,7 @@ import {
   isCurrentDiscoveryRequest,
   localCalendarDateValue,
   normalizeDiscoveryStartDate,
+  resolvedLocationTransition,
   selectDiscoveryFixtures,
 } from "../lib/fixtureDiscovery";
 
@@ -330,6 +331,34 @@ const loadVisitedStadiums = () => {
     void loadViewportDiscovery(area, pending);
   }, [loadViewportDiscovery]);
 
+  const stageResolvedLocation = useCallback((context: DiscoveryRequestContext) => {
+    const { origin, locationName, requestVersion } = context;
+    pendingResolvedSearch.current = context;
+    setFixtures([]);
+    setVenues([]);
+    setLoading(true);
+    setHasCompletedDiscovery(false);
+    setDiscoveryError("");
+    setAppliedSearch({
+      ...origin,
+      locationName,
+      radius: context.radius,
+      startDate: context.startDate,
+      endDate: context.endDate,
+      leagueIds: [...context.leagueIds],
+      showAllStadiums: context.showAllStadiums,
+      mode: "viewport",
+      totalMatches: 0,
+      resultsLimited: false,
+    });
+    setLocationQuery(locationName);
+    setDraftCoordinates(origin);
+    setMapViewportTarget((current) =>
+      resolvedLocationTransition(origin, locationName, requestVersion, current.revision).viewportTarget
+    );
+    setEditingSearch(false);
+  }, []);
+
   const submitDiscovery = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading) return;
@@ -337,6 +366,7 @@ const loadVisitedStadiums = () => {
     const requestVersion = discoveryRequestVersion.current + 1;
     discoveryRequestVersion.current = requestVersion;
     discoveryRequest.current?.controller.abort();
+    pendingResolvedSearch.current = null;
 
     const rangeError = discoveryDateRangeError(startDate, endDate);
     if (rangeError) {
@@ -359,7 +389,6 @@ const loadVisitedStadiums = () => {
     setFixtures([]);
     setVenues([]);
     setLoading(true);
-    setLocationLoading(true);
     setHasCompletedDiscovery(false);
     setDateError("");
     setDiscoveryError("");
@@ -401,24 +430,8 @@ const loadVisitedStadiums = () => {
         showAllStadiums,
         source: "location",
       };
-      pendingResolvedSearch.current = context;
       awaitingViewport = true;
-      setAppliedSearch({
-        ...origin,
-        locationName,
-        radius,
-        startDate,
-        endDate,
-        leagueIds: [...selectedLeagueIds],
-        showAllStadiums,
-        mode: "viewport",
-        totalMatches: 0,
-        resultsLimited: false,
-      });
-      setMapViewportTarget((current) => ({ ...origin, revision: current.revision + 1 }));
-      setLocationQuery(locationName);
-      setDraftCoordinates(origin);
-      setEditingSearch(false);
+      stageResolvedLocation(context);
     } catch (error) {
       if (controller.signal.aborted || axios.isCancel(error) || discoveryRequestVersion.current !== requestVersion) return;
       console.error("Discovery loading error:", error);
@@ -443,6 +456,7 @@ const loadVisitedStadiums = () => {
     const requestVersion = discoveryRequestVersion.current + 1;
     discoveryRequestVersion.current = requestVersion;
     discoveryRequest.current?.controller.abort();
+    pendingResolvedSearch.current = null;
     const controller = new AbortController();
     discoveryRequest.current = { version: requestVersion, controller };
     setLoading(true);
@@ -544,19 +558,38 @@ const loadVisitedStadiums = () => {
       return;
     }
 
+    const requestVersion = discoveryRequestVersion.current + 1;
+    discoveryRequestVersion.current = requestVersion;
+    discoveryRequest.current?.controller.abort();
+    pendingResolvedSearch.current = null;
+    const controller = new AbortController();
+    discoveryRequest.current = { version: requestVersion, controller };
     setLocationLoading(true);
     setLocationError("");
+    setDiscoveryError("");
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setDraftCoordinates({
+        if (!isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) return;
+        const origin = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
+        };
+        stageResolvedLocation({
+          requestVersion,
+          controller,
+          origin,
+          locationName: "Current location",
+          radius,
+          startDate,
+          endDate,
+          leagueIds: [...selectedLeagueIds],
+          showAllStadiums,
+          source: "location",
         });
-        setLocationQuery("Current location");
-        setLocationLoading(false);
       },
       (positionError) => {
+        if (!isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) return;
         const messages: Record<number, string> = {
           1: "Location permission was denied. Allow location access or search for a city instead.",
           2: "Your position is currently unavailable. Search for a city or location instead.",
@@ -564,6 +597,8 @@ const loadVisitedStadiums = () => {
         };
         setLocationError(messages[positionError.code] ?? "Unable to get your location. Search for a city or location instead.");
         setLocationLoading(false);
+        setLoading(false);
+        discoveryRequest.current = null;
       },
       { timeout: 10_000, maximumAge: 60_000 }
     );
@@ -643,10 +678,10 @@ const loadVisitedStadiums = () => {
                 <button
                   type="button"
                   onClick={useCurrentLocation}
-                  disabled={locationLoading || loading}
+                  disabled={locationLoading}
                   className="tt-action tt-action-secondary w-full px-4 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 >
-                  {locationLoading && !loading ? "Finding location..." : "Use my location"}
+                  {locationLoading ? "Finding location..." : "Use my location"}
                 </button>
               </div>
             </div>

@@ -67,6 +67,7 @@ body {
 }
 
 .tt-action:hover:not(:disabled) { background: var(--tt-ink); }
+.tt-map-search-action { min-height: 2.25rem; padding: 0.25rem 0.75rem; white-space: nowrap; }
 .tt-action-secondary { background: var(--tt-paper); color: var(--tt-ink); }
 .tt-action-secondary:hover:not(:disabled) { background: var(--tt-ink); color: var(--tt-paper); }
 .tt-section-rule { border-top: var(--tt-rule-width) solid var(--tt-ink); }
@@ -74,6 +75,8 @@ body {
 .tt-ground-marker { background: transparent; border: 0; }
 .tt-ground-marker__visual { display: grid; height: 44px; place-items: center; width: 44px; }
 .tt-ground-marker:focus { outline: 3px solid var(--tt-paper); outline-offset: 1px; }
+.tt-fixture-popup .leaflet-popup-content { margin: 0.65rem; max-width: min(15rem, calc(100vw - 5rem)); min-width: 12rem; }
+.tt-fixture-popup .leaflet-popup-content-wrapper { border-radius: var(--tt-radius); }
 .tt-scrollbar { scrollbar-color: var(--tt-blue) var(--tt-rule); scrollbar-width: thin; }
 .tt-scrollbar::-webkit-scrollbar { height: 8px; }
 .tt-scrollbar::-webkit-scrollbar-track { background: var(--tt-rule); }

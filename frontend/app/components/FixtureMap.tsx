@@ -18,6 +18,8 @@ import "leaflet/dist/leaflet.css";
 import type { Fixture } from "../types/fixture";
 import {
   discoveryZoomForRadius,
+  compactFixtureCard,
+  FIXTURE_POPUP_BEHAVIOR,
   groupFixturesByVenue,
   hasMeaningfulMapMovement,
   type DiscoveryViewport,
@@ -63,28 +65,28 @@ function FixtureVenueMarker({ group, visited, icon }: FixtureVenueMarkerProps) {
   const [fixtureIndex, setFixtureIndex] = useState(0);
   const fixture = group.fixtures[fixtureIndex];
   const fixtureCount = group.fixtures.length;
+  const card = compactFixtureCard(fixture);
   const move = (offset: number) => setFixtureIndex((current) => (current + offset + fixtureCount) % fixtureCount);
   const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
   const statusGroup = fixtureStatusGroup(fixture.status);
 
   return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => setFixtureIndex(0) }}>
-    <Popup closeButton={false} autoPan={false}>
-      <div className="mb-2 flex justify-end"><button type="button" onClick={() => map.closePopup()} aria-label="Close fixture details" className="min-h-11 min-w-11 border border-[var(--tt-ink)] text-lg font-bold leading-none">×</button></div>
-      <strong>{fixture.home_team}</strong><br />vs<br /><strong>{fixture.away_team}</strong>
-      <br /><br /><strong>{fixture.venue_name}</strong>
-      {fixture.venue_city && <><br />{fixture.venue_city}</>}
-      <br /><br />
+    <Popup closeButton={false} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
+      <button type="button" onClick={() => map.closePopup()} aria-label="Close fixture details" className="absolute right-2 top-2 grid min-h-9 min-w-9 place-items-center border border-[var(--tt-ink)] text-lg font-bold leading-none">×</button>
+      <div className="pr-10">
+      <strong className="block leading-tight">{card.matchup}</strong>
+      <span className="mt-2 block text-xs font-bold">
       {statusGroup === "postponed" || statusGroup === "cancelled"
         ? fixtureStatusLabel(fixture.status)
         : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {new Date(fixture.fixture_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}
-      <br />{fixture.distance_miles} miles away
+      </span>
+      </div>
       {fixtureCount > 1 && <div className="mt-3 flex items-center justify-between gap-3" aria-label="Fixtures at this stadium">
         <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="min-h-11 px-2 text-lg">←</button>
         <span>{fixtureIndex + 1} of {fixtureCount}</span>
         <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="min-h-11 px-2 text-lg">→</button>
       </div>}
-      <div><Link href={`/fixture/${fixture.fixture_id}`} className="mt-3 inline-flex min-h-11 items-center font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">View match →</Link></div>
-      {visited && <><br /><br /><strong>✓ You&apos;ve visited this stadium</strong></>}
+      <div><Link href={card.href} className="mt-2 inline-flex min-h-10 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">View match →</Link></div>
     </Popup>
   </Marker>;
 }
@@ -316,7 +318,7 @@ export default function FixtureMap({
       console.assert(hasMeaningfulMapMovement({ latitude, longitude }, liveCenter, radius), "Search this area must use a meaningfully changed live map center");
       await onSearchArea(area);
       setAreaSearchAvailable(false);
-    }} className="tt-action absolute left-1/2 top-4 z-[1000] -translate-x-1/2 px-5 shadow-[3px_3px_0_var(--tt-ink)] disabled:opacity-60">{searchingArea ? "Searching…" : "Search this area"}</button>}
+    }} className="tt-action tt-map-search-action absolute left-1/2 top-3 z-[1000] -translate-x-1/2 shadow-[2px_2px_0_var(--tt-ink)] disabled:opacity-60">{searchingArea ? "Searching…" : "Search this area"}</button>}
     {tileError && <p role="status" className="absolute bottom-3 left-3 right-3 z-[1000] border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">The map background could not load. Fixture cards and ground links are still available below.</p>}
 </div>
   );
