@@ -1,7 +1,10 @@
 import L from "leaflet";
+import { USER_MARKER_DESIGN, VENUE_MARKER_DESIGN, venueMarkerPresentation } from "../../lib/mapMarkerDesign";
 
-const markerSvg = (visited: boolean) => `
-  <svg aria-hidden="true" width="30" height="36" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg">
+const markerSvg = (visited: boolean, selected: boolean) => {
+  const presentation = venueMarkerPresentation(visited, selected);
+  return `
+  <svg aria-hidden="true" width="${presentation.visibleWidth}" height="${presentation.visibleHeight}" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M3 2H27L29 5V24L15 35L1 24V5L3 2Z"
       fill="#2146D0"
@@ -29,13 +32,23 @@ const markerSvg = (visited: boolean) => `
     ` : ""}
   </svg>
 `;
+};
 
-export function createGroundMarkerIcon(visited = false): L.DivIcon {
+export function createGroundMarkerIcon(visited = false, selected = false): L.DivIcon {
   return L.divIcon({
-    className: "tt-ground-marker",
-    html: `<span class="tt-ground-marker__visual">${markerSvg(visited)}</span>`,
-    iconSize: [44, 44],
-    iconAnchor: [22, 40],
-    popupAnchor: [0, -38],
+    className: `tt-ground-marker${selected ? " tt-ground-marker--selected" : ""}`,
+    html: `<span class="tt-ground-marker__visual">${markerSvg(visited, selected)}</span>`,
+    iconSize: [VENUE_MARKER_DESIGN.hitSize, VENUE_MARKER_DESIGN.hitSize],
+    iconAnchor: [VENUE_MARKER_DESIGN.hitSize / 2, VENUE_MARKER_DESIGN.hitSize - 2],
+    popupAnchor: [0, -32],
+  });
+}
+
+export function createUserLocationIcon(): L.DivIcon {
+  return L.divIcon({
+    className: "tt-user-location-marker",
+    html: '<span class="tt-user-location-marker__visual"><span class="sr-only">You are here</span></span>',
+    iconSize: [USER_MARKER_DESIGN.hitSize, USER_MARKER_DESIGN.hitSize],
+    iconAnchor: [USER_MARKER_DESIGN.hitSize / 2, USER_MARKER_DESIGN.hitSize / 2],
   });
 }

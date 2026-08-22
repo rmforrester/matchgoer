@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   applyMapAreaOrigin,
+  applyUserLocationEvent,
   buildViewportDiscoveryParams,
   compactFixtureCard,
   discoveryZoomForRadius,
@@ -11,6 +12,7 @@ import {
   resolvedLocationTransition,
   type DiscoveryViewport,
 } from "./fixtureDiscovery.ts";
+import { USER_MARKER_DESIGN, VENUE_MARKER_DESIGN, venueMarkerPresentation } from "./mapMarkerDesign.ts";
 
 const miamiViewport: DiscoveryViewport = {
   center: { latitude: 25.7741566, longitude: -80.1935973 },
@@ -197,4 +199,40 @@ test("fixture-card dismissal and replacement never recenter the map", () => {
     autoClose: true,
     closeOnClick: true,
   });
+});
+
+test("successful geolocation creates and updates the genuine user marker", () => {
+  const london = { latitude: 51.5074, longitude: -0.1278 };
+  const updated = { latitude: 51.508, longitude: -0.126 };
+  assert.deepEqual(applyUserLocationEvent(null, { type: "geolocation", location: london }), london);
+  assert.deepEqual(applyUserLocationEvent(london, { type: "geolocation", location: updated }), updated);
+});
+
+test("manual location search clears the user marker", () => {
+  const london = { latitude: 51.5074, longitude: -0.1278 };
+  assert.equal(applyUserLocationEvent(london, { type: "manual-location" }), null);
+});
+
+test("map movement cannot move the genuine user marker", () => {
+  const london = { latitude: 51.5074, longitude: -0.1278 };
+  assert.deepEqual(applyUserLocationEvent(london, { type: "map-moved" }), london);
+});
+
+test("venue markers are visually smaller while retaining a usable hit target", () => {
+  const marker = venueMarkerPresentation(false, false);
+  assert.deepEqual(marker, { visited: false, selected: false, visibleWidth: 24, visibleHeight: 29, hitSize: 44 });
+  assert.equal(VENUE_MARKER_DESIGN.hitSize, 44);
+  assert.equal(USER_MARKER_DESIGN.visibleSize, 16);
+});
+
+test("selected and visited venue marker states remain identifiable", () => {
+  const selected = venueMarkerPresentation(false, true);
+  const visited = venueMarkerPresentation(true, false);
+  const selectedVisited = venueMarkerPresentation(true, true);
+  assert.equal(selected.visibleWidth, 28);
+  assert.equal(selected.visibleHeight, 34);
+  assert.equal(visited.visited, true);
+  assert.equal(selectedVisited.visited, true);
+  assert.equal(selectedVisited.selected, true);
+  assert.equal(selected.hitSize, 44);
 });

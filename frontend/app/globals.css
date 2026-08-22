@@ -74,7 +74,10 @@ body {
 .tt-map { height: clamp(22rem, 48vw, 31.25rem); width: 100%; }
 .tt-ground-marker { background: transparent; border: 0; }
 .tt-ground-marker__visual { display: grid; height: 44px; place-items: center; width: 44px; }
+.tt-ground-marker--selected { z-index: 700 !important; }
 .tt-ground-marker:focus { outline: 3px solid var(--tt-paper); outline-offset: 1px; }
+.tt-user-location-marker { background: transparent; border: 0; z-index: 750 !important; }
+.tt-user-location-marker__visual { background: var(--tt-paper); border: 3px solid var(--tt-blue); border-radius: 50%; box-shadow: 0 0 0 2px var(--tt-ink); display: block; height: 16px; margin: 14px; width: 16px; }
 .tt-fixture-popup .leaflet-popup-content { margin: 0.65rem; max-width: min(15rem, calc(100vw - 5rem)); min-width: 12rem; }
 .tt-fixture-popup .leaflet-popup-content-wrapper { border-radius: var(--tt-radius); }
 .tt-scrollbar { scrollbar-color: var(--tt-blue) var(--tt-rule); scrollbar-width: thin; }

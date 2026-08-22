@@ -101,6 +101,20 @@ export type DiscoveryViewport = {
   west: number;
 };
 
+export type UserLocation = { latitude: number; longitude: number };
+export type UserLocationEvent =
+  | { type: "geolocation"; location: UserLocation }
+  | { type: "manual-location" | "reset" | "map-moved" };
+
+export function applyUserLocationEvent(
+  current: UserLocation | null,
+  event: UserLocationEvent,
+): UserLocation | null {
+  if (event.type === "geolocation") return event.location;
+  if (event.type === "map-moved") return current;
+  return null;
+}
+
 export type DiscoveryRequestFilters = {
   startDate?: string;
   endDate?: string;
