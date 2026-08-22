@@ -137,6 +137,38 @@ export function isCurrentDiscoveryRequest(currentVersion: number, responseVersio
   return currentVersion === responseVersion;
 }
 
+export function resolvedLocationTransition(
+  origin: { latitude: number; longitude: number },
+  locationName: string,
+  requestVersion: number,
+  currentViewportRevision: number,
+) {
+  return {
+    requestVersion,
+    locationQuery: locationName,
+    draftCoordinates: origin,
+    viewportTarget: {
+      ...origin,
+      revision: currentViewportRevision + 1,
+    },
+  };
+}
+
+export function compactFixtureCard(fixture: Fixture) {
+  return {
+    matchup: `${fixture.home_team} v ${fixture.away_team}`,
+    fixtureDate: fixture.fixture_date,
+    status: fixture.status,
+    href: `/fixture/${fixture.fixture_id}`,
+  };
+}
+
+export const FIXTURE_POPUP_BEHAVIOR = {
+  autoPan: false,
+  autoClose: true,
+  closeOnClick: true,
+} as const;
+
 export function groupFixturesByVenue(fixtures: Fixture[]): FixtureVenueGroup[] {
   const groups = new Map<string, FixtureVenueGroup>();
 

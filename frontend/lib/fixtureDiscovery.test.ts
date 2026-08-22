@@ -4,8 +4,11 @@ import test from "node:test";
 import {
   applyMapAreaOrigin,
   buildViewportDiscoveryParams,
+  compactFixtureCard,
   discoveryZoomForRadius,
+  FIXTURE_POPUP_BEHAVIOR,
   isCurrentDiscoveryRequest,
+  resolvedLocationTransition,
   type DiscoveryViewport,
 } from "./fixtureDiscovery.ts";
 
@@ -87,4 +90,111 @@ test("selected radius controls the initial map scale before its viewport is sear
   assert.equal(discoveryZoomForRadius(25), 8);
   assert.equal(discoveryZoomForRadius(50), 7);
   assert.equal(discoveryZoomForRadius(100), 6);
+});
+
+test("manual city discovery is built from the resolved city viewport", () => {
+  const params = buildViewportDiscoveryParams(miamiViewport, {
+    startDate: "2026-08-20",
+    endDate: "2026-10-01",
+    leagueIds: [253],
+  });
+  assert.equal(params.latitude, miamiViewport.center.latitude);
+  assert.equal(params.longitude, miamiViewport.center.longitude);
+});
+
+test("Use My Location replaces the previous city target and advances the viewport", () => {
+  const currentLocation = { latitude: 51.5074, longitude: -0.1278 };
+  const transition = resolvedLocationTransition(currentLocation, "Current location", 12, 4);
+
+  assert.deepEqual(transition, {
+    requestVersion: 12,
+    locationQuery: "Current location",
+    draftCoordinates: currentLocation,
+    viewportTarget: { ...currentLocation, revision: 5 },
+  });
+  assert.notDeepEqual(transition.draftCoordinates, miamiViewport.center);
+});
+
+test("current-location bounds replace previous city bounds while preserving filters", () => {
+  const londonViewport: DiscoveryViewport = {
+    center: { latitude: 51.5074, longitude: -0.1278 },
+    north: 51.7,
+    south: 51.3,
+    east: 0.1,
+    west: -0.35,
+  };
+  const params = buildViewportDiscoveryParams(londonViewport, {
+    startDate: "2026-08-25",
+    endDate: "2026-09-02",
+    leagueIds: [39, 40],
+  });
+
+  assert.deepEqual(params, {
+    latitude: 51.5074,
+    longitude: -0.1278,
+    north: 51.7,
+    south: 51.3,
+    east: 0.1,
+    west: -0.35,
+    start_date: "2026-08-25",
+    end_date: "2026-09-02",
+    league_id: [39, 40],
+    limit: 250,
+  });
+});
+
+test("a stale city response cannot overwrite the newer geolocation action", () => {
+  assert.equal(isCurrentDiscoveryRequest(12, 11), false);
+  assert.equal(isCurrentDiscoveryRequest(12, 12), true);
+});
+
+test("Search This Area after geolocation uses the live viewport", () => {
+  const geolocationSearch = { latitude: 51.5074, longitude: -0.1278, locationName: "Current location", radius: 25 };
+  const liveCenter = { latitude: 51.52, longitude: -0.09 };
+  assert.deepEqual(applyMapAreaOrigin(geolocationSearch, liveCenter), {
+    latitude: 51.52,
+    longitude: -0.09,
+    locationName: "Map area",
+    radius: 25,
+  });
+});
+
+test("compact fixture card exposes only matchup, timing source, status and link", () => {
+  const fixture = {
+    fixture_id: 1561634,
+    fixture_date: "2026-08-29T15:00:00Z",
+    home_team: "Hutnik Kraków",
+    away_team: "Stal Stalowa Wola",
+    status: "NS",
+    home_goals: null,
+    away_goals: null,
+    league_id: 109,
+    league_name: "II Liga",
+    venue_id: 22950,
+    venue_name: "Stadion Suche Stawy",
+    venue_city: "Kraków",
+    latitude: 50.066111,
+    longitude: 20.057222,
+    distance_miles: 5.38,
+    away_day_score: null,
+    atmosphere_score: null,
+    review_count: 0,
+    recommend_percentage: null,
+    open_to_meet_count: 0,
+  };
+
+  assert.deepEqual(compactFixtureCard(fixture), {
+    matchup: "Hutnik Kraków v Stal Stalowa Wola",
+    fixtureDate: "2026-08-29T15:00:00Z",
+    status: "NS",
+    href: "/fixture/1561634",
+  });
+});
+
+test("fixture-card dismissal and replacement never recenter the map", () => {
+  assert.deepEqual(FIXTURE_POPUP_BEHAVIOR, {
+    autoPan: false,
+    autoClose: true,
+    closeOnClick: true,
+  });
 });
