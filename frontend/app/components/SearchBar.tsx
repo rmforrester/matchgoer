@@ -70,7 +70,7 @@ export default function SearchBar({
       </label>
 
       <label className="col-span-1 grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
-        Area size
+        Distance
         <select
           value={radius}
           onChange={(event) => setRadius(Number(event.target.value))}
@@ -83,10 +83,10 @@ export default function SearchBar({
         </select>
       </label>
 
-      <div className="col-span-2 grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em] lg:col-span-1">
-        Leagues
+      <div className="col-span-2 grid min-w-0 gap-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)] lg:col-span-1">
+        League <span className="normal-case tracking-normal">Optional</span>
         <details className="relative">
-          <summary className="tt-control flex cursor-pointer list-none items-center justify-between px-3 font-medium normal-case tracking-normal marker:content-none">
+          <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between border border-[var(--tt-rule)] bg-[var(--tt-newsprint)] px-3 font-medium normal-case tracking-normal text-[var(--tt-ink)] marker:content-none hover:border-[var(--tt-ink)]">
             <span>{selectedLeagueIds.length === 0 ? "All leagues" : `${selectedLeagueIds.length} ${selectedLeagueIds.length === 1 ? "league" : "leagues"} selected`}</span>
             <span aria-hidden="true">▾</span>
           </summary>

@@ -16,12 +16,12 @@ import dynamic from "next/dynamic";
 import SearchBar from "./components/SearchBar";
 import type { LeagueGroup } from "./components/SearchBar";
 import NearbyFixtureCarousel from "./components/NearbyFixtureCarousel";
-import WorthTheTrip from "./components/WorthTheTrip";
 import AccountConversionPrompt from "./components/AccountConversionPrompt";
 import type { Fixture } from "./types/fixture";
 import type { MapSearchArea } from "./components/FixtureMap";
 import {
   bufferedApiDateBound,
+  applyUserLocationEvent,
   buildViewportDiscoveryParams,
   discoveryDateRangeError,
   isCurrentDiscoveryRequest,
@@ -166,6 +166,9 @@ export default function Home() {
 
   const [locationError, setLocationError] =
     useState("");
+
+  const [userLocation, setUserLocation] =
+    useState<{ latitude: number; longitude: number } | null>(null);
 
   // -------------------------
   // Load visited stadiums
@@ -575,6 +578,7 @@ const loadVisitedStadiums = () => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
+        setUserLocation((current) => applyUserLocationEvent(current, { type: "geolocation", location: origin }));
         stageResolvedLocation({
           requestVersion,
           controller,
@@ -670,6 +674,7 @@ const loadVisitedStadiums = () => {
                   onChange={(event) => {
                     setLocationQuery(event.target.value);
                     setDraftCoordinates(null);
+                    setUserLocation((current) => applyUserLocationEvent(current, { type: "manual-location" }));
                   }}
                   placeholder="Search a city or location"
                   aria-label="Where"
@@ -702,9 +707,9 @@ const loadVisitedStadiums = () => {
             </div>
 
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--tt-rule)] pt-3">
-              <label className="flex min-h-11 cursor-pointer items-center gap-3 text-xs font-extrabold uppercase tracking-[0.1em]">
-                <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-5 w-5 accent-[var(--tt-blue)]" />
-                <span>Show all stadiums</span>
+              <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-bold text-[var(--tt-muted)]">
+                <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-4 w-4 accent-[var(--tt-blue)]" />
+                <span>Show all stadiums <span className="font-normal">(optional)</span></span>
               </label>
               <button type="submit" disabled={loading || locationLoading} className="tt-action min-w-28 px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-40">
                 {loading ? "Searching..." : "Search"}
@@ -747,6 +752,7 @@ const loadVisitedStadiums = () => {
   searchingArea={loading}
   onSearchArea={searchMapArea}
   onViewportReady={handleResolvedViewport}
+  userLocation={userLocation}
 />
             </div>
             <NearbyFixtureCarousel
@@ -759,7 +765,6 @@ const loadVisitedStadiums = () => {
               updatingFixtureIds={updatingInterestedFixtureIds}
               onToggleInterested={toggleInterested}
             />
-            <WorthTheTrip fixtures={visibleFixtures} />
           </section>
         )}
 

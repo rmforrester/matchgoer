@@ -25,7 +25,7 @@ import {
   type DiscoveryViewport,
   type FixtureVenueGroup,
 } from "../../lib/fixtureDiscovery";
-import { createGroundMarkerIcon } from "./groundMarkerIcon";
+import { createGroundMarkerIcon, createUserLocationIcon } from "./groundMarkerIcon";
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
 
 type Venue = {
@@ -50,6 +50,7 @@ type Props = {
   searchingArea: boolean;
   onViewportReady: (area: MapSearchArea) => void;
   onSearchArea: (area: MapSearchArea) => Promise<void>;
+  userLocation: { latitude: number; longitude: number } | null;
 };
 
 export type MapSearchArea = DiscoveryViewport;
@@ -58,9 +59,10 @@ type FixtureVenueMarkerProps = {
   group: FixtureVenueGroup;
   visited: boolean;
   icon: L.DivIcon;
+  onSelected: (selected: boolean) => void;
 };
 
-function FixtureVenueMarker({ group, visited, icon }: FixtureVenueMarkerProps) {
+function FixtureVenueMarker({ group, visited, icon, onSelected }: FixtureVenueMarkerProps) {
   const map = useMap();
   const [fixtureIndex, setFixtureIndex] = useState(0);
   const fixture = group.fixtures[fixtureIndex];
@@ -70,7 +72,7 @@ function FixtureVenueMarker({ group, visited, icon }: FixtureVenueMarkerProps) {
   const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
   const statusGroup = fixtureStatusGroup(fixture.status);
 
-  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => setFixtureIndex(0) }}>
+  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => { setFixtureIndex(0); onSelected(true); }, popupclose: () => onSelected(false) }}>
     <Popup closeButton={false} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
       <button type="button" onClick={() => map.closePopup()} aria-label="Close fixture details" className="absolute right-2 top-2 grid min-h-9 min-w-9 place-items-center border border-[var(--tt-ink)] text-lg font-bold leading-none">×</button>
       <div className="pr-10">
@@ -168,14 +170,19 @@ export default function FixtureMap({
   searchingArea,
   onViewportReady,
   onSearchArea,
+  userLocation,
 }: Props) {
   const fixtureGroups = useMemo(() => groupFixturesByVenue(fixtures), [fixtures]);
   const [areaSearchAvailable, setAreaSearchAvailable] = useState(false);
   const [tileError, setTileError] = useState(false);
+  const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const suppressMovementRef = useRef(false);
   const groundIcon = useMemo(() => createGroundMarkerIcon(false), []);
   const visitedGroundIcon = useMemo(() => createGroundMarkerIcon(true), []);
+  const selectedGroundIcon = useMemo(() => createGroundMarkerIcon(false, true), []);
+  const selectedVisitedGroundIcon = useMemo(() => createGroundMarkerIcon(true, true), []);
+  const userLocationIcon = useMemo(() => createUserLocationIcon(), []);
 
   // Fixture and venue locations share the same editorial ground marker.
 
@@ -222,6 +229,14 @@ export default function FixtureMap({
         eventHandlers={{ tileerror: () => setTileError(true), load: () => setTileError(false) }}
       />
 
+      {userLocation && <Marker
+        position={[userLocation.latitude, userLocation.longitude]}
+        icon={userLocationIcon}
+        alt="You are here"
+        interactive={false}
+        keyboard={false}
+      />}
+
 
       {/* ---------------------------------------------------
           STADIUM PINS
@@ -253,17 +268,20 @@ export default function FixtureMap({
 
         const visited =
           isVisited(venueId);
+        const markerKey = `venue-${venueId}`;
+        const selected = selectedMarkerKey === markerKey;
 
         return (
           <Marker
-            key={`venue-${venueId}`}
+            key={markerKey}
             position={[
               venue.latitude,
               venue.longitude,
             ]}
-            icon={visited ? visitedGroundIcon : groundIcon}
+            icon={selected ? (visited ? selectedVisitedGroundIcon : selectedGroundIcon) : (visited ? visitedGroundIcon : groundIcon)}
             title={`${venue.name}${visited ? ", visited ground" : ""}`}
             alt={`${venue.name}${visited ? ", visited ground" : ""}`}
+            eventHandlers={{ popupopen: () => setSelectedMarkerKey(markerKey), popupclose: () => setSelectedMarkerKey((current) => current === markerKey ? null : current) }}
           >
 
             <Popup>
@@ -306,7 +324,8 @@ export default function FixtureMap({
 
       {fixtureGroups.map((group) => {
         const visited = group.venueId !== null && isVisited(group.venueId);
-        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icon={visited ? visitedGroundIcon : groundIcon} />;
+        const selected = selectedMarkerKey === group.key;
+        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icon={selected ? (visited ? selectedVisitedGroundIcon : selectedGroundIcon) : (visited ? visitedGroundIcon : groundIcon)} onSelected={(isSelected) => setSelectedMarkerKey((current) => isSelected ? group.key : current === group.key ? null : current)} />;
       })}
 
     </MapContainer>
