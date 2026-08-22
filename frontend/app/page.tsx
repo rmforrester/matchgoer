@@ -22,9 +22,13 @@ import type { MapSearchArea } from "./components/FixtureMap";
 import {
   bufferedApiDateBound,
   applyUserLocationEvent,
+  beginGeolocationTransition,
   buildViewportDiscoveryParams,
   discoveryDateRangeError,
   isCurrentDiscoveryRequest,
+  geolocationErrorMessage,
+  GEOLOCATION_INSECURE_MESSAGE,
+  GEOLOCATION_UNSUPPORTED_MESSAGE,
   localCalendarDateValue,
   normalizeDiscoveryStartDate,
   resolvedLocationTransition,
@@ -549,22 +553,25 @@ const loadVisitedStadiums = () => {
   // -------------------------
 
   const useCurrentLocation = () => {
+    const transition = beginGeolocationTransition(discoveryRequestVersion.current);
+    const requestVersion = transition.requestVersion;
+    discoveryRequestVersion.current = requestVersion;
+    discoveryRequest.current?.controller.abort();
+    discoveryRequest.current = null;
+    pendingResolvedSearch.current = null;
+    setDraftCoordinates(transition.draftCoordinates);
+    setMapViewportTarget(transition.viewportTarget);
+
     if (!window.isSecureContext) {
-      setLocationError("Current location requires HTTPS. Search for a city or location instead.");
+      setLocationError(GEOLOCATION_INSECURE_MESSAGE);
       setLocationLoading(false);
       return;
     }
     if (!navigator.geolocation) {
-      setLocationError(
-        "Location services are not supported by this browser."
-      );
+      setLocationError(GEOLOCATION_UNSUPPORTED_MESSAGE);
       return;
     }
 
-    const requestVersion = discoveryRequestVersion.current + 1;
-    discoveryRequestVersion.current = requestVersion;
-    discoveryRequest.current?.controller.abort();
-    pendingResolvedSearch.current = null;
     const controller = new AbortController();
     discoveryRequest.current = { version: requestVersion, controller };
     setLocationLoading(true);
@@ -594,12 +601,7 @@ const loadVisitedStadiums = () => {
       },
       (positionError) => {
         if (!isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) return;
-        const messages: Record<number, string> = {
-          1: "Location permission was denied. Allow location access or search for a city instead.",
-          2: "Your position is currently unavailable. Search for a city or location instead.",
-          3: "Finding your location timed out. Try again or search for a city instead.",
-        };
-        setLocationError(messages[positionError.code] ?? "Unable to get your location. Search for a city or location instead.");
+        setLocationError(geolocationErrorMessage(positionError.code));
         setLocationLoading(false);
         setLoading(false);
         discoveryRequest.current = null;

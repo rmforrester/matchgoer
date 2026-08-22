@@ -115,6 +115,32 @@ export function applyUserLocationEvent(
   return null;
 }
 
+export function beginGeolocationTransition(
+  currentRequestVersion: number,
+) {
+  return {
+    requestVersion: currentRequestVersion + 1,
+    draftCoordinates: null,
+    viewportTarget: { latitude: 0, longitude: 0, revision: 0 },
+  } as const;
+}
+
+export function geolocationErrorMessage(code: number) {
+  if (code === 1) {
+    return "Location access is off. Enable location access or search for a city.";
+  }
+  if (code === 2 || code === 3) {
+    return "Couldn’t get your location. Try again or search for a city.";
+  }
+  return "Couldn’t get your location. Try again or search for a city.";
+}
+
+export const GEOLOCATION_UNSUPPORTED_MESSAGE =
+  "Location isn’t available in this browser. Search for a city.";
+
+export const GEOLOCATION_INSECURE_MESSAGE =
+  "Use HTTPS for current location, or search for a city.";
+
 export type DiscoveryRequestFilters = {
   startDate?: string;
   endDate?: string;

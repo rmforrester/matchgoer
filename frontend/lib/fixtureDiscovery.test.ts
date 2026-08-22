@@ -4,10 +4,14 @@ import test from "node:test";
 import {
   applyMapAreaOrigin,
   applyUserLocationEvent,
+  beginGeolocationTransition,
   buildViewportDiscoveryParams,
   compactFixtureCard,
   discoveryZoomForRadius,
   FIXTURE_POPUP_BEHAVIOR,
+  geolocationErrorMessage,
+  GEOLOCATION_INSECURE_MESSAGE,
+  GEOLOCATION_UNSUPPORTED_MESSAGE,
   isCurrentDiscoveryRequest,
   resolvedLocationTransition,
   type DiscoveryViewport,
@@ -235,4 +239,59 @@ test("selected and visited venue marker states remain identifiable", () => {
   assert.equal(selectedVisited.visited, true);
   assert.equal(selectedVisited.selected, true);
   assert.equal(selected.hitSize, 44);
+});
+
+test("city search to Use My Location invalidates the city target before requesting position", () => {
+  assert.deepEqual(beginGeolocationTransition(11), {
+    requestVersion: 12,
+    draftCoordinates: null,
+    viewportTarget: { latitude: 0, longitude: 0, revision: 0 },
+  });
+});
+
+test("successful geolocation becomes authoritative and produces a new map target", () => {
+  const cityTarget = { latitude: 25.774, longitude: -80.194, revision: 4 };
+  const started = beginGeolocationTransition(11);
+  const position = { latitude: 51.5074, longitude: -0.1278 };
+  const resolved = resolvedLocationTransition(position, "Current location", started.requestVersion, cityTarget.revision);
+
+  assert.deepEqual(resolved.viewportTarget, { ...position, revision: 5 });
+  assert.deepEqual(resolved.draftCoordinates, position);
+  assert.equal(resolved.locationQuery, "Current location");
+});
+
+test("failed geolocation clears the pending target without moving the rendered map", () => {
+  const started = beginGeolocationTransition(11);
+  const existingMarker = { latitude: 51.5074, longitude: -0.1278 };
+
+  assert.equal(started.viewportTarget.revision, 0);
+  assert.deepEqual(applyUserLocationEvent(existingMarker, { type: "map-moved" }), existingMarker);
+});
+
+test("PERMISSION_DENIED has concise settings guidance", () => {
+  assert.equal(
+    geolocationErrorMessage(1),
+    "Location access is off. Enable location access or search for a city.",
+  );
+});
+
+test("POSITION_UNAVAILABLE does not claim permission was denied", () => {
+  assert.equal(
+    geolocationErrorMessage(2),
+    "Couldn’t get your location. Try again or search for a city.",
+  );
+  assert.notEqual(geolocationErrorMessage(2), geolocationErrorMessage(1));
+});
+
+test("TIMEOUT does not claim permission was denied", () => {
+  assert.equal(
+    geolocationErrorMessage(3),
+    "Couldn’t get your location. Try again or search for a city.",
+  );
+  assert.notEqual(geolocationErrorMessage(3), geolocationErrorMessage(1));
+});
+
+test("unsupported and insecure-context fallbacks remain distinct", () => {
+  assert.equal(GEOLOCATION_UNSUPPORTED_MESSAGE, "Location isn’t available in this browser. Search for a city.");
+  assert.equal(GEOLOCATION_INSECURE_MESSAGE, "Use HTTPS for current location, or search for a city.");
 });
