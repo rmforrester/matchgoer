@@ -11,7 +11,7 @@ import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
 import { hasPendingAuthAction, parsePendingWhosGoingAction, pendingWhosGoingReturnTo } from "@/lib/pending-auth-action";
 import { applyPendingWhosGoing, clearPendingWhosGoing, loadPendingWhosGoing } from "@/lib/account-conversion-checkpoint";
-import { guideSummary, type VenueGuide } from "../../../lib/venue-guide";
+import { fixtureGuideActions, guideSummary, type VenueGuide } from "../../../lib/venue-guide";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -218,6 +218,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const statusGroup = fixtureStatusGroup(data.fixture.status);
   const venueGuide = venueGuideResult?.venueId === data.fixture.venue_id ? venueGuideResult.guide : null;
   const knowSummary = guideSummary(venueGuide);
+  const knowActions = venueGuide && data.fixture.venue_id ? fixtureGuideActions(venueGuide, data.fixture.venue_id) : [];
   const completed = statusGroup === "finished";
   const hasResult = completed && data.fixture.home_goals !== null && data.fixture.away_goals !== null;
   const renderPost = (post: BoardPost, reply = false) => (
@@ -262,9 +263,12 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
 
     {knowSummary && data.fixture.venue_id && <aside className="tt-panel mt-6 border-l-[8px] border-l-[var(--tt-blue)] p-5" aria-labelledby="know-before-heading">
       <p className="tt-kicker">Know before you go</p>
-      <h2 id="know-before-heading" className="tt-display mt-1 text-3xl leading-none">Plan this matchday</h2>
-      <p className="mt-3 text-sm text-[var(--tt-muted)]">Practical guidance available: {knowSummary.labels.join(", ")}.</p>
-      <Link href={`/venue/${data.fixture.venue_id}#venue-guide-heading`} className="mt-3 inline-block text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Read the ground guide →</Link>
+      <h2 id="know-before-heading" className="tt-display mt-1 text-3xl leading-none">{data.fixture.venue_name ?? "Plan this matchday"}</h2>
+      <nav aria-label="Matchday planning" className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)]">
+        {knowActions.map((action) => action.external
+          ? <a key={action.label} href={action.href} target="_blank" rel="noreferrer" className="underline decoration-2 underline-offset-4">{action.label} →</a>
+          : <Link key={action.label} href={action.href} className="underline decoration-2 underline-offset-4">{action.label} →</Link>)}
+      </nav>
     </aside>}
 
     {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
