@@ -80,11 +80,15 @@ test("practical guide keeps answers primary and moves supporting facts deeper", 
     ["getting_back", ["Return toward central Kraków"]],
   ]);
   assert.equal(officialTicketUrl(hutnikGuide), "https://tickets.example.com");
-  assert.deepEqual(fixtureGuideActions(hutnikGuide, 22950), [
-    { label: "Directions", href: "/venue/22950#directions", external: false },
+  const actions = fixtureGuideActions(hutnikGuide, 22950, { latitude: 50.066111, longitude: 20.057222 });
+  assert.deepEqual(actions, [
+    { label: "Directions", href: "https://www.google.com/maps/dir/?api=1&destination=50.066111%2C20.057222", external: true },
     { label: "Tickets", href: "https://tickets.example.com", external: true },
     { label: "Ground guide", href: "/venue/22950#venue-guide-heading", external: false },
   ]);
+  const directions = new URL(actions[0].href, "https://matchgoer.app");
+  assert.equal(directions.searchParams.get("destination"), "50.066111,20.057222");
+  assert.equal(directions.searchParams.has("origin"), false);
   assert.equal(primaryGuideSections(hutnikGuide).some((section) => section.key === "before_match"), false);
   assert.equal(primaryGuideSections(hutnikGuide)[0].facts[0].provenance.label, "Official");
   assert.equal(supporterFacingFactContent(primaryGuideSections(hutnikGuide)[0].facts[1]), "Tickets are normally available at the stadium ticket offices from one hour before kick-off. Check the fixture announcement for exceptions.");
@@ -107,4 +111,19 @@ test("a venue without guide facts remains empty and graceful", () => {
   assert.equal(officialTicketUrl(emptyGuide), null);
   assert.deepEqual(ticketPresentation(emptyGuide), { facts: [], url: null, unknownMessage: "Ticket information not yet confirmed." });
   assert.equal(guideSummary(emptyGuide), null);
+});
+
+test("fixture actions omit directions when canonical venue coordinates are unavailable", () => {
+  const ticketGuide = guide("current");
+  ticketGuide.sections[0].key = "tickets_entry";
+  ticketGuide.sections[0].facts[0].topic = "Buy online";
+  ticketGuide.sections[0].facts[0].provenance = { label: "Official", source_url: "https://tickets.example.com", last_checked: "2026-08-21" };
+  assert.deepEqual(fixtureGuideActions(ticketGuide, 22950, { latitude: null, longitude: 20.057222 }), [
+    { label: "Tickets", href: "https://tickets.example.com", external: true },
+    { label: "Ground guide", href: "/venue/22950#venue-guide-heading", external: false },
+  ]);
+  assert.deepEqual(fixtureGuideActions(ticketGuide, 22950, null), [
+    { label: "Tickets", href: "https://tickets.example.com", external: true },
+    { label: "Ground guide", href: "/venue/22950#venue-guide-heading", external: false },
+  ]);
 });

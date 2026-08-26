@@ -81,10 +81,17 @@ export function ticketPresentation(guide: VenueGuide) {
   };
 }
 
-export function fixtureGuideActions(guide: VenueGuide, venueId: number) {
+export function fixtureGuideActions(
+  guide: VenueGuide,
+  venueId: number,
+  coordinates: { latitude: number | null; longitude: number | null } | null,
+) {
   const ticketUrl = officialTicketUrl(guide);
+  const directionsUrl = coordinates?.latitude != null && coordinates.longitude != null
+    ? googleMapsDirectionsUrl(coordinates.latitude, coordinates.longitude)
+    : null;
   return [
-    { label: "Directions", href: `/venue/${venueId}#directions`, external: false },
+    ...(directionsUrl ? [{ label: "Directions", href: directionsUrl, external: true }] : []),
     ...(ticketUrl ? [{ label: "Tickets", href: ticketUrl, external: true }] : []),
     { label: "Ground guide", href: `/venue/${venueId}#venue-guide-heading`, external: false },
   ];

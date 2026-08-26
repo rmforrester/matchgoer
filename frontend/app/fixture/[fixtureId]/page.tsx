@@ -30,6 +30,8 @@ type SocialFixture = {
   board_closed: boolean; posts: BoardPost[];
 };
 
+type VenueCoordinates = { latitude: number | null; longitude: number | null };
+
 export default function FixturePage({ params, searchParams }: { params: Promise<{ fixtureId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { fixtureId } = use(params);
   const pendingSearchParams = use(searchParams);
@@ -42,6 +44,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const [accountPrompt, setAccountPrompt] = useState<"interested" | "mate" | "board" | null>(null);
   const [saving, setSaving] = useState(false);
   const [venueGuideResult, setVenueGuideResult] = useState<{ venueId: number; guide: VenueGuide | null } | null>(null);
+  const [venueCoordinatesResult, setVenueCoordinatesResult] = useState<{ venueId: number; coordinates: VenueCoordinates | null } | null>(null);
   const [reporting, setReporting] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("other");
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -76,6 +79,9 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     api.get<VenueGuide>(`/venues/${venueId}/guide`)
       .then((response) => setVenueGuideResult({ venueId, guide: response.data }))
       .catch(() => setVenueGuideResult({ venueId, guide: null }));
+    api.get<VenueCoordinates>(`/venue/${venueId}`)
+      .then((response) => setVenueCoordinatesResult({ venueId, coordinates: response.data }))
+      .catch(() => setVenueCoordinatesResult({ venueId, coordinates: null }));
   }, [data?.fixture.venue_id]);
 
   useEffect(() => {
@@ -217,8 +223,9 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const kickoff = new Date(data.fixture.fixture_date);
   const statusGroup = fixtureStatusGroup(data.fixture.status);
   const venueGuide = venueGuideResult?.venueId === data.fixture.venue_id ? venueGuideResult.guide : null;
+  const venueCoordinates = venueCoordinatesResult?.venueId === data.fixture.venue_id ? venueCoordinatesResult.coordinates : null;
   const knowSummary = guideSummary(venueGuide);
-  const knowActions = venueGuide && data.fixture.venue_id ? fixtureGuideActions(venueGuide, data.fixture.venue_id) : [];
+  const knowActions = venueGuide && data.fixture.venue_id ? fixtureGuideActions(venueGuide, data.fixture.venue_id, venueCoordinates) : [];
   const completed = statusGroup === "finished";
   const hasResult = completed && data.fixture.home_goals !== null && data.fixture.away_goals !== null;
   const renderPost = (post: BoardPost, reply = false) => (
