@@ -68,10 +68,20 @@ class VenueGuideFact(Base):
             "expires_at IS NULL OR reviewed_at IS NULL OR expires_at >= reviewed_at",
             name="ck_venue_guide_facts_expiry_after_review",
         ),
+        CheckConstraint(
+            "(venue_id IS NULL) <> (club_venue_id IS NULL)",
+            name="ck_venue_guide_facts_exactly_one_owner",
+        ),
     )
 
     fact_id = Column(BigInteger, primary_key=True)
-    venue_id = Column(Integer, ForeignKey("venues.venue_id", ondelete="CASCADE"), nullable=False, index=True)
+    venue_id = Column(Integer, ForeignKey("venues.venue_id", ondelete="CASCADE"), nullable=True, index=True)
+    club_venue_id = Column(
+        BigInteger,
+        ForeignKey("club_venues.club_venue_id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
     section = Column(String(30), nullable=False)
     topic = Column(String(80), nullable=False)
     content = Column(Text, nullable=False)
@@ -88,6 +98,7 @@ class VenueGuideFact(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     venue = relationship("Venue", back_populates="guide_facts")
+    club_venue = relationship("ClubVenue", back_populates="guide_facts")
 
 
 class VenueName(Base):
@@ -177,6 +188,107 @@ class Team(Base):
     active = Column(Boolean)
 
     venue = relationship("Venue")
+    club_venues = relationship("ClubVenue", back_populates="team")
+
+
+class ClubVenue(Base):
+    """A time-bounded relationship between a club and a ground."""
+
+    __tablename__ = "club_venues"
+    __table_args__ = (
+        CheckConstraint(
+            "relationship_type IN ('HOME', 'TEMPORARY_HOME', 'GROUND_SHARE')",
+            name="ck_club_venues_relationship_type",
+        ),
+        CheckConstraint(
+            "status IN ('CURRENT', 'HISTORICAL', 'DRAFT')",
+            name="ck_club_venues_status",
+        ),
+        CheckConstraint(
+            "valid_until IS NULL OR valid_from IS NULL OR valid_until >= valid_from",
+            name="ck_club_venues_valid_dates",
+        ),
+        UniqueConstraint(
+            "team_id", "venue_id", "valid_from", name="uq_club_venues_team_venue_from"
+        ),
+    )
+
+    club_venue_id = Column(BigInteger, primary_key=True)
+    team_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=False)
+    venue_id = Column(Integer, ForeignKey("venues.venue_id", ondelete="RESTRICT"), nullable=False)
+    relationship_type = Column(String(30), nullable=False)
+    valid_from = Column(Date, nullable=True)
+    valid_until = Column(Date, nullable=True)
+    status = Column(String(20), nullable=False, default="DRAFT")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    team = relationship("Team", back_populates="club_venues")
+    venue = relationship("Venue")
+    pre_match_spots = relationship("PreMatchSpot", back_populates="club_venue")
+    guide_facts = relationship("VenueGuideFact", back_populates="club_venue")
+
+
+class PreMatchSpot(Base):
+    __tablename__ = "pre_match_spots"
+    __table_args__ = (
+        CheckConstraint("btrim(display_name) <> ''", name="ck_pre_match_spots_name_not_blank"),
+        CheckConstraint("btrim(supporting_line) <> ''", name="ck_pre_match_spots_line_not_blank"),
+        CheckConstraint("btrim(maps_destination) <> ''", name="ck_pre_match_spots_maps_not_blank"),
+        CheckConstraint("classification IN ('SUPPORTER_SPOT', 'CLUB_MATCHDAY_VENUE', 'SUPPORTER_AREA')", name="ck_pre_match_spots_classification"),
+        CheckConstraint("audience IN ('HOME', 'MIXED')", name="ck_pre_match_spots_audience"),
+        CheckConstraint("confidence IN ('HIGH', 'MEDIUM', 'LOW')", name="ck_pre_match_spots_confidence"),
+        CheckConstraint("status IN ('DRAFT', 'CURRENT', 'NEEDS_REVIEW', 'ARCHIVED')", name="ck_pre_match_spots_status"),
+        CheckConstraint("business_status IN ('OPEN', 'UNKNOWN', 'CLOSED', 'NOT_APPLICABLE')", name="ck_pre_match_spots_business_status"),
+        CheckConstraint("display_order BETWEEN 1 AND 3", name="ck_pre_match_spots_display_order"),
+        CheckConstraint("review_after IS NULL OR reviewed_at IS NULL OR review_after >= reviewed_at", name="ck_pre_match_spots_review_dates"),
+        CheckConstraint("(approved_at IS NULL) = (approved_by IS NULL)", name="ck_pre_match_spots_approval_pair"),
+    )
+
+    pre_match_spot_id = Column(BigInteger, primary_key=True)
+    club_venue_id = Column(BigInteger, ForeignKey("club_venues.club_venue_id", ondelete="RESTRICT"), nullable=False)
+    display_name = Column(String(160), nullable=False)
+    classification = Column(String(30), nullable=False)
+    audience = Column(String(10), nullable=False)
+    supporting_line = Column(String(180), nullable=False)
+    maps_destination = Column(String(300), nullable=False)
+    confidence = Column(String(10), nullable=False)
+    status = Column(String(20), nullable=False, default="DRAFT")
+    business_status = Column(String(20), nullable=False, default="UNKNOWN")
+    reviewed_at = Column(Date, nullable=True)
+    review_after = Column(Date, nullable=True)
+    display_order = Column(Integer, nullable=False)
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    approved_by = Column(String(160), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    club_venue = relationship("ClubVenue", back_populates="pre_match_spots")
+    evidence = relationship("PreMatchSpotEvidence", back_populates="spot", cascade="all, delete-orphan")
+
+
+class PreMatchSpotEvidence(Base):
+    __tablename__ = "pre_match_spot_evidence"
+    __table_args__ = (
+        CheckConstraint("source_type IN ('OFFICIAL', 'REDDIT', 'FAN_FORUM', 'SUPPORTER_ORGANISATION', 'LOCAL_MEDIA', 'MATCHGOER_SUPPORTER_SUBMISSION', 'MATCHGOER_CORROBORATION', 'EDITORIAL_RESEARCH', 'OTHER')", name="ck_pre_match_spot_evidence_source_type"),
+        CheckConstraint("disposition IN ('SUPPORTS', 'CONTRADICTS')", name="ck_pre_match_spot_evidence_disposition"),
+        CheckConstraint("review_status IN ('PENDING', 'ACCEPTED', 'REJECTED')", name="ck_pre_match_spot_evidence_review_status"),
+        CheckConstraint("btrim(evidence_note) <> ''", name="ck_pre_match_spot_evidence_note_not_blank"),
+    )
+
+    evidence_id = Column(BigInteger, primary_key=True)
+    pre_match_spot_id = Column(BigInteger, ForeignKey("pre_match_spots.pre_match_spot_id", ondelete="CASCADE"), nullable=False)
+    source_type = Column(String(40), nullable=False)
+    source_url = Column(Text, nullable=True)
+    source_date = Column(Date, nullable=True)
+    captured_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    disposition = Column(String(20), nullable=False)
+    evidence_note = Column(String(500), nullable=False)
+    contributor_user_id = Column(Integer, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    review_status = Column(String(20), nullable=False, default="PENDING")
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+    spot = relationship("PreMatchSpot", back_populates="evidence")
 
 
 class MatchdayTip(Base):

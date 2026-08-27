@@ -38,6 +38,22 @@ class VenueGuideResponse(BaseModel):
     sections: list[VenueGuideSectionResponse]
 
 
+class PreMatchSpotResponse(BaseModel):
+    pre_match_spot_id: int
+    display_name: str
+    classification: str
+    audience: str
+    supporting_line: str
+    directions_url: str
+
+
+class ClubVenueKnowResponse(BaseModel):
+    club_venue_id: int
+    team_id: int
+    venue_id: int
+    before_match: list[PreMatchSpotResponse]
+
+
 class FixtureResponse(BaseModel):
 
     fixture_id: int
