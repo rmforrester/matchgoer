@@ -21,12 +21,15 @@ from identity import (
 )
 from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, utc_date_expression
+from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue
 
 from models import (
     Fixture,
     Venue,
     VenueName,
     VenueGuideFact,
+    ClubVenue,
+    PreMatchSpot,
     MatchdayTip,
     AwayDayReview,
     VenueVisit,
@@ -252,13 +255,45 @@ def get_venue(venue_id: int):
 
 
 @app.get("/venues/{venue_id}/guide", response_model=VenueGuideResponse)
-def get_venue_guide(venue_id: int):
+def get_venue_guide(venue_id: int, team_id: int | None = None):
     db = SessionLocal()
     try:
         if not db.query(Venue.venue_id).filter(Venue.venue_id == venue_id).first():
             raise HTTPException(status_code=404, detail="Ground not found")
-        facts = db.query(VenueGuideFact).filter(VenueGuideFact.venue_id == venue_id).all()
-        return build_venue_guide(venue_id, facts)
+        relationship = None
+        if team_id is not None:
+            relationships = db.query(ClubVenue).filter(
+                ClubVenue.team_id == team_id,
+                ClubVenue.venue_id == venue_id,
+            ).all()
+            relationship = resolve_club_venue(team_id, venue_id, relationships)
+        relationship_id = relationship.club_venue_id if relationship is not None else None
+        fact_filter = VenueGuideFact.venue_id == venue_id
+        if relationship_id is not None:
+            fact_filter = or_(fact_filter, VenueGuideFact.club_venue_id == relationship_id)
+        facts = guide_facts_for_relationship(
+            venue_id,
+            relationship,
+            db.query(VenueGuideFact).filter(fact_filter).all(),
+        )
+        guide = build_venue_guide(venue_id, facts)
+        spots = publishable_spots(
+            relationship,
+            db.query(PreMatchSpot).filter(PreMatchSpot.club_venue_id == relationship_id).all()
+            if relationship_id is not None else [],
+        )
+        guide.update({
+            "club_venue_id": relationship_id,
+            "before_match": [{
+                "pre_match_spot_id": spot.pre_match_spot_id,
+                "display_name": spot.display_name,
+                "classification": spot.classification,
+                "audience": spot.audience,
+                "supporting_line": spot.supporting_line,
+                "directions_url": google_maps_search_url(spot.maps_destination),
+            } for spot in spots],
+        })
+        return guide
     finally:
         db.close()
 
@@ -2363,7 +2398,8 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
         return {
             "fixture": {
                 "fixture_id": fixture.fixture_id, "fixture_date": fixture_datetime_utc(fixture.fixture_date),
-                "home_team": fixture.home_team, "away_team": fixture.away_team,
+                "home_team": fixture.home_team, "home_team_id": fixture.home_team_id,
+                "away_team": fixture.away_team,
                 "status": fixture.status, "home_goals": fixture.home_goals,
                 "away_goals": fixture.away_goals,
                 "league_name": fixture.league_name, "venue_id": fixture.venue_id,

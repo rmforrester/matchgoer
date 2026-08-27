@@ -50,10 +50,16 @@ def google_maps_search_url(destination: str) -> str:
 
 
 def guide_facts_for_relationship(venue_id: int, relationship, facts: Iterable) -> list:
-    """Coexist physical venue facts with facts owned by the matching relationship."""
+    """Coexist physical and club facts, omitting cross-owner topic conflicts."""
     relationship_id = relationship.club_venue_id if relationship is not None else None
-    return [
+    selected = [
         fact for fact in facts
         if fact.venue_id == venue_id
         or (relationship_id is not None and fact.club_venue_id == relationship_id)
     ]
+    owners_by_topic = {}
+    for fact in selected:
+        key = (fact.section, fact.topic.strip().casefold())
+        owners_by_topic.setdefault(key, set()).add("venue" if fact.venue_id is not None else "club")
+    conflicts = {key for key, owners in owners_by_topic.items() if len(owners) > 1}
+    return [fact for fact in selected if (fact.section, fact.topic.strip().casefold()) not in conflicts]

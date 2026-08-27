@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fixtureGuideActions, googleMapsDirectionsUrl, guideSummary, officialTicketUrl, primaryGuideSections, secondaryGuideSections, supporterFacingFactContent, ticketPresentation, type VenueGuide } from "./venue-guide.ts";
+import { fixtureGuideActions, googleMapsDirectionsUrl, guideSummary, officialTicketUrl, primaryGuideSections, secondaryGuideSections, supporterFacingFactContent, supporterFacingFactTopic, ticketPresentation, type VenueGuide } from "./venue-guide.ts";
 
 const guide = (freshness: "current" | "needs_review" | "expired"): VenueGuide => ({
   venue_id: 22950,
+  club_venue_id: null,
   has_current_information: freshness === "current",
+  before_match: [],
   sections: [{
     key: "getting_there",
     label: "Getting there",
@@ -47,7 +49,9 @@ test("directions use canonical coordinates without storing a journey", () => {
 test("practical guide keeps answers primary and moves supporting facts deeper", () => {
   const hutnikGuide: VenueGuide = {
     venue_id: 22950,
+    club_venue_id: null,
     has_current_information: true,
+    before_match: [],
     sections: [
       { key: "getting_there", label: "Getting there", facts: [
         { topic: "Nearest tram stop", content: "Use Suche Stawy.", freshness: "current", provenance: { label: "Official", source_url: "https://example.com/travel", last_checked: "2026-08-21" } },
@@ -105,7 +109,7 @@ test("ticket action requires a current official source", () => {
 });
 
 test("a venue without guide facts remains empty and graceful", () => {
-  const emptyGuide: VenueGuide = { venue_id: 1, has_current_information: false, sections: [] };
+  const emptyGuide: VenueGuide = { venue_id: 1, club_venue_id: null, has_current_information: false, sections: [], before_match: [] };
   assert.deepEqual(primaryGuideSections(emptyGuide), []);
   assert.deepEqual(secondaryGuideSections(emptyGuide), []);
   assert.equal(officialTicketUrl(emptyGuide), null);
@@ -126,4 +130,26 @@ test("fixture actions omit directions when canonical venue coordinates are unava
     { label: "Tickets", href: "https://tickets.example.com", external: true },
     { label: "Ground guide", href: "/venue/22950#venue-guide-heading", external: false },
   ]);
+});
+
+test("fixture guide context is explicit, shareable, and keeps the gateway compact", () => {
+  const contextual = guide("current");
+  contextual.club_venue_id = 10;
+  contextual.sections[0].key = "tickets_entry";
+  contextual.sections[0].facts[0].topic = "official_ticket_portal";
+  contextual.sections[0].facts[0].provenance = { label: "Official", source_url: "https://tickets.example.com", last_checked: "2026-08-26" };
+  contextual.before_match = [{
+    pre_match_spot_id: 1,
+    display_name: "The Supporters Pub",
+    classification: "SUPPORTER_SPOT",
+    audience: "HOME",
+    supporting_line: "Popular with home fans before matches.",
+    directions_url: "https://www.google.com/maps/search/?api=1&query=The+Supporters+Pub",
+  }];
+  const actions = fixtureGuideActions(contextual, 494, { latitude: 51.5, longitude: -0.1 }, 42);
+  assert.equal(actions.length, 3);
+  assert.equal(actions[1].href, "https://tickets.example.com");
+  assert.equal(actions[2].href, "/venue/494?teamId=42#venue-guide-heading");
+  assert.equal(contextual.before_match[0].classification, "SUPPORTER_SPOT");
+  assert.equal(supporterFacingFactTopic(contextual.sections[0].facts[0]), "Tickets");
 });

@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "../../../lib/api";
 
 import VenueHeader from "../../components/VenueHeader";
@@ -70,6 +70,9 @@ export default function VenuePage({
 }: Props) {
   const { venueId } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedTeamId = Number(searchParams.get("teamId"));
+  const teamId = Number.isInteger(requestedTeamId) && requestedTeamId > 0 ? requestedTeamId : null;
 
   const [venue, setVenue] =
     useState<Venue | null>(null);
@@ -132,7 +135,7 @@ const [showAccountPrompt, setShowAccountPrompt] = useState(false);
     })
     .then(() => {
       return api
-        .get(`/venues/${venueId}/guide`)
+        .get(`/venues/${venueId}/guide`, { params: { team_id: teamId ?? undefined } })
         .then((response) => {
           setGuide(response.data);
         })
@@ -232,7 +235,7 @@ api
     .finally(() => {
       setLoading(false);
     });
-}, [venueId]);
+}, [teamId, venueId]);
 
   if (loading) {
     return <main className="mx-auto w-full max-w-5xl p-4 sm:p-6"><p className="tt-kicker">01 / The ground</p><p className="mt-3 font-semibold">Loading ground…</p></main>;
