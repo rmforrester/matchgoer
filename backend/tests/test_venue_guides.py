@@ -105,7 +105,7 @@ class VenueGuideTests(unittest.TestCase):
 
     def test_venue_isolation_and_empty_guide(self):
         guide = get_venue_guide(self.other_venue_id)
-        self.assertEqual(guide, {"venue_id": self.other_venue_id, "has_current_information": False, "sections": []})
+        self.assertEqual(guide, {"venue_id": self.other_venue_id, "club_venue_id": None, "has_current_information": False, "sections": [], "before_match": []})
 
     def test_existing_tips_and_reviews_are_unchanged(self):
         tips = get_venue_tips(self.venue_id)

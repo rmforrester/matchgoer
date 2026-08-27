@@ -13,8 +13,17 @@ export type VenueGuideSection = {
 
 export type VenueGuide = {
   venue_id: number;
+  club_venue_id: number | null;
   has_current_information: boolean;
   sections: VenueGuideSection[];
+  before_match: Array<{
+    pre_match_spot_id: number;
+    display_name: string;
+    classification: "SUPPORTER_SPOT" | "CLUB_MATCHDAY_VENUE" | "SUPPORTER_AREA";
+    audience: "HOME" | "MIXED";
+    supporting_line: string;
+    directions_url: string;
+  }>;
 };
 
 const hiddenGuideTopics = new Set(["safety instructions"]);
@@ -60,11 +69,24 @@ export function supporterFacingFactContent(fact: VenueGuideFact) {
   return fact.content;
 }
 
+const supporterTopicLabels: Record<string, string> = {
+  official_ticket_portal: "Tickets",
+  general_purchase_process: "How tickets work",
+  entry: "Entry",
+  accessibility: "Accessibility",
+  re_entry: "Re-entry",
+};
+
+export function supporterFacingFactTopic(fact: VenueGuideFact) {
+  const topic = fact.topic.trim();
+  return supporterTopicLabels[topic.toLocaleLowerCase()] ?? topic.replaceAll("_", " ");
+}
+
 export function officialTicketUrl(guide: VenueGuide | null) {
   const ticketSection = guide?.sections.find((section) => section.key === "tickets_entry");
   const onlineTicket = ticketSection?.facts.find((fact) =>
     fact.freshness === "current"
-    && fact.topic.trim().toLocaleLowerCase() === "buy online"
+    && ["buy online", "official_ticket_portal"].includes(fact.topic.trim().toLocaleLowerCase())
     && fact.provenance.label === "Official"
     && fact.provenance.source_url
   );
@@ -85,6 +107,7 @@ export function fixtureGuideActions(
   guide: VenueGuide,
   venueId: number,
   coordinates: { latitude: number | null; longitude: number | null } | null,
+  teamId?: number | null,
 ) {
   const ticketUrl = officialTicketUrl(guide);
   const directionsUrl = coordinates?.latitude != null && coordinates.longitude != null
@@ -93,7 +116,7 @@ export function fixtureGuideActions(
   return [
     ...(directionsUrl ? [{ label: "Directions", href: directionsUrl, external: true }] : []),
     ...(ticketUrl ? [{ label: "Tickets", href: ticketUrl, external: true }] : []),
-    { label: "Ground guide", href: `/venue/${venueId}#venue-guide-heading`, external: false },
+    { label: "Ground guide", href: `/venue/${venueId}${teamId ? `?teamId=${teamId}` : ""}#venue-guide-heading`, external: false },
   ];
 }
 

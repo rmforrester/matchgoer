@@ -128,15 +128,22 @@ class EvidenceAndFactTests(unittest.TestCase):
 
     def test_venue_and_matching_club_facts_coexist(self):
         rel = relationship()
-        venue_fact = NS(fact_id=1, venue_id=100, club_venue_id=None)
-        club_fact = NS(fact_id=2, venue_id=None, club_venue_id=1)
-        other = NS(fact_id=3, venue_id=None, club_venue_id=2)
+        venue_fact = NS(fact_id=1, venue_id=100, club_venue_id=None, section="at_ground", topic="Physical")
+        club_fact = NS(fact_id=2, venue_id=None, club_venue_id=1, section="tickets_entry", topic="Tickets")
+        other = NS(fact_id=3, venue_id=None, club_venue_id=2, section="at_ground", topic="Other")
         self.assertEqual([x.fact_id for x in guide_facts_for_relationship(100, rel, [venue_fact, club_fact, other])], [1, 2])
 
     def test_venue_fact_survives_missing_relationship(self):
-        venue_fact = NS(fact_id=1, venue_id=23037, club_venue_id=None)
-        club_fact = NS(fact_id=2, venue_id=None, club_venue_id=1)
+        venue_fact = NS(fact_id=1, venue_id=23037, club_venue_id=None, section="at_ground", topic="Physical")
+        club_fact = NS(fact_id=2, venue_id=None, club_venue_id=1, section="tickets_entry", topic="Tickets")
         self.assertEqual(guide_facts_for_relationship(23037, None, [venue_fact, club_fact]), [venue_fact])
+
+    def test_cross_owner_topic_conflict_is_omitted(self):
+        rel = relationship()
+        venue_fact = NS(fact_id=1, venue_id=100, club_venue_id=None, section="tickets_entry", topic="Entry")
+        club_fact = NS(fact_id=2, venue_id=None, club_venue_id=1, section="tickets_entry", topic="entry")
+        safe = NS(fact_id=3, venue_id=None, club_venue_id=1, section="at_ground", topic="Accessibility")
+        self.assertEqual(guide_facts_for_relationship(100, rel, [venue_fact, club_fact, safe]), [safe])
 
 
 if __name__ == "__main__":

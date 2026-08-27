@@ -1,4 +1,4 @@
-import { primaryGuideSections, secondaryGuideSections, supporterFacingFactContent, ticketPresentation, type VenueGuide as VenueGuideData, type VenueGuideFact } from "../../lib/venue-guide";
+import { primaryGuideSections, secondaryGuideSections, supporterFacingFactContent, supporterFacingFactTopic, ticketPresentation, type VenueGuide as VenueGuideData, type VenueGuideFact } from "../../lib/venue-guide";
 
 type Props = { guide: VenueGuideData };
 
@@ -17,7 +17,7 @@ export default function VenueGuide({ guide }: Props) {
     const stale = freshnessLabel[fact.freshness];
     const isTicketLink = sectionKey === "tickets_entry" && fact.provenance.source_url === ticket.url;
     return <article key={fact.topic} className="border-b border-[var(--tt-rule)] py-4">
-      <h4 className="text-xs font-extrabold uppercase tracking-[0.08em]">{fact.topic}</h4>
+      <h4 className="text-xs font-extrabold uppercase tracking-[0.08em]">{supporterFacingFactTopic(fact)}</h4>
       <p className="mt-2 leading-7">{supporterFacingFactContent(fact)}</p>
       {isTicketLink && <a href={fact.provenance.source_url!} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center bg-[var(--tt-blue)] px-4 text-xs font-extrabold uppercase tracking-[0.08em] text-white">Buy tickets →</a>}
       <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">
@@ -30,6 +30,16 @@ export default function VenueGuide({ guide }: Props) {
     <section className="tt-section-rule mt-10 pt-4" aria-labelledby="venue-guide-heading">
       <p className="tt-kicker">Know before you go</p>
       <h2 id="venue-guide-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">The essentials</h2>
+      {guide.before_match.length > 0 && <section className="mt-6" aria-labelledby="guide-before-match">
+        <h3 id="guide-before-match" className="tt-display text-3xl leading-none">Before the match</h3>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {guide.before_match.map((spot) => <article key={spot.pre_match_spot_id} className="tt-panel p-4">
+            <h4 className="tt-display text-2xl leading-none">{spot.display_name}</h4>
+            <p className="mt-2 leading-6">{spot.supporting_line}</p>
+            <a href={spot.directions_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Directions →</a>
+          </article>)}
+        </div>
+      </section>}
       <div className="mt-6 grid gap-7 md:grid-cols-2">
         {ticket.unknownMessage && <section aria-labelledby="guide-tickets-unknown">
           <h3 id="guide-tickets-unknown" className="tt-display text-3xl leading-none">Tickets</h3>

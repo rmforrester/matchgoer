@@ -21,7 +21,7 @@ type BoardPost = {
 };
 
 type SocialFixture = {
-  fixture: { fixture_id: number; fixture_date: string; home_team: string; away_team: string; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
+  fixture: { fixture_id: number; fixture_date: string; home_team: string; home_team_id: number | null; away_team: string; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
   terrace_rating: number | null; recommend_percentage: number | null;
   interested: boolean; open_to_meet: boolean; open_to_meet_count: number;
   profile: { username: string | null; display_name: string; supported_club: string | null } | null;
@@ -76,13 +76,13 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   useEffect(() => {
     const venueId = data?.fixture.venue_id;
     if (!venueId) return;
-    api.get<VenueGuide>(`/venues/${venueId}/guide`)
+    api.get<VenueGuide>(`/venues/${venueId}/guide`, { params: { team_id: data?.fixture.home_team_id ?? undefined } })
       .then((response) => setVenueGuideResult({ venueId, guide: response.data }))
       .catch(() => setVenueGuideResult({ venueId, guide: null }));
     api.get<VenueCoordinates>(`/venue/${venueId}`)
       .then((response) => setVenueCoordinatesResult({ venueId, coordinates: response.data }))
       .catch(() => setVenueCoordinatesResult({ venueId, coordinates: null }));
-  }, [data?.fixture.venue_id]);
+  }, [data?.fixture.home_team_id, data?.fixture.venue_id]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -225,7 +225,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const venueGuide = venueGuideResult?.venueId === data.fixture.venue_id ? venueGuideResult.guide : null;
   const venueCoordinates = venueCoordinatesResult?.venueId === data.fixture.venue_id ? venueCoordinatesResult.coordinates : null;
   const knowSummary = guideSummary(venueGuide);
-  const knowActions = venueGuide && data.fixture.venue_id ? fixtureGuideActions(venueGuide, data.fixture.venue_id, venueCoordinates) : [];
+  const knowActions = venueGuide && data.fixture.venue_id ? fixtureGuideActions(venueGuide, data.fixture.venue_id, venueCoordinates, data.fixture.home_team_id) : [];
   const completed = statusGroup === "finished";
   const hasResult = completed && data.fixture.home_goals !== null && data.fixture.away_goals !== null;
   const renderPost = (post: BoardPost, reply = false) => (
@@ -276,6 +276,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
           ? <a key={action.label} href={action.href} target="_blank" rel="noreferrer" className="underline decoration-2 underline-offset-4">{action.label} →</a>
           : <Link key={action.label} href={action.href} className="underline decoration-2 underline-offset-4">{action.label} →</Link>)}
       </nav>
+      {venueGuide && venueGuide.before_match.length > 0 && <p className="mt-3 text-sm font-bold">Before the match · {venueGuide.before_match.length} {venueGuide.before_match.length === 1 ? "place" : "places"}</p>}
     </aside>}
 
     {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
@@ -313,7 +314,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       <p className="tt-kicker">04 / The ground</p>
       <div className="mt-2 grid gap-4 border-b-2 border-[var(--tt-ink)] pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="min-w-0"><h2 id="ground-heading" className="tt-display break-words text-4xl leading-none sm:text-5xl">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mt-2 font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{data.fixture.venue_city}</p>}</div>
-        <Link href={`/venue/${data.fixture.venue_id}`} className="tt-action inline-flex items-center justify-center px-5">Explore the ground →</Link>
+        <Link href={`/venue/${data.fixture.venue_id}${data.fixture.home_team_id ? `?teamId=${data.fixture.home_team_id}` : ""}`} className="tt-action inline-flex items-center justify-center px-5">Explore the ground →</Link>
       </div>
       {(data.terrace_rating !== null || data.recommend_percentage !== null) && <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs font-extrabold uppercase tracking-[0.08em]">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div>}
     </section>}
