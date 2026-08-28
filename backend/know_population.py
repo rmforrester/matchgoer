@@ -12,6 +12,14 @@ from sqlalchemy import bindparam, create_engine, text
 
 CONTENT_KEYS = ("venue_guide_facts", "pre_match_spots", "pre_match_spot_evidence")
 BUSINESS_STATUSES = {"OPEN", "UNKNOWN", "CLOSED", "NOT_APPLICABLE"}
+FACT_SECTIONS = {"getting_there", "tickets_entry", "before_match", "at_ground", "getting_back"}
+FACT_SOURCE_TYPES = {"official", "matchgoer_research", "supporter"}
+SPOT_CLASSIFICATIONS = {"SUPPORTER_SPOT", "CLUB_MATCHDAY_VENUE", "SUPPORTER_AREA"}
+SPOT_AUDIENCES = {"HOME", "MIXED"}
+EVIDENCE_SOURCE_TYPES = {
+    "OFFICIAL", "REDDIT", "FAN_FORUM", "SUPPORTER_ORGANISATION", "LOCAL_MEDIA",
+    "MATCHGOER_SUPPORTER_SUBMISSION", "MATCHGOER_CORROBORATION", "EDITORIAL_RESEARCH", "OTHER",
+}
 FACT_FIELDS = ("club_venue_id", "section", "topic", "content", "source_type", "source_label", "source_url",
                "reviewed_at", "confidence", "status", "review_after", "expires_at", "display_order")
 SPOT_FIELDS = ("club_venue_id", "display_name", "classification", "audience", "supporting_line", "maps_destination",
@@ -58,6 +66,65 @@ def _scalar(value):
     return value.isoformat() if isinstance(value, date) else value
 
 
+def _text(value, *, maximum=None, blank=False):
+    return isinstance(value, str) and (blank or bool(value.strip())) and (maximum is None or len(value) <= maximum)
+
+
+def _valid_fact(row):
+    try:
+        reviewed_at, expires_at = _date(row.get("reviewed_at")), _date(row.get("expires_at"))
+    except (TypeError, ValueError):
+        return False
+    return (
+        row.get("section") in FACT_SECTIONS
+        and _text(row.get("topic"), maximum=80)
+        and _text(row.get("content"))
+        and row.get("source_type") in FACT_SOURCE_TYPES
+        and (row.get("source_label") is None or _text(row.get("source_label"), maximum=160, blank=True))
+        and row.get("confidence") in {"high", "medium"}
+        and row.get("status") == "current"
+        and isinstance(row.get("display_order"), int)
+        and (expires_at is None or reviewed_at is None or expires_at >= reviewed_at)
+    )
+
+
+def _valid_spot(row):
+    try:
+        reviewed_at, review_after = _date(row.get("reviewed_at")), _date(row.get("review_after"))
+        _datetime(row.get("approved_at"))
+    except (TypeError, ValueError):
+        return False
+    approved_pair = (row.get("approved_at") is None) == (row.get("approved_by") is None)
+    return (
+        _text(row.get("display_name"), maximum=160)
+        and row.get("classification") in SPOT_CLASSIFICATIONS
+        and row.get("audience") in SPOT_AUDIENCES
+        and _text(row.get("audience"), maximum=10)
+        and _text(row.get("supporting_line"), maximum=180)
+        and _text(row.get("maps_destination"), maximum=300)
+        and row.get("confidence") in {"HIGH", "MEDIUM"}
+        and row.get("status") == "CURRENT"
+        and row.get("business_status") in BUSINESS_STATUSES
+        and isinstance(row.get("display_order"), int) and 1 <= row["display_order"] <= 3
+        and (review_after is None or reviewed_at is None or review_after >= reviewed_at)
+        and approved_pair and row.get("approved_at") is not None
+        and _text(row.get("approved_by"), maximum=160)
+    )
+
+
+def _valid_evidence(row):
+    try:
+        _date(row.get("source_date"))
+    except (TypeError, ValueError):
+        return False
+    return (
+        row.get("source_type") in EVIDENCE_SOURCE_TYPES
+        and row.get("disposition") in {"SUPPORTS", "CONTRADICTS"}
+        and row.get("review_status") in {"PENDING", "ACCEPTED", "REJECTED"}
+        and _text(row.get("evidence_note"), maximum=500)
+    )
+
+
 def validate_pack(pack, expected_version):
     if pack.get("artifact_version") != expected_version:
         raise RuntimeError("artifact version mismatch")
@@ -81,14 +148,12 @@ def validate_pack(pack, expected_version):
     for row in [*pack["venue_guide_facts"], *pack["pre_match_spots"]]:
         if owner_by_relationship.get(row.get("club_venue_id")) != (row.get("team_id"), row.get("venue_id")):
             raise RuntimeError("unsupported content owner")
-    if any(row.get("confidence") not in {"high", "medium"} or row.get("status") != "current"
-           for row in pack["venue_guide_facts"]):
+    if any(not _valid_fact(row) for row in pack["venue_guide_facts"]):
         raise RuntimeError("unpublishable guide fact")
-    if any(row.get("confidence") not in {"HIGH", "MEDIUM"} or row.get("status") != "CURRENT"
-           or row.get("business_status") not in BUSINESS_STATUSES
-           or not str(row.get("maps_destination", "")).strip() or not row.get("approved_at") or not row.get("approved_by")
-           for row in pack["pre_match_spots"]):
+    if any(not _valid_spot(row) for row in pack["pre_match_spots"]):
         raise RuntimeError("unpublishable/unapproved pre-match spot")
+    if any(not _valid_evidence(row) for row in pack["pre_match_spot_evidence"]):
+        raise RuntimeError("unpublishable pre-match spot evidence")
     if any("RESEARCH_REQUIRED" in canonical(row) for row in rows):
         raise RuntimeError("research-required content present")
     fact_keys = [(row["club_venue_id"], row["topic"]) for row in pack["venue_guide_facts"]]

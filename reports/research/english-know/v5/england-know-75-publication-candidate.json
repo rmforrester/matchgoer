@@ -2032,10 +2032,10 @@
       "business_status": "OPEN",
       "reviewed_at": "2026-08-29",
       "review_after": "2027-02-28",
-      "display_order": 2,
+      "display_order": 1,
       "approved_at": "2026-08-29T12:00:00+00:00",
       "approved_by": "HUMAN_DECISION_2026-08-29",
-      "identity_sha256": "AA6899C4982C1A74E23D11FB7B34A3ADB56915264B9531961F829915237FA4D0"
+      "identity_sha256": "D13A6B7A778C877EDE6FDC5405AB7B234318903560AFB2B7FCFAC7010E110B2A"
     },
     {
       "team_id": 68,
@@ -2053,10 +2053,10 @@
       "business_status": "OPEN",
       "reviewed_at": "2026-08-29",
       "review_after": "2027-02-28",
-      "display_order": 3,
+      "display_order": 1,
       "approved_at": "2026-08-29T12:00:00+00:00",
       "approved_by": "HUMAN_DECISION_2026-08-29",
-      "identity_sha256": "E66C9BC310D511DCE25270AC8F3C943F116741FF516E6024FA194104C9970CBF"
+      "identity_sha256": "E3B50B4C4B2688C26917600F3ABFAC85FCC215E8ED25FC09605306B4C2B51EEF"
     },
     {
       "team_id": 76,
@@ -2066,7 +2066,7 @@
       "publication_eligibility": "PUBLICATION_ELIGIBLE",
       "display_name": "Mel Nurse Bar",
       "classification": "SUPPORTER_AREA",
-      "audience": "MATCH_TICKET_HOLDERS",
+      "audience": "MIXED",
       "supporting_line": "Open to match-ticket holders before home matches; check the current guide.",
       "maps_destination": "Mel Nurse Bar",
       "confidence": "HIGH",
@@ -2074,10 +2074,10 @@
       "business_status": "OPEN",
       "reviewed_at": "2026-08-29",
       "review_after": "2027-02-28",
-      "display_order": 4,
+      "display_order": 1,
       "approved_at": "2026-08-29T12:00:00+00:00",
       "approved_by": "HUMAN_DECISION_2026-08-29",
-      "identity_sha256": "84175B5D0774D00BBD393A761D888B6CF8CDC1C413DB13727F68047DDC89B273"
+      "identity_sha256": "A2982C9C73924619D55B05221844CD19531DAD6E770A740620887BB3B071DB6C"
     },
     {
       "team_id": 746,
@@ -2087,7 +2087,7 @@
       "publication_eligibility": "PUBLICATION_ELIGIBLE",
       "display_name": "Beacon of Light Fan Zone",
       "classification": "CLUB_MATCHDAY_VENUE",
-      "audience": "FAMILIES",
+      "audience": "MIXED",
       "supporting_line": "The current matchday hub lists this family Fan Zone.",
       "maps_destination": "Beacon of Light Fan Zone",
       "confidence": "HIGH",
@@ -2095,10 +2095,10 @@
       "business_status": "OPEN",
       "reviewed_at": "2026-08-29",
       "review_after": "2027-02-28",
-      "display_order": 5,
+      "display_order": 1,
       "approved_at": "2026-08-29T12:00:00+00:00",
       "approved_by": "HUMAN_DECISION_2026-08-29",
-      "identity_sha256": "452F6FFA2824DDB94DB43A58DAF0B72DDBC73F8EC6A2F5E190B67A67628A6A84"
+      "identity_sha256": "5B930352E002F598D500DE39E015A73D82F84EC83F7ACACF59836FFB15AD66C7"
     },
     {
       "team_id": 1351,
@@ -2116,10 +2116,10 @@
       "business_status": "OPEN",
       "reviewed_at": "2026-08-29",
       "review_after": "2027-02-28",
-      "display_order": 6,
+      "display_order": 1,
       "approved_at": "2026-08-29T12:00:00+00:00",
       "approved_by": "HUMAN_DECISION_2026-08-29",
-      "identity_sha256": "C850CC286D78DA7AC0C44E7D212E1A7E2B31687E6B172116EA10D5C381C6B5A4"
+      "identity_sha256": "EF4271778A598703AC060E96A877BCA6E26530AFD0145A48D09861135D7C1558"
     },
     {
       "team_id": 1352,
@@ -2129,7 +2129,7 @@
       "publication_eligibility": "PUBLICATION_ELIGIBLE",
       "display_name": "Croud Meadow FanZone",
       "classification": "CLUB_MATCHDAY_VENUE",
-      "audience": "HOME_AND_AWAY",
+      "audience": "MIXED",
       "supporting_line": "Official pre-match food, drink and live music; check timings.",
       "maps_destination": "Croud Meadow FanZone",
       "confidence": "HIGH",
@@ -2137,10 +2137,10 @@
       "business_status": "OPEN",
       "reviewed_at": "2026-08-29",
       "review_after": "2027-02-28",
-      "display_order": 7,
+      "display_order": 1,
       "approved_at": "2026-08-29T12:00:00+00:00",
       "approved_by": "HUMAN_DECISION_2026-08-29",
-      "identity_sha256": "74F0BC4C679EE430655FF7624CF392365CA925CB1238DAC1C1C93CB700EACEE1"
+      "identity_sha256": "04DA05D8E25998CC6424217B02F963AE7EC6CE1994D1015CFEA3D2AE50E61334"
     },
     {
       "team_id": 1364,
@@ -2150,7 +2150,7 @@
       "publication_eligibility": "PUBLICATION_ELIGIBLE",
       "display_name": "St James Park Fan Zone",
       "classification": "CLUB_MATCHDAY_VENUE",
-      "audience": "ALL_TICKET_HOLDERS",
+      "audience": "MIXED",
       "supporting_line": "Covered Fan Zone with bar, food, shop and family area.",
       "maps_destination": "St James Park Fan Zone",
       "confidence": "HIGH",
@@ -2158,10 +2158,10 @@
       "business_status": "OPEN",
       "reviewed_at": "2026-08-29",
       "review_after": "2027-02-28",
-      "display_order": 8,
+      "display_order": 1,
       "approved_at": "2026-08-29T12:00:00+00:00",
       "approved_by": "HUMAN_DECISION_2026-08-29",
-      "identity_sha256": "BCA41A62A24EF406D2094CF1FD1E3960EF6ED18B98C13B009B8BFA0959AAE7F0"
+      "identity_sha256": "F5951BF18C39574DC32EF59E2304BD16C49AAD5721373376175515E2C87C419C"
     },
     {
       "team_id": 1347,
@@ -2171,7 +2171,7 @@
       "publication_eligibility": "PUBLICATION_ELIGIBLE",
       "display_name": "The Factory",
       "classification": "CLUB_MATCHDAY_VENUE",
-      "audience": "ALL_SUPPORTERS",
+      "audience": "MIXED",
       "supporting_line": "Official bar open before typical home matches with food and football on screen.",
       "maps_destination": "The Factory",
       "confidence": "HIGH",
@@ -2179,102 +2179,102 @@
       "business_status": "OPEN",
       "reviewed_at": "2026-08-29",
       "review_after": "2027-02-28",
-      "display_order": 9,
+      "display_order": 1,
       "approved_at": "2026-08-29T12:00:00+00:00",
       "approved_by": "HUMAN_DECISION_2026-08-29",
-      "identity_sha256": "0146D02B2DC7E20AD76FED72F85CF8CA2C96BCF2D700376CD7AD307944EC9D4F"
+      "identity_sha256": "D440D148FC04EE781D46CE46D59FB65DAAF82A9CB426EB0C390B80D03DBB25E3"
     }
   ],
   "pre_match_spot_evidence": [
     {
       "spot_identity_sha256": "FF421604209B42698064214E56DB4F3F3E8AD757C6C6ED0A5C3EED04A58AA58F",
-      "source_type": "official",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.burnleyfootballclub.com/first-time-fan",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "4BDDEC35BDDD55FFE0C7A60660200F1EC79D745A810C863313CFD270177DD2D6"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "8D27C8799C0B322AE2D7570BB155E0968F62291D7CAC6A664F4A304F01AAACE3"
     },
     {
-      "spot_identity_sha256": "AA6899C4982C1A74E23D11FB7B34A3ADB56915264B9531961F829915237FA4D0",
-      "source_type": "official",
+      "spot_identity_sha256": "D13A6B7A778C877EDE6FDC5405AB7B234318903560AFB2B7FCFAC7010E110B2A",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.leedsunited.com/en/access-statement",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "48792886BA6E56243593A17FD67E90B01C83605A20936FF62E9937993F156DDD"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "76BE2DD1995E53095D732ACC254E9C465B05FDA358A3B580237882EB9D1441AD"
     },
     {
-      "spot_identity_sha256": "E66C9BC310D511DCE25270AC8F3C943F116741FF516E6024FA194104C9970CBF",
-      "source_type": "official",
+      "spot_identity_sha256": "E3B50B4C4B2688C26917600F3ABFAC85FCC215E8ED25FC09605306B4C2B51EEF",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.bwfc.co.uk/fans/fans-and-visitors",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "8C41CC4153EBB7F7CFAC59DAEE803E7FCF19D4B4C274C21C3075F6C8E27862C9"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "09AF9D869E6C23102C56C8DB2814DBAE5EA1B45F4D6BAA62C3C3839D904C841E"
     },
     {
-      "spot_identity_sha256": "84175B5D0774D00BBD393A761D888B6CF8CDC1C413DB13727F68047DDC89B273",
-      "source_type": "official",
+      "spot_identity_sha256": "A2982C9C73924619D55B05221844CD19531DAD6E770A740620887BB3B071DB6C",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.swanseacity.com/matchday-guide",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "818CE93DECB69E9A91BD896BC733AE56AD599BF87A4C7744CABC38514E7D092E"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "B6E1D85448304D57A8389B5F9773A8C230404354988DF0DDF29C7EEEB8079C1E"
     },
     {
-      "spot_identity_sha256": "452F6FFA2824DDB94DB43A58DAF0B72DDBC73F8EC6A2F5E190B67A67628A6A84",
-      "source_type": "official",
+      "spot_identity_sha256": "5B930352E002F598D500DE39E015A73D82F84EC83F7ACACF59836FFB15AD66C7",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.safc.com/matchday",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "05C932BB048AFAC843695C79007370C9A7FEBE310E092A6491B2E997A6D34D8F"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "C5871B3FE2E05750AF69A2B4882EBF93D0FB7C5F5DAFFCA8D68BC9494189C010"
     },
     {
-      "spot_identity_sha256": "C850CC286D78DA7AC0C44E7D212E1A7E2B31687E6B172116EA10D5C381C6B5A4",
-      "source_type": "official",
+      "spot_identity_sha256": "EF4271778A598703AC060E96A877BCA6E26530AFD0145A48D09861135D7C1558",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.port-vale.co.uk/supporter/first-time-fan-guide",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "ACE2CB935EFC63E35D6ECEFF6D39E29B2F4AB01089191450A447B092E30F2BDE"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "55D56EFB78DBB9A20149642093B2E23AA231D57F3B6058003BDFDD5219B1714D"
     },
     {
-      "spot_identity_sha256": "74F0BC4C679EE430655FF7624CF392365CA925CB1238DAC1C1C93CB700EACEE1",
-      "source_type": "official",
+      "spot_identity_sha256": "04DA05D8E25998CC6424217B02F963AE7EC6CE1994D1015CFEA3D2AE50E61334",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.shrewsburytown.com/fans/home-fans",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "E8E3194F3EE5A1C107688DD5D447E6F5DBC36B36063BFA7FAC46D3DB19808D04"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "53161EB796C67E4E9BBC937C306F9CD9BF047B3C2B82E3EB168DCD94005FB419"
     },
     {
-      "spot_identity_sha256": "BCA41A62A24EF406D2094CF1FD1E3960EF6ED18B98C13B009B8BFA0959AAE7F0",
-      "source_type": "official",
+      "spot_identity_sha256": "F5951BF18C39574DC32EF59E2304BD16C49AAD5721373376175515E2C87C419C",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.exetercityfc.co.uk/SJPguide",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "9BA5845A6E3F61D8B2F63F997D0CC8DCB04C858708C53BF1875AB1330004A76A"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "FA4112A080B9CA4525293985A22F676B00BDDC2029CCA5B14A2F92DDB5D03A69"
     },
     {
-      "spot_identity_sha256": "0146D02B2DC7E20AD76FED72F85CF8CA2C96BCF2D700376CD7AD307944EC9D4F",
-      "source_type": "official",
+      "spot_identity_sha256": "D440D148FC04EE781D46CE46D59FB65DAAF82A9CB426EB0C390B80D03DBB25E3",
+      "source_type": "OFFICIAL",
       "source_url": "https://www.gillinghamfootballclub.com/club/matchday-information",
       "source_date": "2026-08-29",
       "disposition": "SUPPORTS",
       "evidence_note": "Current official guidance supports the facility and cautious wording.",
-      "review_status": "APPROVED",
-      "identity_sha256": "4E3A6A70A9CFC88E39EF967F8953790EE42B7F669AC6AE5869ED869AA8C167A1"
+      "review_status": "ACCEPTED",
+      "identity_sha256": "AD5C90BC0C7C19A84C0C3EFDC00D6CF44161D70A8871048E80AD15AAEB73AD09"
     }
   ]
 }
