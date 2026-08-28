@@ -1,4 +1,4 @@
-"""Transactional new-account claiming without cross-user merge behavior."""
+"""Transactional account conversion for new and existing Matchgoer identities."""
 
 from __future__ import annotations
 
@@ -15,7 +15,15 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from identity import VerifiedProviderIdentity
-from models import AccountConversionHandoff, AnonymousSession, User, UserIdentity, UserProfile
+from models import (
+    AccountConversionHandoff,
+    AccountMergeAudit,
+    AnonymousSession,
+    InterestedFixture,
+    User,
+    UserIdentity,
+    UserProfile,
+)
 
 
 DEFAULT_HANDOFF_MAX_AGE_SECONDS = 60 * 60 * 24
@@ -97,19 +105,26 @@ def claim_anonymous_user(
             ).with_for_update().first()
             if handoff is None:
                 raise _claim_error(401, "ACCOUNT_HANDOFF_INVALID", "Account conversion could not be verified")
-            if handoff.expires_at < claimed_at:
-                raise _claim_error(401, "ACCOUNT_HANDOFF_EXPIRED", "Account conversion has expired")
             if handoff.consumed_at is not None:
-                if handoff.claimed_issuer == provider_identity.issuer and handoff.claimed_subject == provider_identity.subject:
-                    replay_user = db.query(User).filter(User.user_id == handoff.user_id).with_for_update().first()
+                if (
+                    handoff.claimed_issuer == provider_identity.issuer
+                    and handoff.claimed_subject == provider_identity.subject
+                ):
+                    audit = db.query(AccountMergeAudit).filter(
+                        AccountMergeAudit.source_user_id == handoff.user_id,
+                    ).first()
+                    replay_user_id = audit.target_user_id if audit is not None else handoff.user_id
+                    replay_user = db.query(User).filter(User.user_id == replay_user_id).with_for_update().first()
                     mapping = db.query(UserIdentity).filter(
                         UserIdentity.issuer == provider_identity.issuer,
                         UserIdentity.subject == provider_identity.subject,
-                        UserIdentity.user_id == handoff.user_id,
+                        UserIdentity.user_id == replay_user_id,
                     ).first()
                     if replay_user is not None and mapping is not None and replay_user.account_status == "registered":
                         return _result(db, replay_user, idempotent=True)
                 raise _claim_error(409, "ACCOUNT_HANDOFF_USED", "Account conversion has already been used")
+            if handoff.expires_at < claimed_at:
+                raise _claim_error(401, "ACCOUNT_HANDOFF_EXPIRED", "Account conversion has expired")
 
         selected_session_id = handoff.session_id if handoff is not None else session_id
         if handoff is not None and session_id and session_id != handoff.session_id:
@@ -156,10 +171,14 @@ def claim_anonymous_user(
 
         if existing_identity is not None:
             if existing_identity.user_id != user.user_id:
-                raise _claim_error(
-                    409,
-                    "IDENTITY_ALREADY_LINKED",
-                    "This identity belongs to an existing Matchgoer account",
+                return _merge_into_existing_account(
+                    db,
+                    source_user=user,
+                    source_session=anonymous_session,
+                    target_user_id=existing_identity.user_id,
+                    provider_identity=provider_identity,
+                    claimed_at=claimed_at,
+                    failure_hook=failure_hook,
                 )
             if user.account_status != "registered" or user.is_anonymous:
                 raise _claim_error(
@@ -210,6 +229,84 @@ def claim_anonymous_user(
             issued_handoff.claimed_subject = provider_identity.subject
         db.flush()
         return _result(db, user, idempotent=False)
+
+
+def _merge_into_existing_account(
+    db: Session,
+    *,
+    source_user: User,
+    source_session: AnonymousSession,
+    target_user_id: int,
+    provider_identity: VerifiedProviderIdentity,
+    claimed_at: datetime,
+    failure_hook: Callable[[str], None] | None,
+) -> AccountClaimResult:
+    """Merge only anonymous-owned state supported by the product today.
+
+    InterestedFixture collision policy: retain the target row, delete the source
+    duplicate, then transfer every remaining source row. FixtureMeetingIntent and
+    all profile-backed social state cannot be created anonymously and are not
+    transferred. SocialEvent remains historical telemetry under the source user.
+    """
+    target_user = db.query(User).filter(User.user_id == target_user_id).with_for_update().first()
+    if target_user is None or target_user.account_status != "registered" or target_user.is_anonymous:
+        raise _claim_error(409, "CLAIM_TARGET_INVALID", "The registered Matchgoer account is not available")
+    if source_user.account_status != "anonymous" or not source_user.is_anonymous:
+        raise _claim_error(409, "CLAIM_SOURCE_INVALID", "The anonymous Matchgoer identity is not claimable")
+    if source_session.revoked_at is not None:
+        raise _claim_error(401, "ANONYMOUS_SESSION_REVOKED", "The anonymous Matchgoer session is no longer active")
+
+    source_interests = db.query(InterestedFixture).filter(
+        InterestedFixture.user_id == source_user.user_id,
+    ).with_for_update().all()
+    fixture_ids = [row.fixture_id for row in source_interests]
+    target_fixture_ids = set()
+    if fixture_ids:
+        target_fixture_ids = {
+            row.fixture_id for row in db.query(InterestedFixture).filter(
+                InterestedFixture.user_id == target_user.user_id,
+                InterestedFixture.fixture_id.in_(fixture_ids),
+            ).with_for_update().all()
+        }
+    for interest in source_interests:
+        if interest.fixture_id in target_fixture_ids:
+            db.delete(interest)
+        else:
+            interest.user_id = target_user.user_id
+    db.flush()
+    if failure_hook:
+        failure_hook("after_interest_merge")
+
+    db.add(AccountMergeAudit(
+        source_user_id=source_user.user_id,
+        target_user_id=target_user.user_id,
+        merge_source="account_conversion",
+        reason="Authenticated provider identity already belonged to the target account",
+        merged_at=claimed_at,
+    ))
+    source_user.account_status = "merged"
+    source_user.is_anonymous = False
+    source_user.merged_into_user_id = target_user.user_id
+    if failure_hook:
+        failure_hook("after_merge_audit")
+
+    source_sessions = db.query(AnonymousSession).filter(
+        AnonymousSession.user_id == source_user.user_id,
+    ).with_for_update().all()
+    for session in source_sessions:
+        session.revoked_at = session.revoked_at or claimed_at
+    handoffs = db.query(AccountConversionHandoff).filter(
+        AccountConversionHandoff.user_id == source_user.user_id,
+        AccountConversionHandoff.consumed_at.is_(None),
+    ).with_for_update().all()
+    for handoff in handoffs:
+        handoff.consumed_at = claimed_at
+        handoff.claimed_issuer = provider_identity.issuer
+        handoff.claimed_subject = provider_identity.subject
+    db.flush()
+    if failure_hook:
+        failure_hook("after_source_revocation")
+    return _result(db, target_user, idempotent=False)
 
 
 def _result(db: Session, user: User, *, idempotent: bool) -> AccountClaimResult:

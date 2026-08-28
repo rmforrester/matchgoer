@@ -32,6 +32,12 @@ export function clearConversionHandoff(target = storage()) {
   target?.removeItem(HANDOFF_KEY);
 }
 
+export async function clearConversionHandoffAfter<T>(operation: Promise<T>, target = storage()) {
+  const result = await operation;
+  clearConversionHandoff(target);
+  return result;
+}
+
 export function savePendingWhosGoingFromReturnTo(returnTo: string, now = Date.now(), target = storage()) {
   if (!target) return null;
   const url = new URL(returnTo, "https://matchgoer.invalid");
