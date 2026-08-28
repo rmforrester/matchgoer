@@ -5,6 +5,7 @@ import { fixtureGuideActions, googleMapsDirectionsUrl, guideSummary, officialTic
 const guide = (freshness: "current" | "needs_review" | "expired"): VenueGuide => ({
   venue_id: 22950,
   club_venue_id: null,
+  club_name: null,
   has_current_information: freshness === "current",
   before_match: [],
   sections: [{
@@ -50,6 +51,7 @@ test("practical guide keeps answers primary and moves supporting facts deeper", 
   const hutnikGuide: VenueGuide = {
     venue_id: 22950,
     club_venue_id: null,
+    club_name: null,
     has_current_information: true,
     before_match: [],
     sections: [
@@ -109,7 +111,7 @@ test("ticket action requires a current official source", () => {
 });
 
 test("a venue without guide facts remains empty and graceful", () => {
-  const emptyGuide: VenueGuide = { venue_id: 1, club_venue_id: null, has_current_information: false, sections: [], before_match: [] };
+  const emptyGuide: VenueGuide = { venue_id: 1, club_venue_id: null, club_name: null, has_current_information: false, sections: [], before_match: [] };
   assert.deepEqual(primaryGuideSections(emptyGuide), []);
   assert.deepEqual(secondaryGuideSections(emptyGuide), []);
   assert.equal(officialTicketUrl(emptyGuide), null);

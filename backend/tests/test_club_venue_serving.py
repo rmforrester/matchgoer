@@ -56,15 +56,38 @@ class ClubVenueServingTests(unittest.TestCase):
         guide = get_venue_guide(self.venue_id, self.team_id)
         facts = {fact["topic"] for section in guide["sections"] for fact in section["facts"]}
         self.assertEqual(guide["club_venue_id"], self.club_venue_id)
+        self.assertEqual(guide["club_name"], "Serving club")
         self.assertEqual(facts, {"Physical access", "official_ticket_portal"})
         self.assertNotIn("other_club", facts)
 
-    def test_direct_and_wrong_context_fail_closed_to_venue_only(self):
-        for team_id in (None, self.team_id + 99):
-            guide = get_venue_guide(self.venue_id, team_id)
+    def test_direct_context_infers_the_sole_current_home_club(self):
+        guide = get_venue_guide(self.venue_id)
+        self.assertEqual(guide["club_venue_id"], self.club_venue_id)
+        self.assertEqual(guide["club_name"], "Serving club")
+        self.assertEqual({fact["topic"] for section in guide["sections"] for fact in section["facts"]}, {"Physical access", "official_ticket_portal"})
+        self.assertEqual(len(guide["before_match"]), 3)
+
+    def test_wrong_explicit_context_fails_closed_to_venue_only(self):
+        guide = get_venue_guide(self.venue_id, self.team_id + 99)
+        self.assertIsNone(guide["club_venue_id"])
+        self.assertIsNone(guide["club_name"])
+        self.assertEqual([fact["topic"] for section in guide["sections"] for fact in section["facts"]], ["Physical access"])
+        self.assertEqual(guide["before_match"], [])
+
+    def test_two_current_home_clubs_are_ambiguous_and_fail_closed(self):
+        db = SessionLocal()
+        try:
+            db.query(ClubVenue).filter(ClubVenue.club_venue_id == self.other_club_venue_id).update({"relationship_type": "HOME"})
+            db.commit()
+            guide = get_venue_guide(self.venue_id)
             self.assertIsNone(guide["club_venue_id"])
+            self.assertIsNone(guide["club_name"])
             self.assertEqual([fact["topic"] for section in guide["sections"] for fact in section["facts"]], ["Physical access"])
             self.assertEqual(guide["before_match"], [])
+        finally:
+            db.query(ClubVenue).filter(ClubVenue.club_venue_id == self.other_club_venue_id).update({"relationship_type": "GROUND_SHARE"})
+            db.commit()
+            db.close()
 
     def test_spots_are_public_minimal_ordered_and_filtered(self):
         spots = get_venue_guide(self.venue_id, self.team_id)["before_match"]

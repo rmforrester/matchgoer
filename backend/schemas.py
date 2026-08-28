@@ -44,6 +44,7 @@ class PreMatchSpotResponse(BaseModel):
 class VenueGuideResponse(BaseModel):
     venue_id: int
     club_venue_id: int | None = None
+    club_name: str | None = None
     has_current_information: bool
     sections: list[VenueGuideSectionResponse]
     before_match: list[PreMatchSpotResponse] = Field(default_factory=list)
