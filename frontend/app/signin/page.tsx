@@ -1,6 +1,6 @@
 import SigninForm from "./SigninForm";
 
-export default async function SigninPage({ searchParams }: { searchParams: Promise<{ returnTo?: string }> }) {
-  const { returnTo } = await searchParams;
-  return <SigninForm returnTo={returnTo} />;
+export default async function SigninPage({ searchParams }: { searchParams: Promise<{ returnTo?: string; handoff?: string }> }) {
+  const { returnTo, handoff } = await searchParams;
+  return <SigninForm returnTo={returnTo} handoffToken={handoff} />;
 }

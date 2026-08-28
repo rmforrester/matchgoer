@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Session } from "@supabase/supabase-js";
 
-import api from "./api";
+import api from "./api.ts";
 
 export type AuthDestination = {
   route: string;
@@ -22,6 +22,18 @@ export function safeReturnTo(value: string | null | undefined, fallback = "/my-f
 export function accountRoute(path: string, returnTo?: string | null) {
   const safe = safeReturnTo(returnTo);
   return `${path}?returnTo=${encodeURIComponent(safe)}`;
+}
+
+export function authCallbackRoute(returnTo?: string | null, handoffToken?: string | null) {
+  const route = new URL(accountRoute("/auth/callback", returnTo), "https://matchgoer.invalid");
+  if (handoffToken) route.searchParams.set("handoff", handoffToken);
+  return `${route.pathname}${route.search}`;
+}
+
+export function signinRoute(returnTo?: string | null, handoffToken?: string | null) {
+  const route = new URL(accountRoute("/signin", returnTo), "https://matchgoer.invalid");
+  if (handoffToken) route.searchParams.set("handoff", handoffToken);
+  return `${route.pathname}${route.search}`;
 }
 
 function errorCode(error: unknown) {
@@ -50,7 +62,7 @@ export async function completeAuthenticatedFlow(
   const authorization = { Authorization: `Bearer ${session.access_token}` };
   try {
     const current = await api.get("/session", { headers: authorization });
-    if (current.data.anonymous === false) return registeredDestination(returnTo);
+    if (current.data.anonymous === false && !handoffToken) return registeredDestination(returnTo);
   } catch (error) {
     if (errorCode(error) !== "IDENTITY_NOT_LINKED") throw error;
   }
@@ -74,7 +86,6 @@ export function userFacingAuthError(error: unknown, fallback: string) {
   const providerMessage = error instanceof Error ? error.message.toLowerCase() : "";
   if (providerMessage.includes("invalid login credentials")) return "The email or password is incorrect.";
   if (providerMessage.includes("email not confirmed")) return "Confirm your email before signing in.";
-  if (providerMessage.includes("already registered") || providerMessage.includes("user already registered")) return "An account already exists for this email. Sign in instead.";
   if (!axios.isAxiosError(error)) return fallback;
   const code = errorCode(error);
   if (code === "TOKEN_EXPIRED") return "Your session has expired. Sign in again.";

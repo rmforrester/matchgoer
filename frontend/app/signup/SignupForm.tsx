@@ -4,7 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import AccountShell from "@/app/components/AccountShell";
-import { accountRoute, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
+import { accountRoute, authCallbackRoute, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
 import { anonymousApi } from "@/lib/api";
 import { saveConversionHandoff, savePendingWhosGoingFromReturnTo } from "@/lib/account-conversion-checkpoint";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
@@ -18,12 +18,13 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const redirectUrl = () => `${window.location.origin}${accountRoute("/auth/callback", returnTo)}`;
+  const redirectUrl = (handoffToken: string) => `${window.location.origin}${authCallbackRoute(returnTo, handoffToken)}`;
 
   async function prepareConversion() {
     const handoff = await anonymousApi.post("/account/conversion-handoff");
     saveConversionHandoff({ token: handoff.data.handoff_token, expiresAt: handoff.data.expires_at, returnTo });
     savePendingWhosGoingFromReturnTo(returnTo);
+    return handoff.data.handoff_token as string;
   }
 
   async function submit(event: FormEvent) {
@@ -32,11 +33,11 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
     if (!supabase) return setError("Account services are unavailable right now.");
     setSaving(true); setError(""); setMessage("");
     try {
-      await prepareConversion();
+      const handoffToken = await prepareConversion();
       const { data, error: signupError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { emailRedirectTo: redirectUrl() },
+        options: { emailRedirectTo: redirectUrl(handoffToken) },
       });
       if (signupError) throw signupError;
       if (data.session) {
@@ -54,8 +55,8 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
     if (!supabase || !email.trim()) return;
     setSaving(true); setError(""); setMessage("");
     try {
-      await prepareConversion();
-      const { error: resendError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: redirectUrl() } });
+      const handoffToken = await prepareConversion();
+      const { error: resendError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: redirectUrl(handoffToken) } });
       if (resendError) throw resendError;
       setMessage("Confirmation email resent.");
     } catch (requestError) {

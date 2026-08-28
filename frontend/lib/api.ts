@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getSupabaseBrowserClient } from "./supabase";
+import { getSupabaseBrowserClient } from "./supabase.ts";
 
 const getApiBaseUrl = () => {
   const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/$/, "");

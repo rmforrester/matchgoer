@@ -7,9 +7,9 @@ import { useRouter } from "next/navigation";
 import AccountShell from "@/app/components/AccountShell";
 import { accountRoute, completeAuthenticatedFlow, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
-import { clearConversionHandoff, loadConversionHandoff } from "@/lib/account-conversion-checkpoint";
+import { clearConversionHandoffAfter, loadConversionHandoff } from "@/lib/account-conversion-checkpoint";
 
-export default function SigninForm({ returnTo: requestedReturnTo }: { returnTo?: string }) {
+export default function SigninForm({ returnTo: requestedReturnTo, handoffToken }: { returnTo?: string; handoffToken?: string }) {
   const router = useRouter();
   const returnTo = safeReturnTo(requestedReturnTo);
   const [email, setEmail] = useState("");
@@ -27,8 +27,9 @@ export default function SigninForm({ returnTo: requestedReturnTo }: { returnTo?:
       if (signinError) throw signinError;
       if (!data.session) throw new Error("No provider session was created");
       const checkpoint = loadConversionHandoff();
-      const destination = await completeAuthenticatedFlow(data.session, checkpoint?.returnTo ?? returnTo, checkpoint?.token);
-      clearConversionHandoff();
+      const destination = await clearConversionHandoffAfter(
+        completeAuthenticatedFlow(data.session, checkpoint?.returnTo ?? returnTo, handoffToken ?? checkpoint?.token),
+      );
       router.replace(destination.route);
       router.refresh();
     } catch (requestError) {
