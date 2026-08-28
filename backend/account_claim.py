@@ -127,8 +127,6 @@ def claim_anonymous_user(
                 raise _claim_error(401, "ACCOUNT_HANDOFF_EXPIRED", "Account conversion has expired")
 
         selected_session_id = handoff.session_id if handoff is not None else session_id
-        if handoff is not None and session_id and session_id != handoff.session_id:
-            raise _claim_error(409, "ACCOUNT_HANDOFF_SESSION_MISMATCH", "Account conversion does not match this browser session")
         anonymous_session = (
             db.query(AnonymousSession)
             .filter(AnonymousSession.session_id == selected_session_id)

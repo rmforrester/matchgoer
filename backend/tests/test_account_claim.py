@@ -291,7 +291,7 @@ class AccountClaimTests(unittest.TestCase):
         self.assertEqual(self.db.query(User).count(), before)
         self.assertEqual(self.db.get(User, user_id).account_status, "anonymous")
 
-    def test_handoff_rejects_different_live_cookie_owner(self):
+    def test_valid_handoff_ignores_unrelated_live_cookie_owner(self):
         user_a, session_a = self.new_anonymous("handoff-owner-a")
         user_b, session_b = self.new_anonymous("handoff-owner-b")
         issuer = Session(bind=engine)
@@ -299,11 +299,16 @@ class AccountClaimTests(unittest.TestCase):
             token, _ = issue_account_conversion_handoff(issuer, session_id=session_a)
         finally:
             issuer.close()
-        self.assert_error(409, "ACCOUNT_HANDOFF_SESSION_MISMATCH", lambda: self.claim(
+        result = self.claim(
             session_b, "handoff-cross-owner", handoff_token=token,
-        ))
-        self.assertEqual(self.db.get(User, user_a).account_status, "anonymous")
+        )
+        self.assertEqual(result.user_id, user_a)
+        self.db.expire_all()
+        self.assertEqual(self.db.get(User, user_a).account_status, "registered")
         self.assertEqual(self.db.get(User, user_b).account_status, "anonymous")
+        unrelated_session = self.db.get(AnonymousSession, session_b)
+        self.assertEqual(unrelated_session.user_id, user_b)
+        self.assertIsNone(unrelated_session.revoked_at)
 
     def test_handoff_replay_is_idempotent_for_same_identity_and_rejected_for_another(self):
         user_id, session_id = self.new_anonymous("handoff-replay")

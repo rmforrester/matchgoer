@@ -7,9 +7,9 @@ import { useRouter } from "next/navigation";
 import AccountShell from "@/app/components/AccountShell";
 import { accountRoute, completeAuthenticatedFlow, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
-import { clearConversionHandoffAfter, loadConversionHandoff } from "@/lib/account-conversion-checkpoint";
+import { clearConversionHandoffAfter, loadConversionHandoff, prepareConversionHandoff } from "@/lib/account-conversion-checkpoint";
 
-export default function SigninForm({ returnTo: requestedReturnTo, handoffToken }: { returnTo?: string; handoffToken?: string }) {
+export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, convertAnonymous = false }: { returnTo?: string; handoffToken?: string; convertAnonymous?: boolean }) {
   const router = useRouter();
   const returnTo = safeReturnTo(requestedReturnTo);
   const [email, setEmail] = useState("");
@@ -23,10 +23,14 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken }
     if (!supabase) return setError("Account services are unavailable right now.");
     setSaving(true); setError("");
     try {
+      let checkpoint = loadConversionHandoff();
+      if (convertAnonymous && !handoffToken && !checkpoint) {
+        checkpoint = await prepareConversionHandoff(returnTo);
+      }
       const { data, error: signinError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signinError) throw signinError;
       if (!data.session) throw new Error("No provider session was created");
-      const checkpoint = loadConversionHandoff();
+      checkpoint = loadConversionHandoff() ?? checkpoint;
       const destination = await clearConversionHandoffAfter(
         completeAuthenticatedFlow(data.session, checkpoint?.returnTo ?? returnTo, handoffToken ?? checkpoint?.token),
       );

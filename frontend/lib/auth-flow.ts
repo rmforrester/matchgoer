@@ -30,9 +30,10 @@ export function authCallbackRoute(returnTo?: string | null, handoffToken?: strin
   return `${route.pathname}${route.search}`;
 }
 
-export function signinRoute(returnTo?: string | null, handoffToken?: string | null) {
+export function signinRoute(returnTo?: string | null, handoffToken?: string | null, convertAnonymous = false) {
   const route = new URL(accountRoute("/signin", returnTo), "https://matchgoer.invalid");
   if (handoffToken) route.searchParams.set("handoff", handoffToken);
+  if (convertAnonymous) route.searchParams.set("convert", "1");
   return `${route.pathname}${route.search}`;
 }
 

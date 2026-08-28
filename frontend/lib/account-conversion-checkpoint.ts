@@ -1,11 +1,12 @@
 import { parsePendingWhosGoingAction, type PendingWhosGoingAction } from "./pending-auth-action.ts";
+import { anonymousApi } from "./api.ts";
 
 const HANDOFF_KEY = "matchgoer.account-conversion.v1";
 const PENDING_ACTION_KEY = "matchgoer.pending-auth-action.v1";
 
 export type BrowserStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
-type StoredHandoff = { token: string; expiresAt: string; returnTo: string };
+export type StoredHandoff = { token: string; expiresAt: string; returnTo: string };
 
 function storage(): BrowserStorage | null {
   return typeof window === "undefined" ? null : window.localStorage;
@@ -30,6 +31,17 @@ export function loadConversionHandoff(now = Date.now(), target = storage()): Sto
 
 export function clearConversionHandoff(target = storage()) {
   target?.removeItem(HANDOFF_KEY);
+}
+
+export async function prepareConversionHandoff(returnTo: string, target = storage()): Promise<StoredHandoff> {
+  const response = await anonymousApi.post("/account/conversion-handoff");
+  const handoff = {
+    token: String(response.data.handoff_token),
+    expiresAt: String(response.data.expires_at),
+    returnTo,
+  };
+  saveConversionHandoff(handoff, target);
+  return handoff;
 }
 
 export async function clearConversionHandoffAfter<T>(operation: Promise<T>, target = storage()) {
