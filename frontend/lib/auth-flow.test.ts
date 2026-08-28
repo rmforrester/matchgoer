@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import api from "./api.ts";
+import api, { anonymousApi } from "./api.ts";
 import { authCallbackRoute, completeAuthenticatedFlow, signinRoute } from "./auth-flow.ts";
 import {
   clearConversionHandoffAfter,
   loadConversionHandoff,
+  prepareConversionHandoff,
   saveConversionHandoff,
   type BrowserStorage,
 } from "./account-conversion-checkpoint.ts";
@@ -46,6 +47,23 @@ test("callback route carries only the opaque handoff and allowlisted return path
   assert.equal(route.searchParams.get("returnTo"), "/my-football?tab=interested");
   assert.equal(route.searchParams.has("user_id"), false);
   assert.equal(new URL(signinRoute("/fixture/42", "opaque-token"), "https://matchgoer.test").searchParams.get("handoff"), "opaque-token");
+  assert.equal(new URL(signinRoute("/fixture/42", null, true), "https://matchgoer.test").searchParams.get("convert"), "1");
+});
+
+test("prepares and stores a server-issued handoff before conversion sign-in", async () => {
+  const target = memoryStorage();
+  const previous = anonymousApi.defaults.adapter;
+  anonymousApi.defaults.adapter = async (config) => ({
+    data: { handoff_token: "h".repeat(40), expires_at: "2099-01-01T00:00:00Z" },
+    status: 200, statusText: "OK", headers: {}, config,
+  });
+  try {
+    const handoff = await prepareConversionHandoff("/fixture/42", target);
+    assert.equal(handoff.token, "h".repeat(40));
+    assert.equal(loadConversionHandoff(Date.now(), target)?.returnTo, "/fixture/42");
+  } finally {
+    anonymousApi.defaults.adapter = previous;
+  }
 });
 
 test("successful conversion clears checkpoint while retryable failure preserves it", async () => {
