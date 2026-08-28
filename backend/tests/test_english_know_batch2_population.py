@@ -22,6 +22,12 @@ from english_know_batch2_population import (
     load_pack,
     validate_pack,
 )
+from know_population import (
+    dry_run as generic_dry_run,
+    execute_rollback as generic_execute_rollback,
+    execute_write as generic_execute_write,
+    load_candidate,
+)
 
 
 class ArtifactGateTests(unittest.TestCase):
@@ -117,6 +123,11 @@ class PostgreSQLLifecycleTests(unittest.TestCase):
         cls.url = os.environ["MATCHGOER_TEST_DATABASE_URL"]
         cls.engine = create_engine(cls.url)
         cls.pack, _ = load_pack()
+        cls.generic_candidate = load_candidate(
+            APPROVED_ARTIFACT,
+            expected_sha256=EXPECTED_SHA256,
+            expected_version=cls.pack["artifact_version"],
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -195,6 +206,20 @@ class PostgreSQLLifecycleTests(unittest.TestCase):
         with self.engine.begin() as connection:
             connection.execute(text("DELETE FROM pre_match_spot_evidence WHERE evidence_id=:id"), {"id": extra})
         rollback = execute_rollback(self.url, self.pack)
+        self.assertEqual(rollback["candidate_state"], "ABSENT")
+        self.assertEqual(self._snapshot(), before)
+
+    def test_generic_publisher_matches_existing_candidate_exact_state_lifecycle(self):
+        before = self._snapshot()
+        first = generic_dry_run(self.url, self.generic_candidate)
+        self.assertEqual(first["candidate_state"], "ABSENT")
+        self.assertEqual(first["insert"], EXPECTED_COUNTS)
+        write = generic_execute_write(self.url, self.generic_candidate)
+        self.assertEqual(write["delta"], {"club_venues": 0, **EXPECTED_COUNTS})
+        second = generic_dry_run(self.url, self.generic_candidate)
+        self.assertEqual(second["candidate_state"], "EXACTLY_PRESENT")
+        self.assertEqual(second["total_proposed_mutations"], 0)
+        rollback = generic_execute_rollback(self.url, self.generic_candidate)
         self.assertEqual(rollback["candidate_state"], "ABSENT")
         self.assertEqual(self._snapshot(), before)
 
