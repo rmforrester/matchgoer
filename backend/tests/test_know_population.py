@@ -60,23 +60,30 @@ class ExistingCandidateCompatibilityTests(unittest.TestCase):
 
 
 class BusinessStatusContractTests(unittest.TestCase):
-    def candidate(self, business_status):
+    def candidate(
+        self,
+        business_status="OPEN",
+        audience="HOME",
+        display_order=1,
+        **evidence_changes,
+    ):
         spot = {
             "team_id": 1, "venue_id": 2, "club_venue_id": 3,
             "display_name": "Test Fan Zone", "classification": "CLUB_MATCHDAY_VENUE",
-            "audience": "HOME", "supporting_line": "Open before home matches.",
+            "audience": audience, "supporting_line": "Open before home matches.",
             "maps_destination": "Test Fan Zone", "confidence": "HIGH", "status": "CURRENT",
             "business_status": business_status, "reviewed_at": "2026-08-29",
-            "review_after": "2027-02-28", "display_order": 1,
+            "review_after": "2027-02-28", "display_order": display_order,
             "approved_at": "2026-08-29T12:00:00+00:00", "approved_by": "Test",
         }
         spot["identity_sha256"] = identity(spot)
         evidence = {
-            "spot_identity_sha256": spot["identity_sha256"], "source_type": "official",
+            "spot_identity_sha256": spot["identity_sha256"], "source_type": "OFFICIAL",
             "source_url": "https://example.com/matchday", "source_date": "2026-08-29",
             "disposition": "SUPPORTS", "evidence_note": "Official matchday guide.",
-            "review_status": "APPROVED",
+            "review_status": "ACCEPTED",
         }
+        evidence.update(evidence_changes)
         evidence["identity_sha256"] = identity(evidence)
         return {
             "artifact_version": "test-candidate", "publication_state": "PUBLICATION_CANDIDATE",
@@ -96,6 +103,29 @@ class BusinessStatusContractTests(unittest.TestCase):
     def test_england_75_candidate_generation_boundary_cannot_emit_operational(self):
         with self.assertRaisesRegex(RuntimeError, "unpublishable/unapproved pre-match spot"):
             validate_pack(self.candidate("OPERATIONAL"), "test-candidate")
+
+    def test_audience_uses_hosted_vocabulary_and_length(self):
+        validate_pack(self.candidate(audience="MIXED"), "test-candidate")
+        for value in ("MATCH_TICKET_HOLDERS", "HOME_FAMILY"):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(RuntimeError, "unpublishable/unapproved pre-match spot"):
+                    validate_pack(self.candidate(audience=value), "test-candidate")
+
+    def test_spot_display_order_uses_hosted_range(self):
+        for value in (1, 2, 3):
+            with self.subTest(value=value):
+                validate_pack(self.candidate(display_order=value), "test-candidate")
+        for value in (0, 4):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(RuntimeError, "unpublishable/unapproved pre-match spot"):
+                    validate_pack(self.candidate(display_order=value), "test-candidate")
+
+    def test_evidence_uses_hosted_vocabulary(self):
+        validate_pack(self.candidate(source_type="OFFICIAL", review_status="ACCEPTED"), "test-candidate")
+        for changes in ({"source_type": "official"}, {"review_status": "APPROVED"}):
+            with self.subTest(changes=changes):
+                with self.assertRaisesRegex(RuntimeError, "unpublishable pre-match spot evidence"):
+                    validate_pack(self.candidate(**changes), "test-candidate")
 
 
 class ReviewQueueTests(unittest.TestCase):
