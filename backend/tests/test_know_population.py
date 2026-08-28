@@ -59,6 +59,45 @@ class ExistingCandidateCompatibilityTests(unittest.TestCase):
             validate_pack(changed, candidate.version)
 
 
+class BusinessStatusContractTests(unittest.TestCase):
+    def candidate(self, business_status):
+        spot = {
+            "team_id": 1, "venue_id": 2, "club_venue_id": 3,
+            "display_name": "Test Fan Zone", "classification": "CLUB_MATCHDAY_VENUE",
+            "audience": "HOME", "supporting_line": "Open before home matches.",
+            "maps_destination": "Test Fan Zone", "confidence": "HIGH", "status": "CURRENT",
+            "business_status": business_status, "reviewed_at": "2026-08-29",
+            "review_after": "2027-02-28", "display_order": 1,
+            "approved_at": "2026-08-29T12:00:00+00:00", "approved_by": "Test",
+        }
+        spot["identity_sha256"] = identity(spot)
+        evidence = {
+            "spot_identity_sha256": spot["identity_sha256"], "source_type": "official",
+            "source_url": "https://example.com/matchday", "source_date": "2026-08-29",
+            "disposition": "SUPPORTS", "evidence_note": "Official matchday guide.",
+            "review_status": "APPROVED",
+        }
+        evidence["identity_sha256"] = identity(evidence)
+        return {
+            "artifact_version": "test-candidate", "publication_state": "PUBLICATION_CANDIDATE",
+            "clubs": [{"team_id": 1, "venue_id": 2, "club_venue_id": 3}],
+            "venue_guide_facts": [], "pre_match_spots": [spot],
+            "pre_match_spot_evidence": [evidence],
+        }
+
+    def test_database_business_status_vocabulary_is_the_candidate_contract(self):
+        for value in ("OPEN", "UNKNOWN", "CLOSED", "NOT_APPLICABLE"):
+            with self.subTest(value=value):
+                validate_pack(self.candidate(value), "test-candidate")
+
+        with self.assertRaisesRegex(RuntimeError, "unpublishable/unapproved pre-match spot"):
+            validate_pack(self.candidate("OPERATIONAL"), "test-candidate")
+
+    def test_england_75_candidate_generation_boundary_cannot_emit_operational(self):
+        with self.assertRaisesRegex(RuntimeError, "unpublishable/unapproved pre-match spot"):
+            validate_pack(self.candidate("OPERATIONAL"), "test-candidate")
+
+
 class ReviewQueueTests(unittest.TestCase):
     def proposal(self, **changes):
         value = {

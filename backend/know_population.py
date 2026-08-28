@@ -11,6 +11,7 @@ from pathlib import Path
 from sqlalchemy import bindparam, create_engine, text
 
 CONTENT_KEYS = ("venue_guide_facts", "pre_match_spots", "pre_match_spot_evidence")
+BUSINESS_STATUSES = {"OPEN", "UNKNOWN", "CLOSED", "NOT_APPLICABLE"}
 FACT_FIELDS = ("club_venue_id", "section", "topic", "content", "source_type", "source_label", "source_url",
                "reviewed_at", "confidence", "status", "review_after", "expires_at", "display_order")
 SPOT_FIELDS = ("club_venue_id", "display_name", "classification", "audience", "supporting_line", "maps_destination",
@@ -84,6 +85,7 @@ def validate_pack(pack, expected_version):
            for row in pack["venue_guide_facts"]):
         raise RuntimeError("unpublishable guide fact")
     if any(row.get("confidence") not in {"HIGH", "MEDIUM"} or row.get("status") != "CURRENT"
+           or row.get("business_status") not in BUSINESS_STATUSES
            or not str(row.get("maps_destination", "")).strip() or not row.get("approved_at") or not row.get("approved_by")
            for row in pack["pre_match_spots"]):
         raise RuntimeError("unpublishable/unapproved pre-match spot")

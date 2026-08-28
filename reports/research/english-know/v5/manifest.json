@@ -1,0 +1,22 @@
+{
+  "artifact_version": "england-know-manifest-v5-targeted",
+  "counts": {
+    "clubs_processed": 75,
+    "auto_approved_ticket_guidance": 71,
+    "auto_approved_pre_match_options": 9,
+    "supporter_spots": 0,
+    "club_matchday_venues": 8,
+    "supporter_areas": 1,
+    "human_review": 1,
+    "no_evidence_ticket_items": 4,
+    "no_evidence_pre_match_items": 65,
+    "projected_facts": 71,
+    "projected_spots": 9,
+    "projected_evidence": 9
+  },
+  "sha256": {
+    "england-know-75-research.json": "8CD7B2A25D9A0E8FE1ED5D473D5485F9B427AD45DCC14DABD28F8E384ECC49B2",
+    "england-know-75-human-review.json": "851CAEE7F58AE47BCA0BE9AC8C0F6404F20A48DEA4AFDC621C9D10C1198F97AC",
+    "england-know-75-publication-candidate.json": "5B5165CEB84895F0866BABB8F14AE02A8AF806D02884C5DA9A06A17BE0AEA621"
+  }
+}
