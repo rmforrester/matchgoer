@@ -324,7 +324,7 @@ api
     <main className="mx-auto w-full min-w-0 max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
       <AccountConversionPrompt open={showAccountPrompt} kind="interested" onDismiss={() => setShowAccountPrompt(false)} />
 
-      <VenueHeader venue={venue} />
+      <VenueHeader venue={venue} clubName={guide?.club_name} />
 
       {visitedError && (
         <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{visitedError}</p>

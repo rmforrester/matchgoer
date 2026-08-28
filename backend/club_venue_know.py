@@ -23,6 +23,22 @@ def resolve_club_venue(home_team_id: int | None, venue_id: int | None, relations
     return matches[0] if len(matches) == 1 else None
 
 
+def resolve_unique_home_club(venue_id: int | None, relationships: Iterable, *, on_date: date | None = None):
+    """Infer only the sole active CURRENT/HOME relationship for a ground."""
+    if venue_id is None:
+        return None
+    day = on_date or date.today()
+    matches = [
+        item for item in relationships
+        if item.venue_id == venue_id
+        and item.relationship_type == "HOME"
+        and item.status == "CURRENT"
+        and (item.valid_from is None or item.valid_from <= day)
+        and (item.valid_until is None or item.valid_until >= day)
+    ]
+    return matches[0] if len(matches) == 1 else None
+
+
 def spot_is_publishable(spot, *, today: date | None = None) -> bool:
     day = today or date.today()
     return bool(

@@ -21,7 +21,7 @@ from identity import (
 )
 from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, utc_date_expression
-from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue
+from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue, resolve_unique_home_club
 
 from models import (
     Fixture,
@@ -260,13 +260,12 @@ def get_venue_guide(venue_id: int, team_id: int | None = None):
     try:
         if not db.query(Venue.venue_id).filter(Venue.venue_id == venue_id).first():
             raise HTTPException(status_code=404, detail="Ground not found")
-        relationship = None
+        relationships = db.query(ClubVenue).filter(ClubVenue.venue_id == venue_id)
         if team_id is not None:
-            relationships = db.query(ClubVenue).filter(
-                ClubVenue.team_id == team_id,
-                ClubVenue.venue_id == venue_id,
-            ).all()
-            relationship = resolve_club_venue(team_id, venue_id, relationships)
+            explicit_relationships = relationships.filter(ClubVenue.team_id == team_id).all()
+            relationship = resolve_club_venue(team_id, venue_id, explicit_relationships)
+        else:
+            relationship = resolve_unique_home_club(venue_id, relationships.all())
         relationship_id = relationship.club_venue_id if relationship is not None else None
         fact_filter = VenueGuideFact.venue_id == venue_id
         if relationship_id is not None:
@@ -284,6 +283,7 @@ def get_venue_guide(venue_id: int, team_id: int | None = None):
         )
         guide.update({
             "club_venue_id": relationship_id,
+            "club_name": relationship.team.team_name if relationship is not None else None,
             "before_match": [{
                 "pre_match_spot_id": spot.pre_match_spot_id,
                 "display_name": spot.display_name,

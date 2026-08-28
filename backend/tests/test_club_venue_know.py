@@ -8,6 +8,7 @@ from club_venue_know import (
     guide_facts_for_relationship,
     publishable_spots,
     resolve_club_venue,
+    resolve_unique_home_club,
     spot_is_publishable,
 )
 
@@ -35,6 +36,23 @@ def spot(identifier=1, owner=1, order=1, **changes):
 
 
 class ClubVenueResolutionTests(unittest.TestCase):
+    def test_unique_current_home_is_inferred(self):
+        item = relationship()
+        ground_share = relationship(2, team=11, relationship_type="GROUND_SHARE")
+        self.assertIs(resolve_unique_home_club(100, [item, ground_share], on_date=TODAY), item)
+
+    def test_zero_or_multiple_current_homes_are_not_inferred(self):
+        self.assertIsNone(resolve_unique_home_club(100, [], on_date=TODAY))
+        self.assertIsNone(resolve_unique_home_club(100, [relationship(), relationship(2, team=11)], on_date=TODAY))
+
+    def test_historical_or_out_of_date_home_is_not_inferred(self):
+        candidates = [
+            relationship(status="HISTORICAL"),
+            relationship(2, valid_from=TODAY + timedelta(days=1)),
+            relationship(3, valid_until=TODAY - timedelta(days=1)),
+        ]
+        self.assertIsNone(resolve_unique_home_club(100, candidates, on_date=TODAY))
+
     def test_matching_team_and_venue_resolves(self):
         item = relationship()
         self.assertIs(resolve_club_venue(10, 100, [item], on_date=TODAY), item)

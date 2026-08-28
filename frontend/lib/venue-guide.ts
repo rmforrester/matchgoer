@@ -14,6 +14,7 @@ export type VenueGuideSection = {
 export type VenueGuide = {
   venue_id: number;
   club_venue_id: number | null;
+  club_name: string | null;
   has_current_information: boolean;
   sections: VenueGuideSection[];
   before_match: Array<{
