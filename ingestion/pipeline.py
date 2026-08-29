@@ -199,13 +199,18 @@ class TerraceTalkImporter:
     ) -> tuple[int | None, str, int | None, ManualVenueOverride | None]:
         direct_venue_id = (fixture.get("venue") or {}).get("id")
         home_team_venue_id = home_team_venues.get(home_team_id) if home_team_id else None
+        override = manual_override_for(
+            scope.league_id,
+            scope.provider_season,
+            home_team_id,
+            fixture.get("id"),
+        )
+        if override:
+            return None, override.source, home_team_venue_id, override
         if direct_venue_id:
             return direct_venue_id, "fixture_provider", home_team_venue_id, None
         if home_team_venue_id:
             return home_team_venue_id, "home_team_fallback", None, None
-        override = manual_override_for(scope.league_id, scope.provider_season, home_team_id)
-        if override:
-            return None, override.source, None, override
         return None, "unresolved", None, None
 
     def dry_run(self, scope: LeagueScope) -> QaReport:
