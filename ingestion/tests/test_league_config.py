@@ -1,4 +1,5 @@
-from config.leagues import ENGLAND_PYRAMID_2026, USA_PRIORITY_2026, SWEDEN_PRIORITY_2026
+from config.leagues import ENGLAND_PYRAMID_2026, USA_PRIORITY_2026, SWEDEN_PRIORITY_2026, LeagueScope
+from ingest_leagues import resolve_scope
 
 
 EXPECTED_ENGLAND_LEAGUE_IDS = {
@@ -36,3 +37,35 @@ def test_other_country_profiles_are_unchanged():
     assert [scope.league_id for scope in SWEDEN_PRIORITY_2026] == [
         113, 114, 563, 564, 592, 593, 594, 595, 596, 597
     ]
+
+
+def test_explicit_league_id_bypasses_runtime_resolution():
+    configured = ENGLAND_PYRAMID_2026[0]
+
+    class UnexpectedLookupClient:
+        def leagues_by_country(self, country):
+            raise AssertionError(f"unexpected runtime lookup for {country}")
+
+    assert resolve_scope(UnexpectedLookupClient(), configured) is configured
+
+
+def test_unmapped_scope_uses_runtime_name_resolution():
+    configured = LeagueScope("USA", None, "Major League Soccer", 2026, "2026", ("MLS",))
+
+    class DiscoveryClient:
+        def __init__(self):
+            self.countries = []
+
+        def leagues_by_country(self, country):
+            self.countries.append(country)
+            return [{"league": {"id": 253, "name": "Major League Soccer"}}]
+
+    client = DiscoveryClient()
+    resolved = resolve_scope(client, configured)
+
+    assert client.countries == ["USA"]
+    assert resolved.league_id == 253
+    assert resolved.display_name == configured.display_name
+    assert resolved.provider_season == configured.provider_season
+    assert resolved.display_season == configured.display_season
+    assert resolved.aliases == configured.aliases

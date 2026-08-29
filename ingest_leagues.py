@@ -16,6 +16,8 @@ def normalise(value: str) -> str:
 
 
 def resolve_scope(client: ApiFootballClient, scope: LeagueScope) -> LeagueScope:
+    if scope.league_id is not None:
+        return scope
     candidates = client.leagues_by_country(scope.country)
     wanted = {normalise(scope.display_name), *(normalise(alias) for alias in scope.aliases)}
     matches = [item for item in candidates if normalise(item.get("league", {}).get("name", "")) in wanted]
