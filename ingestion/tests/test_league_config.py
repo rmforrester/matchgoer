@@ -1,4 +1,4 @@
-from config.leagues import ENGLAND_PYRAMID_2026, USA_PRIORITY_2026, SWEDEN_PRIORITY_2026, LeagueScope
+from config.leagues import EUROPE_APPROVED_2026, ENGLAND_PYRAMID_2026, USA_PRIORITY_2026, SWEDEN_PRIORITY_2026, LeagueScope
 from ingest_leagues import resolve_scope
 
 
@@ -47,6 +47,15 @@ def test_explicit_league_id_bypasses_runtime_resolution():
             raise AssertionError(f"unexpected runtime lookup for {country}")
 
     assert resolve_scope(UnexpectedLookupClient(), configured) is configured
+
+
+def test_europe_approved_profile_is_exact_and_explicit():
+    assert len(EUROPE_APPROVED_2026) == 20
+    assert [scope.league_id for scope in EUROPE_APPROVED_2026] == [
+        218, 219, 119, 120, 122, 62, 78, 79, 85, 758,
+        135, 136, 88, 89, 103, 180, 183, 730, 436, 207,
+    ]
+    assert all(scope.league_id is not None for scope in EUROPE_APPROVED_2026)
 
 
 def test_unmapped_scope_uses_runtime_name_resolution():
