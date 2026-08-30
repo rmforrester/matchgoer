@@ -131,6 +131,19 @@ class VenueOverridePrecedenceTests(unittest.TestCase):
             (1172, "fixture_provider", 1172, None),
         )
 
+    def test_kerry_team_season_override_resolves_missing_first_division_links(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1492826, None), 11328, {}, scope(358)
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Mounthawk Park")
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(1492826, None), 11328, {}, scope(358, 2027)
+            ),
+            (None, "unresolved", None, None),
+        )
+
     def test_override_lookup_does_not_mutate_home_team_mapping(self):
         home_venues = {593: 1466}
         TerraceTalkImporter._fixture_venue_link(fixture(1, 1466), 593, home_venues, scope(436))

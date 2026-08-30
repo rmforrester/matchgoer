@@ -94,6 +94,12 @@ MANUAL_VENUE_OVERRIDES = (
         latitude=54.9904809, longitude=-7.3362743,
         fixture_provider_id=1492622,
     ),
+    ManualVenueOverride(
+        provider="api_football", league_id=358, season=2026,
+        home_team_provider_id=11328, team_name="Kerry",
+        venue_name="Mounthawk Park", city="Tralee", country="Ireland",
+        latitude=52.2831897, longitude=-9.7147260,
+    ),
     *(
         ManualVenueOverride(
             provider="api_football",
