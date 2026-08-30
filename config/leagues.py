@@ -77,9 +77,19 @@ EUROPE_APPROVED_2026 = (
     LeagueScope("Switzerland", 207, "Super League", 2026, "2026/27"),
 )
 
+EUROPE_GAP_CLEARED_2026 = (
+    LeagueScope("Spain", 140, "La Liga", 2026, "2026/27"),
+    LeagueScope("France", 61, "Ligue 1", 2026, "2026/27"),
+    LeagueScope("Czech-Republic", 345, "Czech Liga", 2026, "2026/27"),
+    LeagueScope("Poland", 106, "Ekstraklasa", 2026, "2026/27"),
+    LeagueScope("Turkey", 203, "Super Lig", 2026, "2026/27"),
+    LeagueScope("Scotland", 179, "Premiership", 2026, "2026/27"),
+)
+
 COVERAGE_PROFILES = {
     "england-pyramid": ENGLAND_PYRAMID_2026,
     "usa-priority": USA_PRIORITY_2026,
     "sweden-priority": SWEDEN_PRIORITY_2026,
     "europe-approved-2026": EUROPE_APPROVED_2026,
+    "europe-gap-cleared-2026": EUROPE_GAP_CLEARED_2026,
 }

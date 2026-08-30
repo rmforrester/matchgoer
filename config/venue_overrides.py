@@ -68,6 +68,25 @@ MANUAL_VENUE_OVERRIDES = (
         latitude=41.432594,
         longitude=2.181415,
     ),
+    ManualVenueOverride(
+        provider="api_football", league_id=61, season=2026,
+        home_team_provider_id=94, team_name="Rennes",
+        venue_name="Roazhon Park", city="Rennes", country="France",
+        latitude=48.1075655, longitude=-1.7126543,
+        fixture_provider_id=1552735,
+    ),
+    ManualVenueOverride(
+        provider="api_football", league_id=61, season=2026,
+        home_team_provider_id=114, team_name="Paris FC",
+        venue_name="Stade Jean-Bouin", city="Paris", country="France",
+        latitude=48.8433187, longitude=2.2529615,
+    ),
+    ManualVenueOverride(
+        provider="api_football", league_id=345, season=2026,
+        home_team_provider_id=560, team_name="Slavia Praha",
+        venue_name="Fortuna Arena", city="Prague", country="Czech-Republic",
+        latitude=50.067487, longitude=14.4797136,
+    ),
     *(
         ManualVenueOverride(
             provider="api_football",

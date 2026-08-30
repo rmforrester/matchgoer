@@ -1,4 +1,4 @@
-from config.leagues import EUROPE_APPROVED_2026, ENGLAND_PYRAMID_2026, USA_PRIORITY_2026, SWEDEN_PRIORITY_2026, LeagueScope
+from config.leagues import EUROPE_APPROVED_2026, EUROPE_GAP_CLEARED_2026, ENGLAND_PYRAMID_2026, USA_PRIORITY_2026, SWEDEN_PRIORITY_2026, LeagueScope
 from ingest_leagues import resolve_scope
 
 
@@ -56,6 +56,18 @@ def test_europe_approved_profile_is_exact_and_explicit():
         135, 136, 88, 89, 103, 180, 183, 730, 436, 207,
     ]
     assert all(scope.league_id is not None for scope in EUROPE_APPROVED_2026)
+
+
+def test_europe_gap_cleared_profile_is_exact_and_explicit():
+    assert [(scope.country, scope.league_id) for scope in EUROPE_GAP_CLEARED_2026] == [
+        ("Spain", 140),
+        ("France", 61),
+        ("Czech-Republic", 345),
+        ("Poland", 106),
+        ("Turkey", 203),
+        ("Scotland", 179),
+    ]
+    assert all(scope.provider_season == 2026 for scope in EUROPE_GAP_CLEARED_2026)
 
 
 def test_unmapped_scope_uses_runtime_name_resolution():

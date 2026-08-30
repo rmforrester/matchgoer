@@ -78,6 +78,46 @@ class VenueOverridePrecedenceTests(unittest.TestCase):
             (135, "fixture_provider", 135, None),
         )
 
+    def test_rennes_bad_provider_venue_is_overridden_for_exact_fixture_only(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1552735, 671), 94, {94: 680}, scope(61)
+        )
+        self.assertIsNone(result[0])
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Roazhon Park")
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(1552736, 680), 94, {94: 680}, scope(61)
+            ),
+            (680, "fixture_provider", 680, None),
+        )
+
+    def test_paris_fc_current_season_home_is_jean_bouin(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(10, 12585), 114, {114: 12585}, scope(61)
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Stade Jean-Bouin")
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(10, 12585), 114, {114: 12585}, scope(61, 2027)
+            ),
+            (12585, "fixture_provider", 12585, None),
+        )
+
+    def test_slavia_current_season_home_uses_verified_fortuna_arena(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(11, 435), 560, {560: 18856}, scope(345)
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Fortuna Arena")
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(11, 435), 560, {560: 18856}, scope(345, 2027)
+            ),
+            (435, "fixture_provider", 18856, None),
+        )
+
     def test_override_lookup_does_not_mutate_home_team_mapping(self):
         home_venues = {593: 1466}
         TerraceTalkImporter._fixture_venue_link(fixture(1, 1466), 593, home_venues, scope(436))

@@ -2903,11 +2903,12 @@
     "errors": []
   },
   "1471": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
+    "status": "geocoded",
+    "latitude": 43.3687157,
+    "longitude": -8.4175098,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
     "errors": []
   },
   "1473": {
@@ -2978,11 +2979,12 @@
     "errors": []
   },
   "1486": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
+    "status": "geocoded",
+    "latitude": 42.7966625,
+    "longitude": -1.6371311,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
     "errors": []
   },
   "1487": {
@@ -3002,11 +3004,12 @@
     "errors": []
   },
   "1491": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
+    "status": "geocoded",
+    "latitude": 43.3013899,
+    "longitude": -1.9735689,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
     "errors": []
   },
   "1492": {
@@ -4370,11 +4373,11 @@
     "errors": []
   },
   "2381": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
+    "status": "geocoded",
+    "latitude": 37.9430838,
+    "longitude": 40.1205233,
+    "source": "TFF current club venue identity plus reviewed OSM stadium feature",
+    "reviewed": true,
     "errors": []
   },
   "2385": {
@@ -14870,11 +14873,11 @@
     "errors": []
   },
   "20309": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
+    "status": "geocoded",
+    "latitude": 40.7750844,
+    "longitude": 30.017023,
+    "source": "Kocaelispor 2026/27 ticketing plus reviewed OSM stadium feature",
+    "reviewed": true,
     "errors": []
   },
   "20325": {
@@ -15240,11 +15243,11 @@
     }
   },
   "20753": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
+    "status": "geocoded",
+    "latitude": 51.40981,
+    "longitude": 21.171867,
+    "source": "Ekstraklasa current fixture identity and Radom municipal stadium operator",
+    "reviewed": true,
     "errors": []
   },
   "20758": {
@@ -16336,11 +16339,11 @@
     "errors": []
   },
   "22465": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
+    "status": "geocoded",
+    "latitude": 36.562614,
+    "longitude": 32.079143,
+    "source": "Alanyaspor official 2026/27 home-ticketing identity and geographic stadium reference",
+    "reviewed": true,
     "errors": []
   },
   "22482": {
@@ -16575,11 +16578,11 @@
     "errors": []
   },
   "22760": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
+    "status": "geocoded",
+    "latitude": 40.9875807,
+    "longitude": 29.0369773,
+    "source": "Fenerbahce/TFF current venue identity plus reviewed OSM stadium feature",
+    "reviewed": true,
     "errors": []
   },
   "22761": {
@@ -16662,6 +16665,92 @@
     "longitude": 8.8376718,
     "queries_attempted": 3,
     "preflight_requests": 3,
+    "errors": []
+  },
+  "22783": {
+    "status": "geocoded",
+    "latitude": 50.6119044,
+    "longitude": 3.130508,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": []
+  },
+  "666": {
+    "status": "geocoded",
+    "latitude": 45.7653624,
+    "longitude": 4.9820543,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": []
+  },
+  "663": {
+    "status": "geocoded",
+    "latitude": 43.7051477,
+    "longitude": 7.1926033,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": []
+  },
+  "680": {
+    "status": "geocoded",
+    "latitude": 48.1075655,
+    "longitude": -1.7126543,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": []
+  },
+  "636": {
+    "status": "geocoded",
+    "latitude": 47.7867848,
+    "longitude": 3.5886237,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": []
+  },
+  "654": {
+    "status": "geocoded",
+    "latitude": 50.4328242,
+    "longitude": 2.8149863,
+    "source": "nominatim_reviewed_2026_08_30",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": []
+  },
+  "11913": {
+    "status": "geocoded",
+    "latitude": 55.8505344,
+    "longitude": -4.4442054,
+    "source": "St Mirren official 2026/27 season-ticket identity plus reviewed OSM stadium feature",
+    "reviewed": true,
+    "errors": []
+  },
+  "20420": {
+    "status": "geocoded",
+    "latitude": 56.4746055,
+    "longitude": -2.9736296,
+    "source": "Dundee official 2026/27 season-ticket address plus reviewed OSM stadium feature",
+    "reviewed": true,
+    "errors": []
+  },
+  "1393": {
+    "status": "geocoded",
+    "latitude": 55.9390197,
+    "longitude": -3.2322709,
+    "source": "Hearts official 2026/27 ticketing identity plus reviewed OSM stadium feature",
+    "reviewed": true,
+    "errors": []
+  },
+  "1390": {
+    "status": "geocoded",
+    "latitude": 56.005383,
+    "longitude": -3.7525969,
+    "source": "Falkirk official 2026/27 season-ticket identity plus reviewed OSM football feature",
+    "reviewed": true,
     "errors": []
   }
 }
