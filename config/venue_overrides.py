@@ -100,6 +100,19 @@ MANUAL_VENUE_OVERRIDES = (
         venue_name="Mounthawk Park", city="Tralee", country="Ireland",
         latitude=52.2831897, longitude=-9.7147260,
     ),
+    ManualVenueOverride(
+        provider="api_football", league_id=94, season=2026,
+        home_team_provider_id=15130, team_name="Estrela",
+        venue_name="Estádio José Gomes", city="Amadora", country="Portugal",
+        latitude=38.75208, longitude=-9.22798,
+    ),
+    ManualVenueOverride(
+        provider="api_football", league_id=210, season=2026,
+        home_team_provider_id=608, team_name="HNK Hajduk Split",
+        venue_name="Gradski stadion Poljud", city="Split", country="Croatia",
+        latitude=43.519514, longitude=16.431033,
+        fixture_provider_id=1548519,
+    ),
     *(
         ManualVenueOverride(
             provider="api_football",

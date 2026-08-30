@@ -144,6 +144,26 @@ class VenueOverridePrecedenceTests(unittest.TestCase):
             (None, "unresolved", None, None),
         )
 
+    def test_hajduk_provider_contradiction_is_fixture_scoped_to_poljud(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1548519, 412), 608, {608: 425}, scope(210)
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Gradski stadion Poljud")
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(1548520, 425), 608, {608: 425}, scope(210)
+            ),
+            (425, "fixture_provider", 425, None),
+        )
+
+    def test_estrela_bad_team_default_is_replaced_by_current_home_ground(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1575475, None), 15130, {15130: 22604}, scope(94)
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Estádio José Gomes")
+
     def test_override_lookup_does_not_mutate_home_team_mapping(self):
         home_venues = {593: 1466}
         TerraceTalkImporter._fixture_venue_link(fixture(1, 1466), 593, home_venues, scope(436))
