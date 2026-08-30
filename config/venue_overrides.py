@@ -87,6 +87,13 @@ MANUAL_VENUE_OVERRIDES = (
         venue_name="Fortuna Arena", city="Prague", country="Czech-Republic",
         latitude=50.067487, longitude=14.4797136,
     ),
+    ManualVenueOverride(
+        provider="api_football", league_id=357, season=2026,
+        home_team_provider_id=670, team_name="Derry City",
+        venue_name="The Ryan McBride Brandywell Stadium", city="Derry", country="Ireland",
+        latitude=54.9904809, longitude=-7.3362743,
+        fixture_provider_id=1492622,
+    ),
     *(
         ManualVenueOverride(
             provider="api_football",

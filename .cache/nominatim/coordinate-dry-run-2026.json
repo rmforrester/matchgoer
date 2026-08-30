@@ -228,7 +228,7 @@
     "errors": [],
     "ambiguity_resolution": {
       "classification": "safely_resolved_from_candidates",
-      "reason": "Exact Stade Saputo name, Montr\u00e9al locality, address, and stadium feature.",
+      "reason": "Exact Stade Saputo name, Montréal locality, address, and stadium feature.",
       "previous_result": {
         "status": "ambiguous",
         "latitude": null,
@@ -383,12 +383,15 @@
     "errors": []
   },
   "444": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
-    "errors": []
+    "status": "geocoded",
+    "latitude": 56.0464165,
+    "longitude": 12.5849961,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Helsingor Stadion, Gammel Hellebaekvej",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
   },
   "445": {
     "status": "geocoded",
@@ -2193,7 +2196,7 @@
     "latitude": 59.962752,
     "longitude": 11.063458,
     "source": "targeted_research",
-    "canonical_identity": "\u00c5r\u00e5sen Stadion",
+    "canonical_identity": "Åråsen Stadion",
     "research_artifact": "europe-wide-targeted-research-batch2-2026.json"
   },
   "1184": {
@@ -3050,7 +3053,7 @@
     "latitude": 39.94418,
     "longitude": -0.10343,
     "source": "targeted_research",
-    "canonical_identity": "Estadio de la Cer\u00e1mica",
+    "canonical_identity": "Estadio de la Cerámica",
     "research_artifact": "europe-wide-targeted-research-batch2-2026.json"
   },
   "1501": {
@@ -3140,7 +3143,7 @@
     "errors": [],
     "ambiguity_resolution": {
       "classification": "safely_resolved_from_candidates",
-      "reason": "Exact Gamla Ullevi name, G\u00f6teborg locality, and stadium feature.",
+      "reason": "Exact Gamla Ullevi name, Göteborg locality, and stadium feature.",
       "previous_result": {
         "status": "ambiguous",
         "latitude": null,
@@ -5626,7 +5629,7 @@
     "status": "reviewed_accepted",
     "latitude": 53.488056,
     "longitude": 18.759444,
-    "source": "Human review approval supplied for Stadion Miejski im. Bronis\u0142awa Malinowskiego using the existing provider identity, venue name, address, and Grudzi\u0105dz locality evidence.",
+    "source": "Human review approval supplied for Stadion Miejski im. Bronisława Malinowskiego using the existing provider identity, venue name, address, and Grudziądz locality evidence.",
     "notes": "Approved as the football-stadium centroid; not an entrance, office, ancillary pitch, or broader sports-complex coordinate.",
     "reviewed": true
   },
@@ -7246,8 +7249,8 @@
     "status": "reviewed_accepted",
     "latitude": 50.066111,
     "longitude": 20.057222,
-    "source": "Human-reviewed convergence: Krak\u00f3w municipal sports authority, City of Krak\u00f3w, Hutnik Krak\u00f3w current supporter information, and published stadium-coordinate references.",
-    "notes": "Approved as the football-stadium centroid for Stadion Suche Stawy / Stadion Miejski Hutnik Krak\u00f3w at Tadeusza Ptaszyckiego 4; not an entrance, club office, sports hall, or broader complex coordinate.",
+    "source": "Human-reviewed convergence: Kraków municipal sports authority, City of Kraków, Hutnik Kraków current supporter information, and published stadium-coordinate references.",
+    "notes": "Approved as the football-stadium centroid for Stadion Suche Stawy / Stadion Miejski Hutnik Kraków at Tadeusza Ptaszyckiego 4; not an entrance, club office, sports hall, or broader complex coordinate.",
     "reviewed": true
   },
   "5066": {
@@ -7314,8 +7317,8 @@
     "status": "reviewed_accepted",
     "latitude": 52.169083,
     "longitude": 20.813,
-    "source": "Human-reviewed convergence: Znicz Pruszk\u00f3w official stadium information, the local stadium operator, and independent geographic references for Stadion Pi\u0142karski MZOS \u2018Znicz\u2019 at Bohater\u00f3w Warszawy 4.",
-    "notes": "Approved as the football-stadium centroid for Stadion Znicza / Stadion Pi\u0142karski MZOS \u2018Znicz\u2019 in Pruszk\u00f3w; not an entrance, club office, ancillary pitch, or broader sports-complex coordinate.",
+    "source": "Human-reviewed convergence: Znicz Pruszków official stadium information, the local stadium operator, and independent geographic references for Stadion Piłkarski MZOS ‘Znicz’ at Bohaterów Warszawy 4.",
+    "notes": "Approved as the football-stadium centroid for Stadion Znicza / Stadion Piłkarski MZOS ‘Znicz’ in Pruszków; not an entrance, club office, ancillary pitch, or broader sports-complex coordinate.",
     "reviewed": true
   },
   "5089": {
@@ -12955,7 +12958,7 @@
     "latitude": 50.7765,
     "longitude": 19.1591,
     "source": "targeted_research",
-    "canonical_identity": "Miejski Stadion Pi\u0142karski Rak\u00f3w",
+    "canonical_identity": "Miejski Stadion Piłkarski Raków",
     "research_artifact": "europe-wide-targeted-research-batch2-2026.json"
   },
   "18636": {
@@ -14437,7 +14440,7 @@
     "status": "reviewed_accepted",
     "latitude": 51.3016,
     "longitude": 22.876042,
-    "source": "Human review approval supplied for Bogdanka Arena / Stadion G\u00f3rnika \u0141\u0119czna using the existing provider identity, venue name, address, and \u0141\u0119czna locality evidence.",
+    "source": "Human review approval supplied for Bogdanka Arena / Stadion Górnika Łęczna using the existing provider identity, venue name, address, and Łęczna locality evidence.",
     "notes": "Approved as the football-stadium centroid; not an entrance, office, ancillary pitch, or broader sports-complex coordinate.",
     "reviewed": true
   },
@@ -15200,7 +15203,7 @@
     "latitude": 50.206389,
     "longitude": 15.845389,
     "source": "targeted_research",
-    "canonical_identity": "Mal\u0161ovick\u00e1 ar\u00e9na / FINEP Arena",
+    "canonical_identity": "Malšovická aréna / FINEP Arena",
     "research_artifact": "europe-wide-targeted-research-batch1-2026.json"
   },
   "20750": {
@@ -16048,12 +16051,15 @@
     "errors": []
   },
   "22113": {
-    "status": "unresolved",
-    "latitude": null,
-    "longitude": null,
-    "queries_attempted": 7,
-    "preflight_requests": 7,
-    "errors": []
+    "status": "geocoded",
+    "latitude": 56.3659623,
+    "longitude": 8.6316667,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Holstebro Idraetspark",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
   },
   "22121": {
     "status": "geocoded",
@@ -16752,5 +16758,104 @@
     "source": "Falkirk official 2026/27 season-ticket identity plus reviewed OSM football feature",
     "reviewed": true,
     "errors": []
+  },
+  "891": {
+    "status": "geocoded",
+    "latitude": 45.6432583,
+    "longitude": 11.7811632,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Stadio Piercesare Tombolato, Cittadella",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
+  },
+  "7324": {
+    "status": "geocoded",
+    "latitude": 45.6551314,
+    "longitude": 10.2362431,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Stadio Comunale Tullio Saleri, Lumezzane",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
+  },
+  "18862": {
+    "status": "geocoded",
+    "latitude": 55.9384141,
+    "longitude": -4.5616641,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Dumbarton Football Stadium, Castle Road",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
+  },
+  "4953": {
+    "status": "geocoded",
+    "latitude": 54.9022014,
+    "longitude": -5.0124846,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Stair Park stadium, Stranraer",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
+  },
+  "864": {
+    "status": "geocoded",
+    "latitude": 53.9982265,
+    "longitude": -6.4164564,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Oriel Park, Dundalk",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
+  },
+  "1172": {
+    "status": "geocoded",
+    "latitude": 54.9904809,
+    "longitude": -7.3362743,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Brandywell Stadium, Derry",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
+  },
+  "202": {
+    "status": "geocoded",
+    "latitude": 43.3452311,
+    "longitude": 17.7950853,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Stadion pod Bijelim Brijegom, Mostar",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
+  },
+  "6060": {
+    "status": "geocoded",
+    "latitude": 44.7323516,
+    "longitude": 18.0940352,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Stadion Luke, Doboj",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
+  },
+  "3332": {
+    "status": "geocoded",
+    "latitude": 46.2465287,
+    "longitude": 15.2700075,
+    "source": "targeted_nominatim_venue_identity",
+    "queries_attempted": 1,
+    "requests": 1,
+    "errors": [],
+    "evidence": "Stadion z'dezele, Celje",
+    "acceptance": "venue identity and locality matched; stadium/sports feature selected"
   }
 }

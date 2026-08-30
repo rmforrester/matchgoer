@@ -118,6 +118,19 @@ class VenueOverridePrecedenceTests(unittest.TestCase):
             (435, "fixture_provider", 18856, None),
         )
 
+    def test_derry_provider_id_contradiction_is_fixture_scoped_to_brandywell(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1492622, 864), 670, {670: 1172}, scope(357)
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "The Ryan McBride Brandywell Stadium")
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(1492623, 1172), 670, {670: 1172}, scope(357)
+            ),
+            (1172, "fixture_provider", 1172, None),
+        )
+
     def test_override_lookup_does_not_mutate_home_team_mapping(self):
         home_venues = {593: 1466}
         TerraceTalkImporter._fixture_venue_link(fixture(1, 1466), 593, home_venues, scope(436))
