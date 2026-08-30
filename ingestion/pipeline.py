@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -77,7 +78,15 @@ class TerraceTalkImporter:
 
     @staticmethod
     def _normalize_venue_name(value: str) -> str:
-        return " ".join(value.strip().lower().split())
+        return " ".join(re.sub(r"[-\u2010-\u2015]+", " ", value.strip().lower()).split())
+
+    @staticmethod
+    def _venue_update_values(values: dict[str, Any]) -> dict[str, Any]:
+        """Provider omissions must not erase established hosted venue metadata."""
+        return {
+            key: value for key, value in values.items()
+            if key != "provider_venue_id" and value is not None
+        }
 
     def _provider_mapping(self, connection, provider_ids: set[int]) -> dict[int, int]:
         if not provider_ids:
@@ -115,7 +124,7 @@ class TerraceTalkImporter:
                 self.venue_names.c.name_type == "current",
             )
         ).first()
-        if current and current.normalized_name == normalized:
+        if current and self._normalize_venue_name(current.name) == normalized:
             return current.name
         if current and (current.source or "").startswith("reviewed_") and source == "api_football":
             return current.name
@@ -424,7 +433,7 @@ class TerraceTalkImporter:
                     ).scalar_one()
                     self._sync_current_name(connection, internal_venue_id, values.get("name"), "api_football")
                 else:
-                    mutable_values = {key: value for key, value in values.items() if key != "provider_venue_id"}
+                    mutable_values = self._venue_update_values(values)
                     mutable_values["name"] = self._sync_current_name(
                         connection, internal_venue_id, values.get("name"), "api_football"
                     )
