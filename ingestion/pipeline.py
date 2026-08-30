@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -40,6 +41,7 @@ class QaReport:
     fixtures_linked_to_venues: int = 0
     fixtures_missing_venue: int = 0
     fixtures_linked_fixture_provider: int = 0
+    fixtures_linked_fixture_provider_name: int = 0
     fixtures_linked_home_team_fallback: int = 0
     fixtures_linked_manual_verified: int = 0
     fixtures_direct_home_team_conflicts: int = 0
@@ -79,6 +81,35 @@ class TerraceTalkImporter:
     @staticmethod
     def _normalize_venue_name(value: str) -> str:
         return " ".join(re.sub(r"[-\u2010-\u2015]+", " ", value.strip().lower()).split())
+
+    @classmethod
+    def _normalize_venue_identity_name(cls, value: str) -> str:
+        normalized = unicodedata.normalize("NFKD", cls._normalize_venue_name(value))
+        ascii_name = "".join(character for character in normalized if not unicodedata.combining(character))
+        return re.sub(r"^(?:stadium|stadion)\s+", "", ascii_name)
+
+    def _canonical_venue_name_mapping(self, connection) -> dict[str, int]:
+        """Exact venue identity aliases derived from linked canonical team names.
+
+        Provider strings such as ``Stadium Viktoria Zizkov`` identify the venue
+        through the resident club identity. Ordinary venue labels are not
+        inferred here: a direct name/default conflict must otherwise remain a
+        reviewed decision rather than silently changing an established link.
+        """
+        candidates: dict[str, set[int]] = {}
+
+        def add(name: str | None, venue_id: int | None) -> None:
+            if not name or venue_id is None:
+                return
+            key = self._normalize_venue_identity_name(name)
+            if key:
+                candidates.setdefault(key, set()).add(venue_id)
+
+        for row in connection.execute(
+            select(self.teams.c.venue_id, self.teams.c.team_name).where(self.teams.c.venue_id.is_not(None))
+        ):
+            add(row.team_name, row.venue_id)
+        return {name: next(iter(venue_ids)) for name, venue_ids in candidates.items() if len(venue_ids) == 1}
 
     @staticmethod
     def _venue_update_values(values: dict[str, Any]) -> dict[str, Any]:
@@ -205,6 +236,7 @@ class TerraceTalkImporter:
         home_team_id: int | None,
         home_team_venues: dict[int, int],
         scope: LeagueScope,
+        canonical_name_venues: dict[str, int] | None = None,
     ) -> tuple[int | None, str, int | None, ManualVenueOverride | None]:
         direct_venue_id = (fixture.get("venue") or {}).get("id")
         home_team_venue_id = home_team_venues.get(home_team_id) if home_team_id else None
@@ -218,6 +250,13 @@ class TerraceTalkImporter:
             return None, override.source, home_team_venue_id, override
         if direct_venue_id:
             return direct_venue_id, "fixture_provider", home_team_venue_id, None
+        direct_venue_name = (fixture.get("venue") or {}).get("name")
+        if direct_venue_name and canonical_name_venues:
+            internal_venue_id = canonical_name_venues.get(
+                TerraceTalkImporter._normalize_venue_identity_name(direct_venue_name)
+            )
+            if internal_venue_id is not None:
+                return internal_venue_id, "fixture_provider_name", home_team_venue_id, None
         if home_team_venue_id:
             return home_team_venue_id, "home_team_fallback", None, None
         return None, "unresolved", None, None
@@ -251,6 +290,8 @@ class TerraceTalkImporter:
                     report.duplicate_provider_ids.append(f"venue:{venue['provider_venue_id']}")
                 venues[venue["provider_venue_id"]] = venue
         home_team_venues = self._home_team_venues(team_payloads)
+        with self.engine.connect() as connection:
+            canonical_name_venues = self._canonical_venue_name_mapping(connection)
         report.teams_without_venue_ids = len(teams) - len(home_team_venues)
         for item in fixture_payloads:
             fixture = item.get("fixture", {})
@@ -261,12 +302,14 @@ class TerraceTalkImporter:
             elif fixture_id:
                 fixture_ids.add(fixture_id)
             venue_id, link_source, home_team_venue_id, override = self._fixture_venue_link(
-                fixture, home_team_id, home_team_venues, scope
+                fixture, home_team_id, home_team_venues, scope, canonical_name_venues
             )
             if link_source == "fixture_provider":
                 report.fixtures_linked_fixture_provider += 1
                 if home_team_venue_id and home_team_venue_id != venue_id:
                     report.fixtures_direct_home_team_conflicts += 1
+            elif link_source == "fixture_provider_name":
+                report.fixtures_linked_fixture_provider_name += 1
             elif link_source == "home_team_fallback":
                 report.fixtures_linked_home_team_fallback += 1
                 observed_name = (fixture.get("venue") or {}).get("name")
@@ -344,6 +387,7 @@ class TerraceTalkImporter:
         report.new_fixtures, report.updated_fixtures = len(fixture_ids) - len(old_fixtures), len(old_fixtures)
         report.fixtures_linked_to_venues = (
             report.fixtures_linked_fixture_provider
+            + report.fixtures_linked_fixture_provider_name
             + report.fixtures_linked_home_team_fallback
             + report.fixtures_linked_manual_verified
         )
@@ -424,6 +468,7 @@ class TerraceTalkImporter:
                     result = enricher.enrich(venue)
                     venue["latitude"], venue["longitude"] = result.latitude, result.longitude
         with self.engine.begin() as connection:
+            canonical_name_venues = self._canonical_venue_name_mapping(connection)
             provider_to_internal = self._provider_mapping(connection, set(venues))
             for provider_venue_id, values in venues.items():
                 internal_venue_id = provider_to_internal.get(provider_venue_id)
@@ -460,7 +505,9 @@ class TerraceTalkImporter:
             for item in fixture_payloads:
                 fixture = item.get("fixture") or {}
                 home_team_id = (item.get("teams") or {}).get("home", {}).get("id")
-                _, link_source, _, override = self._fixture_venue_link(fixture, home_team_id, home_team_venues, scope)
+                _, link_source, _, override = self._fixture_venue_link(
+                    fixture, home_team_id, home_team_venues, scope, canonical_name_venues
+                )
                 if link_source != "manual_verified" or override is None or override in manual_internal_ids:
                     continue
                 internal_venue_id = connection.execute(
@@ -500,10 +547,11 @@ class TerraceTalkImporter:
                 fixture, league, teams_payload, goals = item["fixture"], item["league"], item["teams"], item["goals"]
                 venue = fixture.get("venue") or {}
                 provider_venue_id, link_source, _, override = self._fixture_venue_link(
-                    fixture, teams_payload["home"]["id"], home_team_venues, scope
+                    fixture, teams_payload["home"]["id"], home_team_venues, scope, canonical_name_venues
                 )
                 internal_venue_id = (
                     manual_internal_ids.get(override) if link_source == "manual_verified"
+                    else provider_venue_id if link_source == "fixture_provider_name"
                     else provider_to_internal.get(provider_venue_id)
                 )
                 venue_name = override.venue_name if override else venue.get("name")

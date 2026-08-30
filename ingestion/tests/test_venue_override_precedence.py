@@ -17,8 +17,8 @@ def scope(league_id: int, season: int = 2026) -> LeagueScope:
     )
 
 
-def fixture(fixture_id: int, venue_id: int | None) -> dict:
-    return {"id": fixture_id, "venue": {"id": venue_id}}
+def fixture(fixture_id: int, venue_id: int | None, venue_name: str | None = None) -> dict:
+    return {"id": fixture_id, "venue": {"id": venue_id, "name": venue_name}}
 
 
 class VenueOverridePrecedenceTests(unittest.TestCase):
@@ -52,6 +52,53 @@ class VenueOverridePrecedenceTests(unittest.TestCase):
             TerraceTalkImporter._fixture_venue_link(fixture(3, 900), 1, {1: 901}, scope(999)),
             (900, "fixture_provider", 901, None),
         )
+
+    def test_direct_provider_id_outranks_resolvable_direct_name(self):
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(3, 900, "Known Ground"), 1, {1: 901}, scope(999), {"known ground": 902}
+            ),
+            (900, "fixture_provider", 901, None),
+        )
+
+    def test_direct_provider_name_resolves_before_team_default(self):
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(1559727, None, "Stadium Viktoria Zizkov"),
+                8618,
+                {8618: 6154},
+                scope(346),
+                {"viktoria zizkov": 23636},
+            ),
+            (23636, "fixture_provider_name", 6154, None),
+        )
+
+    def test_ambiguous_direct_provider_name_falls_back_without_guessing(self):
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(3, None, "Common Stadium"), 1, {1: 901}, scope(999), {}
+            ),
+            (901, "home_team_fallback", None, None),
+        )
+
+    def test_slavia_na_chvalech_default_is_unchanged_without_direct_name(self):
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(1559728, None), 8618, {8618: 6154}, scope(346), {"viktoria zizkov": 23636}
+            ),
+            (6154, "home_team_fallback", None, None),
+        )
+
+    def test_reviewed_override_outranks_direct_provider_name(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1552735, None, "Known Ground"),
+            94,
+            {94: 680},
+            scope(61),
+            {"known ground": 902},
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Roazhon Park")
         self.assertEqual(
             TerraceTalkImporter._fixture_venue_link(fixture(3, None), 1, {1: 901}, scope(999)),
             (901, "home_team_fallback", None, None),
