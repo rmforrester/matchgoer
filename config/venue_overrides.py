@@ -113,6 +113,27 @@ MANUAL_VENUE_OVERRIDES = (
         latitude=43.519514, longitude=16.431033,
         fixture_provider_id=1548519,
     ),
+    ManualVenueOverride(
+        provider="api_football", league_id=348, season=2026,
+        home_team_provider_id=26232, team_name="Slavia Praha U20",
+        venue_name="Sportovní centrum Radotín", city="Prague", country="Czech-Republic",
+        latitude=49.9784945, longitude=14.3540401,
+        source="manual_verified",
+    ),
+    ManualVenueOverride(
+        provider="api_football", league_id=435, season=2026,
+        home_team_provider_id=24612, team_name="Extremadura 1924",
+        venue_name="Estadio Francisco de la Hera", city="Almendralejo", country="Spain",
+        latitude=38.6843830, longitude=-6.4146752,
+        source="manual_verified",
+    ),
+    ManualVenueOverride(
+        provider="api_football", league_id=943, season=2026,
+        home_team_provider_id=26355, team_name="Inter U23",
+        venue_name="U-Power Stadium", city="Monza", country="Italy",
+        latitude=45.5831120, longitude=9.3079276,
+        source="manual_verified",
+    ),
     *(
         ManualVenueOverride(
             provider="api_football",

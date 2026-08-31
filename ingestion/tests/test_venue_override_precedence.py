@@ -191,6 +191,25 @@ class VenueOverridePrecedenceTests(unittest.TestCase):
             (None, "unresolved", None, None),
         )
 
+    def test_current_season_next21_team_overrides_are_scoped_and_do_not_leak(self):
+        cases = (
+            (348, 26232, "Sportovní centrum Radotín"),
+            (435, 24612, "Estadio Francisco de la Hera"),
+            (943, 26355, "U-Power Stadium"),
+        )
+        for league_id, team_id, venue_name in cases:
+            with self.subTest(league_id=league_id):
+                result = TerraceTalkImporter._fixture_venue_link(
+                    fixture(99, None), team_id, {}, scope(league_id)
+                )
+                self.assertEqual(result[1], "manual_verified")
+                self.assertEqual(result[3].venue_name, venue_name)
+                self.assertEqual(
+                    TerraceTalkImporter._fixture_venue_link(
+                        fixture(99, None), team_id, {}, scope(league_id, 2027)
+                    ),
+                    (None, "unresolved", None, None),
+                )
     def test_hajduk_provider_contradiction_is_fixture_scoped_to_poljud(self):
         result = TerraceTalkImporter._fixture_venue_link(
             fixture(1548519, 412), 608, {608: 425}, scope(210)
