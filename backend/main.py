@@ -21,6 +21,7 @@ from identity import (
 )
 from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, utc_date_expression
+from location_safety import has_usable_coordinates
 from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue, resolve_unique_home_club
 
 from models import (
@@ -200,10 +201,7 @@ def get_venues(
 
     for venue in venues:
 
-        if (
-            venue.latitude is None
-            or venue.longitude is None
-        ):
+        if not has_usable_coordinates(venue.latitude, venue.longitude):
             continue
 
         venue_location = (
@@ -558,10 +556,7 @@ def get_nearby(
         if not fixture.venue:
             continue
 
-        if (
-            fixture.venue.latitude is None
-            or fixture.venue.longitude is None
-        ):
+        if not has_usable_coordinates(fixture.venue.latitude, fixture.venue.longitude):
             continue
 
         venue_location = (

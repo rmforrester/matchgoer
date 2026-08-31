@@ -2,9 +2,14 @@ from ingestion.coverage_reporting import (
     REMEDIATION_REQUIRED,
     SAFE_TO_IMPORT,
     WITHHOLD_WITH_REASON,
+    LEAGUE_LEVEL_BLOCKER,
+    PARTIAL_FIXTURE_REMEDIATION_REQUIRED,
+    SAFE_UNDER_REVISED_POLICY,
+    BREADTH_IMPORT_GEOCODE,
     CoverageLeague,
     coverage_warnings,
     lifecycle_status,
+    revised_breadth_status,
 )
 
 
@@ -36,3 +41,12 @@ def test_reports_discovery_depth_after_contiguous_hosted_levels():
         "deepest_hosted": 2,
         "deepest_available": 3,
     }]
+
+
+def test_revised_breadth_policy_reports_coordinates_without_using_them_as_a_gate():
+    assert BREADTH_IMPORT_GEOCODE is False
+    assert revised_breadth_status(provider_available=True) == SAFE_UNDER_REVISED_POLICY
+    assert revised_breadth_status(provider_available=True, unresolved_fixture_links=2) == PARTIAL_FIXTURE_REMEDIATION_REQUIRED
+    assert revised_breadth_status(provider_available=True, identity_collisions=1) == LEAGUE_LEVEL_BLOCKER
+    assert revised_breadth_status(provider_available=True, material_venue_contradictions=1) == LEAGUE_LEVEL_BLOCKER
+    assert revised_breadth_status(provider_available=False) == LEAGUE_LEVEL_BLOCKER

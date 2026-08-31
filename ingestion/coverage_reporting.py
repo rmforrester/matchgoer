@@ -8,6 +8,13 @@ from dataclasses import dataclass
 REMEDIATION_REQUIRED = "REMEDIATION_REQUIRED"
 SAFE_TO_IMPORT = "SAFE_TO_IMPORT"
 WITHHOLD_WITH_REASON = "WITHHOLD_WITH_REASON"
+SAFE_UNDER_REVISED_POLICY = "SAFE_UNDER_REVISED_POLICY"
+PARTIAL_FIXTURE_REMEDIATION_REQUIRED = "PARTIAL_FIXTURE_REMEDIATION_REQUIRED"
+LEAGUE_LEVEL_BLOCKER = "LEAGUE_LEVEL_BLOCKER"
+
+# Breadth imports must retain only reviewed/checkpoint coordinates. The
+# importer already represents every other coordinate as NULL.
+BREADTH_IMPORT_GEOCODE = False
 
 
 @dataclass(frozen=True)
@@ -30,6 +37,27 @@ def lifecycle_status(league: CoverageLeague) -> str:
     if league.hosted_complete or league.safety_passed:
         return SAFE_TO_IMPORT
     return REMEDIATION_REQUIRED
+
+
+def revised_breadth_status(
+    *,
+    provider_available: bool,
+    identity_collisions: int = 0,
+    material_venue_contradictions: int = 0,
+    unresolved_fixture_links: int = 0,
+) -> str:
+    """Classify a provider-backed breadth scope without making coordinates a gate.
+
+    Missing coordinates are intentionally absent from this contract: they are a
+    feature-readiness metric, while location endpoints already fail closed for
+    NULL venue coordinates. A missing fixture-to-venue link is isolated at
+    fixture level because ``fixtures.venue_id`` is nullable.
+    """
+    if not provider_available or identity_collisions or material_venue_contradictions:
+        return LEAGUE_LEVEL_BLOCKER
+    if unresolved_fixture_links:
+        return PARTIAL_FIXTURE_REMEDIATION_REQUIRED
+    return SAFE_UNDER_REVISED_POLICY
 
 
 def coverage_warnings(leagues: list[CoverageLeague]) -> list[dict[str, object]]:
