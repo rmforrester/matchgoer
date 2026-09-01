@@ -1,0 +1,310 @@
+{
+  "status": "PASS",
+  "intended_coordinates_verified": 48,
+  "withheld_provider_venue_ids_unchanged": [
+    774,
+    1759,
+    2524,
+    3512,
+    4006,
+    11595,
+    19583,
+    20757
+  ],
+  "venue_inserts": 0,
+  "venue_deletes": 0,
+  "identity_changes": 0,
+  "updated_coordinate_count_by_country": {
+    "Albania": 1,
+    "Armenia": 1,
+    "Azerbaijan": 1,
+    "Belarus": 1,
+    "Bulgaria": 2,
+    "Faroe-Islands": 1,
+    "Finland": 2,
+    "Georgia": 2,
+    "Greece": 3,
+    "Hungary": 3,
+    "Iceland": 1,
+    "Israel": 5,
+    "Kazakhstan": 1,
+    "Kosovo": 1,
+    "Latvia": 2,
+    "Luxembourg": 1,
+    "Malta": 3,
+    "Montenegro": 1,
+    "Romania": 3,
+    "Russia": 2,
+    "Serbia": 3,
+    "Slovakia": 4,
+    "Ukraine": 3,
+    "Wales": 1
+  },
+  "breadth_country_fixture_coverage": [
+    {
+      "country": "Albania",
+      "league": "Superliga",
+      "league_id": 310,
+      "fixtures": 90,
+      "location_discoverable_fixtures": 72,
+      "location_discoverable_percent": 80.0
+    },
+    {
+      "country": "Andorra",
+      "league": "1a Divisió",
+      "league_id": 312,
+      "fixtures": 135,
+      "location_discoverable_fixtures": 54,
+      "location_discoverable_percent": 40.0
+    },
+    {
+      "country": "Armenia",
+      "league": "Premier League",
+      "league_id": 342,
+      "fixtures": 198,
+      "location_discoverable_fixtures": 150,
+      "location_discoverable_percent": 75.8
+    },
+    {
+      "country": "Azerbaijan",
+      "league": "Premyer Liqa",
+      "league_id": 419,
+      "fixtures": 198,
+      "location_discoverable_fixtures": 100,
+      "location_discoverable_percent": 50.5
+    },
+    {
+      "country": "Belarus",
+      "league": "Premier League",
+      "league_id": 116,
+      "fixtures": 240,
+      "location_discoverable_fixtures": 135,
+      "location_discoverable_percent": 56.2
+    },
+    {
+      "country": "Bulgaria",
+      "league": "First League",
+      "league_id": 172,
+      "fixtures": 182,
+      "location_discoverable_fixtures": 130,
+      "location_discoverable_percent": 71.4
+    },
+    {
+      "country": "Cyprus",
+      "league": "1. Division",
+      "league_id": 318,
+      "fixtures": 182,
+      "location_discoverable_fixtures": 117,
+      "location_discoverable_percent": 64.3
+    },
+    {
+      "country": "Estonia",
+      "league": "Meistriliiga",
+      "league_id": 329,
+      "fixtures": 180,
+      "location_discoverable_fixtures": 145,
+      "location_discoverable_percent": 80.6
+    },
+    {
+      "country": "Faroe-Islands",
+      "league": "Meistaradeildin",
+      "league_id": 367,
+      "fixtures": 135,
+      "location_discoverable_fixtures": 93,
+      "location_discoverable_percent": 68.9
+    },
+    {
+      "country": "Finland",
+      "league": "Veikkausliiga",
+      "league_id": 244,
+      "fixtures": 132,
+      "location_discoverable_fixtures": 121,
+      "location_discoverable_percent": 91.7
+    },
+    {
+      "country": "Georgia",
+      "league": "Erovnuli Liga",
+      "league_id": 327,
+      "fixtures": 180,
+      "location_discoverable_fixtures": 108,
+      "location_discoverable_percent": 60.0
+    },
+    {
+      "country": "Greece",
+      "league": "Super League 1",
+      "league_id": 197,
+      "fixtures": 182,
+      "location_discoverable_fixtures": 130,
+      "location_discoverable_percent": 71.4
+    },
+    {
+      "country": "Hungary",
+      "league": "NB I",
+      "league_id": 271,
+      "fixtures": 198,
+      "location_discoverable_fixtures": 181,
+      "location_discoverable_percent": 91.4
+    },
+    {
+      "country": "Iceland",
+      "league": "Úrvalsdeild",
+      "league_id": 164,
+      "fixtures": 132,
+      "location_discoverable_fixtures": 88,
+      "location_discoverable_percent": 66.7
+    },
+    {
+      "country": "Israel",
+      "league": "Ligat Ha'al",
+      "league_id": 383,
+      "fixtures": 182,
+      "location_discoverable_fixtures": 156,
+      "location_discoverable_percent": 85.7
+    },
+    {
+      "country": "Kazakhstan",
+      "league": "Premier League",
+      "league_id": 389,
+      "fixtures": 240,
+      "location_discoverable_fixtures": 121,
+      "location_discoverable_percent": 50.4
+    },
+    {
+      "country": "Kosovo",
+      "league": "Superliga",
+      "league_id": 664,
+      "fixtures": 14,
+      "location_discoverable_fixtures": 11,
+      "location_discoverable_percent": 78.6
+    },
+    {
+      "country": "Latvia",
+      "league": "Virsliga",
+      "league_id": 365,
+      "fixtures": 180,
+      "location_discoverable_fixtures": 111,
+      "location_discoverable_percent": 61.7
+    },
+    {
+      "country": "Lithuania",
+      "league": "A Lyga",
+      "league_id": 362,
+      "fixtures": 180,
+      "location_discoverable_fixtures": 72,
+      "location_discoverable_percent": 40.0
+    },
+    {
+      "country": "Luxembourg",
+      "league": "National Division",
+      "league_id": 261,
+      "fixtures": 240,
+      "location_discoverable_fixtures": 134,
+      "location_discoverable_percent": 55.8
+    },
+    {
+      "country": "Malta",
+      "league": "Premier League",
+      "league_id": 393,
+      "fixtures": 66,
+      "location_discoverable_fixtures": 41,
+      "location_discoverable_percent": 62.1
+    },
+    {
+      "country": "Moldova",
+      "league": "Super Liga",
+      "league_id": 394,
+      "fixtures": 84,
+      "location_discoverable_fixtures": 21,
+      "location_discoverable_percent": 25.0
+    },
+    {
+      "country": "Montenegro",
+      "league": "First League",
+      "league_id": 355,
+      "fixtures": 95,
+      "location_discoverable_fixtures": 48,
+      "location_discoverable_percent": 50.5
+    },
+    {
+      "country": "Romania",
+      "league": "Liga I",
+      "league_id": 283,
+      "fixtures": 240,
+      "location_discoverable_fixtures": 195,
+      "location_discoverable_percent": 81.2
+    },
+    {
+      "country": "Russia",
+      "league": "Premier League",
+      "league_id": 235,
+      "fixtures": 240,
+      "location_discoverable_fixtures": 225,
+      "location_discoverable_percent": 93.8
+    },
+    {
+      "country": "San-Marino",
+      "league": "Campionato",
+      "league_id": 404,
+      "fixtures": 32,
+      "location_discoverable_fixtures": 18,
+      "location_discoverable_percent": 56.2
+    },
+    {
+      "country": "Serbia",
+      "league": "Super Liga",
+      "league_id": 286,
+      "fixtures": 182,
+      "location_discoverable_fixtures": 117,
+      "location_discoverable_percent": 64.3
+    },
+    {
+      "country": "Slovakia",
+      "league": "Super Liga",
+      "league_id": 332,
+      "fixtures": 132,
+      "location_discoverable_fixtures": 99,
+      "location_discoverable_percent": 75.0
+    },
+    {
+      "country": "Ukraine",
+      "league": "Premier League",
+      "league_id": 333,
+      "fixtures": 240,
+      "location_discoverable_fixtures": 165,
+      "location_discoverable_percent": 68.8
+    },
+    {
+      "country": "Wales",
+      "league": "Premier League",
+      "league_id": 110,
+      "fixtures": 240,
+      "location_discoverable_fixtures": 135,
+      "location_discoverable_percent": 56.2
+    }
+  ],
+  "athens_piraeus": {
+    "775": {
+      "name": "Stadio Georgios Karaiskáki",
+      "coordinate_ready": true
+    },
+    "7804": {
+      "name": "Stadio Peristeriou",
+      "coordinate_ready": true
+    },
+    "19785": {
+      "name": "OPAP Arena",
+      "coordinate_ready": true
+    },
+    "19929": {
+      "name": "Stadio Apóstolos Nikolaidis",
+      "coordinate_ready": true
+    },
+    "20340": {
+      "name": "Stadio Kaisarianis Michalis Kritikopoulos",
+      "coordinate_ready": false
+    }
+  },
+  "source": ".cache\\nominatim\\breadth30-structured-nominatim-reviewed48-2026.json",
+  "baseline": "reports\\ingestion\\breadth30-structured-nominatim-reviewed48-prewrite-baseline-2026.json",
+  "written": false
+}

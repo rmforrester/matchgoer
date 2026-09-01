@@ -13,7 +13,10 @@ from typing import Any
 
 from geopy.geocoders import Nominatim
 
+from audit_coordinates import collect_cohort, scopes_from_cohort_report
+from ingestion.api_football import ApiFootballClient
 from ingestion.environment import ROOT
+from ingestion.pipeline import TerraceTalkImporter
 from retry_failed_coordinates import CHECKPOINT, SOURCE_REPORT, USER_AGENT, load_json, save_json, venue_catalog
 
 
@@ -121,12 +124,36 @@ def classify(venue: dict[str, Any], candidates: list[dict[str, Any]]) -> tuple[s
     return "still_ambiguous", None, "Locality-valid candidates exist, but none has an exact normalized name/alias or provider-address match.", f"{len(local)} locality-valid candidate(s) remain without a decisive identity signal."
 
 
-def build_report(checkpoint: dict[str, dict], catalog: dict[str, dict], cache: dict[str, dict]) -> dict:
+def breadth_venue_catalog(cohort_report: Path, provider_cache_dir: Path) -> dict[str, dict[str, Any]]:
+    scopes = scopes_from_cohort_report(cohort_report, 2026)
+    client = ApiFootballClient("cache-only", provider_cache_dir, min_request_interval=0)
+    importer = TerraceTalkImporter.__new__(TerraceTalkImporter)
+    importer.client = client
+    venues, league_venues, _, labels = collect_cohort(client, importer, scopes)
+    countries = {
+        provider_id: labels[key][0]
+        for key, provider_ids in league_venues.items()
+        for provider_id in provider_ids
+    }
+    return {
+        str(provider_id): {**venue, "audit_country": countries.get(provider_id, venue.get("country"))}
+        for provider_id, venue in venues.items()
+    }
+
+
+def build_report(
+    checkpoint: dict[str, dict], catalog: dict[str, dict], cache: dict[str, dict],
+    selected_ids: set[str] | None = None,
+) -> dict:
     rows = []
     totals: dict[str, Counter] = defaultdict(Counter)
     for venue_id, original in checkpoint.items():
+        if selected_ids is not None and venue_id not in selected_ids:
+            continue
         if original.get("status") != "ambiguous" and venue_id not in cache:
             continue
+        if venue_id not in catalog:
+            raise RuntimeError(f"Provider venue {venue_id} is absent from the supplied catalog")
         venue = catalog[venue_id]
         cached = cache.get(venue_id)
         if not cached or cached.get("error"):
@@ -140,7 +167,8 @@ def build_report(checkpoint: dict[str, dict], catalog: dict[str, dict], cache: d
             classification, chosen_index, reason, remaining = REVIEW_OVERRIDES[venue_id]
             chosen = candidates[chosen_index] if chosen_index is not None and chosen_index < len(candidates) else None
         country = venue.get("audit_country") or venue.get("country")
-        row = {"venue_id": int(venue_id), "venue_name": venue.get("name"), "country": country,
+        row = {"venue_id": int(venue_id), "provider_venue_id": int(venue_id),
+               "venue_name": venue.get("name"), "country": country,
                "provider_country": actual_country(venue), "provider_city": venue.get("city"),
                "normalized_venue_name": norm(venue.get("name")), "classification": classification,
                "chosen_result": None if not chosen else chosen.get("display_name"),
@@ -150,7 +178,10 @@ def build_report(checkpoint: dict[str, dict], catalog: dict[str, dict], cache: d
                "candidate_count": len(candidates), "candidates": candidates}
         rows.append(row)
         totals[country][classification] += 1
-    return {"scope": "30 ambiguous venues only", "totals": {c: dict(v) for c, v in totals.items()}, "venues": rows}
+    return {
+        "scope": "selected provider venues" if selected_ids is not None else "legacy ambiguous venues",
+        "totals": {c: dict(v) for c, v in totals.items()}, "venues": rows,
+    }
 
 
 def main() -> int:
@@ -159,18 +190,34 @@ def main() -> int:
     parser.add_argument("--spacing", type=float, default=3.0)
     parser.add_argument("--supplement-zero", action="store_true")
     parser.add_argument("--apply-safe", action="store_true")
+    parser.add_argument("--checkpoint", type=Path, default=CHECKPOINT)
+    parser.add_argument("--candidate-cache", type=Path, default=CANDIDATE_CACHE)
+    parser.add_argument("--audit-report", type=Path, default=AUDIT_REPORT)
+    parser.add_argument("--cohort-report", type=Path)
+    parser.add_argument("--provider-cache-dir", type=Path, default=ROOT / ".cache" / "api-football")
+    parser.add_argument("--provider-venue-ids", type=int, nargs="+")
     args = parser.parse_args()
-    checkpoint = load_json(CHECKPOINT, {})
-    catalog = venue_catalog()
-    cache = load_json(CANDIDATE_CACHE, {})
+    checkpoint = load_json(args.checkpoint, {})
+    catalog = (
+        breadth_venue_catalog(args.cohort_report, args.provider_cache_dir)
+        if args.cohort_report else venue_catalog()
+    )
+    cache = load_json(args.candidate_cache, {})
+    selected_ids = {str(value) for value in args.provider_venue_ids} if args.provider_venue_ids else None
+    if selected_ids:
+        missing = sorted(selected_ids - checkpoint.keys(), key=int)
+        if missing:
+            raise RuntimeError(f"Requested provider venue IDs are absent from checkpoint: {missing}")
     if args.supplement_zero:
         targets = [venue_id for venue_id, result in checkpoint.items()
-                   if result.get("status") == "ambiguous" and venue_id in cache
+                   if (selected_ids is None or venue_id in selected_ids)
+                   and result.get("status") in {"ambiguous", "unresolved"} and venue_id in cache
                    and not cache[venue_id].get("error") and not cache[venue_id].get("candidates")
                    and not cache[venue_id].get("supplemented")]
     else:
         targets = [venue_id for venue_id, result in checkpoint.items()
-                   if result.get("status") == "ambiguous" and venue_id not in cache]
+                   if (selected_ids is None or venue_id in selected_ids)
+                   and result.get("status") in {"ambiguous", "unresolved"} and venue_id not in cache]
     client = Nominatim(user_agent=USER_AGENT)
     last_request = 0.0
     for venue_id in targets[:args.max_venues]:
@@ -198,12 +245,12 @@ def main() -> int:
             entry = prior
         else:
             cache[venue_id] = entry
-        save_json(CANDIDATE_CACHE, cache)
+        save_json(args.candidate_cache, cache)
         print(json.dumps({"venue_id": int(venue_id), "venue": venue.get("name"),
                           "candidate_count": len(entry["candidates"]), "error": entry["error"]}, ensure_ascii=False), flush=True)
         if entry["error"]:
             break
-    report = build_report(checkpoint, catalog, cache)
+    report = build_report(checkpoint, catalog, cache, selected_ids)
     if args.apply_safe:
         for row in report["venues"]:
             venue_id = str(row["venue_id"])
@@ -220,8 +267,8 @@ def main() -> int:
                                     "ambiguity_resolution": {"classification": row["classification"],
                                                              "reason": row["reason"],
                                                              "previous_result": current}}
-        save_json(CHECKPOINT, checkpoint)
-    save_json(AUDIT_REPORT, report)
+        save_json(args.checkpoint, checkpoint)
+    save_json(args.audit_report, report)
     print(json.dumps({"cached": len(cache), "remaining": len(targets) - min(len(targets), args.max_venues),
                       "totals": report["totals"]}, ensure_ascii=False, indent=2))
     return 0

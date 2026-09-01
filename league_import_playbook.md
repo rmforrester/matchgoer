@@ -72,6 +72,24 @@ An actual import is explicit and non-destructive: it inserts or updates only.
 
 Use `--no-geocode` when a reviewed import should defer coordinate enrichment.
 
+### Approved breadth-import policy
+
+For an explicitly reviewed breadth cohort, coordinate completeness is a QA and
+location-feature-readiness metric, not a whole-league import gate. Run the
+approved write with `--no-geocode`: preserve valid database coordinates and
+accepted checkpoint coordinates, leave every other coordinate `NULL`, and never
+manufacture a coordinate.
+
+An unresolved fixture-to-venue relationship may likewise remain
+`fixtures.venue_id = NULL` when the provider evidence cannot identify a venue
+safely. Report those fixtures as `PARTIAL_FIXTURE_REMEDIATION_REQUIRED`, but do
+not withhold the rest of an otherwise safe league. Location-dependent surfaces
+must continue to fail closed for missing venue links or coordinates. Provider
+identity collisions and material current-season venue contradictions remain
+league-level blockers. The corresponding preflight classifications are
+`SAFE_UNDER_REVISED_POLICY`, `PARTIAL_FIXTURE_REMEDIATION_REQUIRED`, and
+`LEAGUE_LEVEL_BLOCKER`.
+
 ## Canonical and provider venue identifiers
 
 `venues.venue_id` is the canonical internal Matchgoer identifier used by

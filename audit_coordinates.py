@@ -1,12 +1,16 @@
-"""Non-writing coordinate-enrichment audit for cached API-Football venues."""
+"""Read-only coordinate-enrichment audit for cached API-Football venues."""
 
+from __future__ import annotations
+
+import argparse
 import json
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
+from typing import Any, Iterable
 
 from sqlalchemy import MetaData, create_engine, select
 
-from config.leagues import COVERAGE_PROFILES
+from config.leagues import COVERAGE_PROFILES, LeagueScope
 from ingest_leagues import resolve_scope
 from ingestion.api_football import ApiFootballClient
 from ingestion.coordinates import NominatimCoordinateEnricher, valid_coordinates
@@ -14,104 +18,261 @@ from ingestion.environment import ROOT, api_football_key, database_url
 from ingestion.pipeline import TerraceTalkImporter
 
 
-PROFILES = ("england-pyramid", "usa-priority", "sweden-priority")
-CACHE_FILE = ROOT / ".cache" / "nominatim" / "coordinate-dry-run-2026.json"
-REPORT_FILE = ROOT / "reports" / "ingestion" / "coordinate-dry-run-2026.json"
+DEFAULT_PROFILES = ("england-pyramid", "usa-priority", "sweden-priority")
+DEFAULT_CHECKPOINT = ROOT / ".cache" / "nominatim" / "coordinate-dry-run-2026.json"
+DEFAULT_REPORT = ROOT / "reports" / "ingestion" / "coordinate-dry-run-2026.json"
+TERMINAL_STATUSES = {"geocoded", "unresolved", "ambiguous", "error"}
 
 
-def load_cache() -> dict[str, dict]:
-    if CACHE_FILE.exists():
-        return json.loads(CACHE_FILE.read_text(encoding="utf-8"))
-    return {}
+def load_json(path: Path, default: Any) -> Any:
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else default
 
 
-def save_cache(cache: dict[str, dict]) -> None:
-    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    CACHE_FILE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+def save_json_atomic(path: Path, value: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(value, indent=2, ensure_ascii=False), encoding="utf-8")
+    temporary.replace(path)
 
 
-def main() -> int:
-    client = ApiFootballClient(api_football_key(), ROOT / ".cache" / "api-football")
-    importer = TerraceTalkImporter(client, database_url())
-    engine = create_engine(database_url(), connect_args={"connect_timeout": 10})
-    metadata = MetaData(); metadata.reflect(engine, only=["venues"])
-    venue_table = metadata.tables["venues"]
-    venue_by_id: dict[int, dict] = {}
+def scopes_from_cohort_report(path: Path, provider_season: int) -> tuple[LeagueScope, ...]:
+    payload = load_json(path, {})
+    summary = payload.get("summary", payload)
+    rows = [*summary.get("safe", []), *summary.get("partial", [])]
+    if not rows:
+        raise ValueError(f"No safe/partial league cohort found in {path}")
+    scopes = tuple(
+        LeagueScope(
+            str(row["country"]), int(row["league_id"]), str(row["league"]),
+            provider_season, str(row.get("display_season") or "2026/27"),
+        )
+        for row in rows
+    )
+    identifiers = [scope.league_id for scope in scopes]
+    if len(identifiers) != len(set(identifiers)):
+        raise ValueError("Cohort report contains duplicate league IDs")
+    return scopes
+
+
+def configured_scopes(profiles: Iterable[str]) -> tuple[LeagueScope, ...]:
+    return tuple(scope for profile in profiles for scope in COVERAGE_PROFILES[profile])
+
+
+def collect_cohort(client: ApiFootballClient, importer: TerraceTalkImporter, scopes: Iterable[LeagueScope]):
+    venues: dict[int, dict[str, Any]] = {}
     league_venues: dict[str, set[int]] = defaultdict(set)
-    labels: dict[str, tuple[str, str]] = {}
+    fixture_counts: dict[str, Counter[int]] = defaultdict(Counter)
+    labels: dict[str, tuple[str, str, int]] = {}
 
-    for profile in PROFILES:
-        for configured in COVERAGE_PROFILES[profile]:
-            scope = resolve_scope(client, configured)
-            key = f"{scope.country}|{scope.display_name}"
-            labels[key] = (scope.country, scope.display_name)
-            if scope.league_id is None:
-                continue
-            teams, fixtures, available = importer._records(scope)
-            if not available:
-                continue
-            for item in [*teams, *fixtures]:
-                raw = item.get("venue") or (item.get("fixture") or {}).get("venue") or {}
-                venue = importer._venue_record(raw, scope.country)
-                if venue:
-                    venue_by_id.setdefault(venue["venue_id"], venue)
-                    league_venues[key].add(venue["venue_id"])
+    for configured in scopes:
+        scope = resolve_scope(client, configured)
+        if scope.league_id is None:
+            raise ValueError(f"League ID did not resolve for {scope.country} / {scope.display_name}")
+        key = str(scope.league_id)
+        labels[key] = (scope.country, scope.display_name, scope.league_id)
+        teams, fixtures, available = importer._records(scope)
+        if not available:
+            raise ValueError(f"Provider season unavailable for league {scope.league_id}")
+        home_team_venues = importer._home_team_venues(teams)
+        for item in [*teams, *fixtures]:
+            raw = item.get("venue") or (item.get("fixture") or {}).get("venue") or {}
+            venue = importer._venue_record(raw, scope.country)
+            if venue:
+                provider_id = int(venue["provider_venue_id"])
+                venues.setdefault(provider_id, venue)
+                league_venues[key].add(provider_id)
+        for item in fixtures:
+            fixture = item.get("fixture") or {}
+            provider_id = (fixture.get("venue") or {}).get("id")
+            if provider_id is None:
+                home_id = (item.get("teams", {}).get("home") or {}).get("id")
+                provider_id = home_team_venues.get(home_id)
+            if provider_id is not None:
+                fixture_counts[key][int(provider_id)] += 1
+    return venues, league_venues, fixture_counts, labels
 
+
+def read_hosted_coordinates(engine, provider_ids: set[int]):
+    """Read existing coordinates only; never opens a write transaction."""
+    metadata = MetaData()
+    metadata.reflect(engine, only=["venues"])
+    venues = metadata.tables["venues"]
+    coordinates: dict[int, tuple[float | None, float | None]] = {}
+    if not provider_ids:
+        return coordinates
     with engine.connect() as connection:
-        database_coordinates = {
-            row.venue_id: (row.latitude, row.longitude)
-            for row in connection.execute(
-                select(venue_table.c.venue_id, venue_table.c.latitude, venue_table.c.longitude)
-                .where(venue_table.c.venue_id.in_(venue_by_id))
-            )
+        rows = connection.execute(
+            select(venues.c.provider_venue_id, venues.c.latitude, venues.c.longitude)
+            .where(venues.c.provider_venue_id.in_(provider_ids))
+        )
+        coordinates = {
+            int(row.provider_venue_id): (row.latitude, row.longitude)
+            for row in rows if row.provider_venue_id is not None
         }
+    return coordinates
 
-    cache = load_cache()
-    results: dict[int, dict] = {}
-    enricher = NominatimCoordinateEnricher()
-    for venue_id, venue in venue_by_id.items():
-        existing = database_coordinates.get(venue_id, (None, None))
-        if valid_coordinates(*existing):
-            results[venue_id] = {"status": "database", "errors": []}
+
+def audit_missing_venues(
+    venues: dict[int, dict[str, Any]],
+    hosted_coordinates: dict[int, tuple[float | None, float | None]],
+    checkpoint: dict[str, dict[str, Any]],
+    checkpoint_path: Path,
+    enricher: NominatimCoordinateEnricher,
+    max_venues: int | None = None,
+) -> tuple[dict[int, str], int]:
+    states: dict[int, str] = {}
+    processed = 0
+    for provider_id, venue in venues.items():
+        if valid_coordinates(*hosted_coordinates.get(provider_id, (None, None))):
+            states[provider_id] = "database"
             continue
-        cached = cache.get(str(venue_id))
-        if cached:
-            results[venue_id] = cached
+        cached = checkpoint.get(str(provider_id))
+        cached_is_terminal = cached and (
+            cached.get("status") in {"unresolved", "ambiguous"}
+            or cached.get("status") == "geocoded"
+            and valid_coordinates(cached.get("latitude"), cached.get("longitude"))
+        )
+        if cached_is_terminal:
+            states[provider_id] = str(cached["status"])
+            continue
+        if max_venues is not None and processed >= max_venues:
+            states[provider_id] = "not_attempted"
             continue
         result = enricher.enrich(venue, strict_uniqueness=True)
-        status = "geocoded" if result.source else "ambiguous" if result.ambiguous else "unresolved"
-        cached = {
+        all_queries_failed = bool(result.errors) and len(result.errors) >= result.queries_attempted
+        status = "geocoded" if result.source else "ambiguous" if result.ambiguous else "error" if all_queries_failed else "unresolved"
+        checkpoint[str(provider_id)] = {
             "status": status,
+            "provider_venue_id": provider_id,
+            "venue": venue,
             "latitude": result.latitude,
             "longitude": result.longitude,
+            "source": result.source,
+            "matched_label": getattr(result, "matched_label", None),
+            "osm_type": getattr(result, "osm_type", None),
+            "osm_id": getattr(result, "osm_id", None),
+            "acceptance_reason": getattr(result, "acceptance_reason", None),
             "queries_attempted": result.queries_attempted,
             "errors": list(result.errors),
         }
-        cache[str(venue_id)] = cached
-        results[venue_id] = cached
-        save_cache(cache)
+        save_json_atomic(checkpoint_path, checkpoint)
+        states[provider_id] = status
+        processed += 1
+    return states, processed
 
-    reports = []
+
+def build_report(
+    venues, league_venues, cached_fixture_counts, labels, hosted_coordinates,
+    checkpoint, states, processed,
+):
+    missing = {venue_id for venue_id in venues if not valid_coordinates(*hosted_coordinates.get(venue_id, (None, None)))}
+    resolved = {venue_id for venue_id in missing if states.get(venue_id) == "geocoded"}
+    errors = sum(len(checkpoint.get(str(venue_id), {}).get("errors", [])) for venue_id in missing)
+    projected_unlocked = sum(
+        cached_fixture_counts[key][venue_id]
+        for key, ids in league_venues.items()
+        for venue_id in ids & resolved
+    )
+    affected = []
     for key, ids in league_venues.items():
-        country, league = labels[key]
-        rows = [results[venue_id] for venue_id in ids]
-        reports.append({
-            "country": country,
-            "league": league,
-            "total_unique_venues": len(ids),
-            "already_valid_database_coordinates": sum(row["status"] == "database" for row in rows),
-            "successfully_geocoded": sum(row["status"] == "geocoded" for row in rows),
-            "still_unresolved": sum(row["status"] == "unresolved" for row in rows),
-            "ambiguous_geocoding_results": sum(row["status"] == "ambiguous" for row in rows),
-            "failed_geocoding_requests": sum(len(row.get("errors", [])) for row in rows),
-            "unresolved_venues": [
-                {"venue_id": venue_id, "name": venue_by_id[venue_id]["name"], "city": venue_by_id[venue_id]["city"], "status": results[venue_id]["status"]}
-                for venue_id in ids if results[venue_id]["status"] in {"unresolved", "ambiguous"}
-            ],
+        country, league, league_id = labels[key]
+        league_missing, league_resolved = ids & missing, ids & resolved
+        if not league_missing:
+            continue
+        affected.append({
+            "country": country, "league": league, "league_id": league_id,
+            "missing_venues_considered": len(league_missing),
+            "auto_resolved": len(league_resolved),
+            "unresolved": sum(states.get(venue_id) in {"unresolved", "ambiguous"} for venue_id in league_missing),
+            "projected_fixtures_unlocked": sum(cached_fixture_counts[key][venue_id] for venue_id in league_resolved),
         })
-    REPORT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    REPORT_FILE.write_text(json.dumps(reports, indent=2), encoding="utf-8")
-    print(json.dumps(reports, indent=2))
+    greece_ids = set().union(*(ids for key, ids in league_venues.items() if labels[key][0] == "Greece"))
+    greece_missing, greece_resolved = greece_ids & missing, greece_ids & resolved
+    athens_ids = {
+        venue_id for venue_id in greece_missing
+        if any(
+            token in str(venues[venue_id].get("city") or "").casefold()
+            for token in ("athens", "athina", "piraeus")
+        )
+    }
+    return {
+        "mode": "read_only_coordinate_audit",
+        "summary": {
+            "total_cohort_venues": len(venues),
+            "already_coordinate_complete": len(venues) - len(missing),
+            "coordinate_null_venues_considered": len(missing),
+            "processed_this_run": processed,
+            "AUTO_RESOLVED": len(resolved),
+            "UNRESOLVED": sum(states.get(venue_id) == "unresolved" for venue_id in missing),
+            "AMBIGUOUS": sum(states.get(venue_id) == "ambiguous" for venue_id in missing),
+            "NOT_ATTEMPTED": sum(states.get(venue_id) == "not_attempted" for venue_id in missing),
+            "errors": errors,
+            "projected_fixtures_unlocked": projected_unlocked,
+        },
+        "countries_leagues_affected": affected,
+        "error_venues": [
+            {
+                "provider_venue_id": venue_id,
+                "name": venues[venue_id].get("name"),
+                "errors": checkpoint.get(str(venue_id), {}).get("errors", []),
+            }
+            for venue_id in sorted(missing)
+            if checkpoint.get(str(venue_id), {}).get("errors")
+        ],
+        "greece": {
+            "total_missing_venues_considered": len(greece_missing),
+            "resolved": len(greece_resolved),
+            "unresolved": sum(states.get(venue_id) in {"unresolved", "ambiguous"} for venue_id in greece_missing),
+            "projected_fixtures_unlocked": sum(
+                cached_fixture_counts[key][venue_id]
+                for key, ids in league_venues.items() if labels[key][0] == "Greece"
+                for venue_id in ids & greece_resolved
+            ),
+        },
+        "athens": {
+            "missing_venues_considered": len(athens_ids),
+            "resolved": len(athens_ids & resolved),
+            "unresolved": sum(states.get(venue_id) in {"unresolved", "ambiguous"} for venue_id in athens_ids),
+        },
+        "safety": {"hosted_writes": 0, "identity_changes": 0},
+    }
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument("--cohort-report", type=Path)
+    source.add_argument("--profiles", nargs="+", choices=sorted(COVERAGE_PROFILES), default=None)
+    parser.add_argument("--provider-season", type=int, default=2026)
+    parser.add_argument("--cache-dir", type=Path, default=ROOT / ".cache" / "api-football")
+    parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
+    parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
+    parser.add_argument("--max-venues", type=int, help="Bounded wiring proof; omit for the full cohort")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    scopes = (
+        scopes_from_cohort_report(args.cohort_report, args.provider_season)
+        if args.cohort_report else configured_scopes(args.profiles or DEFAULT_PROFILES)
+    )
+    client = ApiFootballClient(api_football_key(), args.cache_dir)
+    importer = TerraceTalkImporter(client, database_url())
+    venues, league_venues, fixture_counts, labels = collect_cohort(client, importer, scopes)
+    engine = create_engine(database_url(), connect_args={"connect_timeout": 10})
+    hosted_coordinates = read_hosted_coordinates(engine, set(venues))
+    checkpoint = load_json(args.checkpoint, {})
+    states, processed = audit_missing_venues(
+        venues, hosted_coordinates, checkpoint, args.checkpoint,
+        NominatimCoordinateEnricher(), args.max_venues,
+    )
+    report = build_report(
+        venues, league_venues, fixture_counts, labels, hosted_coordinates,
+        checkpoint, states, processed,
+    )
+    save_json_atomic(args.report, report)
+    print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0
 
 

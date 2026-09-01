@@ -1,0 +1,303 @@
+{
+  "mode": "read_only_coordinate_audit",
+  "summary": {
+    "total_cohort_venues": 343,
+    "already_coordinate_complete": 176,
+    "coordinate_null_venues_considered": 167,
+    "processed_this_run": 167,
+    "AUTO_RESOLVED": 51,
+    "UNRESOLVED": 113,
+    "AMBIGUOUS": 3,
+    "NOT_ATTEMPTED": 0,
+    "errors": 0,
+    "projected_fixtures_unlocked": 715
+  },
+  "countries_leagues_affected": [
+    {
+      "country": "Albania",
+      "league": "Superliga",
+      "league_id": 310,
+      "missing_venues_considered": 3,
+      "auto_resolved": 1,
+      "unresolved": 2,
+      "projected_fixtures_unlocked": 9
+    },
+    {
+      "country": "Azerbaijan",
+      "league": "Premyer Liqa",
+      "league_id": 419,
+      "missing_venues_considered": 7,
+      "auto_resolved": 1,
+      "unresolved": 6,
+      "projected_fixtures_unlocked": 17
+    },
+    {
+      "country": "Belarus",
+      "league": "Premier League",
+      "league_id": 116,
+      "missing_venues_considered": 9,
+      "auto_resolved": 1,
+      "unresolved": 8,
+      "projected_fixtures_unlocked": 15
+    },
+    {
+      "country": "Bulgaria",
+      "league": "First League",
+      "league_id": 172,
+      "missing_venues_considered": 6,
+      "auto_resolved": 3,
+      "unresolved": 3,
+      "projected_fixtures_unlocked": 39
+    },
+    {
+      "country": "Cyprus",
+      "league": "1. Division",
+      "league_id": 318,
+      "missing_venues_considered": 4,
+      "auto_resolved": 0,
+      "unresolved": 4,
+      "projected_fixtures_unlocked": 0
+    },
+    {
+      "country": "Estonia",
+      "league": "Meistriliiga",
+      "league_id": 329,
+      "missing_venues_considered": 2,
+      "auto_resolved": 0,
+      "unresolved": 2,
+      "projected_fixtures_unlocked": 0
+    },
+    {
+      "country": "Faroe-Islands",
+      "league": "Meistaradeildin",
+      "league_id": 367,
+      "missing_venues_considered": 4,
+      "auto_resolved": 1,
+      "unresolved": 3,
+      "projected_fixtures_unlocked": 14
+    },
+    {
+      "country": "Finland",
+      "league": "Veikkausliiga",
+      "league_id": 244,
+      "missing_venues_considered": 3,
+      "auto_resolved": 2,
+      "unresolved": 1,
+      "projected_fixtures_unlocked": 22
+    },
+    {
+      "country": "Greece",
+      "league": "Super League 1",
+      "league_id": 197,
+      "missing_venues_considered": 7,
+      "auto_resolved": 3,
+      "unresolved": 4,
+      "projected_fixtures_unlocked": 39
+    },
+    {
+      "country": "Hungary",
+      "league": "NB I",
+      "league_id": 271,
+      "missing_venues_considered": 4,
+      "auto_resolved": 3,
+      "unresolved": 1,
+      "projected_fixtures_unlocked": 49
+    },
+    {
+      "country": "Iceland",
+      "league": "Úrvalsdeild",
+      "league_id": 164,
+      "missing_venues_considered": 5,
+      "auto_resolved": 1,
+      "unresolved": 4,
+      "projected_fixtures_unlocked": 11
+    },
+    {
+      "country": "Israel",
+      "league": "Ligat Ha'al",
+      "league_id": 383,
+      "missing_venues_considered": 7,
+      "auto_resolved": 5,
+      "unresolved": 2,
+      "projected_fixtures_unlocked": 91
+    },
+    {
+      "country": "Kazakhstan",
+      "league": "Premier League",
+      "league_id": 389,
+      "missing_venues_considered": 10,
+      "auto_resolved": 1,
+      "unresolved": 9,
+      "projected_fixtures_unlocked": 15
+    },
+    {
+      "country": "Kosovo",
+      "league": "Superliga",
+      "league_id": 664,
+      "missing_venues_considered": 3,
+      "auto_resolved": 1,
+      "unresolved": 2,
+      "projected_fixtures_unlocked": 1
+    },
+    {
+      "country": "Latvia",
+      "league": "Virsliga",
+      "league_id": 365,
+      "missing_venues_considered": 6,
+      "auto_resolved": 2,
+      "unresolved": 4,
+      "projected_fixtures_unlocked": 36
+    },
+    {
+      "country": "Lithuania",
+      "league": "A Lyga",
+      "league_id": 362,
+      "missing_venues_considered": 6,
+      "auto_resolved": 1,
+      "unresolved": 5,
+      "projected_fixtures_unlocked": 18
+    },
+    {
+      "country": "Luxembourg",
+      "league": "National Division",
+      "league_id": 261,
+      "missing_venues_considered": 8,
+      "auto_resolved": 1,
+      "unresolved": 7,
+      "projected_fixtures_unlocked": 14
+    },
+    {
+      "country": "Malta",
+      "league": "Premier League",
+      "league_id": 393,
+      "missing_venues_considered": 6,
+      "auto_resolved": 3,
+      "unresolved": 3,
+      "projected_fixtures_unlocked": 22
+    },
+    {
+      "country": "Montenegro",
+      "league": "First League",
+      "league_id": 355,
+      "missing_venues_considered": 6,
+      "auto_resolved": 1,
+      "unresolved": 5,
+      "projected_fixtures_unlocked": 10
+    },
+    {
+      "country": "Romania",
+      "league": "Liga I",
+      "league_id": 283,
+      "missing_venues_considered": 7,
+      "auto_resolved": 3,
+      "unresolved": 4,
+      "projected_fixtures_unlocked": 30
+    },
+    {
+      "country": "Russia",
+      "league": "Premier League",
+      "league_id": 235,
+      "missing_venues_considered": 3,
+      "auto_resolved": 2,
+      "unresolved": 1,
+      "projected_fixtures_unlocked": 29
+    },
+    {
+      "country": "Serbia",
+      "league": "Super Liga",
+      "league_id": 286,
+      "missing_venues_considered": 8,
+      "auto_resolved": 3,
+      "unresolved": 5,
+      "projected_fixtures_unlocked": 39
+    },
+    {
+      "country": "Slovakia",
+      "league": "Super Liga",
+      "league_id": 332,
+      "missing_venues_considered": 7,
+      "auto_resolved": 4,
+      "unresolved": 3,
+      "projected_fixtures_unlocked": 44
+    },
+    {
+      "country": "Ukraine",
+      "league": "Premier League",
+      "league_id": 333,
+      "missing_venues_considered": 8,
+      "auto_resolved": 3,
+      "unresolved": 5,
+      "projected_fixtures_unlocked": 59
+    },
+    {
+      "country": "Wales",
+      "league": "Premier League",
+      "league_id": 110,
+      "missing_venues_considered": 8,
+      "auto_resolved": 1,
+      "unresolved": 7,
+      "projected_fixtures_unlocked": 15
+    },
+    {
+      "country": "Andorra",
+      "league": "1a Divisió",
+      "league_id": 312,
+      "missing_venues_considered": 2,
+      "auto_resolved": 0,
+      "unresolved": 2,
+      "projected_fixtures_unlocked": 0
+    },
+    {
+      "country": "Armenia",
+      "league": "Premier League",
+      "league_id": 342,
+      "missing_venues_considered": 3,
+      "auto_resolved": 1,
+      "unresolved": 2,
+      "projected_fixtures_unlocked": 31
+    },
+    {
+      "country": "Georgia",
+      "league": "Erovnuli Liga",
+      "league_id": 327,
+      "missing_venues_considered": 5,
+      "auto_resolved": 2,
+      "unresolved": 3,
+      "projected_fixtures_unlocked": 36
+    },
+    {
+      "country": "Moldova",
+      "league": "Super Liga",
+      "league_id": 394,
+      "missing_venues_considered": 5,
+      "auto_resolved": 1,
+      "unresolved": 4,
+      "projected_fixtures_unlocked": 10
+    },
+    {
+      "country": "San-Marino",
+      "league": "Campionato",
+      "league_id": 404,
+      "missing_venues_considered": 5,
+      "auto_resolved": 0,
+      "unresolved": 5,
+      "projected_fixtures_unlocked": 0
+    }
+  ],
+  "error_venues": [],
+  "greece": {
+    "total_missing_venues_considered": 7,
+    "resolved": 3,
+    "unresolved": 4,
+    "projected_fixtures_unlocked": 39
+  },
+  "athens": {
+    "missing_venues_considered": 2,
+    "resolved": 1,
+    "unresolved": 1
+  },
+  "safety": {
+    "hosted_writes": 0,
+    "identity_changes": 0
+  }
+}

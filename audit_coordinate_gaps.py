@@ -12,6 +12,7 @@ from pathlib import Path
 from geopy.geocoders import Nominatim
 from sqlalchemy import create_engine, text
 
+from audit_coordinates import scopes_from_cohort_report
 from ingestion.environment import ROOT, database_url
 from retry_failed_coordinates import USER_AGENT, save_json
 
@@ -31,11 +32,12 @@ def norm(value: object) -> str:
     return " ".join("".join(ch for ch in value if not unicodedata.combining(ch)).casefold().split())
 
 
-def gaps() -> list[dict]:
+def gaps(leagues: dict[str, list[int]] | None = None) -> list[dict]:
+    leagues = leagues or LEAGUES
     rows = []
     engine = create_engine(database_url(), connect_args={"connect_timeout": 10})
     with engine.connect() as connection:
-        for audit_country, league_ids in LEAGUES.items():
+        for audit_country, league_ids in leagues.items():
             found = connection.execute(text("""
                 SELECT DISTINCT v.venue_id, v.provider_venue_id, v.name, v.address, v.city, v.country
                 FROM venues v JOIN fixtures f ON f.venue_id = v.venue_id
@@ -82,9 +84,17 @@ def main() -> int:
     parser.add_argument("--max-venues", type=int, default=20)
     parser.add_argument("--spacing", type=float, default=2.0)
     parser.add_argument("--supplement-unresolved", action="store_true")
+    parser.add_argument("--cohort-report", type=Path)
+    parser.add_argument("--cache", type=Path, default=CACHE)
+    parser.add_argument("--report", type=Path, default=REPORT)
     args = parser.parse_args()
-    cache = json.loads(CACHE.read_text(encoding="utf-8")) if CACHE.exists() else {}
-    venues = gaps()
+    cache = json.loads(args.cache.read_text(encoding="utf-8")) if args.cache.exists() else {}
+    leagues = None
+    if args.cohort_report:
+        leagues = {}
+        for scope in scopes_from_cohort_report(args.cohort_report, 2026):
+            leagues.setdefault(scope.country, []).append(scope.league_id)
+    venues = gaps(leagues)
     if args.supplement_unresolved:
         targets = [venue for venue in venues if str(venue["venue_id"]) in cache
                    and cache[str(venue["venue_id"])]["status"] == "unresolved"
@@ -118,7 +128,7 @@ def main() -> int:
                 "status": previous["status"], "candidate_count": len(previous.get("candidates", []))}]
             entry["supplemented"] = True
         cache[str(venue["venue_id"])] = entry
-        save_json(CACHE, cache)
+        save_json(args.cache, cache)
         print(json.dumps({"venue_id": venue["venue_id"], "name": venue["name"], "status": status,
                           "candidates": len(candidates), "error": error}, ensure_ascii=False), flush=True)
         if error:
@@ -130,7 +140,7 @@ def main() -> int:
         totals.setdefault(country, {})[entry["status"]] = totals.setdefault(country, {}).get(entry["status"], 0) + 1
     report = {"total_gaps": len(venues), "cached": len(relevant), "remaining": len(venues) - len(relevant),
               "totals": totals, "venues": relevant}
-    save_json(REPORT, report)
+    save_json(args.report, report)
     print(json.dumps({key: report[key] for key in ("total_gaps", "cached", "remaining", "totals")}, ensure_ascii=False, indent=2))
     return 0
 
