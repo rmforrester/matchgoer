@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "intended_coordinates_verified": 15,
+  "withheld_provider_venue_ids_unchanged": [],
+  "venue_inserts": 0,
+  "venue_deletes": 0,
+  "identity_changes": 0,
+  "updated_coordinate_count_by_country": {
+    "Sweden": 15
+  },
+  "source": ".cache\\nominatim\\sweden-canonical-reviewed15-2026.json",
+  "baseline": "reports\\ingestion\\sweden-canonical-reviewed15-baseline-2026.json",
+  "written": false
+}

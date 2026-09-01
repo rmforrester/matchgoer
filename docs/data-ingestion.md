@@ -145,6 +145,14 @@ coordinate write requires a reviewed checkpoint, exact expected-update guard,
 null-coordinate-only predicate, captured baseline, identity and row-count
 protection, explicit write confirmation and post-write reconciliation.
 
+Reviewed-coordinate protections are scoped to the current operation. Accepted
+and withheld provider venue IDs come from its reviewed checkpoint; a venue that
+was unresolved in an older operation must not remain globally protected after
+a later legitimate, reconciled update. Core reconciliation independently checks
+the intended coordinates, current-operation withheld rows, venue identities and
+venue row count. Cohort and product-coverage reporting is optional context, not
+a prerequisite for those safety checks.
+
 Hosted coordinates are `NUMERIC(9,6)`. PostgreSQL may return them to Python as
 `Decimal`; baseline/report serialization must explicitly use a deterministic,
 JSON-safe six-decimal representation, and reconciliation compares at that same
@@ -175,6 +183,26 @@ substantially reflected coordinate reconciliation/query logic, not simply poor
 API-Football venue data. The bounded structured resolver safely increased it to
 66.5%. The European breadth coordinate-enrichment workstream is closed; do not
 restart unresolved-venue remediation without a new scoped decision.
+
+### Sweden legacy coordinate remediation — 2 September 2026
+
+Sweden was originally imported using an older coordinate-enrichment process. A
+canonical-process audit found 911 fixtures linked to 64 canonical venues with
+`NULL` coordinates. Another 245 fixtures were unlinked: 28 had name-only venue
+evidence requiring review and 217 lacked sufficient provider venue identity.
+The current canonical linking process recovered zero deterministic links, so no
+fixture reimport or venue-link mutation was performed.
+
+The structured resolver classified the 64 coordinate-null venues as 27
+`AUTO_RESOLVED`, 4 `AMBIGUOUS` and 33 `UNRESOLVED`. Targeted QA accepted 15 and
+withheld 12. The protected write applied and reconciled exactly 15 coordinate
+updates, with zero inserts, deletes or identity changes. This made 222 fixtures
+location-discoverable: Sweden moved from 884 / 2,040 (43.3%) to 1,106 / 2,040
+(54.2%), and Europe moved from 22,515 / 26,043 (86.5%) to 22,737 / 26,043
+(87.3%). These percentages describe the reconciled state, not an ingestion
+threshold or target. Remaining Swedish coordinate and linking gaps intentionally
+fail closed. Sweden remediation and the broader European coordinate workstream
+are closed.
 
 ## Import checklist
 

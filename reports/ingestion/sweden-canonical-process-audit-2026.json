@@ -1,0 +1,198 @@
+{
+  "generated_at_utc": "2026-09-01T21:25:43.355144+00:00",
+  "mode": "READ_ONLY",
+  "hosted": {
+    "fixtures": 2040,
+    "current_map_ready": 884,
+    "unlinked": 245,
+    "linked_coordinate_null": 911,
+    "distinct_linked_coordinate_null_venues": 64
+  },
+  "unlinked_classification": {
+    "fixture_name_or_city_only": 15,
+    "home_venue_name_or_city_only": 13,
+    "no_useful_provider_venue_data": 217
+  },
+  "deterministic_safe_link_count": 0,
+  "coordinate_audit": {
+    "venues_considered": 64,
+    "AUTO_RESOLVED": 27,
+    "AMBIGUOUS": 4,
+    "UNRESOLVED": 33,
+    "ERROR": 0,
+    "raw_provider_cohort_note": "The generic runner also examined two null-coordinate provider venues unused by Swedish fixtures; they are excluded here."
+  },
+  "coordinate_auto_resolved_provider_ids": [
+    1504,
+    1515,
+    1523,
+    1528,
+    4866,
+    4870,
+    4871,
+    4874,
+    4881,
+    4888,
+    4893,
+    4895,
+    4899,
+    4900,
+    7653,
+    7983,
+    7989,
+    7990,
+    8004,
+    8006,
+    8866,
+    12742,
+    18631,
+    19692,
+    20512,
+    21602,
+    21797
+  ],
+  "safe_coordinate_fixture_unlocks": 391,
+  "scenarios": {
+    "current": {
+      "map_ready": 884,
+      "sweden_percent": 43.3,
+      "europe_map_ready": 22515,
+      "europe_percent": 86.5
+    },
+    "automatic_coordinates_only": {
+      "map_ready": 1275,
+      "sweden_percent": 62.5,
+      "europe_map_ready": 22906,
+      "europe_percent": 88.0
+    },
+    "deterministic_links_only": {
+      "map_ready": 884,
+      "sweden_percent": 43.3,
+      "europe_map_ready": 22515,
+      "europe_percent": 86.5
+    },
+    "both": {
+      "map_ready": 1275,
+      "sweden_percent": 62.5,
+      "europe_map_ready": 22906,
+      "europe_percent": 88.0
+    }
+  },
+  "competitions": [
+    {
+      "league_id": 113,
+      "competition": "Allsvenskan",
+      "fixtures": 240,
+      "current_map_ready": 225,
+      "current_percent": 93.8,
+      "unlinked": 0,
+      "coordinate_null": 15,
+      "projected_safe_map_ready": 225,
+      "projected_percent": 93.8
+    },
+    {
+      "league_id": 114,
+      "competition": "Superettan",
+      "fixtures": 240,
+      "current_map_ready": 135,
+      "current_percent": 56.2,
+      "unlinked": 0,
+      "coordinate_null": 105,
+      "projected_safe_map_ready": 180,
+      "projected_percent": 75.0
+    },
+    {
+      "league_id": 563,
+      "competition": "Ettan - Norra",
+      "fixtures": 240,
+      "current_map_ready": 105,
+      "current_percent": 43.8,
+      "unlinked": 0,
+      "coordinate_null": 135,
+      "projected_safe_map_ready": 210,
+      "projected_percent": 87.5
+    },
+    {
+      "league_id": 564,
+      "competition": "Ettan - Södra",
+      "fixtures": 240,
+      "current_map_ready": 120,
+      "current_percent": 50.0,
+      "unlinked": 15,
+      "coordinate_null": 105,
+      "projected_safe_map_ready": 135,
+      "projected_percent": 56.2
+    },
+    {
+      "league_id": 592,
+      "competition": "Division 2 - Norra Götaland",
+      "fixtures": 182,
+      "current_map_ready": 78,
+      "current_percent": 42.9,
+      "unlinked": 13,
+      "coordinate_null": 91,
+      "projected_safe_map_ready": 91,
+      "projected_percent": 50.0
+    },
+    {
+      "league_id": 593,
+      "competition": "Division 2 - Norra Svealand",
+      "fixtures": 182,
+      "current_map_ready": 39,
+      "current_percent": 21.4,
+      "unlinked": 52,
+      "coordinate_null": 91,
+      "projected_safe_map_ready": 91,
+      "projected_percent": 50.0
+    },
+    {
+      "league_id": 594,
+      "competition": "Division 2 - Norrland",
+      "fixtures": 170,
+      "current_map_ready": 0,
+      "current_percent": 0.0,
+      "unlinked": 22,
+      "coordinate_null": 148,
+      "projected_safe_map_ready": 83,
+      "projected_percent": 48.8
+    },
+    {
+      "league_id": 595,
+      "competition": "Division 2 - Södra Svealand",
+      "fixtures": 182,
+      "current_map_ready": 91,
+      "current_percent": 50.0,
+      "unlinked": 39,
+      "coordinate_null": 52,
+      "projected_safe_map_ready": 117,
+      "projected_percent": 64.3
+    },
+    {
+      "league_id": 596,
+      "competition": "Division 2 - Västra Götaland",
+      "fixtures": 182,
+      "current_map_ready": 65,
+      "current_percent": 35.7,
+      "unlinked": 52,
+      "coordinate_null": 65,
+      "projected_safe_map_ready": 78,
+      "projected_percent": 42.9
+    },
+    {
+      "league_id": 597,
+      "competition": "Division 2 - Södra Götaland",
+      "fixtures": 182,
+      "current_map_ready": 26,
+      "current_percent": 14.3,
+      "unlinked": 52,
+      "coordinate_null": 104,
+      "projected_safe_map_ready": 65,
+      "projected_percent": 35.7
+    }
+  ],
+  "safety": {
+    "hosted_writes": 0,
+    "fixture_links_changed": 0,
+    "coordinates_changed": 0
+  }
+}

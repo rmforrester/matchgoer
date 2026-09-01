@@ -17,14 +17,7 @@ from ingestion.environment import ROOT, database_url
 DEFAULT_SOURCE = ROOT / "reports" / "ingestion" / "mvp-coordinate-gaps-2026.json"
 DEFAULT_REPORT = ROOT / "reports" / "ingestion" / "write-reviewed-coordinates-2026.json"
 DEFAULT_BASELINE = ROOT / "reports" / "ingestion" / "write-reviewed-coordinates-baseline-2026.json"
-BREADTH_QA_WITHHELD_PROVIDER_VENUE_IDS = {774, 1759, 2524, 4006, 11595}
-ATHENS_EXPECTED_READY = {19929, 19785, 7804}
-ATHENS_EXPECTED_UNRESOLVED = {775, 20340}
 COORDINATE_DB_QUANTUM = Decimal("0.000001")
-
-
-def athens_expected_ready(provider_id: int, target_ids: set[int]) -> bool:
-    return provider_id in ATHENS_EXPECTED_READY or provider_id in target_ids
 
 
 def accepted_from_review_report(payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -41,7 +34,7 @@ def accepted_from_review_report(payload: dict[str, Any]) -> list[dict[str, Any]]
 
 def accepted_from_checkpoint(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], list[int]]:
     accepted = []
-    withheld = set(BREADTH_QA_WITHHELD_PROVIDER_VENUE_IDS)
+    withheld = set()
     for raw_provider_id, result in payload.items():
         provider_id = int(raw_provider_id)
         if result.get("status") == "withheld":
@@ -139,6 +132,23 @@ def verify_expected_coordinate_rows(accepted, mapped) -> None:
         raise RuntimeError(f"Missing or unexpected applied coordinates for provider venues: {wrong}")
 
 
+def verify_withheld_coordinate_rows(withheld, mapped, baseline_rows) -> None:
+    changed = []
+    for provider_id in withheld:
+        before = baseline_rows.get(str(provider_id))
+        current = mapped.get(provider_id, [])
+        if before is None or len(current) != 1:
+            raise RuntimeError(f"Cannot reconcile withheld provider venue {provider_id}")
+        row = current[0]
+        if (
+            not baseline_coordinate_matches(row.latitude, before["latitude"])
+            or not baseline_coordinate_matches(row.longitude, before["longitude"])
+        ):
+            changed.append(provider_id)
+    if changed:
+        raise RuntimeError(f"Withheld provider venues changed: {changed}")
+
+
 def apply_coordinate_plan(engine, venues, planned, expected_updates: int) -> int:
     enforce_expected_updates(expected_updates, len(planned))
     with engine.begin() as connection:
@@ -169,10 +179,8 @@ def load_cohort_leagues(path: Path) -> list[dict[str, Any]]:
 
 
 def capture_baseline(connection, venues, planned, withheld: list[int], path: Path) -> dict[str, Any]:
-    planned_ids = {item["provider_venue_id"] for item in planned}
     provider_ids = sorted(set(
-        [item["provider_venue_id"] for item in planned]
-        + withheld + list(ATHENS_EXPECTED_READY | ATHENS_EXPECTED_UNRESOLVED)
+        [item["provider_venue_id"] for item in planned] + withheld
     ))
     rows = list(connection.execute(
         select(
@@ -197,23 +205,14 @@ def capture_baseline(connection, venues, planned, withheld: list[int], path: Pat
     missing = [provider_id for provider_id in provider_ids if provider_id not in mapped]
     if missing:
         raise RuntimeError(f"Baseline provider venues do not resolve uniquely: {missing}")
-    unexpected_ready = [
-        provider_id for provider_id in ATHENS_EXPECTED_UNRESOLVED
-        if provider_id not in planned_ids
-        if valid_coordinates(mapped[provider_id].latitude, mapped[provider_id].longitude)
-    ]
-    if unexpected_ready:
-        raise RuntimeError(f"Expected unresolved Athens/Piraeus venues are already coordinate-ready: {unexpected_ready}")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     return payload
 
 
-def reconcile(connection, venues, fixtures, accepted, withheld, baseline, cohort_rows) -> dict[str, Any]:
+def reconcile(connection, venues, fixtures, accepted, withheld, baseline, cohort_rows=None) -> dict[str, Any]:
     provider_ids = [item["provider_venue_id"] for item in accepted]
-    queried_provider_ids = sorted(set(
-        provider_ids + withheld + list(ATHENS_EXPECTED_READY | ATHENS_EXPECTED_UNRESOLVED)
-    ))
+    queried_provider_ids = sorted(set(provider_ids + withheld))
     rows = list(connection.execute(
         select(
             venues.c.venue_id, venues.c.provider_venue_id, venues.c.name,
@@ -239,70 +238,46 @@ def reconcile(connection, venues, fixtures, accepted, withheld, baseline, cohort
             identity_changes.append(provider_id)
     if identity_changes:
         raise RuntimeError(f"Venue identity fields changed: {identity_changes}")
-    changed_outside_targets = []
-    for provider_id in withheld:
-        before = baseline_rows.get(str(provider_id))
-        current = mapped.get(provider_id, [])
-        if before is None or len(current) != 1:
-            raise RuntimeError(f"Cannot reconcile withheld provider venue {provider_id}")
-        row = current[0]
-        if (
-            not baseline_coordinate_matches(row.latitude, before["latitude"])
-            or not baseline_coordinate_matches(row.longitude, before["longitude"])
-        ):
-            changed_outside_targets.append(provider_id)
-    if changed_outside_targets:
-        raise RuntimeError(f"Withheld provider venues changed: {changed_outside_targets}")
+    verify_withheld_coordinate_rows(withheld, mapped, baseline_rows)
     current_count = int(connection.execute(select(func.count()).select_from(venues)).scalar_one())
     if current_count != baseline["venue_row_count"]:
         raise RuntimeError("Venue row count changed; inserts/deletes cannot be reconciled")
 
-    target_ids = set(provider_ids)
     updated_by_country: dict[str, int] = {}
-    for provider_id in target_ids:
+    for provider_id in provider_ids:
         country = str(mapped[provider_id][0].country or "Unknown")
         updated_by_country[country] = updated_by_country.get(country, 0) + 1
 
-    league_ids = [int(row["league_id"]) for row in cohort_rows]
-    coverage_rows = connection.execute(
-        select(
-            fixtures.c.country, fixtures.c.league_id, fixtures.c.league_name,
-            func.count().label("fixtures"),
-            func.count().filter(
-                venues.c.latitude.is_not(None), venues.c.longitude.is_not(None),
-                venues.c.latitude.between(-90, 90), venues.c.longitude.between(-180, 180),
-            ).label("location_discoverable"),
-        ).select_from(fixtures.outerjoin(venues, fixtures.c.venue_id == venues.c.venue_id))
-        .where(fixtures.c.league_id.in_(league_ids), fixtures.c.season == 2026)
-        .group_by(fixtures.c.country, fixtures.c.league_id, fixtures.c.league_name)
-        .order_by(fixtures.c.country, fixtures.c.league_id)
-    )
-    coverage = [
-        {
-            "country": row.country, "league": row.league_name, "league_id": int(row.league_id),
-            "fixtures": int(row.fixtures), "location_discoverable_fixtures": int(row.location_discoverable),
-            "location_discoverable_percent": round(100 * int(row.location_discoverable) / int(row.fixtures), 1),
-        }
-        for row in coverage_rows
-    ]
-    athens = {}
-    for provider_id in sorted(ATHENS_EXPECTED_READY | ATHENS_EXPECTED_UNRESOLVED):
-        current = mapped.get(provider_id, [])
-        if len(current) != 1:
-            raise RuntimeError(f"Athens/Piraeus provider venue {provider_id} does not resolve uniquely")
-        row = current[0]
-        ready = valid_coordinates(row.latitude, row.longitude)
-        expected_ready = athens_expected_ready(provider_id, target_ids)
-        if ready != expected_ready:
-            raise RuntimeError(f"Unexpected Athens/Piraeus coordinate state for provider venue {provider_id}")
-        athens[str(provider_id)] = {"name": row.name, "coordinate_ready": ready}
-    return {
+    report = {
         "status": "PASS", "intended_coordinates_verified": len(accepted),
         "withheld_provider_venue_ids_unchanged": sorted(withheld),
         "venue_inserts": 0, "venue_deletes": 0, "identity_changes": 0,
         "updated_coordinate_count_by_country": dict(sorted(updated_by_country.items())),
-        "breadth_country_fixture_coverage": coverage, "athens_piraeus": athens,
     }
+    if cohort_rows is not None:
+        league_ids = [int(row["league_id"]) for row in cohort_rows]
+        coverage_rows = connection.execute(
+            select(
+                fixtures.c.country, fixtures.c.league_id, fixtures.c.league_name,
+                func.count().label("fixtures"),
+                func.count().filter(
+                    venues.c.latitude.is_not(None), venues.c.longitude.is_not(None),
+                    venues.c.latitude.between(-90, 90), venues.c.longitude.between(-180, 180),
+                ).label("location_discoverable"),
+            ).select_from(fixtures.outerjoin(venues, fixtures.c.venue_id == venues.c.venue_id))
+            .where(fixtures.c.league_id.in_(league_ids), fixtures.c.season == 2026)
+            .group_by(fixtures.c.country, fixtures.c.league_id, fixtures.c.league_name)
+            .order_by(fixtures.c.country, fixtures.c.league_id)
+        )
+        report["cohort_fixture_coverage"] = [
+            {
+                "country": row.country, "league": row.league_name, "league_id": int(row.league_id),
+                "fixtures": int(row.fixtures), "location_discoverable_fixtures": int(row.location_discoverable),
+                "location_discoverable_percent": round(100 * int(row.location_discoverable) / int(row.fixtures), 1),
+            }
+            for row in coverage_rows
+        ]
+    return report
 
 
 def parse_args() -> argparse.Namespace:
@@ -323,8 +298,6 @@ def parse_args() -> argparse.Namespace:
         parser.error("--write requires --expect-updates")
     if args.reconcile and args.write:
         parser.error("--reconcile and --write are mutually exclusive")
-    if args.reconcile and not args.cohort_report:
-        parser.error("--reconcile requires --cohort-report")
     return args
 
 
@@ -338,7 +311,7 @@ def main() -> int:
 
     engine = create_engine(database_url(), connect_args={"connect_timeout": 10})
     metadata = MetaData()
-    metadata.reflect(engine, only=["venues", "fixtures"] if args.reconcile else ["venues"])
+    metadata.reflect(engine, only=["venues", "fixtures"] if args.reconcile and args.cohort_report else ["venues"])
     venues = metadata.tables["venues"]
     with engine.connect() as connection:
         if args.source_kind == "provider-checkpoint":
@@ -356,8 +329,8 @@ def main() -> int:
         enforce_expected_updates(args.expect_updates, len(accepted))
         with engine.connect() as connection:
             report = reconcile(
-                connection, venues, metadata.tables["fixtures"], accepted, withheld,
-                baseline, load_cohort_leagues(args.cohort_report),
+                connection, venues, metadata.tables.get("fixtures"), accepted, withheld,
+                baseline, load_cohort_leagues(args.cohort_report) if args.cohort_report else None,
             )
         report.update({"source": str(args.source), "baseline": str(args.baseline), "written": False})
         args.report.parent.mkdir(parents=True, exist_ok=True)

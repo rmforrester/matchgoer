@@ -5,21 +5,22 @@ from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
 
-from sqlalchemy import Column, Float, Integer, MetaData, Table, create_engine, select
+from sqlalchemy import Column, Float, Integer, MetaData, String, Table, create_engine, select
 
 from audit_ambiguous_coordinates import build_report
 from ingestion.apply_reviewed_coordinates import (
-    BREADTH_QA_WITHHELD_PROVIDER_VENUE_IDS,
     accepted_from_checkpoint,
     accepted_from_review_report,
     apply_coordinate_plan,
     build_plan,
     enforce_expected_updates,
     resolve_provider_venue_ids,
+    reconcile,
     verify_expected_coordinate_rows,
-    athens_expected_ready,
+    verify_withheld_coordinate_rows,
     baseline_coordinate,
     baseline_coordinate_matches,
+    capture_baseline,
 )
 
 
@@ -41,27 +42,93 @@ class ReviewedCoordinateToolTests(unittest.TestCase):
         self.assertTrue(baseline_coordinate_matches(Decimal("38.037187"), loaded["latitude"]))
         self.assertTrue(baseline_coordinate_matches(Decimal("23.740932"), loaded["longitude"]))
 
-    def test_newly_accepted_athens_venue_is_expected_ready(self):
-        self.assertTrue(athens_expected_ready(775, {775}))
-        self.assertFalse(athens_expected_ready(20340, {775}))
-
-    def test_checkpoint_excludes_all_five_qa_withheld_ids(self):
-        payload = {
-            str(provider_id): {"status": "geocoded", "latitude": 1, "longitude": 2}
-            for provider_id in BREADTH_QA_WITHHELD_PROVIDER_VENUE_IDS | {999}
-        }
-        accepted, withheld = accepted_from_checkpoint(payload)
-        self.assertEqual([item["provider_venue_id"] for item in accepted], [999])
-        self.assertEqual(set(withheld), BREADTH_QA_WITHHELD_PROVIDER_VENUE_IDS)
-
     def test_checkpoint_retains_reviewed_withheld_ids_for_reconciliation(self):
         accepted, withheld = accepted_from_checkpoint({
             "3512": {"status": "withheld", "latitude": 1, "longitude": 2},
             "999": {"status": "geocoded", "latitude": 1, "longitude": 2},
         })
         self.assertEqual([item["provider_venue_id"] for item in accepted], [999])
-        self.assertIn(3512, withheld)
-        self.assertEqual(set(withheld), BREADTH_QA_WITHHELD_PROVIDER_VENUE_IDS | {3512})
+        self.assertEqual(withheld, [3512])
+
+    def test_prior_operation_ready_venue_does_not_block_later_baseline(self):
+        engine, venues = self.baseline_table()
+        with engine.begin() as connection:
+            connection.execute(venues.insert(), [
+                {"venue_id": 1, "provider_venue_id": 775, "name": "Karaiskakis", "city": "Piraeus", "country": "Greece", "latitude": 37.946, "longitude": 23.664},
+                {"venue_id": 2, "provider_venue_id": 1504, "name": "Swedish ground", "city": "City", "country": "Sweden", "latitude": None, "longitude": None},
+            ])
+        planned = [{"venue_id": 2, "provider_venue_id": 1504, "latitude": 59.1, "longitude": 18.1}]
+        with tempfile.TemporaryDirectory() as directory, engine.connect() as connection:
+            baseline = capture_baseline(connection, venues, planned, [], Path(directory) / "baseline.json")
+        self.assertEqual(set(baseline["target_rows"]), {"1504"})
+
+    def test_sequential_baselines_are_operation_scoped_and_withheld_is_captured(self):
+        engine, venues = self.baseline_table()
+        with engine.begin() as connection:
+            connection.execute(venues.insert(), [
+                {"venue_id": 1, "provider_venue_id": 10, "name": "First", "city": "A", "country": "X"},
+                {"venue_id": 2, "provider_venue_id": 20, "name": "Second", "city": "B", "country": "Y"},
+                {"venue_id": 3, "provider_venue_id": 30, "name": "Withheld", "city": "C", "country": "Y"},
+            ])
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with engine.connect() as connection:
+                first = capture_baseline(connection, venues, [{"provider_venue_id": 10}], [], root / "first.json")
+            with engine.begin() as connection:
+                connection.execute(venues.update().where(venues.c.provider_venue_id == 10).values(latitude=1, longitude=2))
+            with engine.connect() as connection:
+                second = capture_baseline(connection, venues, [{"provider_venue_id": 20}], [30], root / "second.json")
+        self.assertEqual(set(first["target_rows"]), {"10"})
+        self.assertEqual(set(second["target_rows"]), {"20", "30"})
+        self.assertNotIn("10", second["target_rows"])
+
+    def test_current_operation_withheld_coordinates_must_remain_unchanged(self):
+        baseline = {"30": {"latitude": None, "longitude": None}}
+        verify_withheld_coordinate_rows(
+            [30], {30: [SimpleNamespace(latitude=None, longitude=None)]}, baseline,
+        )
+        with self.assertRaisesRegex(RuntimeError, "Withheld provider venues changed"):
+            verify_withheld_coordinate_rows(
+                [30], {30: [SimpleNamespace(latitude=1.0, longitude=2.0)]}, baseline,
+            )
+
+    def test_core_reconciliation_does_not_require_cohort_metrics(self):
+        engine, venues = self.baseline_table()
+        with engine.begin() as connection:
+            connection.execute(venues.insert(), {
+                "venue_id": 1, "provider_venue_id": 1504, "name": "Swedish ground",
+                "city": "City", "country": "Sweden", "latitude": 59.1, "longitude": 18.1,
+            })
+        accepted = [{
+            "venue_id": 1, "provider_venue_id": 1504,
+            "latitude": 59.1, "longitude": 18.1,
+        }]
+        baseline = {
+            "planned_provider_venue_ids": [1504],
+            "target_rows": {"1504": {
+                "venue_id": 1, "name": "Swedish ground", "city": "City",
+                "country": "Sweden", "latitude": None, "longitude": None,
+            }},
+            "venue_row_count": 1,
+        }
+        with engine.connect() as connection:
+            report = reconcile(connection, venues, None, accepted, [], baseline)
+        self.assertEqual(report["status"], "PASS")
+        self.assertEqual(report["intended_coordinates_verified"], 1)
+        self.assertNotIn("cohort_fixture_coverage", report)
+
+    def baseline_table(self):
+        engine = create_engine("sqlite://")
+        metadata = MetaData()
+        venues = Table(
+            "venues", metadata,
+            Column("venue_id", Integer, primary_key=True),
+            Column("provider_venue_id", Integer, unique=True),
+            Column("name", String), Column("city", String), Column("country", String),
+            Column("latitude", Float), Column("longitude", Float),
+        )
+        metadata.create_all(engine)
+        return engine, venues
 
     def test_provider_id_must_resolve_once(self):
         engine = create_engine("sqlite://")

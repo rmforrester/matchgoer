@@ -1,0 +1,142 @@
+{
+  "planned_provider_venue_ids": [
+    1504,
+    1515,
+    1523,
+    1528,
+    4870,
+    4874,
+    4893,
+    4895,
+    4899,
+    7653,
+    8006,
+    8866,
+    12742,
+    18631,
+    21602
+  ],
+  "target_rows": {
+    "18631": {
+      "venue_id": 22844,
+      "name": "Borlänge Energi Arena Domnarvsvallen",
+      "city": "Borlänge",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "4893": {
+      "venue_id": 22846,
+      "name": "Arena Jernvallen",
+      "city": "Sandviken",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "1528": {
+      "venue_id": 22851,
+      "name": "Tunavallen",
+      "city": "Eskilstuna",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "1504": {
+      "venue_id": 22852,
+      "name": "Gavlevallen",
+      "city": "Gävle",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "4895": {
+      "venue_id": 22854,
+      "name": "Sollentunavallen",
+      "city": "Sollentuna",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "7653": {
+      "venue_id": 22859,
+      "name": "LF Arena",
+      "city": "Piteå",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "4899": {
+      "venue_id": 22876,
+      "name": "Övrevi",
+      "city": "Tvååker",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "4874": {
+      "venue_id": 22882,
+      "name": "Vapenvallen",
+      "city": "Huskvarna",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "4870": {
+      "venue_id": 22893,
+      "name": "Gutavallen",
+      "city": "Gotland",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "1523": {
+      "venue_id": 22836,
+      "name": "Jämtkraft Arena",
+      "city": "Östersund",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "1515": {
+      "venue_id": 22895,
+      "name": "Vikingavallen",
+      "city": "Täby",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "8866": {
+      "venue_id": 22906,
+      "name": "Vildmannavallen IP",
+      "city": "Umeå",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "21602": {
+      "venue_id": 22909,
+      "name": "Sörforsvallen",
+      "city": "Sundsvall",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "12742": {
+      "venue_id": 22920,
+      "name": "Söndrums IP",
+      "city": "Eketånga-Söndrum, Halmstad",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    },
+    "8006": {
+      "venue_id": 22933,
+      "name": "Vägga IP 1",
+      "city": "Karlshamn",
+      "country": "Sweden",
+      "latitude": null,
+      "longitude": null
+    }
+  },
+  "venue_row_count": 2217
+}
