@@ -81,7 +81,7 @@ function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, showDistanc
   const statusGroup = fixtureStatusGroup(fixture.status);
 
   return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => { setFixtureIndex(0); onFixtureSelect(group.fixtures[0].fixture_id); } }}>
-    <Popup closeButton={false} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
+    <Popup closeButton={false} offset={[0, -8]} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
       <button type="button" onClick={() => map.closePopup()} aria-label="Close fixture details" className="absolute right-2 top-2 grid min-h-9 min-w-9 place-items-center border border-[var(--tt-ink)] text-lg font-bold leading-none">×</button>
       <div className="pr-10">
       <strong className="block leading-tight">{card.matchup}</strong>

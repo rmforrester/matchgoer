@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
 
 import type { Fixture } from "../types/fixture";
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
@@ -20,13 +19,6 @@ type Props = {
 };
 
 export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMatches, resultsLimited, interestedFixtureIds, updatingFixtureIds, selectedFixtureId, onFixtureSelect, onToggleInterested }: Props) {
-  const cardRefs = useRef(new Map<number, HTMLElement>());
-
-  useEffect(() => {
-    if (selectedFixtureId === null) return;
-    cardRefs.current.get(selectedFixtureId)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-  }, [selectedFixtureId]);
-
   if (fixtures.length === 0) return null;
 
   return (
@@ -55,7 +47,6 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
           return (
             <article
               key={fixture.fixture_id}
-              ref={(node) => { if (node) cardRefs.current.set(fixture.fixture_id, node); else cardRefs.current.delete(fixture.fixture_id); }}
               onFocus={() => onFixtureSelect(fixture.fixture_id)}
               onPointerEnter={() => onFixtureSelect(fixture.fixture_id)}
               className={`group relative flex h-[18.5rem] w-[72vw] min-w-[14.5rem] max-w-[16rem] snap-start flex-col border-2 bg-[var(--tt-paper)] text-[var(--tt-ink)] transition sm:w-64 ${isSelected ? "-translate-y-0.5 border-[var(--tt-blue)] shadow-[3px_3px_0_var(--tt-blue)]" : "border-[var(--tt-ink)] hover:-translate-y-0.5 hover:border-[var(--tt-blue)]"}`}

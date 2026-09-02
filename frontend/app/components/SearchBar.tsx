@@ -1,4 +1,5 @@
 import { endDateAtOrAfterStart } from "../../lib/fixtureDiscovery";
+import { useRef } from "react";
 
 type League = {
   league_id: number;
@@ -35,6 +36,7 @@ export default function SearchBar({
   endDate,
   setEndDate,
 }: Props) {
+  const toDateInput = useRef<HTMLInputElement>(null);
   const selected = new Set(selectedLeagueIds);
   const toggleLeague = (leagueId: number) => {
     setSelectedLeagueIds(
@@ -59,6 +61,15 @@ export default function SearchBar({
               : event.target.value;
             setStartDate(nextStartDate);
             setEndDate(endDateAtOrAfterStart(nextStartDate, endDate));
+            const toInput = toDateInput.current;
+            if (nextStartDate && toInput) {
+              toInput.focus({ preventScroll: true });
+              try {
+                toInput.showPicker?.();
+              } catch {
+                // Native pickers may reject programmatic opening, notably on iOS Safari.
+              }
+            }
           }}
         />
       </label>
@@ -66,6 +77,7 @@ export default function SearchBar({
       <label className="grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
         To
         <input
+          ref={toDateInput}
           type="date"
           value={endDate}
           min={startDate || minimumStartDate}

@@ -14,12 +14,11 @@ export function upcomingWeekendDateRange(now = new Date()) {
   const day = now.getDay();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  if (day !== 0 && day !== 6) {
-    start.setDate(start.getDate() + (6 - day));
-  }
+  const daysToFriday = day === 0 ? -2 : day === 6 ? -1 : 5 - day;
+  start.setDate(start.getDate() + daysToFriday);
 
   const end = new Date(start);
-  if (day !== 0) end.setDate(end.getDate() + 1);
+  end.setDate(end.getDate() + 2);
 
   return {
     startDate: localCalendarDateValue(start),
@@ -139,6 +138,14 @@ export function applyUserLocationEvent(
   return null;
 }
 
+export function manualCurrentLocationOrigin(origin: { latitude: number; longitude: number }) {
+  return {
+    locationQuery: "Current location",
+    draftCoordinates: origin,
+    userLocation: origin,
+  };
+}
+
 export function beginGeolocationTransition(
   currentRequestVersion: number,
 ) {
@@ -229,8 +236,9 @@ export function compactFixtureCard(fixture: Fixture) {
 
 export const FIXTURE_POPUP_BEHAVIOR = {
   autoPan: true,
-  autoPanPaddingTopLeft: [24, 24] as [number, number],
-  autoPanPaddingBottomRight: [24, 24] as [number, number],
+  keepInView: true,
+  autoPanPaddingTopLeft: [56, 72] as [number, number],
+  autoPanPaddingBottomRight: [32, 32] as [number, number],
   autoClose: true,
   closeOnClick: true,
 } as const;

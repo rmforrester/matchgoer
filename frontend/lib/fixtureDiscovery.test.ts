@@ -14,6 +14,7 @@ import {
   GEOLOCATION_INSECURE_MESSAGE,
   GEOLOCATION_UNSUPPORTED_MESSAGE,
   isCurrentDiscoveryRequest,
+  manualCurrentLocationOrigin,
   resolvedLocationTransition,
   upcomingWeekendDateRange,
   type DiscoveryViewport,
@@ -28,20 +29,24 @@ const miamiViewport: DiscoveryViewport = {
   west: -80.9435973,
 };
 
-test("weekend shortcut selects the next Saturday and Sunday on a weekday", () => {
+test("weekend shortcut selects the upcoming Friday through Sunday on a weekday", () => {
   assert.deepEqual(upcomingWeekendDateRange(new Date(2026, 8, 2, 12)), {
-    startDate: "2026-09-05",
+    startDate: "2026-09-04",
     endDate: "2026-09-06",
   });
 });
 
-test("weekend shortcut keeps the remaining days of the current weekend", () => {
+test("weekend shortcut keeps the current Friday through Sunday all weekend", () => {
+  assert.deepEqual(upcomingWeekendDateRange(new Date(2026, 8, 4, 12)), {
+    startDate: "2026-09-04",
+    endDate: "2026-09-06",
+  });
   assert.deepEqual(upcomingWeekendDateRange(new Date(2026, 8, 5, 12)), {
-    startDate: "2026-09-05",
+    startDate: "2026-09-04",
     endDate: "2026-09-06",
   });
   assert.deepEqual(upcomingWeekendDateRange(new Date(2026, 8, 6, 12)), {
-    startDate: "2026-09-06",
+    startDate: "2026-09-04",
     endDate: "2026-09-06",
   });
 });
@@ -49,6 +54,15 @@ test("weekend shortcut keeps the remaining days of the current weekend", () => {
 test("manual end date never precedes the chosen start date", () => {
   assert.equal(endDateAtOrAfterStart("2026-12-26", "2026-09-30"), "2026-12-26");
   assert.equal(endDateAtOrAfterStart("2026-12-26", "2026-12-28"), "2026-12-28");
+});
+
+test("manual Use my location establishes an origin without choosing dates", () => {
+  const origin = { latitude: 53.4106, longitude: -2.1575 };
+  assert.deepEqual(manualCurrentLocationOrigin(origin), {
+    locationQuery: "Current location",
+    draftCoordinates: origin,
+    userLocation: origin,
+  });
 });
 
 test("resolved location immediately builds the viewport discovery request without a movement event", () => {
@@ -225,8 +239,9 @@ test("compact fixture card exposes only matchup, timing source, status and link"
 test("fixture popup auto-pans with padding while preserving normal close behavior", () => {
   assert.deepEqual(FIXTURE_POPUP_BEHAVIOR, {
     autoPan: true,
-    autoPanPaddingTopLeft: [24, 24],
-    autoPanPaddingBottomRight: [24, 24],
+    keepInView: true,
+    autoPanPaddingTopLeft: [56, 72],
+    autoPanPaddingBottomRight: [32, 32],
     autoClose: true,
     closeOnClick: true,
   });

@@ -30,6 +30,7 @@ import {
   GEOLOCATION_INSECURE_MESSAGE,
   GEOLOCATION_UNSUPPORTED_MESSAGE,
   localCalendarDateValue,
+  manualCurrentLocationOrigin,
   normalizeDiscoveryStartDate,
   resolvedLocationTransition,
   selectDiscoveryFixtures,
@@ -555,13 +556,13 @@ const loadVisitedStadiums = () => {
   // Set discovery location
   // -------------------------
 
-  const startCurrentLocationSearch = (searchOptions?: {
+  const resolveCurrentLocation = (searchOptions?: {
     radius: number;
     startDate: string;
     endDate: string;
     leagueIds: number[];
     showAllStadiums: boolean;
-  }) => {
+  }, establishOriginOnly = false) => {
     const transition = beginGeolocationTransition(discoveryRequestVersion.current);
     const requestVersion = transition.requestVersion;
     discoveryRequestVersion.current = requestVersion;
@@ -595,6 +596,15 @@ const loadVisitedStadiums = () => {
           longitude: position.coords.longitude,
         };
         setUserLocation((current) => applyUserLocationEvent(current, { type: "geolocation", location: origin }));
+        if (establishOriginOnly) {
+          const manualOrigin = manualCurrentLocationOrigin(origin);
+          setDraftCoordinates(manualOrigin.draftCoordinates);
+          setLocationQuery(manualOrigin.locationQuery);
+          setUserLocation(manualOrigin.userLocation);
+          setLocationLoading(false);
+          discoveryRequest.current = null;
+          return;
+        }
         const options = searchOptions ?? { radius, startDate, endDate, leagueIds: [...selectedLeagueIds], showAllStadiums };
         stageResolvedLocation({
           requestVersion,
@@ -623,7 +633,7 @@ const loadVisitedStadiums = () => {
     setRadius(25);
     setSelectedLeagueIds([]);
     setShowAllStadiums(false);
-    startCurrentLocationSearch({ ...weekend, radius: 25, leagueIds: [], showAllStadiums: false });
+    resolveCurrentLocation({ ...weekend, radius: 25, leagueIds: [], showAllStadiums: false });
   };
 
   useEffect(() => {
@@ -685,14 +695,14 @@ const loadVisitedStadiums = () => {
           <form onSubmit={submitDiscovery}>
             <p className="tt-kicker mb-2" id="search-heading">Start here</p>
             <button type="button" onClick={findFootballThisWeekend} disabled={loading || locationLoading} className="tt-action w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14">
-              {locationLoading ? "Finding your location…" : "Find football near me this weekend →"}
+              {locationLoading ? "Finding your location…" : "Find football near me this weekend"}
             </button>
             <div className="my-3 flex items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
               <span className="h-px flex-1 bg-[var(--tt-rule)]" />or search a place<span className="h-px flex-1 bg-[var(--tt-rule)]" />
             </div>
             <div className="grid gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
               Where do you want to go?
-              <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+              <div>
                 <input
                   id="location-search"
                   type="search"
@@ -706,7 +716,9 @@ const loadVisitedStadiums = () => {
                   aria-label="Where"
                   className="tt-control w-full min-w-0 px-4 py-2 normal-case tracking-normal"
                 />
-                <button type="submit" disabled={loading || locationLoading} className="tt-action tt-action-secondary w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">{loading ? "Searching…" : "Search"}</button>
+                <button type="button" onClick={() => resolveCurrentLocation(undefined, true)} disabled={locationLoading || loading} className="mt-1 min-h-11 px-1 text-left text-xs font-extrabold normal-case tracking-normal text-[var(--tt-blue)] underline decoration-2 underline-offset-4 disabled:opacity-60">
+                  {locationLoading ? "Finding your location…" : "Use my location"}
+                </button>
               </div>
             </div>
 
@@ -722,6 +734,8 @@ const loadVisitedStadiums = () => {
                 </label>
               </div>
             </details>
+
+            <button type="submit" disabled={loading || locationLoading} className="tt-action mt-2 w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:block sm:w-auto sm:min-w-40">{loading ? "Searching…" : "Search"}</button>
 
             {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
             {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
