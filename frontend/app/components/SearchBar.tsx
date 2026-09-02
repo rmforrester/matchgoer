@@ -33,7 +33,7 @@ export function DateRangeFields({ startDate, setStartDate, minimumStartDate, end
   }, [endDate, startDate]);
 
   return (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
+    <div className="grid min-w-0 grid-cols-2 items-end gap-2">
       <label className="grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
         From
         <input
@@ -50,8 +50,6 @@ export function DateRangeFields({ startDate, setStartDate, minimumStartDate, end
           }}
         />
       </label>
-
-      <span className="grid min-h-11 place-items-center pb-0.5 text-lg font-extrabold text-[var(--tt-blue)]" aria-hidden="true">→</span>
 
       <label className={`grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em] ${toNeedsAttention ? "text-[var(--tt-blue)]" : ""}`}>
         To

@@ -27,6 +27,7 @@ import {
 } from "../../lib/fixtureDiscovery";
 import { createGroundMarkerIcon, createUserLocationIcon } from "./groundMarkerIcon";
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
+import { configuredDiscoverTileLayer } from "../../lib/discoverMapTiles";
 
 type Venue = {
   venue_id: number;
@@ -187,6 +188,7 @@ export default function FixtureMap({
   showDistance,
 }: Props) {
   const fixtureGroups = useMemo(() => groupFixturesByVenue(fixtures), [fixtures]);
+  const tileLayer = useMemo(() => configuredDiscoverTileLayer(), []);
   const [areaSearchAvailable, setAreaSearchAvailable] = useState(false);
   const [tileError, setTileError] = useState(false);
   const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(null);
@@ -238,8 +240,7 @@ export default function FixtureMap({
       <MapMovementMonitor appliedCenter={{ latitude, longitude }} radius={radius} suppressMovementRef={suppressMovementRef} onCandidateChange={setAreaSearchAvailable} />
 
       <TileLayer
-        attribution="&copy; OpenStreetMap contributors"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        {...tileLayer}
         eventHandlers={{ tileerror: () => setTileError(true), load: () => setTileError(false) }}
       />
 

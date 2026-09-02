@@ -21,6 +21,7 @@ import {
   type DiscoveryViewport,
 } from "./fixtureDiscovery.ts";
 import { USER_MARKER_DESIGN, VENUE_MARKER_DESIGN, venueMarkerPresentation } from "./mapMarkerDesign.ts";
+import { discoverTileLayerConfig } from "./discoverMapTiles.ts";
 
 const miamiViewport: DiscoveryViewport = {
   center: { latitude: 25.7741566, longitude: -80.1935973 },
@@ -32,6 +33,21 @@ const miamiViewport: DiscoveryViewport = {
 
 const discoverPageSource = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
 const searchBarSource = readFileSync(new URL("../app/components/SearchBar.tsx", import.meta.url), "utf8");
+
+test("Discover uses OSM until both approved MapTiler values are configured", () => {
+  assert.equal(discoverTileLayerConfig({}).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+  assert.equal(discoverTileLayerConfig({ key: "browser-key" }).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+  assert.equal(discoverTileLayerConfig({ key: "browser-key", mapId: "../unsafe" }).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+});
+
+test("Discover accepts a configured MapTiler raster style without changing Leaflet", () => {
+  assert.deepEqual(discoverTileLayerConfig({ key: "restricted browser key", mapId: "matchgoer-english" }), {
+    url: "https://api.maptiler.com/maps/matchgoer-english/256/{z}/{x}/{y}.png?key=restricted%20browser%20key",
+    attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
+    crossOrigin: true,
+    minZoom: 1,
+  });
+});
 
 test("manual search keeps dates visible before genuinely optional filters and the single Search action", () => {
   const dates = discoverPageSource.indexOf("<DateRangeFields");
