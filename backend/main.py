@@ -23,6 +23,7 @@ from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, utc_date_expression
 from location_safety import has_usable_coordinates
 from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue, resolve_unique_home_club
+from decision import fixture_decision_payload
 
 from models import (
     Fixture,
@@ -2387,6 +2388,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
         for root in roots:
             root["replies"] = replies.get(root["post_id"], [])
         recommend_percentage = round((float(rating[1]) / rating[2]) * 100, 1) if rating[2] else None
+        decision = fixture_decision_payload(db, fixture)
         db.add(SocialEvent(user_id=user_id, fixture_id=fixture_id, event_type="fixture_view"))
         db.add(SocialEvent(user_id=user_id, fixture_id=fixture_id, event_type="board_view"))
         db.commit()
@@ -2403,6 +2405,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             },
             "terrace_rating": round(float(rating[0]), 1) if rating[0] is not None else None,
             "recommend_percentage": recommend_percentage,
+            **decision,
             "interested": interested, "open_to_meet": open_to_meet,
             "open_to_meet_count": open_count, "profile": ({"username": profile.username, "display_name": profile.display_name, "supported_club": profile.supported_club} if profile else None),
             "own_review": ({

@@ -95,6 +95,14 @@ class FixtureWithVenueResponse(BaseModel):
         from_attributes = True
 
 
+class DecisionReasonResponse(BaseModel):
+    key: str
+    emoji: str
+    label: str
+    explanation: str
+    importance: str
+
+
 class MatchdayTipCreate(BaseModel):
 
     venue_id: int

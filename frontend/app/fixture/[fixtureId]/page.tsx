@@ -20,9 +20,14 @@ type BoardPost = {
   replies?: BoardPost[];
 };
 
+type DecisionReason = {
+  key: string; emoji: string; label: string; explanation: string; importance: string;
+};
+
 type SocialFixture = {
   fixture: { fixture_id: number; fixture_date: string; home_team: string; home_team_id: number | null; away_team: string; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
   terrace_rating: number | null; recommend_percentage: number | null;
+  decision_reasons: DecisionReason[]; highlight_eligible: boolean;
   interested: boolean; open_to_meet: boolean; open_to_meet_count: number;
   profile: { username: string | null; display_name: string; supported_club: string | null } | null;
   own_review: { review_id: number; fixture_id: number | null; state: "blank" | "partial" | "completed"; completed: boolean } | null;
@@ -279,44 +284,45 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       {venueGuide && venueGuide.before_match.length > 0 && <p className="mt-3 text-sm font-bold">Before the match · {venueGuide.before_match.length} {venueGuide.before_match.length === 1 ? "place" : "places"}</p>}
     </aside>}
 
-    {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
-      <p className="tt-kicker">02 / Did you go?</p>
-      <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div><h2 id="matchday-heading" className="tt-display text-4xl leading-none sm:text-5xl">{data.own_attendance.attended ? "✓ Attendance recorded" : "Did you go?"}</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">{data.fixture.venue_id ? data.own_attendance.attended ? "This match is in your attended history. Rating the ground and adding a supporter tip are optional." : "Record the match now. You can rate the ground or leave a tip separately." : "This fixture is not linked to a ground, so attendance cannot be recorded yet."}</p></div>
-        {data.fixture.venue_id && !data.own_attendance.attended && <button type="button" disabled={saving} onClick={recordAttendance} className="tt-action px-5">{saving ? "Recording…" : "Yes — I was there"}</button>}
-      </div>
-      {data.own_attendance.attended && data.fixture.venue_id && <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--tt-rule)] pt-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" disabled={saving} onClick={openPostMatchReview} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">{data.own_review?.state === "completed" ? "Edit my review →" : data.own_review?.state === "partial" ? "Continue review →" : "Rate the ground →"}</button><Link href={`/venue/${data.fixture.venue_id}#tips-add`} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Add a tip →</Link><button type="button" disabled={saving} onClick={removeAttendance} className="text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove attendance</button></div>}
-    </section> : statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">02 / Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It will not be treated as an upcoming plan or attendance opportunity.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : <section className="tt-section-rule mt-8 grid gap-5 pt-4 lg:grid-cols-[minmax(0,1fr)_18rem]" aria-labelledby="matchday-heading">
-      <div>
-        <p className="tt-kicker">02 / {statusGroup === "postponed" ? "Match update" : "Your matchday"}</p>
-        <h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">{statusGroup === "postponed" ? "Match postponed" : "Make it yours"}</h2>
-        {statusGroup === "postponed" && <p className="mt-3 text-[var(--tt-muted)]">Keep this on your radar while a new kickoff is confirmed.</p>}
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`tt-action px-5 py-3 text-left ${data.interested ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}>{data.interested ? "✓ Interested" : "Interested"}</button>
-          <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`tt-action px-5 py-3 text-left ${data.open_to_meet ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Who's Going?"}</button>
-        </div>
-      </div>
-      <aside className="tt-panel self-end p-4" aria-label="Matchday community">
-        <p className="tt-kicker">Terrace roll call</p>
-        <p className="tt-display mt-2 text-3xl leading-none">Who&apos;s Going? · {data.open_to_meet_count}</p>
-        <p className="mt-3 text-xs leading-5 text-[var(--tt-muted)]">Meet safely in public matchday locations and use your judgment when meeting someone new.</p>
-      </aside>
-    </section>}
-
-    <section className="tt-section-rule mt-10 pt-4" aria-labelledby="board-heading">
-      <p className="tt-kicker">03 / Supporter correspondence</p>
-      <div className="mt-1 flex flex-wrap items-end justify-between gap-3"><h2 id="board-heading" className="tt-display text-4xl leading-none sm:text-5xl">Match Board</h2><span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-muted)]">{data.posts.length} {data.posts.length === 1 ? "thread" : "threads"}</span></div>
-      {data.board_closed ? <div className="tt-panel mt-5 p-4 sm:p-5"><p className="tt-display text-2xl">The board is closed</p><p className="mt-2 text-[var(--tt-muted)]">{statusGroup === "cancelled" ? "This match was cancelled." : "This match has finished."}</p></div> : <div className="tt-panel mt-5 p-4 sm:p-5">{data.posts.length === 0 && <p className="mb-4 max-w-2xl leading-7 text-[var(--tt-muted)]">Going to this one? Ask about pubs, travel, the ground, or see who else is heading along.</p>}<label htmlFor="match-board-message" className="tt-kicker">{replyingTo ? "Your reply" : "Post to the board"}</label><textarea id="match-board-message" ref={composerRef} value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={4} placeholder={replyingTo ? "Write a reply" : "Ask about travel, pubs, tickets or the ground…"} className="tt-control mt-2 w-full min-w-0 resize-y p-3"/><div className="mt-3 grid gap-3 sm:flex sm:items-center sm:justify-between"><span className="text-xs font-semibold text-[var(--tt-muted)]">{body.length} / 500</span><button type="button" disabled={saving || !body.trim()} onClick={submitPost} className="tt-action w-full px-5 sm:w-auto">{replyingTo ? "Post reply" : "Post to board"}</button></div></div>}
-      {data.posts.length > 0 && <div className="mt-6">{data.posts.map((post) => renderPost(post))}</div>}
-    </section>
-
     {data.fixture.venue_id && <section className="tt-section-rule mt-10 pt-4" aria-labelledby="ground-heading">
-      <p className="tt-kicker">04 / The ground</p>
+      <p className="tt-kicker">02 / Matchday · The ground</p>
       <div className="mt-2 grid gap-4 border-b-2 border-[var(--tt-ink)] pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="min-w-0"><h2 id="ground-heading" className="tt-display break-words text-4xl leading-none sm:text-5xl">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mt-2 font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{data.fixture.venue_city}</p>}</div>
         <Link href={`/venue/${data.fixture.venue_id}${data.fixture.home_team_id ? `?teamId=${data.fixture.home_team_id}` : ""}`} className="tt-action inline-flex items-center justify-center px-5">Explore the ground →</Link>
       </div>
       {(data.terrace_rating !== null || data.recommend_percentage !== null) && <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs font-extrabold uppercase tracking-[0.08em]">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div>}
     </section>}
+
+    {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
+      <p className="tt-kicker">03 / Social · Did you go?</p>
+      <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div><h2 id="matchday-heading" className="tt-display text-4xl leading-none sm:text-5xl">{data.own_attendance.attended ? "✓ Attendance recorded" : "Did you go?"}</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">{data.fixture.venue_id ? data.own_attendance.attended ? "This match is in your attended history. Rating the ground and adding a supporter tip are optional." : "Record the match now. You can rate the ground or leave a tip separately." : "This fixture is not linked to a ground, so attendance cannot be recorded yet."}</p></div>
+        {data.fixture.venue_id && !data.own_attendance.attended && <button type="button" disabled={saving} onClick={recordAttendance} className="tt-action px-5">{saving ? "Recording…" : "Yes — I was there"}</button>}
+      </div>
+      {data.own_attendance.attended && data.fixture.venue_id && <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--tt-rule)] pt-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" disabled={saving} onClick={openPostMatchReview} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">{data.own_review?.state === "completed" ? "Edit my review →" : data.own_review?.state === "partial" ? "Continue review →" : "Rate the ground →"}</button><Link href={`/venue/${data.fixture.venue_id}#tips-add`} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Add a tip →</Link><button type="button" disabled={saving} onClick={removeAttendance} className="text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove attendance</button></div>}
+    </section> : statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">03 / Social · Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It will not be treated as an upcoming plan or attendance opportunity.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : <section className="tt-section-rule mt-8 grid gap-5 pt-4 lg:grid-cols-[minmax(0,1fr)_18rem]" aria-labelledby="matchday-heading">
+      <div>
+        <p className="tt-kicker">03 / Social · {statusGroup === "postponed" ? "Match update" : "Your matchday"}</p>
+        <h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">{statusGroup === "postponed" ? "Match postponed" : "Make it yours"}</h2>
+        {statusGroup === "postponed" && <p className="mt-3 text-[var(--tt-muted)]">Keep this on your radar while a new kickoff is confirmed.</p>}
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`tt-action px-5 py-3 text-left ${data.interested ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}>{data.interested ? "✓ Interested" : "Interested"}</button>
+          <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`tt-action px-5 py-3 text-left ${data.open_to_meet ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Open to meeting supporters"}</button>
+        </div>
+      </div>
+      <aside className="tt-panel self-end p-4" aria-label="Matchday community">
+        <p className="tt-kicker">Terrace roll call</p>
+        <p className="tt-display mt-2 text-3xl leading-none">Open to meeting · {data.open_to_meet_count}</p>
+        <p className="mt-3 text-xs leading-5 text-[var(--tt-muted)]">Meet safely in public matchday locations and use your judgment when meeting someone new.</p>
+      </aside>
+    </section>}
+
+    <section className="tt-section-rule mt-10 pt-4" aria-labelledby="board-heading">
+      <p className="tt-kicker">04 / Social · Supporter correspondence</p>
+      <div className="mt-1 flex flex-wrap items-end justify-between gap-3"><h2 id="board-heading" className="tt-display text-4xl leading-none sm:text-5xl">Match Board</h2><span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-muted)]">{data.posts.length} {data.posts.length === 1 ? "thread" : "threads"}</span></div>
+      {data.board_closed ? <div className="tt-panel mt-5 p-4 sm:p-5"><p className="tt-display text-2xl">The board is closed</p><p className="mt-2 text-[var(--tt-muted)]">{statusGroup === "cancelled" ? "This match was cancelled." : "This match has finished."}</p></div> : <div className="tt-panel mt-5 p-4 sm:p-5">{data.posts.length === 0 && <p className="mb-4 max-w-2xl leading-7 text-[var(--tt-muted)]">Going to this one? Ask about pubs, travel, the ground, or see who else is heading along.</p>}<label htmlFor="match-board-message" className="tt-kicker">{replyingTo ? "Your reply" : "Post to the board"}</label><textarea id="match-board-message" ref={composerRef} value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={4} placeholder={replyingTo ? "Write a reply" : "Ask about travel, pubs, tickets or the ground…"} className="tt-control mt-2 w-full min-w-0 resize-y p-3"/><div className="mt-3 grid gap-3 sm:flex sm:items-center sm:justify-between"><span className="text-xs font-semibold text-[var(--tt-muted)]">{body.length} / 500</span><button type="button" disabled={saving || !body.trim()} onClick={submitPost} className="tt-action w-full px-5 sm:w-auto">{replyingTo ? "Post reply" : "Post to board"}</button></div></div>}
+      {data.posts.length > 0 && <div className="mt-6">{data.posts.map((post) => renderPost(post))}</div>}
+    </section>
+
   </main>;
 }

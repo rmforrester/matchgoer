@@ -7,11 +7,13 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    Index,
     String,
     UniqueConstraint,
     ForeignKeyConstraint,
     BigInteger,
     Text,
+    text,
 )
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
@@ -175,6 +177,92 @@ class Fixture(Base):
 
     home_goals = Column(Integer)
     away_goals = Column(Integer)
+
+
+class DecisionFact(Base):
+    """A reviewed reason to consider a team pairing or canonical venue."""
+
+    __tablename__ = "decision_facts"
+    __table_args__ = (
+        CheckConstraint("subject_type IN ('TEAM_PAIR', 'VENUE')", name="ck_decision_facts_subject_type"),
+        CheckConstraint(
+            "(subject_type = 'TEAM_PAIR' AND team_a_id IS NOT NULL AND team_b_id IS NOT NULL "
+            "AND team_a_id < team_b_id AND venue_id IS NULL) OR "
+            "(subject_type = 'VENUE' AND team_a_id IS NULL AND team_b_id IS NULL AND venue_id IS NOT NULL)",
+            name="ck_decision_facts_subject_shape",
+        ),
+        CheckConstraint(
+            "(subject_type = 'TEAM_PAIR' AND attribute_key = 'SIGNIFICANT_RIVALRY') OR "
+            "(subject_type = 'VENUE' AND attribute_key IN ('FOOTBALL_LANDMARK', 'UNIQUE_SETTING', 'CLASSIC_GROUND'))",
+            name="ck_decision_facts_attribute_subject",
+        ),
+        CheckConstraint("publication_status IN ('DRAFT', 'PUBLISHED', 'REJECTED')", name="ck_decision_facts_publication_status"),
+        CheckConstraint("confidence IN ('HIGH', 'MEDIUM', 'LOW')", name="ck_decision_facts_confidence"),
+        CheckConstraint("btrim(label) <> ''", name="ck_decision_facts_label_not_blank"),
+        CheckConstraint("btrim(explanation) <> ''", name="ck_decision_facts_explanation_not_blank"),
+        CheckConstraint("effective_to IS NULL OR effective_from IS NULL OR effective_to >= effective_from", name="ck_decision_facts_effective_dates"),
+        Index(
+            "uq_decision_facts_team_pair_attribute",
+            "team_a_id", "team_b_id", "attribute_key",
+            unique=True,
+            postgresql_where=text("subject_type = 'TEAM_PAIR'"),
+        ),
+        Index(
+            "uq_decision_facts_venue_attribute",
+            "venue_id", "attribute_key",
+            unique=True,
+            postgresql_where=text("subject_type = 'VENUE'"),
+        ),
+    )
+
+    fact_id = Column(BigInteger, primary_key=True)
+    subject_type = Column(String(20), nullable=False)
+    team_a_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=True)
+    team_b_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=True)
+    venue_id = Column(Integer, ForeignKey("venues.venue_id", ondelete="RESTRICT"), nullable=True)
+    attribute_key = Column(String(40), nullable=False)
+    label = Column(String(120), nullable=False)
+    explanation = Column(String(300), nullable=False)
+    publication_status = Column(String(20), nullable=False, default="DRAFT", index=True)
+    confidence = Column(String(10), nullable=False, default="MEDIUM")
+    effective_from = Column(Date, nullable=True)
+    effective_to = Column(Date, nullable=True)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    reviewed_by = Column(String(160), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    evidence = relationship("DecisionEvidence", back_populates="fact", cascade="all, delete-orphan")
+
+    def __init__(self, **kwargs):
+        if kwargs.get("subject_type") == "TEAM_PAIR" and kwargs.get("team_a_id") is not None and kwargs.get("team_b_id") is not None:
+            kwargs["team_a_id"], kwargs["team_b_id"] = sorted((kwargs["team_a_id"], kwargs["team_b_id"]))
+        super().__init__(**kwargs)
+        from decision import validate_decision_fact
+        validate_decision_fact(self.subject_type, self.attribute_key)
+
+
+class DecisionEvidence(Base):
+    __tablename__ = "decision_evidence"
+    __table_args__ = (
+        CheckConstraint("disposition IN ('SUPPORTS', 'CONTRADICTS')", name="ck_decision_evidence_disposition"),
+        CheckConstraint("review_status IN ('PENDING', 'ACCEPTED', 'REJECTED')", name="ck_decision_evidence_review_status"),
+        CheckConstraint("btrim(source_title) <> ''", name="ck_decision_evidence_source_title_not_blank"),
+        CheckConstraint("btrim(evidence_note) <> ''", name="ck_decision_evidence_note_not_blank"),
+    )
+
+    evidence_id = Column(BigInteger, primary_key=True)
+    fact_id = Column(BigInteger, ForeignKey("decision_facts.fact_id", ondelete="CASCADE"), nullable=False, index=True)
+    source_title = Column(String(200), nullable=False)
+    source_url = Column(Text, nullable=True)
+    evidence_note = Column(String(500), nullable=False)
+    disposition = Column(String(20), nullable=False, default="SUPPORTS")
+    retrieved_at = Column(Date, nullable=True)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    review_status = Column(String(20), nullable=False, default="PENDING")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    fact = relationship("DecisionFact", back_populates="evidence")
 
 
 class Team(Base):
