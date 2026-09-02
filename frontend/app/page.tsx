@@ -33,6 +33,7 @@ import {
   normalizeDiscoveryStartDate,
   resolvedLocationTransition,
   selectDiscoveryFixtures,
+  upcomingWeekendDateRange,
 } from "../lib/fixtureDiscovery";
 
 const FixtureMap = dynamic(
@@ -127,6 +128,7 @@ export default function Home() {
 
   const [editingSearch, setEditingSearch] =
     useState(true);
+  const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
   const [mapViewportTarget, setMapViewportTarget] = useState({ latitude: 0, longitude: 0, revision: 0 });
 
   const [discoveryNow, setDiscoveryNow] =
@@ -135,7 +137,7 @@ export default function Home() {
   const today = localCalendarDateValue(discoveryNow);
 
   const [selectedStartDate, setSelectedStartDate] =
-    useState(() => today);
+    useState(() => upcomingWeekendDateRange(discoveryNow).startDate);
 
   const startDate = normalizeDiscoveryStartDate(
     selectedStartDate,
@@ -143,7 +145,7 @@ export default function Home() {
   );
 
   const [endDate, setEndDate] =
-    useState("2026-09-30");
+    useState(() => upcomingWeekendDateRange(discoveryNow).endDate);
 
   const [dateError, setDateError] = useState("");
   const [discoveryError, setDiscoveryError] = useState("");
@@ -283,11 +285,12 @@ const loadVisitedStadiums = () => {
         endDate: requestEndDate,
         leagueIds: [...leagueIds],
         showAllStadiums: requestShowAllStadiums,
-        mode: "viewport",
+        mode: source === "location" ? "radius" : "viewport",
         totalMatches: Number(response.headers["x-total-matches"] ?? response.data.length),
         resultsLimited: response.headers["x-results-limited"] === "true",
       };
       setFixtures(response.data);
+      setSelectedFixtureId(null);
       setAppliedSearch(nextSearch);
       setLocationQuery(nextSearch.locationName);
       setDraftCoordinates(source === "location" ? origin : area.center);
@@ -329,7 +332,7 @@ const loadVisitedStadiums = () => {
         discoveryRequest.current = null;
       }
     }
-  }, []);
+  }, [setSelectedStartDate]);
 
   const handleResolvedViewport = useCallback((area: MapSearchArea) => {
     const pending = pendingResolvedSearch.current;
@@ -552,7 +555,13 @@ const loadVisitedStadiums = () => {
   // Set discovery location
   // -------------------------
 
-  const useCurrentLocation = () => {
+  const startCurrentLocationSearch = (searchOptions?: {
+    radius: number;
+    startDate: string;
+    endDate: string;
+    leagueIds: number[];
+    showAllStadiums: boolean;
+  }) => {
     const transition = beginGeolocationTransition(discoveryRequestVersion.current);
     const requestVersion = transition.requestVersion;
     discoveryRequestVersion.current = requestVersion;
@@ -586,16 +595,13 @@ const loadVisitedStadiums = () => {
           longitude: position.coords.longitude,
         };
         setUserLocation((current) => applyUserLocationEvent(current, { type: "geolocation", location: origin }));
+        const options = searchOptions ?? { radius, startDate, endDate, leagueIds: [...selectedLeagueIds], showAllStadiums };
         stageResolvedLocation({
           requestVersion,
           controller,
           origin,
           locationName: "Current location",
-          radius,
-          startDate,
-          endDate,
-          leagueIds: [...selectedLeagueIds],
-          showAllStadiums,
+          ...options,
           source: "location",
         });
       },
@@ -608,6 +614,16 @@ const loadVisitedStadiums = () => {
       },
       { timeout: 10_000, maximumAge: 60_000 }
     );
+  };
+
+  const findFootballThisWeekend = () => {
+    const weekend = upcomingWeekendDateRange(new Date());
+    setSelectedStartDate(weekend.startDate);
+    setEndDate(weekend.endDate);
+    setRadius(25);
+    setSelectedLeagueIds([]);
+    setShowAllStadiums(false);
+    startCurrentLocationSearch({ ...weekend, radius: 25, leagueIds: [], showAllStadiums: false });
   };
 
   useEffect(() => {
@@ -639,35 +655,43 @@ const loadVisitedStadiums = () => {
     ? new Date(`${value}T12:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short" })
     : "Any date";
 
+  const appliedDateSummary = appliedSearch
+    ? appliedSearch.startDate === appliedSearch.endDate
+      ? formatSummaryDate(appliedSearch.startDate)
+      : `${formatSummaryDate(appliedSearch.startDate)}–${formatSummaryDate(appliedSearch.endDate)}`
+    : "";
+
   return (
-    <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-4 sm:px-6 sm:py-8">
+    <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-2 sm:px-6 sm:py-8">
       <AccountConversionPrompt open={showAccountPrompt} kind="interested" onDismiss={() => setShowAccountPrompt(false)} />
 
-      <header className="mb-4 border-b-2 border-[var(--tt-ink)] pb-3 sm:mb-6 sm:pb-5">
+      <header className="mb-2 border-b-2 border-[var(--tt-ink)] pb-2 sm:mb-6 sm:pb-5">
         <p className="tt-kicker">01 / Match discovery</p>
-        <h1 className="tt-display mt-1 text-4xl leading-[0.9] sm:mt-2 sm:text-6xl">Find a game</h1>
-        <p className="mt-2 max-w-xl text-sm text-[var(--tt-muted)] sm:text-base">
-          Pick a place. Find a ground. Make a day of it.
+        <h1 className="tt-display mt-0.5 text-3xl leading-[0.9] sm:mt-2 sm:text-6xl">Find your next matchday</h1>
+        <p className="mt-1 max-w-xl text-xs text-[var(--tt-muted)] sm:mt-2 sm:text-base">
+          Find nearby football, compare the choices and understand the matchday before you go.
         </p>
       </header>
 
-      <section className="tt-panel mb-5 w-full min-w-0 p-3 sm:p-4" aria-labelledby="search-heading">
+      <section className={editingSearch || !appliedSearch ? "tt-panel mb-4 w-full min-w-0 p-2.5 sm:p-4" : "mb-2 w-full min-w-0 border-y border-[var(--tt-rule)] py-2"} aria-labelledby="search-heading">
         {!editingSearch && appliedSearch ? (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="tt-kicker" id="search-heading">Current search</p>
-              <p className="mt-1 font-extrabold">
-                {appliedSearch.locationName.split(",")[0]} · {formatSummaryDate(appliedSearch.startDate)}–{formatSummaryDate(appliedSearch.endDate)} · {appliedSearch.mode === "viewport" ? "Matches in this area" : `${appliedSearch.radius} mi`} · {appliedSearch.leagueIds.length === 0 ? "All leagues" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "league" : "leagues"}`}
-              </p>
-              {appliedSearch.showAllStadiums && <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--tt-blue)]">All stadiums shown</p>}
-            </div>
-            <button type="button" onClick={() => setEditingSearch(true)} className="tt-action tt-action-secondary px-4">Edit search</button>
+          <div className="flex items-center justify-between gap-3">
+            <p className="min-w-0 truncate text-sm font-extrabold" id="search-heading">
+              {appliedSearch.locationName.split(",")[0]} · {appliedDateSummary} · {appliedSearch.leagueIds.length === 0 ? "All leagues" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "league" : "leagues"}`}
+            </p>
+            <button type="button" onClick={() => setEditingSearch(true)} className="min-h-11 shrink-0 px-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Edit</button>
           </div>
         ) : (
           <form onSubmit={submitDiscovery}>
-            <p className="tt-kicker mb-2" id="search-heading">Plan your matchday</p>
+            <p className="tt-kicker mb-2" id="search-heading">Start here</p>
+            <button type="button" onClick={findFootballThisWeekend} disabled={loading || locationLoading} className="tt-action w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14">
+              {locationLoading ? "Finding your location…" : "Find football near me this weekend →"}
+            </button>
+            <div className="my-3 flex items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
+              <span className="h-px flex-1 bg-[var(--tt-rule)]" />or search a place<span className="h-px flex-1 bg-[var(--tt-rule)]" />
+            </div>
             <div className="grid gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
-              Where
+              Where do you want to go?
               <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                 <input
                   id="location-search"
@@ -682,41 +706,22 @@ const loadVisitedStadiums = () => {
                   aria-label="Where"
                   className="tt-control w-full min-w-0 px-4 py-2 normal-case tracking-normal"
                 />
-                <button
-                  type="button"
-                  onClick={useCurrentLocation}
-                  disabled={locationLoading}
-                  className="tt-action tt-action-secondary w-full px-4 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                >
-                  {locationLoading ? "Finding location..." : "Use my location"}
-                </button>
+                <button type="submit" disabled={loading || locationLoading} className="tt-action tt-action-secondary w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">{loading ? "Searching…" : "Search"}</button>
               </div>
             </div>
 
-            <div className="mt-3 border-t border-[var(--tt-rule)] pt-3">
-              <SearchBar
-                leagues={leagues}
-                selectedLeagueIds={selectedLeagueIds}
-                setSelectedLeagueIds={setSelectedLeagueIds}
-                radius={radius}
-                setRadius={setRadius}
-                startDate={startDate}
-                setStartDate={setSelectedStartDate}
-                minimumStartDate={today}
-                endDate={endDate}
-                setEndDate={setEndDate}
-              />
-            </div>
-
-            <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--tt-rule)] pt-3">
-              <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-bold text-[var(--tt-muted)]">
-                <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-4 w-4 accent-[var(--tt-blue)]" />
-                <span>Show all stadiums <span className="font-normal">(optional)</span></span>
-              </label>
-              <button type="submit" disabled={loading || locationLoading} className="tt-action min-w-28 px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-40">
-                {loading ? "Searching..." : "Search"}
-              </button>
-            </div>
+            <details className="mt-3 border-t border-[var(--tt-rule)] pt-3">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-xs font-extrabold uppercase tracking-[0.12em] marker:content-none">
+                <span>Optional filters</span><span aria-hidden="true">＋</span>
+              </summary>
+              <div className="pb-1 pt-2">
+                <SearchBar leagues={leagues} selectedLeagueIds={selectedLeagueIds} setSelectedLeagueIds={setSelectedLeagueIds} radius={radius} setRadius={setRadius} startDate={startDate} setStartDate={setSelectedStartDate} minimumStartDate={today} endDate={endDate} setEndDate={setEndDate} />
+                <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-2 border-t border-[var(--tt-rule)] pt-3 text-xs font-bold text-[var(--tt-muted)]">
+                  <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-4 w-4 accent-[var(--tt-blue)]" />
+                  <span>Show stadiums without fixtures</span>
+                </label>
+              </div>
+            </details>
 
             {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
             {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
@@ -727,18 +732,7 @@ const loadVisitedStadiums = () => {
       {/* Map */}
 
       {appliedSearch && (
-          <section className="mb-8 w-full min-w-0 max-w-full overflow-x-clip">
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <p className="tt-kicker">02 / Map</p>
-                <h2 className="tt-display mt-1 text-3xl leading-none sm:text-4xl">
-                  {`Matches near ${appliedSearch.locationName.split(",")[0]}`}
-                </h2>
-              </div>
-              <span className="border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] px-3 py-1 text-xs font-extrabold uppercase tracking-wider">
-                {appliedSearch.mode === "viewport" ? "Matches in this area" : `Matches / ${appliedSearch.radius} mi`}
-              </span>
-            </div>
+          <section className="mb-5 w-full min-w-0 max-w-full overflow-x-clip" aria-label={`Matches near ${appliedSearch.locationName.split(",")[0]}`}>
             <div className="border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-1.5">
 <FixtureMap
   fixtures={visibleFixtures}
@@ -755,29 +749,24 @@ const loadVisitedStadiums = () => {
   onSearchArea={searchMapArea}
   onViewportReady={handleResolvedViewport}
   userLocation={userLocation}
+  selectedFixtureId={selectedFixtureId}
+  onFixtureSelect={setSelectedFixtureId}
+  showDistance={appliedSearch.mode !== "viewport"}
 />
             </div>
             <NearbyFixtureCarousel
               fixtures={visibleFixtures}
-              radius={appliedSearch.radius}
-              viewportMode={appliedSearch.mode === "viewport"}
+              showDistance={appliedSearch.mode !== "viewport"}
               totalMatches={appliedSearch.totalMatches}
               resultsLimited={appliedSearch.resultsLimited}
               interestedFixtureIds={interestedFixtureIds}
               updatingFixtureIds={updatingInterestedFixtureIds}
+              selectedFixtureId={selectedFixtureId}
+              onFixtureSelect={setSelectedFixtureId}
               onToggleInterested={toggleInterested}
             />
           </section>
         )}
-
-      {!appliedSearch && !loading && (
-        <section className="tt-panel border-l-[8px] border-l-[var(--tt-blue)] p-5">
-          <h2 className="tt-display text-2xl">Find football near you</h2>
-          <p className="mt-1 text-sm text-[var(--tt-muted)]">
-            Search a city or use your location to see upcoming matches.
-          </p>
-        </section>
-      )}
 
       {discoveryError && (
         <p role="alert" className="border-l-4 border-[var(--tt-blue)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">{discoveryError}</p>

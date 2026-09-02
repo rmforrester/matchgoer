@@ -10,6 +10,23 @@ export function localCalendarDateValue(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+export function upcomingWeekendDateRange(now = new Date()) {
+  const day = now.getDay();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (day !== 0 && day !== 6) {
+    start.setDate(start.getDate() + (6 - day));
+  }
+
+  const end = new Date(start);
+  if (day !== 0) end.setDate(end.getDate() + 1);
+
+  return {
+    startDate: localCalendarDateValue(start),
+    endDate: localCalendarDateValue(end),
+  };
+}
+
 export function normalizeDiscoveryStartDate(
   value: string,
   today = localCalendarDateValue()
@@ -54,6 +71,13 @@ export function discoveryDateRangeError(startDate: string, endDate: string) {
     return "Start date must be on or before end date.";
   }
   return null;
+}
+
+export function endDateAtOrAfterStart(startDate: string, endDate: string) {
+  if (isValidCalendarDate(startDate) && (!isValidCalendarDate(endDate) || endDate < startDate)) {
+    return startDate;
+  }
+  return endDate;
 }
 
 export type FixtureVenueGroup = {
@@ -204,7 +228,9 @@ export function compactFixtureCard(fixture: Fixture) {
 }
 
 export const FIXTURE_POPUP_BEHAVIOR = {
-  autoPan: false,
+  autoPan: true,
+  autoPanPaddingTopLeft: [24, 24] as [number, number],
+  autoPanPaddingBottomRight: [24, 24] as [number, number],
   autoClose: true,
   closeOnClick: true,
 } as const;

@@ -1,3 +1,5 @@
+import { endDateAtOrAfterStart } from "../../lib/fixtureDiscovery";
+
 type League = {
   league_id: number;
   league_name: string;
@@ -51,11 +53,13 @@ export default function SearchBar({
           value={startDate}
           min={minimumStartDate}
           className="tt-control w-full min-w-0 px-3 [color-scheme:light]"
-          onChange={(event) => setStartDate(
-            event.target.value && event.target.value < minimumStartDate
+          onChange={(event) => {
+            const nextStartDate = event.target.value && event.target.value < minimumStartDate
               ? minimumStartDate
-              : event.target.value
-          )}
+              : event.target.value;
+            setStartDate(nextStartDate);
+            setEndDate(endDateAtOrAfterStart(nextStartDate, endDate));
+          }}
         />
       </label>
 
@@ -64,6 +68,7 @@ export default function SearchBar({
         <input
           type="date"
           value={endDate}
+          min={startDate || minimumStartDate}
           className="tt-control w-full min-w-0 px-3 [color-scheme:light]"
           onChange={(event) => setEndDate(event.target.value)}
         />

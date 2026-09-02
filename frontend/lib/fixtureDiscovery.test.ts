@@ -8,12 +8,14 @@ import {
   buildViewportDiscoveryParams,
   compactFixtureCard,
   discoveryZoomForRadius,
+  endDateAtOrAfterStart,
   FIXTURE_POPUP_BEHAVIOR,
   geolocationErrorMessage,
   GEOLOCATION_INSECURE_MESSAGE,
   GEOLOCATION_UNSUPPORTED_MESSAGE,
   isCurrentDiscoveryRequest,
   resolvedLocationTransition,
+  upcomingWeekendDateRange,
   type DiscoveryViewport,
 } from "./fixtureDiscovery.ts";
 import { USER_MARKER_DESIGN, VENUE_MARKER_DESIGN, venueMarkerPresentation } from "./mapMarkerDesign.ts";
@@ -25,6 +27,29 @@ const miamiViewport: DiscoveryViewport = {
   east: -79.4435973,
   west: -80.9435973,
 };
+
+test("weekend shortcut selects the next Saturday and Sunday on a weekday", () => {
+  assert.deepEqual(upcomingWeekendDateRange(new Date(2026, 8, 2, 12)), {
+    startDate: "2026-09-05",
+    endDate: "2026-09-06",
+  });
+});
+
+test("weekend shortcut keeps the remaining days of the current weekend", () => {
+  assert.deepEqual(upcomingWeekendDateRange(new Date(2026, 8, 5, 12)), {
+    startDate: "2026-09-05",
+    endDate: "2026-09-06",
+  });
+  assert.deepEqual(upcomingWeekendDateRange(new Date(2026, 8, 6, 12)), {
+    startDate: "2026-09-06",
+    endDate: "2026-09-06",
+  });
+});
+
+test("manual end date never precedes the chosen start date", () => {
+  assert.equal(endDateAtOrAfterStart("2026-12-26", "2026-09-30"), "2026-12-26");
+  assert.equal(endDateAtOrAfterStart("2026-12-26", "2026-12-28"), "2026-12-28");
+});
 
 test("resolved location immediately builds the viewport discovery request without a movement event", () => {
   const params = buildViewportDiscoveryParams(miamiViewport, {
@@ -197,9 +222,11 @@ test("compact fixture card exposes only matchup, timing source, status and link"
   });
 });
 
-test("fixture-card dismissal and replacement never recenter the map", () => {
+test("fixture popup auto-pans with padding while preserving normal close behavior", () => {
   assert.deepEqual(FIXTURE_POPUP_BEHAVIOR, {
-    autoPan: false,
+    autoPan: true,
+    autoPanPaddingTopLeft: [24, 24],
+    autoPanPaddingBottomRight: [24, 24],
     autoClose: true,
     closeOnClick: true,
   });
