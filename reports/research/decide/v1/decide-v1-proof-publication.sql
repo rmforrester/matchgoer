@@ -19,7 +19,7 @@ INSERT INTO decision_facts (
 ) VALUES (
     'TEAM_PAIR', 33, 40, NULL, 'SIGNIFICANT_RIVALRY',
     'Manchester–Liverpool rivalry',
-    'One of English football’s most iconic historic fixtures, contested by fierce rivals.',
+    'One of English football''s defining rivalries, with more than a century of history between the two clubs.',
     'PUBLISHED', 'HIGH', '2026-09-02T00:00:00Z', 'Matchgoer editorial proof'
 )
 ON CONFLICT (team_a_id, team_b_id, attribute_key) WHERE subject_type = 'TEAM_PAIR'
@@ -32,19 +32,19 @@ INSERT INTO decision_facts (
     (
         'VENUE', NULL, NULL, 23100, 'FOOTBALL_LANDMARK',
         'European football landmark',
-        'Watch football at a stadium that has staged four European Cup finals and matches at the 1990 World Cup.',
+        'One of European football''s great stages, with four European Cup finals and a World Cup among its history.',
         'PUBLISHED', 'HIGH', '2026-09-02T00:00:00Z', 'Matchgoer editorial proof'
     ),
     (
         'VENUE', NULL, NULL, 23114, 'UNIQUE_SETTING',
         'Lake Como setting',
-        'A lakeside stadium whose setting is part of the reason to experience a match in Como.',
+        'Watch football on the shores of Lake Como, with the stadium''s setting part of the experience.',
         'PUBLISHED', 'HIGH', '2026-09-02T00:00:00Z', 'Matchgoer editorial proof'
     ),
     (
         'VENUE', NULL, NULL, 582, 'CLASSIC_GROUND',
         'Classic English ground',
-        'Sheffield Wednesday’s home since 1899, with more than a century of football history across its four distinct stands.',
+        'Sheffield Wednesday''s home since 1899 — a traditional four-stand ground with more than a century of history.',
         'PUBLISHED', 'MEDIUM', '2026-09-02T00:00:00Z', 'Matchgoer editorial proof'
     )
 ON CONFLICT (venue_id, attribute_key) WHERE subject_type = 'VENUE'
@@ -111,22 +111,22 @@ BEGIN
     WHERE
         (subject_type = 'TEAM_PAIR' AND team_a_id = 33 AND team_b_id = 40 AND venue_id IS NULL
          AND attribute_key = 'SIGNIFICANT_RIVALRY' AND label = 'Manchester–Liverpool rivalry'
-         AND explanation = 'One of English football’s most iconic historic fixtures, contested by fierce rivals.'
+         AND explanation = 'One of English football''s defining rivalries, with more than a century of history between the two clubs.'
          AND publication_status = 'PUBLISHED' AND confidence = 'HIGH')
         OR
         (subject_type = 'VENUE' AND venue_id = 23100 AND team_a_id IS NULL AND team_b_id IS NULL
          AND attribute_key = 'FOOTBALL_LANDMARK' AND label = 'European football landmark'
-         AND explanation = 'Watch football at a stadium that has staged four European Cup finals and matches at the 1990 World Cup.'
+         AND explanation = 'One of European football''s great stages, with four European Cup finals and a World Cup among its history.'
          AND publication_status = 'PUBLISHED' AND confidence = 'HIGH')
         OR
         (subject_type = 'VENUE' AND venue_id = 23114 AND team_a_id IS NULL AND team_b_id IS NULL
          AND attribute_key = 'UNIQUE_SETTING' AND label = 'Lake Como setting'
-         AND explanation = 'A lakeside stadium whose setting is part of the reason to experience a match in Como.'
+         AND explanation = 'Watch football on the shores of Lake Como, with the stadium''s setting part of the experience.'
          AND publication_status = 'PUBLISHED' AND confidence = 'HIGH')
         OR
         (subject_type = 'VENUE' AND venue_id = 582 AND team_a_id IS NULL AND team_b_id IS NULL
          AND attribute_key = 'CLASSIC_GROUND' AND label = 'Classic English ground'
-         AND explanation = 'Sheffield Wednesday’s home since 1899, with more than a century of football history across its four distinct stands.'
+         AND explanation = 'Sheffield Wednesday''s home since 1899 — a traditional four-stand ground with more than a century of history.'
          AND publication_status = 'PUBLISHED' AND confidence = 'MEDIUM');
 
     SELECT count(*) INTO proof_evidence

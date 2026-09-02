@@ -126,6 +126,8 @@ Before further major visual or feature expansion, run **Phase 3.5 — Real-World
 DISCOVER → DECIDE → PLAN → ATTEND → RECORD → REVIEW / CONTRIBUTE → REMEMBER → REPEAT
 ```
 
+DECIDE must not bias toward famous top-flight football merely because it is easier to document. Its highest-value use is often important football that a travelling or unfamiliar supporter might otherwise overlook: major lower-league and regional rivalries, traditional grounds across the pyramid, and unusual or historically important grounds outside elite divisions. The editorial test remains: **Would a knowledgeable matchgoer tell another supporter to consider this fixture or ground specifically because of this characteristic?** Prioritisation should also ask: **Is Matchgoer telling the supporter something useful they may not already know?** Obscurity is not inherently better; famous fixtures and grounds still qualify when they genuinely meet the criteria.
+
 This gate evaluates Matchgoer around real football attendance rather than as isolated features. The 20 manual scenarios, state expectations, failure conditions and observation questions are defined in [Supporter journey QA](supporter-journey-qa.md). The previously planned **My Matchdays Design System V1** pass remains next, immediately after this QA gate and its findings review.
 
 Where space permits, a vertical fixture always uses equal-weight team names with `VS` as a standalone separator: **HOME TEAM / VS / AWAY TEAM**. `VS` is never appended to either club name. Compact contexts may remain single-line where that is more usable.
