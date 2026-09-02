@@ -174,6 +174,8 @@ export default function Home() {
   const [locationError, setLocationError] =
     useState("");
 
+  const [manualLocationSelected, setManualLocationSelected] = useState(false);
+
   const [userLocation, setUserLocation] =
     useState<{ latitude: number; longitude: number } | null>(null);
 
@@ -294,6 +296,7 @@ const loadVisitedStadiums = () => {
       setSelectedFixtureId(null);
       setAppliedSearch(nextSearch);
       setLocationQuery(nextSearch.locationName);
+      if (source === "map") setManualLocationSelected(false);
       setDraftCoordinates(source === "location" ? origin : area.center);
       setRadius(nextSearch.radius);
       setSelectedStartDate(nextSearch.startDate);
@@ -595,16 +598,17 @@ const loadVisitedStadiums = () => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
-        setUserLocation((current) => applyUserLocationEvent(current, { type: "geolocation", location: origin }));
         if (establishOriginOnly) {
           const manualOrigin = manualCurrentLocationOrigin(origin);
           setDraftCoordinates(manualOrigin.draftCoordinates);
           setLocationQuery(manualOrigin.locationQuery);
           setUserLocation(manualOrigin.userLocation);
+          setManualLocationSelected(true);
           setLocationLoading(false);
           discoveryRequest.current = null;
           return;
         }
+        setUserLocation((current) => applyUserLocationEvent(current, { type: "geolocation", location: origin }));
         const options = searchOptions ?? { radius, startDate, endDate, leagueIds: [...selectedLeagueIds], showAllStadiums };
         stageResolvedLocation({
           requestVersion,
@@ -618,6 +622,7 @@ const loadVisitedStadiums = () => {
       (positionError) => {
         if (!isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) return;
         setLocationError(geolocationErrorMessage(positionError.code));
+        if (establishOriginOnly) setManualLocationSelected(false);
         setLocationLoading(false);
         setLoading(false);
         discoveryRequest.current = null;
@@ -633,6 +638,7 @@ const loadVisitedStadiums = () => {
     setRadius(25);
     setSelectedLeagueIds([]);
     setShowAllStadiums(false);
+    setManualLocationSelected(false);
     resolveCurrentLocation({ ...weekend, radius: 25, leagueIds: [], showAllStadiums: false });
   };
 
@@ -710,6 +716,7 @@ const loadVisitedStadiums = () => {
                   onChange={(event) => {
                     setLocationQuery(event.target.value);
                     setDraftCoordinates(null);
+                    setManualLocationSelected(false);
                     setUserLocation((current) => applyUserLocationEvent(current, { type: "manual-location" }));
                   }}
                   placeholder="Search a city or location"
@@ -717,7 +724,7 @@ const loadVisitedStadiums = () => {
                   className="tt-control w-full min-w-0 px-4 py-2 normal-case tracking-normal"
                 />
                 <button type="button" onClick={() => resolveCurrentLocation(undefined, true)} disabled={locationLoading || loading} className="mt-1 min-h-11 px-1 text-left text-xs font-extrabold normal-case tracking-normal text-[var(--tt-blue)] underline decoration-2 underline-offset-4 disabled:opacity-60">
-                  {locationLoading ? "Finding your location…" : "Use my location"}
+                  {locationLoading ? "Finding your location…" : manualLocationSelected ? "Using your location ✓" : "Use my location"}
                 </button>
               </div>
             </div>

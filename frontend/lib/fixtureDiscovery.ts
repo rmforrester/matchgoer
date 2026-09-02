@@ -236,7 +236,6 @@ export function compactFixtureCard(fixture: Fixture) {
 
 export const FIXTURE_POPUP_BEHAVIOR = {
   autoPan: true,
-  keepInView: true,
   autoPanPaddingTopLeft: [56, 72] as [number, number],
   autoPanPaddingBottomRight: [32, 32] as [number, number],
   autoClose: true,

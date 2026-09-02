@@ -239,7 +239,6 @@ test("compact fixture card exposes only matchup, timing source, status and link"
 test("fixture popup auto-pans with padding while preserving normal close behavior", () => {
   assert.deepEqual(FIXTURE_POPUP_BEHAVIOR, {
     autoPan: true,
-    keepInView: true,
     autoPanPaddingTopLeft: [56, 72],
     autoPanPaddingBottomRight: [32, 32],
     autoClose: true,

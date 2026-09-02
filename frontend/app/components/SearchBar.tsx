@@ -1,5 +1,5 @@
 import { endDateAtOrAfterStart } from "../../lib/fixtureDiscovery";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 type League = {
   league_id: number;
@@ -37,6 +37,7 @@ export default function SearchBar({
   setEndDate,
 }: Props) {
   const toDateInput = useRef<HTMLInputElement>(null);
+  const openToPickerAfterUpdate = useRef(false);
   const selected = new Set(selectedLeagueIds);
   const toggleLeague = (leagueId: number) => {
     setSelectedLeagueIds(
@@ -45,6 +46,19 @@ export default function SearchBar({
         : [...selectedLeagueIds, leagueId]
     );
   };
+
+  useEffect(() => {
+    if (!openToPickerAfterUpdate.current) return;
+    openToPickerAfterUpdate.current = false;
+    const toInput = toDateInput.current;
+    if (!toInput) return;
+    toInput.focus({ preventScroll: true });
+    try {
+      toInput.showPicker?.();
+    } catch {
+      // Native pickers may reject programmatic opening, notably on iOS Safari.
+    }
+  }, [endDate, startDate]);
 
   return (
     <div className="grid min-w-0 grid-cols-2 gap-2.5 lg:grid-cols-[1fr_1fr_.7fr_1.2fr]">
@@ -61,15 +75,7 @@ export default function SearchBar({
               : event.target.value;
             setStartDate(nextStartDate);
             setEndDate(endDateAtOrAfterStart(nextStartDate, endDate));
-            const toInput = toDateInput.current;
-            if (nextStartDate && toInput) {
-              toInput.focus({ preventScroll: true });
-              try {
-                toInput.showPicker?.();
-              } catch {
-                // Native pickers may reject programmatic opening, notably on iOS Safari.
-              }
-            }
+            openToPickerAfterUpdate.current = Boolean(nextStartDate);
           }}
         />
       </label>
