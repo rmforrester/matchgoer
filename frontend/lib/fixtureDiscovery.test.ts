@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -28,6 +29,24 @@ const miamiViewport: DiscoveryViewport = {
   east: -79.4435973,
   west: -80.9435973,
 };
+
+const discoverPageSource = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+const searchBarSource = readFileSync(new URL("../app/components/SearchBar.tsx", import.meta.url), "utf8");
+
+test("manual search keeps dates visible before genuinely optional filters and the single Search action", () => {
+  const dates = discoverPageSource.indexOf("<DateRangeFields");
+  const optionalFilters = discoverPageSource.indexOf("<span>Optional filters</span>");
+  const search = discoverPageSource.indexOf('type="submit"', optionalFilters);
+  assert.ok(dates > -1 && dates < optionalFilters);
+  assert.ok(optionalFilters < search);
+  assert.equal((discoverPageSource.match(/type="submit"/g) ?? []).length, 1);
+});
+
+test("From selection visibly hands off to To and To selection clears that state", () => {
+  assert.match(searchBarSource, /setToNeedsAttention\(Boolean\(nextStartDate\)\)/);
+  assert.match(searchBarSource, /toNeedsAttention \? "border-2 border-\[var\(--tt-blue\)\]/);
+  assert.match(searchBarSource, /setToNeedsAttention\(false\)/);
+});
 
 test("weekend shortcut selects the upcoming Friday through Sunday on a weekday", () => {
   assert.deepEqual(upcomingWeekendDateRange(new Date(2026, 8, 2, 12)), {

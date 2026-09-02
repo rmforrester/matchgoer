@@ -14,7 +14,7 @@ import { apiErrorMessage } from "../lib/api-error";
 import dynamic from "next/dynamic";
 
 import SearchBar from "./components/SearchBar";
-import type { LeagueGroup } from "./components/SearchBar";
+import { DateRangeFields, type LeagueGroup } from "./components/SearchBar";
 import NearbyFixtureCarousel from "./components/NearbyFixtureCarousel";
 import AccountConversionPrompt from "./components/AccountConversionPrompt";
 import type { Fixture } from "./types/fixture";
@@ -729,12 +729,17 @@ const loadVisitedStadiums = () => {
               </div>
             </div>
 
+            <div className="mt-2 border-t border-[var(--tt-rule)] pt-2">
+              <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.12em]">When?</p>
+              <DateRangeFields startDate={startDate} setStartDate={setSelectedStartDate} minimumStartDate={today} endDate={endDate} setEndDate={setEndDate} />
+            </div>
+
             <details className="mt-3 border-t border-[var(--tt-rule)] pt-3">
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-xs font-extrabold uppercase tracking-[0.12em] marker:content-none">
                 <span>Optional filters</span><span aria-hidden="true">＋</span>
               </summary>
               <div className="pb-1 pt-2">
-                <SearchBar leagues={leagues} selectedLeagueIds={selectedLeagueIds} setSelectedLeagueIds={setSelectedLeagueIds} radius={radius} setRadius={setRadius} startDate={startDate} setStartDate={setSelectedStartDate} minimumStartDate={today} endDate={endDate} setEndDate={setEndDate} />
+                <SearchBar leagues={leagues} selectedLeagueIds={selectedLeagueIds} setSelectedLeagueIds={setSelectedLeagueIds} radius={radius} setRadius={setRadius} />
                 <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-2 border-t border-[var(--tt-rule)] pt-3 text-xs font-bold text-[var(--tt-muted)]">
                   <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-4 w-4 accent-[var(--tt-blue)]" />
                   <span>Show stadiums without fixtures</span>
