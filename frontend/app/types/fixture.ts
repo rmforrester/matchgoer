@@ -1,3 +1,11 @@
+export type DecisionReason = {
+  key: string;
+  emoji: string;
+  label: string;
+  explanation: string;
+  importance: string;
+};
+
 export type Fixture = {
   fixture_id: number;
   fixture_date: string;
@@ -19,4 +27,6 @@ export type Fixture = {
   review_count: number;
   recommend_percentage: number | null;
   open_to_meet_count: number;
+  highlight_eligible: boolean;
+  lead_decision_reason: DecisionReason | null;
 };

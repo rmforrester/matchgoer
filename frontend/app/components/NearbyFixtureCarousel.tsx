@@ -43,15 +43,20 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
           const isUpdating = updatingFixtureIds.includes(fixture.fixture_id);
           const isSelected = selectedFixtureId === fixture.fixture_id;
           const showMeaningfulDistance = showDistance && Number.isFinite(fixture.distance_miles);
+          const highlighted = fixture.highlight_eligible && fixture.lead_decision_reason !== null;
 
           return (
             <article
               key={fixture.fixture_id}
               onFocus={() => onFixtureSelect(fixture.fixture_id)}
               onPointerEnter={() => onFixtureSelect(fixture.fixture_id)}
-              className={`group relative flex h-[18.5rem] w-[72vw] min-w-[14.5rem] max-w-[16rem] snap-start flex-col border-2 bg-[var(--tt-paper)] text-[var(--tt-ink)] transition sm:w-64 ${isSelected ? "-translate-y-0.5 border-[var(--tt-blue)] shadow-[3px_3px_0_var(--tt-blue)]" : "border-[var(--tt-ink)] hover:-translate-y-0.5 hover:border-[var(--tt-blue)]"}`}
+              className={`group relative flex ${highlighted ? "h-[21rem] border-[var(--tt-gold)] shadow-[3px_3px_0_var(--tt-gold)]" : "h-[18.5rem]"} w-[72vw] min-w-[14.5rem] max-w-[16rem] snap-start flex-col border-2 bg-[var(--tt-paper)] text-[var(--tt-ink)] transition sm:w-64 ${highlighted ? isSelected ? "-translate-y-0.5" : "hover:-translate-y-0.5" : isSelected ? "-translate-y-0.5 border-[var(--tt-blue)] shadow-[3px_3px_0_var(--tt-blue)]" : "border-[var(--tt-ink)] hover:-translate-y-0.5 hover:border-[var(--tt-blue)]"}`}
             >
               <Link href={`/fixture/${fixture.fixture_id}`} className="flex min-h-0 flex-1 flex-col overflow-hidden p-3 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[var(--tt-blue)]" aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}>
+                {highlighted && fixture.lead_decision_reason && <div className="mb-2 border-l-4 border-[var(--tt-gold)] pl-2">
+                  <p className="text-xs font-extrabold leading-tight">{fixture.lead_decision_reason.emoji} {fixture.lead_decision_reason.label}</p>
+                  <p className="mt-1 line-clamp-2 text-[0.68rem] leading-4 text-[var(--tt-muted)]">{fixture.lead_decision_reason.explanation}</p>
+                </div>}
                 <div className="mb-2 flex items-start justify-between gap-3 border-b-2 border-[var(--tt-ink)] pb-2">
                   <div className="flex items-end gap-2">
                     <span className="tt-display text-3xl leading-[0.8] text-[var(--tt-blue)]">{kickoff.toLocaleDateString(undefined, { day: "2-digit" })}</span>

@@ -11,6 +11,7 @@ import {
   discoveryZoomForRadius,
   endDateAtOrAfterStart,
   FIXTURE_POPUP_BEHAVIOR,
+  fixtureGroupDecision,
   geolocationErrorMessage,
   GEOLOCATION_INSECURE_MESSAGE,
   GEOLOCATION_UNSUPPORTED_MESSAGE,
@@ -18,8 +19,10 @@ import {
   manualCurrentLocationOrigin,
   resolvedLocationTransition,
   upcomingWeekendDateRange,
+  groupFixturesByVenue,
   type DiscoveryViewport,
 } from "./fixtureDiscovery.ts";
+import type { Fixture } from "../app/types/fixture.ts";
 import { USER_MARKER_DESIGN, VENUE_MARKER_DESIGN, venueMarkerPresentation } from "./mapMarkerDesign.ts";
 import { discoverTileLayerConfig } from "./discoverMapTiles.ts";
 
@@ -33,6 +36,38 @@ const miamiViewport: DiscoveryViewport = {
 
 const discoverPageSource = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
 const searchBarSource = readFileSync(new URL("../app/components/SearchBar.tsx", import.meta.url), "utf8");
+const fixtureMapSource = readFileSync(new URL("../app/components/FixtureMap.tsx", import.meta.url), "utf8");
+const fixtureCarouselSource = readFileSync(new URL("../app/components/NearbyFixtureCarousel.tsx", import.meta.url), "utf8");
+const fixturePageSource = readFileSync(new URL("../app/fixture/[fixtureId]/page.tsx", import.meta.url), "utf8");
+const groundMarkerSource = readFileSync(new URL("../app/components/groundMarkerIcon.ts", import.meta.url), "utf8");
+
+function decisionFixture(overrides: Partial<Fixture>): Fixture {
+  return {
+    fixture_id: 1,
+    fixture_date: "2026-09-10T15:00:00Z",
+    home_team: "Home",
+    away_team: "Away",
+    league_id: 39,
+    league_name: "League",
+    venue_id: 10,
+    venue_name: "Ground",
+    venue_city: "City",
+    latitude: 51,
+    longitude: -1,
+    distance_miles: 1,
+    status: "NS",
+    home_goals: null,
+    away_goals: null,
+    away_day_score: null,
+    atmosphere_score: null,
+    review_count: 0,
+    recommend_percentage: null,
+    open_to_meet_count: 0,
+    highlight_eligible: false,
+    lead_decision_reason: null,
+    ...overrides,
+  };
+}
 
 test("Discover uses OSM until both approved MapTiler values are configured", () => {
   assert.equal(discoverTileLayerConfig({}).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
@@ -47,6 +82,44 @@ test("Discover accepts a configured MapTiler raster style without changing Leafl
     crossOrigin: true,
     minZoom: 1,
   });
+});
+
+test("grouped marker becomes gold and initially selects the earliest eligible fixture", () => {
+  const reason = { key: "CLASSIC_GROUND", emoji: "🧱", label: "Classic ground", explanation: "A historic football setting.", importance: "PRIMARY" };
+  const grouped = groupFixturesByVenue([
+    decisionFixture({ fixture_id: 3, fixture_date: "2026-09-12T15:00:00Z" }),
+    decisionFixture({ fixture_id: 2, fixture_date: "2026-09-11T15:00:00Z", highlight_eligible: true, lead_decision_reason: reason }),
+    decisionFixture({ fixture_id: 1, fixture_date: "2026-09-10T15:00:00Z" }),
+  ])[0];
+  assert.deepEqual(grouped.fixtures.map((fixture) => fixture.fixture_id), [1, 2, 3]);
+  assert.deepEqual(fixtureGroupDecision(grouped.fixtures), { highlighted: true, initialFixtureIndex: 1 });
+  assert.equal(grouped.fixtures.length, 3, "ordinary fixtures remain navigable in the highlighted group");
+});
+
+test("ordinary fixture group and marker/card presentation remain unchanged", () => {
+  const fixtures = [decisionFixture({ fixture_id: 1 }), decisionFixture({ fixture_id: 2 })];
+  assert.deepEqual(fixtureGroupDecision(fixtures), { highlighted: false, initialFixtureIndex: 0 });
+  assert.match(groundMarkerSource, /highlighted \? "#D6A600" : "#2146D0"/);
+  assert.match(fixtureCarouselSource, /highlighted \? "h-\[21rem\]/);
+  assert.match(fixtureCarouselSource, /"h-\[18\.5rem\]"/);
+});
+
+test("Discover popup and carousel expose only the lead reason with restrained gold treatment", () => {
+  assert.match(fixtureMapSource, /fixture\.lead_decision_reason\.emoji/);
+  assert.match(fixtureMapSource, /border-\[var\(--tt-gold\)\]/);
+  assert.match(fixtureCarouselSource, /fixture\.lead_decision_reason\.explanation/);
+  assert.doesNotMatch(fixtureMapSource, /decision_reasons/);
+  assert.doesNotMatch(fixtureCarouselSource, /decision_reasons/);
+});
+
+test("fixture page renders WHY THIS MATCH only when DECIDE reasons exist", () => {
+  const match = fixturePageSource.indexOf("01 / Match");
+  const why = fixturePageSource.indexOf("02 / Why this match");
+  const matchday = fixturePageSource.indexOf("/ Matchday · The ground");
+  const social = fixturePageSource.indexOf("/ Social · Did you go?");
+  assert.ok(match < why && why < matchday && matchday < social);
+  assert.match(fixturePageSource, /\{hasDecisionReasons && <section/);
+  assert.match(fixturePageSource, /decisionReasons\.slice\(1\)/);
 });
 
 test("manual search keeps dates visible before genuinely optional filters and the single Search action", () => {
@@ -261,6 +334,8 @@ test("compact fixture card exposes only matchup, timing source, status and link"
     review_count: 0,
     recommend_percentage: null,
     open_to_meet_count: 0,
+    highlight_eligible: false,
+    lead_decision_reason: null,
   };
 
   assert.deepEqual(compactFixtureCard(fixture), {

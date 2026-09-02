@@ -23,7 +23,7 @@ from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, utc_date_expression
 from location_safety import has_usable_coordinates
 from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue, resolve_unique_home_club
-from decision import fixture_decision_payload
+from decision import fixture_decision_leads, fixture_decision_payload
 
 from models import (
     Fixture,
@@ -669,6 +669,17 @@ def get_nearby(
         result["atmosphere_score"] = rating.get("atmosphere_score")
         result["review_count"] = rating.get("review_count", 0)
         result["recommend_percentage"] = rating.get("recommend_percentage")
+
+    fixture_by_id = {fixture.fixture_id: fixture for fixture in fixtures}
+    decision_leads = fixture_decision_leads(
+        db,
+        [fixture_by_id[result["fixture_id"]] for result in results],
+    )
+    for result in results:
+        result.update(decision_leads.get(result["fixture_id"], {
+            "highlight_eligible": False,
+            "lead_decision_reason": None,
+        }))
 
     meeting_counts = dict(
         db.query(

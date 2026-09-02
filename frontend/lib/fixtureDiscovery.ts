@@ -85,6 +85,16 @@ export type FixtureVenueGroup = {
   fixtures: Fixture[];
 };
 
+export function fixtureGroupDecision(fixtures: Fixture[]) {
+  const initialFixtureIndex = fixtures.findIndex(
+    (fixture) => fixture.highlight_eligible && fixture.lead_decision_reason !== null,
+  );
+  return {
+    highlighted: initialFixtureIndex >= 0,
+    initialFixtureIndex: initialFixtureIndex >= 0 ? initialFixtureIndex : 0,
+  };
+}
+
 export function coordinateDistanceMiles(
   from: { latitude: number; longitude: number },
   to: { latitude: number; longitude: number }

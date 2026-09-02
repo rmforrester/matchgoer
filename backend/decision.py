@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from datetime import date, datetime
+import unicodedata
 
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, tuple_
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,10 @@ def _fixture_day(value: date | datetime) -> date:
     return value.date() if isinstance(value, datetime) else value
 
 
+def _normalized_label(value: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+
+
 def applicable_decision_payload(facts, fixture_date: date | datetime | None) -> dict:
     if fixture_date is None:
         return {"decision_reasons": [], "highlight_eligible": False}
@@ -67,7 +72,7 @@ def applicable_decision_payload(facts, fixture_date: date | datetime | None) -> 
             "_order": definition.order,
             "_fact_id": fact.fact_id or 0,
         })
-    reasons.sort(key=lambda row: (row["_order"], row["label"].casefold(), row["_fact_id"]))
+    reasons.sort(key=lambda row: (row["_order"], _normalized_label(row["label"]), row["_fact_id"]))
     for reason in reasons:
         reason.pop("_order")
         reason.pop("_fact_id")
@@ -99,3 +104,61 @@ def fixture_decision_payload(db, fixture) -> dict:
         .all()
     )
     return applicable_decision_payload(facts, fixture.fixture_date)
+
+
+def fixture_decision_leads(db, fixtures) -> dict[int, dict]:
+    """Resolve Discover's lead reason for a fixture cohort with one fact query."""
+    from models import DecisionFact
+
+    fixture_rows = list(fixtures)
+    if not fixture_rows:
+        return {}
+    pairs = {
+        canonical_team_pair(item.home_team_id, item.away_team_id)
+        for item in fixture_rows
+        if item.home_team_id is not None
+        and item.away_team_id is not None
+        and item.home_team_id != item.away_team_id
+    }
+    venue_ids = {item.venue_id for item in fixture_rows if item.venue_id is not None}
+    subject_filters = []
+    if pairs:
+        subject_filters.append(and_(
+            DecisionFact.subject_type == "TEAM_PAIR",
+            tuple_(DecisionFact.team_a_id, DecisionFact.team_b_id).in_(sorted(pairs)),
+        ))
+    if venue_ids:
+        subject_filters.append(and_(
+            DecisionFact.subject_type == "VENUE",
+            DecisionFact.venue_id.in_(sorted(venue_ids)),
+        ))
+    if not subject_filters:
+        return {
+            item.fixture_id: {"highlight_eligible": False, "lead_decision_reason": None}
+            for item in fixture_rows
+        }
+
+    facts = (
+        db.query(DecisionFact)
+        .filter(DecisionFact.publication_status == "PUBLISHED", or_(*subject_filters))
+        .all()
+    )
+    pair_facts = {}
+    venue_facts = {}
+    for fact in facts:
+        if fact.subject_type == "TEAM_PAIR":
+            pair_facts.setdefault((fact.team_a_id, fact.team_b_id), []).append(fact)
+        elif fact.subject_type == "VENUE":
+            venue_facts.setdefault(fact.venue_id, []).append(fact)
+
+    resolved = {}
+    for item in fixture_rows:
+        applicable = list(venue_facts.get(item.venue_id, []))
+        if item.home_team_id is not None and item.away_team_id is not None and item.home_team_id != item.away_team_id:
+            applicable.extend(pair_facts.get(canonical_team_pair(item.home_team_id, item.away_team_id), []))
+        payload = applicable_decision_payload(applicable, item.fixture_date)
+        resolved[item.fixture_id] = {
+            "highlight_eligible": payload["highlight_eligible"],
+            "lead_decision_reason": payload["decision_reasons"][0] if payload["decision_reasons"] else None,
+        }
+    return resolved

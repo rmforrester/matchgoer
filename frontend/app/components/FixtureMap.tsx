@@ -20,6 +20,7 @@ import {
   discoveryZoomForRadius,
   compactFixtureCard,
   FIXTURE_POPUP_BEHAVIOR,
+  fixtureGroupDecision,
   groupFixturesByVenue,
   hasMeaningfulMapMovement,
   type DiscoveryViewport,
@@ -69,7 +70,8 @@ type FixtureVenueMarkerProps = {
 
 function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, showDistance }: FixtureVenueMarkerProps) {
   const map = useMap();
-  const [fixtureIndex, setFixtureIndex] = useState(0);
+  const decision = fixtureGroupDecision(group.fixtures);
+  const [fixtureIndex, setFixtureIndex] = useState(decision.initialFixtureIndex);
   const fixture = group.fixtures[fixtureIndex];
   const fixtureCount = group.fixtures.length;
   const card = compactFixtureCard(fixture);
@@ -81,10 +83,14 @@ function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, showDistanc
   const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
   const statusGroup = fixtureStatusGroup(fixture.status);
 
-  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => { setFixtureIndex(0); onFixtureSelect(group.fixtures[0].fixture_id); } }}>
+  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => { setFixtureIndex(decision.initialFixtureIndex); onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id); } }}>
     <Popup closeButton={false} offset={[0, -8]} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
       <button type="button" onClick={() => map.closePopup()} aria-label="Close fixture details" className="absolute right-2 top-2 grid min-h-9 min-w-9 place-items-center border border-[var(--tt-ink)] text-lg font-bold leading-none">×</button>
       <div className="pr-10">
+      {fixture.highlight_eligible && fixture.lead_decision_reason && <div className="mb-3 border-l-4 border-[var(--tt-gold)] pl-3">
+        <strong className="block text-base leading-tight">{fixture.lead_decision_reason.emoji} {fixture.lead_decision_reason.label}</strong>
+        <span className="mt-1 block text-xs leading-5 text-[var(--tt-muted)]">{fixture.lead_decision_reason.explanation}</span>
+      </div>}
       <strong className="block leading-tight">{card.matchup}</strong>
       <span className="mt-2 block text-xs font-bold">
       {statusGroup === "postponed" || statusGroup === "cancelled"
@@ -198,6 +204,10 @@ export default function FixtureMap({
   const visitedGroundIcon = useMemo(() => createGroundMarkerIcon(true), []);
   const selectedGroundIcon = useMemo(() => createGroundMarkerIcon(false, true), []);
   const selectedVisitedGroundIcon = useMemo(() => createGroundMarkerIcon(true, true), []);
+  const highlightedGroundIcon = useMemo(() => createGroundMarkerIcon(false, false, true), []);
+  const highlightedVisitedGroundIcon = useMemo(() => createGroundMarkerIcon(true, false, true), []);
+  const selectedHighlightedGroundIcon = useMemo(() => createGroundMarkerIcon(false, true, true), []);
+  const selectedHighlightedVisitedGroundIcon = useMemo(() => createGroundMarkerIcon(true, true, true), []);
   const userLocationIcon = useMemo(() => createUserLocationIcon(), []);
 
   // Fixture and venue locations share the same editorial ground marker.
@@ -340,7 +350,15 @@ export default function FixtureMap({
       {fixtureGroups.map((group) => {
         const visited = group.venueId !== null && isVisited(group.venueId);
         const selected = group.fixtures.some((fixture) => fixture.fixture_id === selectedFixtureId);
-        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icon={selected ? (visited ? selectedVisitedGroundIcon : selectedGroundIcon) : (visited ? visitedGroundIcon : groundIcon)} onFixtureSelect={onFixtureSelect} showDistance={showDistance} />;
+        const highlighted = fixtureGroupDecision(group.fixtures).highlighted;
+        const icon = highlighted
+          ? selected
+            ? visited ? selectedHighlightedVisitedGroundIcon : selectedHighlightedGroundIcon
+            : visited ? highlightedVisitedGroundIcon : highlightedGroundIcon
+          : selected
+            ? visited ? selectedVisitedGroundIcon : selectedGroundIcon
+            : visited ? visitedGroundIcon : groundIcon;
+        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icon={icon} onFixtureSelect={onFixtureSelect} showDistance={showDistance} />;
       })}
 
     </MapContainer>

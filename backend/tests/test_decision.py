@@ -7,6 +7,7 @@ from decision import (
     applicable_decision_payload,
     canonical_team_pair,
     fixture_decision_payload,
+    fixture_decision_leads,
     validate_decision_fact,
 )
 from models import DecisionFact
@@ -21,6 +22,9 @@ def fact(
     effective_from=None,
     effective_to=None,
     label=None,
+    team_a_id=None,
+    team_b_id=None,
+    venue_id=None,
 ):
     definition = DECISION_ATTRIBUTES[attribute_key]
     return SimpleNamespace(
@@ -32,6 +36,9 @@ def fact(
         publication_status=status,
         effective_from=effective_from,
         effective_to=effective_to,
+        team_a_id=team_a_id,
+        team_b_id=team_b_id,
+        venue_id=venue_id,
     )
 
 
@@ -49,9 +56,11 @@ class FakeQuery:
 class FakeSession:
     def __init__(self, rows):
         self.rows = rows
+        self.query_calls = 0
 
     def query(self, model):
         self.model = model
+        self.query_calls += 1
         return FakeQuery(self.rows)
 
 
@@ -135,6 +144,45 @@ class DecisionV1Tests(unittest.TestCase):
             "uq_decision_facts_team_pair_attribute",
             "uq_decision_facts_venue_attribute",
         })
+
+    def test_bulk_discover_resolution_returns_false_null_for_ordinary_fixture(self):
+        fixture = SimpleNamespace(
+            fixture_id=10, home_team_id=1, away_team_id=2, venue_id=3,
+            fixture_date=datetime(2026, 9, 1, tzinfo=timezone.utc),
+        )
+        session = FakeSession([])
+        self.assertEqual(fixture_decision_leads(session, [fixture]), {
+            10: {"highlight_eligible": False, "lead_decision_reason": None},
+        })
+        self.assertEqual(session.query_calls, 1)
+
+    def test_bulk_discover_resolution_uses_one_query_and_rivalry_precedence(self):
+        fixtures = [
+            SimpleNamespace(fixture_id=10, home_team_id=40, away_team_id=33, venue_id=23100, fixture_date=datetime(2026, 9, 1, tzinfo=timezone.utc)),
+            SimpleNamespace(fixture_id=11, home_team_id=8, away_team_id=9, venue_id=23100, fixture_date=datetime(2026, 9, 2, tzinfo=timezone.utc)),
+        ]
+        session = FakeSession([
+            fact(2, "FOOTBALL_LANDMARK", venue_id=23100, label="Football landmark"),
+            fact(1, "SIGNIFICANT_RIVALRY", team_a_id=33, team_b_id=40, label="Historic rivalry"),
+        ])
+        payloads = fixture_decision_leads(session, fixtures)
+        self.assertEqual(session.query_calls, 1)
+        self.assertTrue(payloads[10]["highlight_eligible"])
+        self.assertTrue(payloads[11]["highlight_eligible"])
+        self.assertEqual(payloads[10]["lead_decision_reason"]["key"], "SIGNIFICANT_RIVALRY")
+        self.assertEqual(payloads[11]["lead_decision_reason"]["key"], "FOOTBALL_LANDMARK")
+
+    def test_bulk_discover_tie_is_deterministic_by_normalized_label_then_fact_id(self):
+        fixture = SimpleNamespace(
+            fixture_id=10, home_team_id=1, away_team_id=2, venue_id=99,
+            fixture_date=datetime(2026, 9, 1, tzinfo=timezone.utc),
+        )
+        session = FakeSession([
+            fact(5, "CLASSIC_GROUND", venue_id=99, label="Ａlpha"),
+            fact(7, "CLASSIC_GROUND", venue_id=99, label="Alpha"),
+        ])
+        payload = fixture_decision_leads(session, [fixture])[10]
+        self.assertEqual(payload["lead_decision_reason"]["label"], "Ａlpha")
 
 
 if __name__ == "__main__":
