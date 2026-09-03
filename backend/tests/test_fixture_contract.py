@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timezone
 
-from fixture_time import fixture_datetime_utc, fixture_status_group
+from fixture_time import fixture_datetime_utc, fixture_kickoff_has_passed, fixture_status_group
 from main import _board_closed
 from models import Fixture
 
@@ -14,6 +14,12 @@ class FixtureContractTests(unittest.TestCase):
     def test_datetime_contract_rejects_naive_values(self):
         with self.assertRaises(ValueError):
             fixture_datetime_utc(datetime(2026, 8, 20, 19, 0))
+
+    def test_kickoff_lifecycle_uses_the_authoritative_instant(self):
+        now = datetime.fromisoformat("2026-09-03T12:00:00+00:00")
+        self.assertFalse(fixture_kickoff_has_passed(datetime.fromisoformat("2026-09-03T12:00:01+00:00"), now))
+        self.assertTrue(fixture_kickoff_has_passed(datetime.fromisoformat("2026-09-03T12:00:00+00:00"), now))
+        self.assertTrue(fixture_kickoff_has_passed(datetime.fromisoformat("2026-09-03T13:00:00+01:00"), now))
 
     def test_supported_status_groups(self):
         expected = {

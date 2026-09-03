@@ -22,6 +22,12 @@ def fixture_datetime_utc(value: datetime) -> datetime:
     return value.astimezone(timezone.utc)
 
 
+def fixture_kickoff_has_passed(value: datetime, now: datetime | None = None) -> bool:
+    """Classify lifecycle state from the authoritative UTC kickoff instant."""
+    current = fixture_datetime_utc(now or datetime.now(timezone.utc))
+    return fixture_datetime_utc(value) <= current
+
+
 def utc_date_expression(column):
     """UTC calendar date for deterministic API date filters."""
     return cast(func.timezone("UTC", column), Date)

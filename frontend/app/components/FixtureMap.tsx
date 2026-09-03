@@ -87,11 +87,10 @@ function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, showDistanc
     <Popup closeButton={false} offset={[0, -8]} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
       <button type="button" onClick={() => map.closePopup()} aria-label="Close fixture details" className="absolute right-2 top-2 grid min-h-9 min-w-9 place-items-center border border-[var(--tt-ink)] text-lg font-bold leading-none">×</button>
       <div className="pr-10">
-      {fixture.highlight_eligible && fixture.lead_decision_reason && <div className="mb-3 border-l-4 border-[var(--tt-gold)] pl-3">
-        <strong className="block text-base leading-tight">{fixture.lead_decision_reason.emoji} {fixture.lead_decision_reason.label}</strong>
-        <span className="mt-1 block text-xs leading-5 text-[var(--tt-muted)]">{fixture.lead_decision_reason.explanation}</span>
+      {fixture.highlight_eligible && fixture.lead_decision_reason && <div className="mb-2 border-l-4 border-[var(--tt-gold)] pl-3">
+        <strong className="line-clamp-2 break-words text-sm leading-tight">{fixture.lead_decision_reason.emoji} {fixture.lead_decision_reason.label}</strong>
       </div>}
-      <strong className="block leading-tight">{card.matchup}</strong>
+      <strong className="line-clamp-2 break-words leading-tight">{card.matchup}</strong>
       <span className="mt-2 block text-xs font-bold">
       {statusGroup === "postponed" || statusGroup === "cancelled"
         ? fixtureStatusLabel(fixture.status)

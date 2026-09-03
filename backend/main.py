@@ -20,7 +20,7 @@ from identity import (
     anonymous_cookie_options,
 )
 from account_claim import claim_anonymous_user, issue_account_conversion_handoff
-from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, utc_date_expression
+from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, fixture_kickoff_has_passed, utc_date_expression
 from location_safety import has_usable_coordinates
 from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue, resolve_unique_home_club
 from decision import fixture_decision_leads, fixture_decision_payload
@@ -1816,6 +1816,9 @@ def get_interested_fixtures(
 
             "fixture_date":
                 fixture_datetime_utc(fixture.fixture_date),
+
+            "kickoff_passed":
+                fixture_kickoff_has_passed(fixture.fixture_date),
 
             "home_team":
                 fixture.home_team,

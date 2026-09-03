@@ -16,8 +16,10 @@ import dynamic from "next/dynamic";
 import SearchBar from "./components/SearchBar";
 import { DateRangeFields, type LeagueGroup } from "./components/SearchBar";
 import NearbyFixtureCarousel from "./components/NearbyFixtureCarousel";
+import DiscoverShortlist from "./components/DiscoverShortlist";
 import AccountConversionPrompt from "./components/AccountConversionPrompt";
 import type { Fixture } from "./types/fixture";
+import type { InterestedFixture } from "./types/interested";
 import type { MapSearchArea } from "./components/FixtureMap";
 import {
   bufferedApiDateBound,
@@ -99,6 +101,9 @@ export default function Home() {
 
   const [interestedFixtureIds, setInterestedFixtureIds] =
     useState<number[]>([]);
+
+  const [interestedFixtures, setInterestedFixtures] =
+    useState<InterestedFixture[]>([]);
 
   const [updatingInterestedFixtureIds, setUpdatingInterestedFixtureIds] =
     useState<number[]>([]);
@@ -209,10 +214,10 @@ const loadVisitedStadiums = () => {
     api
       .get("/interested")
       .then((response) => {
+        const interested = response.data as InterestedFixture[];
+        setInterestedFixtures(interested);
         setInterestedFixtureIds(
-          response.data.map(
-            (fixture: { fixture_id: number }) => fixture.fixture_id
-          )
+          interested.map((fixture) => fixture.fixture_id)
         );
       })
       .catch((error) => {
@@ -234,6 +239,11 @@ const loadVisitedStadiums = () => {
 
     request
       .then(() => {
+        if (isInterested) {
+          setInterestedFixtures((current) => current.filter((fixture) => fixture.fixture_id !== fixtureId));
+        } else {
+          loadInterestedFixtures();
+        }
         setInterestedFixtureIds((current) =>
           isInterested
             ? current.filter((id) => id !== fixtureId)
@@ -667,6 +677,10 @@ const loadVisitedStadiums = () => {
     [appliedSearch, discoveryNow, endDate, fixtures, radius, startDate]
   );
 
+  const shortlistFixtures = useMemo(() => interestedFixtures
+    .filter((fixture) => !fixture.kickoff_passed && new Date(fixture.fixture_date).getTime() > discoveryNow.getTime())
+    .sort((left, right) => new Date(left.fixture_date).getTime() - new Date(right.fixture_date).getTime()), [discoveryNow, interestedFixtures]);
+
   const formatSummaryDate = (value: string) => value
     ? new Date(`${value}T12:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short" })
     : "Any date";
@@ -809,6 +823,8 @@ const loadVisitedStadiums = () => {
       {loading && (
         <p className="tt-kicker py-4" aria-live="polite">Loading fixtures...</p>
       )}
+
+      <DiscoverShortlist fixtures={shortlistFixtures} updatingFixtureIds={updatingInterestedFixtureIds} onRemove={toggleInterested} />
 
     </main>
   );

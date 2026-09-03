@@ -40,6 +40,8 @@ const fixtureMapSource = readFileSync(new URL("../app/components/FixtureMap.tsx"
 const fixtureCarouselSource = readFileSync(new URL("../app/components/NearbyFixtureCarousel.tsx", import.meta.url), "utf8");
 const fixturePageSource = readFileSync(new URL("../app/fixture/[fixtureId]/page.tsx", import.meta.url), "utf8");
 const groundMarkerSource = readFileSync(new URL("../app/components/groundMarkerIcon.ts", import.meta.url), "utf8");
+const shortlistSource = readFileSync(new URL("../app/components/DiscoverShortlist.tsx", import.meta.url), "utf8");
+const matchdaysSource = readFileSync(new URL("../app/components/InterestedTab.tsx", import.meta.url), "utf8");
 
 function decisionFixture(overrides: Partial<Fixture>): Fixture {
   return {
@@ -103,13 +105,25 @@ test("ordinary fixture group and marker/card presentation remain unchanged", () 
   assert.match(fixtureCarouselSource, /h-\[18\.5rem\]/);
 });
 
-test("Discover popup and carousel expose only the lead reason with restrained gold treatment", () => {
+test("Discover popup and carousel expose only the compact lead reason with restrained gold treatment", () => {
   assert.match(fixtureMapSource, /fixture\.lead_decision_reason\.emoji/);
   assert.match(fixtureMapSource, /border-\[var\(--tt-gold\)\]/);
+  assert.match(fixtureMapSource, /line-clamp-2 break-words text-sm leading-tight/);
+  assert.doesNotMatch(fixtureMapSource, /fixture\.lead_decision_reason\.explanation/);
   assert.match(fixtureCarouselSource, /fixture\.lead_decision_reason\.label/);
   assert.doesNotMatch(fixtureCarouselSource, /fixture\.lead_decision_reason\.explanation/);
   assert.doesNotMatch(fixtureMapSource, /decision_reasons/);
   assert.doesNotMatch(fixtureCarouselSource, /decision_reasons/);
+});
+
+test("fixture popup keeps ordinary details, mobile bounds, close control, and View match action", () => {
+  assert.match(fixtureMapSource, /line-clamp-2 break-words leading-tight/);
+  assert.match(fixtureMapSource, /fixture\.league_name/);
+  assert.match(fixtureMapSource, /fixture\.venue_name/);
+  assert.match(fixtureMapSource, /fixture\.distance_miles\.toFixed\(1\)/);
+  assert.match(fixtureMapSource, /aria-label="Close fixture details"/);
+  assert.match(fixtureMapSource, /View match/);
+  assert.match(fixtureMapSource, /tt-fixture-popup/);
 });
 
 test("fixture page renders WHY THIS MATCH only when DECIDE reasons exist", () => {
@@ -119,7 +133,42 @@ test("fixture page renders WHY THIS MATCH only when DECIDE reasons exist", () =>
   const social = fixturePageSource.indexOf("/ Social · Did you go?");
   assert.ok(match < why && why < matchday && matchday < social);
   assert.match(fixturePageSource, /\{hasDecisionReasons && <section/);
+  assert.match(fixturePageSource, /decisionReasons\[0\]\.explanation/);
   assert.match(fixturePageSource, /decisionReasons\.slice\(1\)/);
+});
+
+test("Discover shortlist contains only future interested fixtures and stays compact", () => {
+  assert.match(discoverPageSource, /!fixture\.kickoff_passed/);
+  assert.match(discoverPageSource, /fixture\.fixture_date/);
+  assert.match(discoverPageSource, /<DiscoverShortlist/);
+  assert.match(shortlistSource, /Your shortlist/);
+  assert.match(shortlistSource, /Matches you&apos;re considering/);
+  assert.match(shortlistSource, /View match/);
+  assert.match(shortlistSource, /"Removing…" : "Remove"/);
+  assert.doesNotMatch(shortlistSource, /lead_decision_reason|open_to_meet|Who&apos;s Going/);
+});
+
+test("My Matchdays is confirmation and attended history, never prospective planning", () => {
+  assert.match(matchdaysSource, /fixture\.kickoff_passed/);
+  assert.match(matchdaysSource, /fixture\.fixture_date/);
+  assert.match(matchdaysSource, /setInterval\(\(\) => setMatchdayNow\(new Date\(\)\), 60_000\)/);
+  assert.match(matchdaysSource, /Did you go\?/);
+  assert.match(matchdaysSource, /Yes, I was there/);
+  assert.match(matchdaysSource, /No, I didn&apos;t go/);
+  assert.match(matchdaysSource, /if \(attended && !attendedFixtureIds\.has/);
+  assert.match(matchdaysSource, /api\.post\(`\/fixtures\/\$\{fixture\.fixture_id\}\/attendance`\)/);
+  assert.match(matchdaysSource, /api\.delete\(`\/fixtures\/\$\{fixture\.fixture_id\}\/interested`\)/);
+  assert.match(matchdaysSource, /api\.get\("\/my-grounds"\)/);
+  assert.match(matchdaysSource, /Past Matchdays/);
+  assert.doesNotMatch(matchdaysSource, /Upcoming|planned|Who&apos;s Going|Open to meeting supporters/);
+});
+
+test("My Matchdays uses one empty state and does not preserve non-attendance history", () => {
+  assert.match(matchdaysSource, /Your matchday history starts here/);
+  assert.match(matchdaysSource, /unresolvedFixtures\.length === 0 && attendedFixtures\.length === 0/);
+  assert.equal((matchdaysSource.match(/Your matchday history starts here/g) ?? []).length, 1);
+  assert.doesNotMatch(matchdaysSource, /No upcoming plans|No past plans|No attended matches/);
+  assert.doesNotMatch(matchdaysSource, /didn.?t attend.*history/i);
 });
 
 test("manual search keeps dates visible before genuinely optional filters and the single Search action", () => {
