@@ -7,7 +7,7 @@ import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 import type { MyGround } from "../types/grounds";
-import { createGroundMarkerIcon } from "./groundMarkerIcon";
+import { createAttendedGroundMarkerIcon } from "./groundMarkerIcon";
 
 type Props = { grounds: MyGround[] };
 
@@ -29,7 +29,7 @@ function FitVisitedBounds({ grounds }: Props) {
 
 export default function PersonalGroundMap({ grounds }: Props) {
   const plottable = grounds.filter((ground) => ground.latitude !== null && ground.longitude !== null);
-  const icon = useMemo(() => createGroundMarkerIcon(true), []);
+  const icon = useMemo(() => createAttendedGroundMarkerIcon(), []);
 
   if (plottable.length === 0) return <div className="flex h-56 items-center justify-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-6 text-center sm:h-72"><p className="max-w-md font-semibold text-[var(--tt-muted)]">Your grounds do not have coordinates yet, so they cannot be shown on the map.</p></div>;
 

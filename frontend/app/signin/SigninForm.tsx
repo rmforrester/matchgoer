@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import AccountShell from "@/app/components/AccountShell";
 import { accountRoute, completeAuthenticatedFlow, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
+import { anonymousApi } from "@/lib/api";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { clearConversionHandoffAfter, loadConversionHandoff, prepareConversionHandoff } from "@/lib/account-conversion-checkpoint";
 
@@ -24,8 +25,11 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, 
     setSaving(true); setError("");
     try {
       let checkpoint = loadConversionHandoff();
-      if (convertAnonymous && !handoffToken && !checkpoint) {
-        checkpoint = await prepareConversionHandoff(returnTo);
+      if (!handoffToken && !checkpoint) {
+        const anonymousSession = await anonymousApi.get("/session");
+        if (convertAnonymous || (anonymousSession.data.anonymous && anonymousSession.data.anonymous_activity)) {
+          checkpoint = await prepareConversionHandoff(returnTo);
+        }
       }
       const { data, error: signinError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signinError) throw signinError;

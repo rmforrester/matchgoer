@@ -337,9 +337,18 @@ def get_leagues():
 def get_session(
     identity: ResolvedIdentity = Depends(current_or_new_anonymous_identity),
 ):
+    anonymous = not identity.is_registered
+    anonymous_activity = False
+    if anonymous:
+        db = SessionLocal()
+        try:
+            anonymous_activity = _has_meaningful_activity(db, identity.user_id)
+        finally:
+            db.close()
     return {
         "user_id": identity.user_id,
-        "anonymous": not identity.is_registered,
+        "anonymous": anonymous,
+        "anonymous_activity": anonymous_activity,
     }
 
 
@@ -935,6 +944,27 @@ def _ensure_venue_visit(
     source: str,
 ) -> VenueVisit:
     normalized_date = visit_date.date() if isinstance(visit_date, datetime) else visit_date
+    if fixture_id is not None:
+        existing_fixture_visit = db.query(VenueVisit).filter(
+            VenueVisit.user_id == user_id,
+            VenueVisit.fixture_id == fixture_id,
+        ).first()
+        if existing_fixture_visit is not None:
+            if existing_fixture_visit.venue_id != venue_id:
+                raise HTTPException(status_code=409, detail="Attendance already exists for a different venue")
+            return existing_fixture_visit
+    if fixture_id is not None and normalized_date is not None:
+        manual_visit = db.query(VenueVisit).filter(
+            VenueVisit.user_id == user_id,
+            VenueVisit.venue_id == venue_id,
+            VenueVisit.fixture_id.is_(None),
+            VenueVisit.visit_date == normalized_date,
+        ).with_for_update().first()
+        if manual_visit is not None:
+            manual_visit.fixture_id = fixture_id
+            manual_visit.source = source
+            db.flush()
+            return manual_visit
     db.execute(
         pg_insert(VenueVisit)
         .values(
