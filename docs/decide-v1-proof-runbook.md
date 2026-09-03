@@ -37,3 +37,7 @@ If any item fails, stop without applying the migration or publication artifact.
 - After publication: do not run the destructive rollback automatically. Stop application promotion and use the verified backup or a separately reviewed removal transaction.
 
 The schema migration and proof publication are deliberately not executed by repository preparation.
+
+## Future editorial identity handoff
+
+Reconcile future country research against a current hosted export of canonical teams, venues, provider references, aliases, and club/venue relationships before publication implementation. Every approved fact should arrive as either matched to a canonical Matchgoer identity or confirmed not in inventory; never force an unsafe mapping to eliminate an identity-review exception. Codex verifies and implements those pre-resolved identities rather than repeating open-ended editorial identity research.
