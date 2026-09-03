@@ -1,5 +1,6 @@
 import unittest
 from datetime import date, datetime, timezone
+from pathlib import Path
 from types import SimpleNamespace
 
 from decision import (
@@ -25,6 +26,8 @@ def fact(
     team_a_id=None,
     team_b_id=None,
     venue_id=None,
+    team_id=None,
+    lead_priority="NORMAL",
 ):
     definition = DECISION_ATTRIBUTES[attribute_key]
     return SimpleNamespace(
@@ -39,6 +42,8 @@ def fact(
         team_a_id=team_a_id,
         team_b_id=team_b_id,
         venue_id=venue_id,
+        team_id=team_id,
+        lead_priority=lead_priority,
     )
 
 
@@ -143,7 +148,37 @@ class DecisionV1Tests(unittest.TestCase):
         self.assertEqual(unique_indexes, {
             "uq_decision_facts_team_pair_attribute",
             "uq_decision_facts_venue_attribute",
+            "uq_decision_facts_team_attribute",
         })
+
+    def test_existing_v1_facts_remain_migration_compatible(self):
+        migration = (Path(__file__).parents[1] / "migrations" / "20260903_decide_team_priority.sql").read_text(encoding="utf-8")
+        self.assertIn("lead_priority VARCHAR(10) NOT NULL DEFAULT 'NORMAL'", migration)
+        existing = DecisionFact(
+            subject_type="VENUE", venue_id=23100, attribute_key="FOOTBALL_LANDMARK",
+            label="European football landmark", explanation="Existing reviewed fact.",
+        )
+        self.assertIsNone(existing.team_id)
+        self.assertNotEqual(existing.lead_priority, "LEAD")
+
+    def test_exceptional_support_is_team_scoped_and_inherited_at_home_only(self):
+        support = fact(12, "EXCEPTIONAL_SUPPORT", team_id=1321, lead_priority="LEAD")
+        fixtures = [
+            SimpleNamespace(fixture_id=20, home_team_id=1321, away_team_id=8, venue_id=90, fixture_date=datetime(2026, 9, 1, tzinfo=timezone.utc)),
+            SimpleNamespace(fixture_id=21, home_team_id=8, away_team_id=1321, venue_id=91, fixture_date=datetime(2026, 9, 2, tzinfo=timezone.utc)),
+        ]
+        payloads = fixture_decision_leads(FakeSession([support]), fixtures)
+        self.assertEqual(payloads[20]["lead_decision_reason"]["key"], "EXCEPTIONAL_SUPPORT")
+        self.assertEqual(payloads[21], {"highlight_eligible": False, "lead_decision_reason": None})
+
+    def test_editorial_lead_outweighs_category_fallback(self):
+        payload = applicable_decision_payload([
+            fact(1, "SIGNIFICANT_RIVALRY", label="Historic rivalry"),
+            fact(2, "UNIQUE_SETTING", label="Football on the lagoon", lead_priority="LEAD"),
+        ], date(2026, 9, 1))
+        self.assertEqual([reason["key"] for reason in payload["decision_reasons"]], [
+            "UNIQUE_SETTING", "SIGNIFICANT_RIVALRY",
+        ])
 
     def test_bulk_discover_resolution_returns_false_null_for_ordinary_fixture(self):
         fixture = SimpleNamespace(

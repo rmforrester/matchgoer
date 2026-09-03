@@ -18,6 +18,7 @@ DECISION_ATTRIBUTES = {
     "FOOTBALL_LANDMARK": DecisionAttributeDefinition("PRIMARY", "🏟️", "VENUE", 2),
     "UNIQUE_SETTING": DecisionAttributeDefinition("PRIMARY", "🏞️", "VENUE", 3),
     "CLASSIC_GROUND": DecisionAttributeDefinition("PRIMARY", "🧱", "VENUE", 4),
+    "EXCEPTIONAL_SUPPORT": DecisionAttributeDefinition("PRIMARY", "📣", "TEAM", 5),
 }
 
 
@@ -69,11 +70,13 @@ def applicable_decision_payload(facts, fixture_date: date | datetime | None) -> 
             "label": fact.label,
             "explanation": fact.explanation,
             "importance": definition.importance,
+            "_lead": 0 if getattr(fact, "lead_priority", "NORMAL") == "LEAD" else 1,
             "_order": definition.order,
             "_fact_id": fact.fact_id or 0,
         })
-    reasons.sort(key=lambda row: (row["_order"], _normalized_label(row["label"]), row["_fact_id"]))
+    reasons.sort(key=lambda row: (row["_lead"], row["_order"], _normalized_label(row["label"]), row["_fact_id"]))
     for reason in reasons:
+        reason.pop("_lead")
         reason.pop("_order")
         reason.pop("_fact_id")
     return {
@@ -95,6 +98,8 @@ def fixture_decision_payload(db, fixture) -> dict:
         ))
     if fixture.venue_id is not None:
         subjects.append(and_(DecisionFact.subject_type == "VENUE", DecisionFact.venue_id == fixture.venue_id))
+    if fixture.home_team_id is not None:
+        subjects.append(and_(DecisionFact.subject_type == "TEAM", DecisionFact.team_id == fixture.home_team_id))
     if not subjects:
         return {"decision_reasons": [], "highlight_eligible": False}
 
@@ -121,6 +126,7 @@ def fixture_decision_leads(db, fixtures) -> dict[int, dict]:
         and item.home_team_id != item.away_team_id
     }
     venue_ids = {item.venue_id for item in fixture_rows if item.venue_id is not None}
+    home_team_ids = {item.home_team_id for item in fixture_rows if item.home_team_id is not None}
     subject_filters = []
     if pairs:
         subject_filters.append(and_(
@@ -131,6 +137,11 @@ def fixture_decision_leads(db, fixtures) -> dict[int, dict]:
         subject_filters.append(and_(
             DecisionFact.subject_type == "VENUE",
             DecisionFact.venue_id.in_(sorted(venue_ids)),
+        ))
+    if home_team_ids:
+        subject_filters.append(and_(
+            DecisionFact.subject_type == "TEAM",
+            DecisionFact.team_id.in_(sorted(home_team_ids)),
         ))
     if not subject_filters:
         return {
@@ -145,15 +156,19 @@ def fixture_decision_leads(db, fixtures) -> dict[int, dict]:
     )
     pair_facts = {}
     venue_facts = {}
+    team_facts = {}
     for fact in facts:
         if fact.subject_type == "TEAM_PAIR":
             pair_facts.setdefault((fact.team_a_id, fact.team_b_id), []).append(fact)
         elif fact.subject_type == "VENUE":
             venue_facts.setdefault(fact.venue_id, []).append(fact)
+        elif fact.subject_type == "TEAM":
+            team_facts.setdefault(fact.team_id, []).append(fact)
 
     resolved = {}
     for item in fixture_rows:
         applicable = list(venue_facts.get(item.venue_id, []))
+        applicable.extend(team_facts.get(item.home_team_id, []))
         if item.home_team_id is not None and item.away_team_id is not None and item.home_team_id != item.away_team_id:
             applicable.extend(pair_facts.get(canonical_team_pair(item.home_team_id, item.away_team_id), []))
         payload = applicable_decision_payload(applicable, item.fixture_date)

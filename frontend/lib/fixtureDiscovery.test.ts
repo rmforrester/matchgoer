@@ -100,14 +100,14 @@ test("ordinary fixture group and marker/card presentation remain unchanged", () 
   const fixtures = [decisionFixture({ fixture_id: 1 }), decisionFixture({ fixture_id: 2 })];
   assert.deepEqual(fixtureGroupDecision(fixtures), { highlighted: false, initialFixtureIndex: 0 });
   assert.match(groundMarkerSource, /highlighted \? "#D6A600" : "#2146D0"/);
-  assert.match(fixtureCarouselSource, /highlighted \? "h-\[21rem\]/);
-  assert.match(fixtureCarouselSource, /"h-\[18\.5rem\]"/);
+  assert.match(fixtureCarouselSource, /h-\[18\.5rem\]/);
 });
 
 test("Discover popup and carousel expose only the lead reason with restrained gold treatment", () => {
   assert.match(fixtureMapSource, /fixture\.lead_decision_reason\.emoji/);
   assert.match(fixtureMapSource, /border-\[var\(--tt-gold\)\]/);
-  assert.match(fixtureCarouselSource, /fixture\.lead_decision_reason\.explanation/);
+  assert.match(fixtureCarouselSource, /fixture\.lead_decision_reason\.label/);
+  assert.doesNotMatch(fixtureCarouselSource, /fixture\.lead_decision_reason\.explanation/);
   assert.doesNotMatch(fixtureMapSource, /decision_reasons/);
   assert.doesNotMatch(fixtureCarouselSource, /decision_reasons/);
 });

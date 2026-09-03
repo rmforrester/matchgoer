@@ -184,20 +184,23 @@ class DecisionFact(Base):
 
     __tablename__ = "decision_facts"
     __table_args__ = (
-        CheckConstraint("subject_type IN ('TEAM_PAIR', 'VENUE')", name="ck_decision_facts_subject_type"),
+        CheckConstraint("subject_type IN ('TEAM_PAIR', 'VENUE', 'TEAM')", name="ck_decision_facts_subject_type"),
         CheckConstraint(
             "(subject_type = 'TEAM_PAIR' AND team_a_id IS NOT NULL AND team_b_id IS NOT NULL "
-            "AND team_a_id < team_b_id AND venue_id IS NULL) OR "
-            "(subject_type = 'VENUE' AND team_a_id IS NULL AND team_b_id IS NULL AND venue_id IS NOT NULL)",
+            "AND team_a_id < team_b_id AND venue_id IS NULL AND team_id IS NULL) OR "
+            "(subject_type = 'VENUE' AND team_a_id IS NULL AND team_b_id IS NULL AND venue_id IS NOT NULL AND team_id IS NULL) OR "
+            "(subject_type = 'TEAM' AND team_a_id IS NULL AND team_b_id IS NULL AND venue_id IS NULL AND team_id IS NOT NULL)",
             name="ck_decision_facts_subject_shape",
         ),
         CheckConstraint(
             "(subject_type = 'TEAM_PAIR' AND attribute_key = 'SIGNIFICANT_RIVALRY') OR "
-            "(subject_type = 'VENUE' AND attribute_key IN ('FOOTBALL_LANDMARK', 'UNIQUE_SETTING', 'CLASSIC_GROUND'))",
+            "(subject_type = 'VENUE' AND attribute_key IN ('FOOTBALL_LANDMARK', 'UNIQUE_SETTING', 'CLASSIC_GROUND')) OR "
+            "(subject_type = 'TEAM' AND attribute_key = 'EXCEPTIONAL_SUPPORT')",
             name="ck_decision_facts_attribute_subject",
         ),
         CheckConstraint("publication_status IN ('DRAFT', 'PUBLISHED', 'REJECTED')", name="ck_decision_facts_publication_status"),
         CheckConstraint("confidence IN ('HIGH', 'MEDIUM', 'LOW')", name="ck_decision_facts_confidence"),
+        CheckConstraint("lead_priority IN ('LEAD', 'NORMAL')", name="ck_decision_facts_lead_priority"),
         CheckConstraint("btrim(label) <> ''", name="ck_decision_facts_label_not_blank"),
         CheckConstraint("btrim(explanation) <> ''", name="ck_decision_facts_explanation_not_blank"),
         CheckConstraint("effective_to IS NULL OR effective_from IS NULL OR effective_to >= effective_from", name="ck_decision_facts_effective_dates"),
@@ -213,6 +216,12 @@ class DecisionFact(Base):
             unique=True,
             postgresql_where=text("subject_type = 'VENUE'"),
         ),
+        Index(
+            "uq_decision_facts_team_attribute",
+            "team_id", "attribute_key",
+            unique=True,
+            postgresql_where=text("subject_type = 'TEAM'"),
+        ),
     )
 
     fact_id = Column(BigInteger, primary_key=True)
@@ -220,11 +229,13 @@ class DecisionFact(Base):
     team_a_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=True)
     team_b_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=True)
     venue_id = Column(Integer, ForeignKey("venues.venue_id", ondelete="RESTRICT"), nullable=True)
+    team_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=True)
     attribute_key = Column(String(40), nullable=False)
     label = Column(String(120), nullable=False)
     explanation = Column(String(300), nullable=False)
     publication_status = Column(String(20), nullable=False, default="DRAFT", index=True)
     confidence = Column(String(10), nullable=False, default="MEDIUM")
+    lead_priority = Column(String(10), nullable=False, default="NORMAL")
     effective_from = Column(Date, nullable=True)
     effective_to = Column(Date, nullable=True)
     reviewed_at = Column(DateTime(timezone=True), nullable=True)

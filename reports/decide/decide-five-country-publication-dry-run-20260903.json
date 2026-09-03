@@ -1,0 +1,19 @@
+{
+  "source_inventory": "matchgoer_decide_publication_inventory_v0_1.xlsx",
+  "reconciliation_artifact": "reports/decide/decide-five-country-reconciliation-20260903.csv",
+  "facts_to_insert": 4,
+  "evidence_rows_to_insert": 4,
+  "facts_already_present": 3,
+  "ready_but_withheld_without_evidence_url": 122,
+  "not_in_current_inventory": 14,
+  "needs_identity_review": 112,
+  "updates": 0,
+  "deletes": 0,
+  "hosted_writes": 0,
+  "publication_subjects": [
+    {"country": "Germany", "team_id": 1321, "team": "Hansa Rostock", "category": "EXCEPTIONAL_SUPPORT", "lead_priority": "LEAD", "evidence_season": "2025/26"},
+    {"country": "Germany", "team_id": 4259, "team": "Alemannia Aachen", "category": "EXCEPTIONAL_SUPPORT", "lead_priority": "LEAD", "evidence_season": "2025/26"},
+    {"country": "Germany", "team_id": 187, "team": "MSV Duisburg", "category": "EXCEPTIONAL_SUPPORT", "lead_priority": "LEAD", "evidence_season": "2025/26"},
+    {"country": "Germany", "team_id": 1621, "team": "Rot-Weiss Essen", "category": "EXCEPTIONAL_SUPPORT", "lead_priority": "LEAD", "evidence_season": "2025/26"}
+  ]
+}
