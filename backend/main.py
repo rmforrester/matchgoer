@@ -1,6 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import date, datetime, timedelta, timezone
 import os
+import logging
 from math import cos, radians
 
 from sqlalchemy import case, cast, Date, func, or_, text
@@ -18,7 +19,7 @@ from identity import (
     verify_claim_provider_identity,
     anonymous_cookie_options,
 )
-from account_claim import claim_anonymous_user
+from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, utc_date_expression
 
 from models import (
@@ -57,15 +58,19 @@ from schemas import (
     MatchBoardPostCreate,
     MatchBoardReportCreate,
     MeetingIntentUpdate,
+    AccountClaimRequest,
     AccountClaimResponse,
+    AccountConversionHandoffResponse,
 )
 
 from fastapi import Cookie, Depends, FastAPI, Header, Response, HTTPException, Query
 
 
 app = FastAPI(
-    title="Terrace Talk API"
+    title="Matchgoer API"
 )
+
+logger = logging.getLogger(__name__)
 
 
 configured_origins = [
@@ -92,7 +97,7 @@ app.add_middleware(
 @app.get("/")
 def home():
     return {
-        "message": "Terrace Talk API running"
+        "message": "Matchgoer API running"
     }
 
 
@@ -283,31 +288,81 @@ def get_leagues():
 def get_session(
     identity: ResolvedIdentity = Depends(current_or_new_anonymous_identity),
 ):
+    anonymous = not identity.is_registered
+    anonymous_activity = False
+    if anonymous:
+        db = SessionLocal()
+        try:
+            anonymous_activity = _has_meaningful_activity(db, identity.user_id)
+        finally:
+            db.close()
     return {
         "user_id": identity.user_id,
-        "anonymous": not identity.is_registered,
+        "anonymous": anonymous,
+        "anonymous_activity": anonymous_activity,
     }
+
+
+@app.post("/account/conversion-handoff", response_model=AccountConversionHandoffResponse)
+def create_account_conversion_handoff(
+    session_id: str | None = Cookie(default=None, alias="terrace_session"),
+):
+    db = SessionLocal()
+    try:
+        token, expires_at = issue_account_conversion_handoff(db, session_id=session_id)
+        logger.info("account_conversion event=handoff_issued cookie_present=%s outcome=issued", bool(session_id))
+        return {"handoff_token": token, "expires_at": expires_at}
+    except HTTPException as exc:
+        detail = exc.detail if isinstance(exc.detail, dict) else {}
+        logger.info(
+            "account_conversion event=handoff_issue cookie_present=%s outcome=rejected error_code=%s",
+            bool(session_id), detail.get("code", "UNKNOWN"),
+        )
+        raise
+    finally:
+        db.close()
 
 
 @app.post("/account/claim", response_model=AccountClaimResponse)
 def claim_account(
     response: Response,
+    request: AccountClaimRequest | None = None,
     authorization: str | None = Header(default=None),
     session_id: str | None = Cookie(default=None, alias="terrace_session"),
 ):
-    provider_identity = verify_claim_provider_identity(authorization)
+    try:
+        provider_identity = verify_claim_provider_identity(authorization)
+    except HTTPException as exc:
+        detail = exc.detail if isinstance(exc.detail, dict) else {}
+        logger.info(
+            "account_conversion event=claim cookie_present=%s handoff_present=%s outcome=rejected continuity=unverified error_code=%s",
+            bool(session_id), bool(request and request.handoff_token), detail.get("code", "UNKNOWN"),
+        )
+        raise
     db = SessionLocal()
     try:
         result = claim_anonymous_user(
             db,
             session_id=session_id,
+            handoff_token=request.handoff_token if request else None,
             provider_identity=provider_identity,
+        )
+        logger.info(
+            "account_conversion event=claim cookie_present=%s handoff_present=%s outcome=claimed user_id=%s continuity=preserved idempotent=%s",
+            bool(session_id), bool(request and request.handoff_token), result.user_id, result.idempotent,
         )
         response.delete_cookie(
             key="terrace_session",
             **anonymous_cookie_options(),
         )
         return result
+    except HTTPException as exc:
+        detail = exc.detail if isinstance(exc.detail, dict) else {}
+        logger.info(
+            "account_conversion event=claim cookie_present=%s handoff_present=%s outcome=rejected continuity=unverified error_code=%s",
+            bool(session_id), bool(request and request.handoff_token), detail.get("code", "UNKNOWN"),
+        )
+        raise
     finally:
         db.close()
 
@@ -832,6 +887,27 @@ def _ensure_venue_visit(
     source: str,
 ) -> VenueVisit:
     normalized_date = visit_date.date() if isinstance(visit_date, datetime) else visit_date
+    if fixture_id is not None:
+        existing_fixture_visit = db.query(VenueVisit).filter(
+            VenueVisit.user_id == user_id,
+            VenueVisit.fixture_id == fixture_id,
+        ).first()
+        if existing_fixture_visit is not None:
+            if existing_fixture_visit.venue_id != venue_id:
+                raise HTTPException(status_code=409, detail="Attendance already exists for a different venue")
+            return existing_fixture_visit
+    if fixture_id is not None and normalized_date is not None:
+        manual_visit = db.query(VenueVisit).filter(
+            VenueVisit.user_id == user_id,
+            VenueVisit.venue_id == venue_id,
+            VenueVisit.fixture_id.is_(None),
+            VenueVisit.visit_date == normalized_date,
+        ).with_for_update().first()
+        if manual_visit is not None:
+            manual_visit.fixture_id = fixture_id
+            manual_visit.source = source
+            db.flush()
+            return manual_visit
     db.execute(
         pg_insert(VenueVisit)
         .values(
@@ -1897,7 +1973,7 @@ def _require_registered_social(identity: ResolvedIdentity):
             status_code=403,
             detail={
                 "code": "REGISTERED_ACCOUNT_REQUIRED",
-                "message": "Create a Terrace Talk account to join in",
+                "message": "Create a Matchgoer account to join in",
             },
         )
 
@@ -1909,7 +1985,7 @@ def _require_social_profile(db, user_id: int):
             status_code=403,
             detail={
                 "code": "PROFILE_REQUIRED",
-                "message": "Complete your Terrace Talk profile before joining in",
+                "message": "Complete your Matchgoer profile before joining in",
             },
         )
     return profile

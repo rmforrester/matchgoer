@@ -8,12 +8,14 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from account_claim import claim_anonymous_user
+from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from database import engine
 from identity import ResolvedIdentity, SupabaseAuthConfig, VerifiedProviderIdentity, resolve_identity
 from main import get_fixture_social, update_meeting_intent
 from models import (
     AnonymousSession,
+    AccountConversionHandoff,
+    AccountMergeAudit,
     AwayDayReview,
     Fixture,
     FixtureMeetingIntent,
@@ -86,7 +88,14 @@ class AccountClaimTests(unittest.TestCase):
                 cleanup.query(AwayDayReview).filter(AwayDayReview.user_id == user_id).delete()
                 cleanup.query(UserProfile).filter(UserProfile.user_id == user_id).delete()
                 cleanup.query(UserIdentity).filter(UserIdentity.user_id == user_id).delete()
+                cleanup.query(AccountConversionHandoff).filter(AccountConversionHandoff.user_id == user_id).delete()
                 cleanup.query(AnonymousSession).filter(AnonymousSession.user_id == user_id).delete()
+                cleanup.query(AccountMergeAudit).filter(
+                    (AccountMergeAudit.source_user_id == user_id) | (AccountMergeAudit.target_user_id == user_id)
+                ).delete(synchronize_session=False)
+                cleanup.query(User).filter(User.merged_into_user_id == user_id).update(
+                    {User.merged_into_user_id: None}, synchronize_session=False
+                )
                 cleanup.query(User).filter(User.user_id == user_id).delete()
                 cleanup.commit()
             finally:
@@ -104,12 +113,25 @@ class AccountClaimTests(unittest.TestCase):
         self.created_users.append(user.user_id)
         return user.user_id, session.session_id
 
-    def claim(self, session_id, subject="new-supporter", **kwargs):
+    def new_registered(self, subject, suffix=None):
+        user = User(is_anonymous=False, account_status="registered", registered_at=datetime.now(timezone.utc))
+        self.db.add(user)
+        self.db.flush()
+        self.db.add_all([
+            UserIdentity(user_id=user.user_id, issuer=ISSUER, subject=subject),
+            UserProfile(user_id=user.user_id, display_name=f"Target {suffix or subject}", username=f"target_{suffix or user.user_id}"),
+        ])
+        self.db.commit()
+        self.created_users.append(user.user_id)
+        return user.user_id
+
+    def claim(self, session_id, subject="new-supporter", handoff_token=None, **kwargs):
         db = Session(bind=engine)
         try:
             return claim_anonymous_user(
                 db,
                 session_id=session_id,
+                handoff_token=handoff_token,
                 provider_identity=provider(subject),
                 **kwargs,
             )
@@ -235,18 +257,171 @@ class AccountClaimTests(unittest.TestCase):
         finally:
             verify.close()
 
-    def test_identity_mapped_to_another_user_is_never_merged(self):
-        user_a, session_a = self.new_anonymous("a")
-        user_b = User(is_anonymous=False, account_status="registered", registered_at=datetime.now(timezone.utc))
-        self.db.add(user_b)
-        self.db.flush()
-        self.created_users.append(user_b.user_id)
-        self.db.add(UserIdentity(user_id=user_b.user_id, issuer=ISSUER, subject="existing-subject"))
+    def test_handoff_claim_without_cookie_preserves_owner_and_interest(self):
+        user_id, session_id = self.new_anonymous("handoff-no-cookie")
+        self.db.add(InterestedFixture(user_id=user_id, fixture_id=self.fixture_id))
         self.db.commit()
-        self.assert_error(409, "IDENTITY_ALREADY_LINKED", lambda: self.claim(session_a, "existing-subject"))
-        self.db.expire_all()
+        issuer = Session(bind=engine)
+        try:
+            token, _expires_at = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+
+        result = self.claim(None, "handoff-no-cookie-subject", handoff_token=token)
+        verify = Session(bind=engine)
+        try:
+            self.assertEqual(result.user_id, user_id)
+            self.assertEqual(verify.query(InterestedFixture).filter_by(user_id=user_id, fixture_id=self.fixture_id).count(), 1)
+            self.assertEqual(verify.query(User).filter(User.user_id != user_id, User.account_status == "registered").filter(
+                User.user_id.in_(verify.query(UserIdentity.user_id).filter_by(subject="handoff-no-cookie-subject"))
+            ).count(), 0)
+        finally:
+            verify.close()
+
+    def test_missing_invalid_and_expired_handoff_fail_without_replacement_user(self):
+        user_id, session_id = self.new_anonymous("handoff-fail-closed")
+        before = self.db.query(User).count()
+        self.assert_error(401, "ANONYMOUS_SESSION_REQUIRED", lambda: self.claim(None, "missing-handoff"))
+        self.assert_error(401, "ACCOUNT_HANDOFF_INVALID", lambda: self.claim(None, "invalid-handoff", handoff_token="not-a-real-handoff"))
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(
+                issuer,
+                session_id=session_id,
+                now=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            )
+        finally:
+            issuer.close()
+        self.assert_error(
+            401,
+            "ACCOUNT_HANDOFF_EXPIRED",
+            lambda: self.claim(None, "expired-handoff", handoff_token=token, now=datetime(2026, 1, 3, tzinfo=timezone.utc)),
+        )
+        self.assertEqual(self.db.query(User).count(), before)
+        self.assertEqual(self.db.get(User, user_id).account_status, "anonymous")
+
+    def test_handoff_rejects_different_live_cookie_owner(self):
+        user_a, session_a = self.new_anonymous("handoff-owner-a")
+        user_b, session_b = self.new_anonymous("handoff-owner-b")
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_a)
+        finally:
+            issuer.close()
+        self.assert_error(
+            409,
+            "ACCOUNT_HANDOFF_SESSION_MISMATCH",
+            lambda: self.claim(session_b, "handoff-cross-owner", handoff_token=token),
+        )
         self.assertEqual(self.db.get(User, user_a).account_status, "anonymous")
-        self.assertIsNone(self.db.get(AnonymousSession, session_a).revoked_at)
+        self.assertEqual(self.db.get(User, user_b).account_status, "anonymous")
+
+    def test_handoff_replay_is_idempotent_for_same_identity_and_rejected_for_another(self):
+        user_id, session_id = self.new_anonymous("handoff-replay")
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+        first = self.claim(None, "handoff-replay-subject", handoff_token=token)
+        replay = self.claim(None, "handoff-replay-subject", handoff_token=token)
+        self.assertEqual(first.user_id, user_id)
+        self.assertFalse(first.idempotent)
+        self.assertEqual(replay.user_id, user_id)
+        self.assertTrue(replay.idempotent)
+        self.assert_error(409, "ACCOUNT_HANDOFF_USED", lambda: self.claim(None, "different-replay-subject", handoff_token=token))
+
+    def test_existing_identity_absorbs_anonymous_interest_and_records_audit(self):
+        source_id, session_id = self.new_anonymous("existing-source")
+        target_id = self.new_registered("existing-subject", "existing")
+        self.db.add(InterestedFixture(user_id=source_id, fixture_id=self.fixture_id))
+        self.db.commit()
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+
+        result = self.claim(None, "existing-subject", handoff_token=token)
+        self.db.expire_all()
+        self.assertEqual(result.user_id, target_id)
+        self.assertEqual(self.db.query(InterestedFixture).filter_by(user_id=source_id).count(), 0)
+        self.assertEqual(self.db.query(InterestedFixture).filter_by(user_id=target_id, fixture_id=self.fixture_id).count(), 1)
+        source = self.db.get(User, source_id)
+        self.assertEqual((source.account_status, source.merged_into_user_id), ("merged", target_id))
+        audit = self.db.query(AccountMergeAudit).filter_by(source_user_id=source_id).one()
+        self.assertEqual((audit.target_user_id, audit.merge_source), (target_id, "account_conversion"))
+
+    def test_existing_identity_interest_collision_deduplicates_and_replays(self):
+        source_id, session_id = self.new_anonymous("collision-source")
+        target_id = self.new_registered("collision-subject", "collision")
+        self.db.add_all([
+            InterestedFixture(user_id=source_id, fixture_id=self.fixture_id),
+            InterestedFixture(user_id=target_id, fixture_id=self.fixture_id),
+        ])
+        self.db.commit()
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+        first = self.claim(None, "collision-subject", handoff_token=token)
+        replay = self.claim(None, "collision-subject", handoff_token=token)
+        self.assertEqual((first.user_id, replay.user_id, replay.idempotent), (target_id, target_id, True))
+        self.assertEqual(self.db.query(InterestedFixture).filter(
+            InterestedFixture.fixture_id == self.fixture_id,
+            InterestedFixture.user_id.in_([source_id, target_id]),
+        ).count(), 1)
+        self.assert_error(409, "ACCOUNT_HANDOFF_USED", lambda: self.claim(None, "another-target", handoff_token=token))
+
+    def test_existing_identity_merge_consumes_all_handoffs_and_does_not_touch_unrelated_user(self):
+        source_id, session_id = self.new_anonymous("multi-source")
+        unrelated_id, _ = self.new_anonymous("unrelated")
+        target_id = self.new_registered("multi-subject", "multi")
+        self.db.add_all([
+            InterestedFixture(user_id=source_id, fixture_id=self.fixture_id),
+            VenueVisit(user_id=unrelated_id, venue_id=self.venue_id, fixture_id=self.fixture_id, visit_date=date.today(), source="fixture"),
+        ])
+        self.db.commit()
+        issuer = Session(bind=engine)
+        try:
+            token_a, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+            token_b, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+        self.claim(None, "multi-subject", handoff_token=token_a)
+        replay = self.claim(None, "multi-subject", handoff_token=token_b)
+        self.assertEqual((replay.user_id, replay.idempotent), (target_id, True))
+        self.assertEqual(self.db.query(AccountConversionHandoff).filter_by(user_id=source_id).filter(AccountConversionHandoff.consumed_at.is_not(None)).count(), 2)
+        self.assertEqual(self.db.query(VenueVisit).filter_by(user_id=unrelated_id).count(), 1)
+
+    def test_existing_identity_mid_merge_failure_rolls_back_everything(self):
+        source_id, session_id = self.new_anonymous("merge-rollback")
+        target_id = self.new_registered("rollback-existing", "rollback")
+        self.db.add(InterestedFixture(user_id=source_id, fixture_id=self.fixture_id))
+        self.db.commit()
+        issuer = Session(bind=engine)
+        try:
+            token, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+
+        def fail(stage):
+            if stage == "after_interest_merge":
+                raise RuntimeError("injected merge failure")
+
+        with self.assertRaises(RuntimeError):
+            self.claim(None, "rollback-existing", handoff_token=token, failure_hook=fail)
+        check = Session(bind=engine)
+        try:
+            self.assertEqual(check.query(InterestedFixture).filter_by(user_id=source_id, fixture_id=self.fixture_id).count(), 1)
+            self.assertEqual(check.query(InterestedFixture).filter_by(user_id=target_id, fixture_id=self.fixture_id).count(), 0)
+            self.assertEqual(check.get(User, source_id).account_status, "anonymous")
+            self.assertIsNone(check.get(AnonymousSession, session_id).revoked_at)
+            self.assertEqual(check.query(AccountMergeAudit).filter_by(source_user_id=source_id).count(), 0)
+            self.assertIsNone(check.query(AccountConversionHandoff).filter_by(user_id=source_id).one().consumed_at)
+        finally:
+            check.close()
 
     def test_claimed_account_cannot_claim_a_different_identity(self):
         _user_id, session_id = self.new_anonymous("different")

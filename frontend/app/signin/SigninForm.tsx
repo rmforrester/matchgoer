@@ -5,10 +5,12 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AccountShell from "@/app/components/AccountShell";
-import { accountRoute, completeAuthenticatedFlow, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
+import { accountRoute, completeAuthenticatedFlow, prepareSigninConversion, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
+import { anonymousApi } from "@/lib/api";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { clearConversionHandoffAfter, loadConversionHandoff, saveConversionHandoff } from "@/lib/account-conversion-checkpoint";
 
-export default function SigninForm({ returnTo: requestedReturnTo }: { returnTo?: string }) {
+export default function SigninForm({ returnTo: requestedReturnTo, handoffToken }: { returnTo?: string; handoffToken?: string }) {
   const router = useRouter();
   const returnTo = safeReturnTo(requestedReturnTo);
   const [email, setEmail] = useState("");
@@ -22,10 +24,19 @@ export default function SigninForm({ returnTo: requestedReturnTo }: { returnTo?:
     if (!supabase) return setError("Account services are unavailable right now.");
     setSaving(true); setError("");
     try {
+      const existingCheckpoint = loadConversionHandoff();
+      const preparedHandoff = handoffToken ?? existingCheckpoint?.token ?? await prepareSigninConversion(returnTo, {
+          readSession: async () => (await anonymousApi.get("/session")).data,
+          issueHandoff: async () => (await anonymousApi.post("/account/conversion-handoff")).data,
+          saveHandoff: saveConversionHandoff,
+        });
       const { data, error: signinError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signinError) throw signinError;
       if (!data.session) throw new Error("No provider session was created");
-      const destination = await completeAuthenticatedFlow(data.session, returnTo);
+      const checkpoint = loadConversionHandoff();
+      const destination = await clearConversionHandoffAfter(
+        completeAuthenticatedFlow(data.session, checkpoint?.returnTo ?? returnTo, handoffToken ?? checkpoint?.token ?? preparedHandoff),
+      );
       router.replace(destination.route);
       router.refresh();
     } catch (requestError) {
@@ -33,13 +44,13 @@ export default function SigninForm({ returnTo: requestedReturnTo }: { returnTo?:
     } finally { setSaving(false); }
   }
 
-  return <AccountShell kicker="Account access" title="Sign in" intro="Pick up your matchdays, grounds and Terrace Talk profile.">
+  return <AccountShell kicker="Account access" title="Sign in" intro="Pick up your matchdays, grounds and Matchgoer profile.">
     <form onSubmit={submit} className="mt-6 grid gap-4">
       <label className="grid gap-1 text-sm font-extrabold uppercase tracking-[0.06em]">Email<input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="tt-control px-3 font-normal normal-case tracking-normal" /></label>
       <label className="grid gap-1 text-sm font-extrabold uppercase tracking-[0.06em]">Password<input required type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="tt-control px-3 font-normal normal-case tracking-normal" /></label>
       {error && <p role="alert" className="text-sm font-bold text-red-800">{error}</p>}
       <button disabled={saving} className="tt-action px-5">{saving ? "Signing in…" : "Sign in"}</button>
     </form>
-    <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">New to Terrace Talk? <Link className="font-extrabold uppercase text-[var(--tt-blue)] underline decoration-2 underline-offset-4" href={accountRoute("/signup", returnTo)}>Create account →</Link></p>
+    <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">New to Matchgoer? <Link className="font-extrabold uppercase text-[var(--tt-blue)] underline decoration-2 underline-offset-4" href={accountRoute("/signup", returnTo)}>Create account →</Link></p>
   </AccountShell>;
 }

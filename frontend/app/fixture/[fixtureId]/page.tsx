@@ -10,6 +10,7 @@ import AccountConversionPrompt from "../../components/AccountConversionPrompt";
 import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
 import { hasPendingAuthAction, parsePendingWhosGoingAction, pendingWhosGoingReturnTo } from "@/lib/pending-auth-action";
+import { applyPendingWhosGoing, clearPendingWhosGoing, loadPendingWhosGoing } from "@/lib/account-conversion-checkpoint";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -45,7 +46,10 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const pendingActionStarted = useRef(false);
 
   const load = useCallback(
-    () => api.get(`/fixtures/${fixtureId}/social`).then((response) => setData(response.data)),
+    () => api.get<SocialFixture>(`/fixtures/${fixtureId}/social`).then((response) => {
+      setData(response.data);
+      return response.data;
+    }),
     [fixtureId]
   );
 
@@ -69,23 +73,31 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     for (const [key, value] of Object.entries(pendingSearchParams)) {
       if (typeof value === "string") params.set(key, value);
     }
-    if (!hasPendingAuthAction(params) || pendingActionStarted.current) return;
     const numericFixtureId = Number(fixtureId);
-    const pending = parsePendingWhosGoingAction(params, numericFixtureId);
+    const hasUrlAction = hasPendingAuthAction(params);
+    const pending = (hasUrlAction ? parsePendingWhosGoingAction(params, numericFixtureId) : null)
+      ?? loadPendingWhosGoing(numericFixtureId);
+    if ((!hasUrlAction && !pending) || pendingActionStarted.current) return;
     if (!pending) {
       pendingActionStarted.current = true;
+      window.setTimeout(() => setError("Your saved Who's Going action expired or could not be verified. Use the button below to try again."), 0);
       router.replace(`/fixture/${fixtureId}`);
       return;
     }
     if (!data || isAnonymous || !data.profile?.username) return;
 
     pendingActionStarted.current = true;
-    void api.put(`/fixtures/${pending.fixtureId}/open-to-meet`, { open_to_meet: true })
-      .then(() => load())
-      .catch((requestError) => setError(requestMessage(requestError, "Your account is ready, but we couldn't enable Who's Going?. Try the button again.")))
-      .finally(() => {
+    void applyPendingWhosGoing(
+      pending,
+      (pendingFixtureId) => api.put(`/fixtures/${pendingFixtureId}/open-to-meet`, { open_to_meet: true }).then((response) => response.data),
+      load,
+    )
+      .then(() => {
+        clearPendingWhosGoing();
         router.replace(`/fixture/${fixtureId}`);
-      });
+      })
+      .catch((requestError) => setError(requestMessage(requestError, "Your account is ready, but we couldn't enable Who's Going?. Try the button again.")))
+      ;
   }, [data, fixtureId, isAnonymous, load, pendingSearchParams, router]);
 
   const toggleInterested = async () => {

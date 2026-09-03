@@ -4,8 +4,9 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import AccountShell from "@/app/components/AccountShell";
-import { accountRoute, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
+import { accountRoute, authCallbackRoute, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
 import { anonymousApi } from "@/lib/api";
+import { saveConversionHandoff, savePendingWhosGoingFromReturnTo } from "@/lib/account-conversion-checkpoint";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?: string }) {
@@ -17,7 +18,18 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const redirectUrl = () => `${window.location.origin}${accountRoute("/auth/callback", returnTo)}`;
+  const redirectUrl = (handoffToken: string) => `${window.location.origin}${authCallbackRoute(returnTo, handoffToken)}`;
+
+  async function prepareConversion() {
+    const handoff = await anonymousApi.post("/account/conversion-handoff");
+    saveConversionHandoff({
+      token: handoff.data.handoff_token,
+      expiresAt: handoff.data.expires_at,
+      returnTo,
+    });
+    savePendingWhosGoingFromReturnTo(returnTo);
+    return handoff.data.handoff_token as string;
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -25,11 +37,11 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
     if (!supabase) return setError("Account services are unavailable right now.");
     setSaving(true); setError(""); setMessage("");
     try {
-      await anonymousApi.get("/session");
+      const handoffToken = await prepareConversion();
       const { data, error: signupError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: { emailRedirectTo: redirectUrl() },
+        options: { emailRedirectTo: redirectUrl(handoffToken) },
       });
       if (signupError) throw signupError;
       if (data.session) {
@@ -46,13 +58,18 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !email.trim()) return;
     setSaving(true); setError(""); setMessage("");
-    const { error: resendError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: redirectUrl() } });
-    if (resendError) setError(userFacingAuthError(resendError, "We couldn't resend the confirmation email."));
-    else setMessage("Confirmation email resent.");
+    try {
+      const handoffToken = await prepareConversion();
+      const { error: resendError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: redirectUrl(handoffToken) } });
+      if (resendError) throw resendError;
+      setMessage("Confirmation email resent.");
+    } catch (requestError) {
+      setError(userFacingAuthError(requestError, "We couldn't resend the confirmation email."));
+    }
     setSaving(false);
   }
 
-  if (confirmationPending) return <AccountShell kicker="Account setup" title="Check your email" intro="We've sent you a confirmation link. Confirm your email, then come back to Terrace Talk.">
+  if (confirmationPending) return <AccountShell kicker="Account setup" title="Check your email" intro="We've sent you a confirmation link. Confirm your email, then come back to Matchgoer.">
     <p className="mt-5 text-sm font-semibold">Use the same browser so your matchdays and grounds can stay with you.</p>
     {message && <p role="status" className="mt-4 border-l-4 border-[var(--tt-blue)] pl-3 font-semibold">{message}</p>}
     {error && <p role="alert" className="mt-4 text-sm font-bold text-red-800">{error}</p>}
