@@ -71,18 +71,20 @@ function decisionFixture(overrides: Partial<Fixture>): Fixture {
   };
 }
 
-test("Discover uses OSM until both approved MapTiler values are configured", () => {
+test("Discover uses OSM until all Mapbox values are configured", () => {
   assert.equal(discoverTileLayerConfig({}).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
-  assert.equal(discoverTileLayerConfig({ key: "browser-key" }).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
-  assert.equal(discoverTileLayerConfig({ key: "browser-key", mapId: "../unsafe" }).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+  assert.equal(discoverTileLayerConfig({ token: "public-token" }).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+  assert.equal(discoverTileLayerConfig({ token: "public-token", username: "map-owner" }).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
+  assert.equal(discoverTileLayerConfig({ token: "public-token", username: "../unsafe", styleId: "style-id" }).url, "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png");
 });
 
-test("Discover accepts a configured MapTiler raster style without changing Leaflet", () => {
-  assert.deepEqual(discoverTileLayerConfig({ key: "restricted browser key", mapId: "matchgoer-english" }), {
-    url: "https://api.maptiler.com/maps/matchgoer-english/256/{z}/{x}/{y}.png?key=restricted%20browser%20key",
-    attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
+test("Discover accepts a configured Mapbox 512px raster style without changing Leaflet", () => {
+  assert.deepEqual(discoverTileLayerConfig({ token: "public token", username: "map-owner", styleId: "style-id" }), {
+    url: "https://api.mapbox.com/styles/v1/map-owner/style-id/tiles/512/{z}/{x}/{y}?access_token=public%20token",
+    attribution: '<a href="https://www.mapbox.com/about/maps/" target="_blank">&copy; Mapbox</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
     crossOrigin: true,
-    minZoom: 1,
+    tileSize: 512,
+    zoomOffset: -1,
   });
 });
 

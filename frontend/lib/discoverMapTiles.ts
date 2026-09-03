@@ -1,6 +1,7 @@
-type PublicMapTilerConfig = {
-  key?: string;
-  mapId?: string;
+type PublicMapboxConfig = {
+  token?: string;
+  username?: string;
+  styleId?: string;
 };
 
 export type DiscoverTileLayerConfig = {
@@ -8,6 +9,8 @@ export type DiscoverTileLayerConfig = {
   attribution: string;
   crossOrigin?: boolean;
   minZoom?: number;
+  tileSize?: number;
+  zoomOffset?: number;
 };
 
 const OPENSTREETMAP_TILES: DiscoverTileLayerConfig = {
@@ -15,25 +18,28 @@ const OPENSTREETMAP_TILES: DiscoverTileLayerConfig = {
   attribution: "&copy; OpenStreetMap contributors",
 };
 
-export function discoverTileLayerConfig(config: PublicMapTilerConfig): DiscoverTileLayerConfig {
-  const key = config.key?.trim();
-  const mapId = config.mapId?.trim();
+export function discoverTileLayerConfig(config: PublicMapboxConfig): DiscoverTileLayerConfig {
+  const token = config.token?.trim();
+  const username = config.username?.trim();
+  const styleId = config.styleId?.trim();
 
-  if (!key || !mapId || !/^[a-zA-Z0-9_-]+$/.test(mapId)) {
+  if (!token || !username || !styleId || !/^[a-zA-Z0-9_-]+$/.test(username) || !/^[a-zA-Z0-9_-]+$/.test(styleId)) {
     return OPENSTREETMAP_TILES;
   }
 
   return {
-    url: `https://api.maptiler.com/maps/${mapId}/256/{z}/{x}/{y}.png?key=${encodeURIComponent(key)}`,
-    attribution: '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
+    url: `https://api.mapbox.com/styles/v1/${username}/${styleId}/tiles/512/{z}/{x}/{y}?access_token=${encodeURIComponent(token)}`,
+    attribution: '<a href="https://www.mapbox.com/about/maps/" target="_blank">&copy; Mapbox</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
     crossOrigin: true,
-    minZoom: 1,
+    tileSize: 512,
+    zoomOffset: -1,
   };
 }
 
 export function configuredDiscoverTileLayer() {
   return discoverTileLayerConfig({
-    key: process.env.NEXT_PUBLIC_MAPTILER_KEY,
-    mapId: process.env.NEXT_PUBLIC_MAPTILER_MAP_ID,
+    token: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+    username: process.env.NEXT_PUBLIC_MAPBOX_USERNAME,
+    styleId: process.env.NEXT_PUBLIC_MAPBOX_STYLE_ID,
   });
 }
