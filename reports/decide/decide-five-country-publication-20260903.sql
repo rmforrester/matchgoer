@@ -62,6 +62,7 @@ INSERT INTO decide_approved_catalogue VALUES
     ('VENUE', NULL, NULL, 568, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A surviving traditional football experience with character, continuity and matchday identity.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 517, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A surviving traditional football experience with character, continuity and matchday identity.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 538, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A surviving traditional football experience with character, continuity and matchday identity.', 'NORMAL', NULL, NULL, NULL),
+    ('VENUE', NULL, NULL, 597, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A surviving traditional football experience with character, continuity and matchday identity.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 581, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A surviving traditional football experience with character, continuity and matchday identity.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 3535, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A surviving traditional football experience with character, continuity and matchday identity.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 586, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A surviving traditional football experience with character, continuity and matchday identity.', 'NORMAL', NULL, NULL, NULL),
@@ -146,6 +147,7 @@ INSERT INTO decide_approved_catalogue VALUES
     ('VENUE', NULL, NULL, 23272, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A Spanish ground whose surviving character and football continuity make it worth seeking out.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 23559, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A Spanish ground whose surviving character and football continuity make it worth seeking out.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 23554, NULL, 'CLASSIC_GROUND', 'Classic ground', 'A Spanish ground whose surviving character and football continuity make it worth seeking out.', 'NORMAL', NULL, NULL, NULL),
+    ('VENUE', NULL, NULL, 23269, NULL, 'FOOTBALL_LANDMARK', 'Football landmark', 'A venue with exceptional significance in Spanish football history.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 23260, NULL, 'FOOTBALL_LANDMARK', 'Football landmark', 'A venue with exceptional significance in Spanish football history.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 23263, NULL, 'FOOTBALL_LANDMARK', 'Football landmark', 'A venue with exceptional significance in Spanish football history.', 'NORMAL', NULL, NULL, NULL),
     ('VENUE', NULL, NULL, 23262, NULL, 'FOOTBALL_LANDMARK', 'Football landmark', 'A venue with exceptional significance in Spanish football history.', 'NORMAL', NULL, NULL, NULL),
@@ -225,7 +227,7 @@ INSERT INTO decide_approved_catalogue VALUES
 
 DO $$
 BEGIN
-    IF (SELECT count(*) FROM decide_approved_catalogue) <> 215 THEN
+    IF (SELECT count(*) FROM decide_approved_catalogue) <> 217 THEN
         RAISE EXCEPTION 'DECIDE approved catalogue row-count mismatch';
     END IF;
     IF EXISTS (
@@ -281,8 +283,8 @@ BEGIN
      AND fact.venue_id IS NOT DISTINCT FROM approved.venue_id
      AND fact.team_id IS NOT DISTINCT FROM approved.team_id
      AND fact.publication_status = 'PUBLISHED';
-    IF reconciled <> 215 THEN
-        RAISE EXCEPTION 'DECIDE publication reconciliation failed: expected 215, found %', reconciled;
+    IF reconciled <> 217 THEN
+        RAISE EXCEPTION 'DECIDE publication reconciliation failed: expected 217, found %', reconciled;
     END IF;
 END $$;
 

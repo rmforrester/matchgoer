@@ -2,7 +2,9 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from decide_inventory import PAIR_SEPARATOR, publication_summary, reconcile_row, write_publication_sql
+from decide_inventory import (
+    PAIR_SEPARATOR, REVIEWED_VENUE_ALIASES, publication_summary, reconcile_row, write_publication_sql,
+)
 
 
 def row(subject="Hansa Rostock", scope="TEAM", category="EXCEPTIONAL_SUPPORT", evidence_url="https://example.test/evidence"):
@@ -93,6 +95,31 @@ class DecideInventoryTests(unittest.TestCase):
         inventory["team_index"] = {}
         result = reconcile_row(row(), inventory)
         self.assertEqual(result["reconciliation_status"], "NEEDS_IDENTITY_REVIEW")
+
+    def test_reviewed_duplicate_venue_identity_uses_authoritative_relationship_target(self):
+        self.assertEqual(REVIEWED_VENUE_ALIASES[("England", "The Hawthorns")], 597)
+        self.assertEqual(REVIEWED_VENUE_ALIASES[("Spain", "Santiago Bernabéu")], 23269)
+
+    def test_victoria_park_does_not_map_to_victory_park(self):
+        source = row(subject="Victoria Park", scope="VENUE", category="CLASSIC_GROUND")
+        source["Country"] = "England"
+        inventory = self.inventory()
+        inventory["venues"] = [{"country": "England", "venue_id": 21314, "name": "Victory Park"}]
+        result = reconcile_row(source, inventory)
+        self.assertEqual(result["reconciliation_status"], "NOT_IN_CURRENT_INVENTORY")
+        self.assertEqual(result["matchgoer_subject_id(s)"], "")
+
+    def test_historical_brescia_does_not_map_to_union_brescia(self):
+        source = row(subject="Atalanta — Brescia", scope="TEAM_PAIR", category="SIGNIFICANT_RIVALRY")
+        source["Country"] = "Italy"
+        result = reconcile_row(source, self.inventory())
+        self.assertEqual(result["reconciliation_status"], "NOT_IN_CURRENT_INVENTORY")
+
+    def test_reggina_does_not_map_to_reggiana(self):
+        source = row(subject="Reggina — Messina", scope="TEAM_PAIR", category="SIGNIFICANT_RIVALRY")
+        source["Country"] = "Italy"
+        result = reconcile_row(source, self.inventory())
+        self.assertEqual(result["reconciliation_status"], "NOT_IN_CURRENT_INVENTORY")
 
 
 if __name__ == "__main__":

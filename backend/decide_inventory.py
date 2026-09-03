@@ -15,8 +15,20 @@ XLSX_NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 PAIR_SEPARATOR = " — "
 # Already reviewed and published by the DECIDE V1 proof artifact; reconciliation-only alias.
 REVIEWED_VENUE_ALIASES = {
+    ("England", "The Hawthorns"): 597,
     ("England", "St James' Park"): 562,
     ("Italy", "San Siro"): 23100,
+    ("Spain", "Santiago Bernabéu"): 23269,
+}
+REVIEWED_IDENTITY_NOTES = {
+    ("England", "The Hawthorns"): "Human-reviewed identity: West Brom team 60, CURRENT/HOME relationship and current fixtures resolve to venue 597/provider venue 597",
+    ("Spain", "Santiago Bernabéu"): "Human-reviewed identity: Real Madrid team 541 and current fixtures resolve to venue 23269/provider venue 1456",
+}
+REVIEWED_DORMANT_SUBJECTS = {
+    ("England", "Victoria Park", "CLASSIC_GROUND", "VENUE"): "Human-reviewed dormant: Hartlepool's Victoria Park is absent; Victory Park is a different ground",
+    ("Italy", "Atalanta — Brescia", "SIGNIFICANT_RIVALRY", "TEAM_PAIR"): "Human-reviewed dormant: historical Brescia must not be mapped to Union Brescia",
+    ("Italy", "Verona — Brescia", "SIGNIFICANT_RIVALRY", "TEAM_PAIR"): "Human-reviewed dormant: historical Brescia must not be mapped to Union Brescia",
+    ("Italy", "Reggina — Messina", "SIGNIFICANT_RIVALRY", "TEAM_PAIR"): "Human-reviewed dormant: Reggina is not Reggiana and the approved pair is absent",
 }
 REVIEWED_TEAM_ALIASES = {
     ("England", "Brighton & Hove Albion"): 51,
@@ -186,6 +198,9 @@ def reconcile_row(row: dict, inventory: dict) -> dict:
     category = row["Category"]
     ids = []
     note = ""
+    dormant_note = REVIEWED_DORMANT_SUBJECTS.get((country, subject, category, scope))
+    if dormant_note:
+        return _result(row, [], "NOT_IN_CURRENT_INVENTORY", dormant_note)
 
     if scope == "TEAM_PAIR":
         parts = subject.split(PAIR_SEPARATOR)
@@ -232,7 +247,7 @@ def reconcile_row(row: dict, inventory: dict) -> dict:
             method = "unique contained name/alias"
         if len(candidates) == 1:
             ids = [next(iter(candidates))]
-            note = f"Canonical venue resolved ({method})"
+            note = REVIEWED_IDENTITY_NOTES.get((country, subject), f"Canonical venue resolved ({method})")
         elif len(candidates) > 1:
             return _result(row, [], "NEEDS_IDENTITY_REVIEW", "Exact venue name/alias resolves to multiple canonical venues")
         else:
