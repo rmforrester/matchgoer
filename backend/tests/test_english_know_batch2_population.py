@@ -151,7 +151,7 @@ class PostgreSQLLifecycleTests(unittest.TestCase):
           review_after date,expires_at date,display_order integer NOT NULL);
         CREATE TABLE pre_match_spots(
           pre_match_spot_id bigserial PRIMARY KEY,club_venue_id bigint NOT NULL REFERENCES club_venues,display_name varchar(160) NOT NULL,
-          classification varchar(30) NOT NULL,audience varchar(10) NOT NULL,supporting_line varchar(180) NOT NULL,
+          classification varchar(30) NOT NULL,audience varchar(10) NOT NULL,supporting_line varchar(255) NOT NULL,
           maps_destination varchar(300) NOT NULL,confidence varchar(10) NOT NULL,status varchar(20) NOT NULL,business_status varchar(20) NOT NULL,
           reviewed_at date,review_after date,display_order integer NOT NULL,approved_at timestamptz,approved_by varchar(160));
         CREATE TABLE pre_match_spot_evidence(

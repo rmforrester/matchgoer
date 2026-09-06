@@ -100,6 +100,22 @@ class BusinessStatusContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "unpublishable/unapproved pre-match spot"):
             validate_pack(self.candidate("OPERATIONAL"), "test-candidate")
 
+    def test_supporting_line_capacity_is_bounded_at_255_unicode_characters(self):
+        for length in (180,221,255,256):
+            with self.subTest(length=length):
+                candidate=self.candidate()
+                spot=candidate['pre_match_spots'][0]
+                spot['supporting_line']='é'*length
+                spot['identity_sha256']=identity(spot)
+                evidence=candidate['pre_match_spot_evidence'][0]
+                evidence['spot_identity_sha256']=spot['identity_sha256']
+                evidence['identity_sha256']=identity(evidence)
+                if length<=255:
+                    validate_pack(candidate,'test-candidate')
+                else:
+                    with self.assertRaisesRegex(RuntimeError,'unpublishable/unapproved pre-match spot'):
+                        validate_pack(candidate,'test-candidate')
+
     def test_england_75_candidate_generation_boundary_cannot_emit_operational(self):
         with self.assertRaisesRegex(RuntimeError, "unpublishable/unapproved pre-match spot"):
             validate_pack(self.candidate("OPERATIONAL"), "test-candidate")

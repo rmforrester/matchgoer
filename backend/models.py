@@ -349,7 +349,7 @@ class PreMatchSpot(Base):
     display_name = Column(String(160), nullable=False)
     classification = Column(String(30), nullable=False)
     audience = Column(String(10), nullable=False)
-    supporting_line = Column(String(180), nullable=False)
+    supporting_line = Column(String(255), nullable=False)
     maps_destination = Column(String(300), nullable=False)
     confidence = Column(String(10), nullable=False)
     status = Column(String(20), nullable=False, default="DRAFT")

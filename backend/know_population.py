@@ -100,7 +100,7 @@ def _valid_spot(row):
         and row.get("classification") in SPOT_CLASSIFICATIONS
         and row.get("audience") in SPOT_AUDIENCES
         and _text(row.get("audience"), maximum=10)
-        and _text(row.get("supporting_line"), maximum=180)
+        and _text(row.get("supporting_line"), maximum=255)
         and _text(row.get("maps_destination"), maximum=300)
         and row.get("confidence") in {"HIGH", "MEDIUM"}
         and row.get("status") == "CURRENT"
