@@ -1,0 +1,53 @@
+{
+  "modules": [
+    "backend.tests.test_know_population",
+    "backend.tests.test_decide_inventory",
+    "backend.tests.test_decision",
+    "backend.tests.test_club_venue_know",
+    "backend.tests.test_france_know_decide_dry_run",
+    "backend.tests.test_spain_know_decide_dry_run",
+    "backend.tests.test_english_know_batch2_population",
+    "ingestion.tests.test_provider_text",
+    "ingestion.tests.test_venue_reuse",
+    "ingestion.tests.test_venue_override_precedence"
+  ],
+  "tests_run": 114,
+  "passed": 109,
+  "skipped": [
+    {
+      "test": "test_existing_batch_1_candidate_semantics (backend.tests.test_know_population.ExistingCandidateCompatibilityTests.test_existing_batch_1_candidate_semantics)",
+      "reason": "MATCHGOER_KNOW_BATCH1_CANDIDATE not supplied"
+    },
+    {
+      "test": "test_existing_batch_2_candidate_semantics_and_dynamic_counts (backend.tests.test_know_population.ExistingCandidateCompatibilityTests.test_existing_batch_2_candidate_semantics_and_dynamic_counts)",
+      "reason": "MATCHGOER_KNOW_BATCH2_CANDIDATE not supplied"
+    },
+    {
+      "test": "test_complete_write_idempotency_protection_and_rollback_lifecycle (backend.tests.test_english_know_batch2_population.PostgreSQLLifecycleTests.test_complete_write_idempotency_protection_and_rollback_lifecycle)",
+      "reason": "disposable PostgreSQL URL not supplied"
+    },
+    {
+      "test": "test_generic_publisher_matches_existing_candidate_exact_state_lifecycle (backend.tests.test_english_know_batch2_population.PostgreSQLLifecycleTests.test_generic_publisher_matches_existing_candidate_exact_state_lifecycle)",
+      "reason": "disposable PostgreSQL URL not supplied"
+    },
+    {
+      "test": "test_relationship_and_collision_fail_closed_cases (backend.tests.test_english_know_batch2_population.PostgreSQLLifecycleTests.test_relationship_and_collision_fail_closed_cases)",
+      "reason": "disposable PostgreSQL URL not supplied"
+    }
+  ],
+  "failures": 0,
+  "errors": 0,
+  "germany_original_worktree": {
+    "tests_run": 2,
+    "passed": 2,
+    "failures": 0
+  },
+  "migration_live_verification": "PASS: 180 to 255 only; all 27 public tables unchanged; heap not rewritten",
+  "rollback_live_guard": "PASS: refuses narrowing while reviewed lines exceed 180",
+  "actual_frontend_ssr": "PASS: actual hosted Lille values display apostrophe correctly; HTML-shaped text safely escaped",
+  "compile": "PASS",
+  "resolved_test_setup_issues": [
+    "Germany module runs from its original worktree",
+    "English batch2 fixture was absent in isolated checkout; existing reviewed hash-matching fixture supplied locally, not committed"
+  ]
+}

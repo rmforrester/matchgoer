@@ -1,0 +1,2268 @@
+{
+  "verdict": "BLOCKED ? reviewed BTM supporting text exceeds existing schema limit",
+  "committed_publication_rows": 0,
+  "transaction_rolled_back": true,
+  "schema_violations": [
+    {
+      "club": "Athletic Club",
+      "field": "supporting_line",
+      "length": 214,
+      "limit": 180
+    },
+    {
+      "club": "Málaga CF",
+      "field": "supporting_line",
+      "length": 221,
+      "limit": 180
+    },
+    {
+      "club": "RC Deportivo",
+      "field": "supporting_line",
+      "length": 213,
+      "limit": 180
+    },
+    {
+      "club": "Cádiz CF",
+      "field": "supporting_line",
+      "length": 200,
+      "limit": 180
+    },
+    {
+      "club": "CD Leganés",
+      "field": "supporting_line",
+      "length": 211,
+      "limit": 180
+    },
+    {
+      "club": "CD Tenerife",
+      "field": "supporting_line",
+      "length": 202,
+      "limit": 180
+    },
+    {
+      "club": "Granada CF",
+      "field": "supporting_line",
+      "length": 190,
+      "limit": 180
+    },
+    {
+      "club": "Real Valladolid CF",
+      "field": "supporting_line",
+      "length": 194,
+      "limit": 180
+    }
+  ],
+  "sequence_changes": [
+    {
+      "sequence": "public.club_venues_club_venue_id_seq",
+      "before": 304,
+      "after": 346,
+      "before_is_called": true,
+      "after_is_called": true
+    },
+    {
+      "sequence": "public.venue_guide_facts_fact_id_seq",
+      "before": 463,
+      "after": 510,
+      "before_is_called": true,
+      "after_is_called": true
+    },
+    {
+      "sequence": "public.venue_names_venue_name_id_seq",
+      "before": 2242,
+      "after": 2243,
+      "before_is_called": true,
+      "after_is_called": true
+    },
+    {
+      "sequence": "public.venues_venue_id_seq",
+      "before": 24091,
+      "after": 24092,
+      "before_is_called": true,
+      "after_is_called": true
+    }
+  ],
+  "post_rollback_preflight": {
+    "encamp_venue_id": -1,
+    "relationships_missing": [
+      {
+        "team_id": 531,
+        "venue_id": 23262
+      },
+      {
+        "team_id": 530,
+        "venue_id": 23261
+      },
+      {
+        "team_id": 727,
+        "venue_id": 23275
+      },
+      {
+        "team_id": 538,
+        "venue_id": 23266
+      },
+      {
+        "team_id": 542,
+        "venue_id": 23270
+      },
+      {
+        "team_id": 797,
+        "venue_id": 23277
+      },
+      {
+        "team_id": 529,
+        "venue_id": 23260
+      },
+      {
+        "team_id": 546,
+        "venue_id": 23273
+      },
+      {
+        "team_id": 539,
+        "venue_id": 23267
+      },
+      {
+        "team_id": 535,
+        "venue_id": 23264
+      },
+      {
+        "team_id": 4665,
+        "venue_id": 23278
+      },
+      {
+        "team_id": 728,
+        "venue_id": 23276
+      },
+      {
+        "team_id": 544,
+        "venue_id": 23272
+      },
+      {
+        "team_id": 540,
+        "venue_id": 23268
+      },
+      {
+        "team_id": 543,
+        "venue_id": 23271
+      },
+      {
+        "team_id": 541,
+        "venue_id": 23269
+      },
+      {
+        "team_id": 548,
+        "venue_id": 23274
+      },
+      {
+        "team_id": 536,
+        "venue_id": 23265
+      },
+      {
+        "team_id": 532,
+        "venue_id": 23263
+      },
+      {
+        "team_id": 533,
+        "venue_id": 23243
+      },
+      {
+        "team_id": 10139,
+        "venue_id": 23573
+      },
+      {
+        "team_id": 722,
+        "venue_id": 23561
+      },
+      {
+        "team_id": 9580,
+        "venue_id": 23569
+      },
+      {
+        "team_id": 724,
+        "venue_id": 23563
+      },
+      {
+        "team_id": 5254,
+        "venue_id": 23566
+      },
+      {
+        "team_id": 9692,
+        "venue_id": 23572
+      },
+      {
+        "team_id": 537,
+        "venue_id": 23279
+      },
+      {
+        "team_id": 719,
+        "venue_id": 23559
+      },
+      {
+        "team_id": 9593,
+        "venue_id": 23571
+      },
+      {
+        "team_id": 9571,
+        "venue_id": 23568
+      },
+      {
+        "team_id": 713,
+        "venue_id": 23556
+      },
+      {
+        "team_id": 8157,
+        "venue_id": -1
+      },
+      {
+        "team_id": 547,
+        "venue_id": 23555
+      },
+      {
+        "team_id": 715,
+        "venue_id": 23557
+      },
+      {
+        "team_id": 9585,
+        "venue_id": 23570
+      },
+      {
+        "team_id": 798,
+        "venue_id": 23565
+      },
+      {
+        "team_id": 718,
+        "venue_id": 23558
+      },
+      {
+        "team_id": 731,
+        "venue_id": 23564
+      },
+      {
+        "team_id": 720,
+        "venue_id": 23560
+      },
+      {
+        "team_id": 545,
+        "venue_id": 23554
+      },
+      {
+        "team_id": 723,
+        "venue_id": 23562
+      },
+      {
+        "team_id": 534,
+        "venue_id": 23553
+      }
+    ],
+    "guide_missing": [
+      {
+        "team_id": 531,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Athletic Club's official ticket route.",
+          "source_type": "official",
+          "source_label": "Athletic Club",
+          "source_url": "https://www.athletic-club.eus/entradas/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 530,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Atlético de Madrid's official ticket route.",
+          "source_type": "official",
+          "source_label": "Atlético de Madrid",
+          "source_url": "https://www.atleticodemadrid.com/listado-de-entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 727,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through CA Osasuna's official ticket route.",
+          "source_type": "official",
+          "source_label": "CA Osasuna",
+          "source_url": "https://entradas.osasuna.es/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 538,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Celta Vigo's official ticket route.",
+          "source_type": "official",
+          "source_label": "Celta Vigo",
+          "source_url": "https://rccelta.es/entradas/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 542,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Deportivo Alavés's official ticket route.",
+          "source_type": "official",
+          "source_label": "Deportivo Alavés",
+          "source_url": "https://deportivoalaves.com/es/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 797,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Elche CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Elche CF",
+          "source_url": "https://entradas.elchecf.es/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 529,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through FC Barcelona's official ticket route.",
+          "source_type": "official",
+          "source_label": "FC Barcelona",
+          "source_url": "https://www.fcbarcelona.com/en/entradas/futbol",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 529,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Entry",
+          "content": "With Espai Barça works continuing, there is no vehicle access to Spotify Camp Nou; use the pedestrian access shown on your ticket and arrive by public transport or on foot.",
+          "source_type": "official",
+          "source_label": "FC Barcelona",
+          "source_url": "https://www.fcbarcelona.com/en/club/stadium/getting-to-camp-nou",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 2
+        }
+      },
+      {
+        "team_id": 546,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Getafe CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Getafe CF",
+          "source_url": "https://www.getafecf.com/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 539,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Levante UD's official ticket route.",
+          "source_type": "official",
+          "source_label": "Levante UD",
+          "source_url": "https://ticketing.levanteud.com/es",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 535,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Málaga CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Málaga CF",
+          "source_url": "https://entradas.malagacf.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 4665,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Racing Santander's official ticket route.",
+          "source_type": "official",
+          "source_label": "Racing Santander",
+          "source_url": "https://abonados.realracingclub.es/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 728,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Rayo Vallecano's official ticket route.",
+          "source_type": "official",
+          "source_label": "Rayo Vallecano",
+          "source_url": "https://entradas.rayovallecano.es/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 544,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through RC Deportivo's official ticket route.",
+          "source_type": "official",
+          "source_label": "RC Deportivo",
+          "source_url": "https://www.rcdeportivo.es/entradas/entradas-online/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 540,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through RCD Espanyol's official ticket route.",
+          "source_type": "official",
+          "source_label": "RCD Espanyol",
+          "source_url": "https://www.rcdespanyol.com/es/proximos-partidos",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 543,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Real Betis's official ticket route.",
+          "source_type": "official",
+          "source_label": "Real Betis",
+          "source_url": "https://www.realbetisbalompie.es/entradas/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 541,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Real Madrid's official ticket route.",
+          "source_type": "official",
+          "source_label": "Real Madrid",
+          "source_url": "https://www.realmadrid.com/es-ES/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 548,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Real Sociedad's official ticket route.",
+          "source_type": "official",
+          "source_label": "Real Sociedad",
+          "source_url": "https://www.realsociedad.eus/es/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 536,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Sevilla FC's official ticket route.",
+          "source_type": "official",
+          "source_label": "Sevilla FC",
+          "source_url": "https://entradas.sevillafc.es/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 532,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Valencia CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Valencia CF",
+          "source_url": "https://www.valenciacf.com/tickets",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 533,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Villarreal CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Villarreal CF",
+          "source_url": "https://villarrealcf.es/es/venta-de-entradas/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 10139,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through AD Ceuta FC's official ticket route.",
+          "source_type": "official",
+          "source_label": "AD Ceuta FC",
+          "source_url": "https://adceutafc.compralaentrada.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 722,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Albacete BP's official ticket route.",
+          "source_type": "official",
+          "source_label": "Albacete BP",
+          "source_url": "https://albacetebalompie.compralaentrada.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 9580,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Burgos CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Burgos CF",
+          "source_url": "https://entradas.burgoscf.es/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 9580,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Entry",
+          "content": "El Plantío has a luggage-storage point beside gate 12; if you leave the stadium, re-entry is not permitted.",
+          "source_type": "official",
+          "source_label": "Burgos CF",
+          "source_url": "https://www.burgoscf.es/noticias/informacion-de-servicio-burgoscfcultural-1",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 2
+        }
+      },
+      {
+        "team_id": 724,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Cádiz CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Cádiz CF",
+          "source_url": "https://entradas.cadizcf.com/cadizcf/events",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 5254,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through CD Castellón's official ticket route.",
+          "source_type": "official",
+          "source_label": "CD Castellón",
+          "source_url": "https://entradas.cdcastellon.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 9692,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through CD Eldense's official ticket route.",
+          "source_type": "official",
+          "source_label": "CD Eldense",
+          "source_url": "https://cdeldense.compralaentrada.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 9692,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Entry",
+          "content": "Nuevo Pepico Amat has no luggage storage and normally does not permit re-entry once you've left the stadium.",
+          "source_type": "official",
+          "source_label": "CD Eldense",
+          "source_url": "https://www.cdeldense.es/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 2
+        }
+      },
+      {
+        "team_id": 537,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through CD Leganés's official ticket route.",
+          "source_type": "official",
+          "source_label": "CD Leganés",
+          "source_url": "https://www.cdleganes.com/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 719,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through CD Tenerife's official ticket route.",
+          "source_type": "official",
+          "source_label": "CD Tenerife",
+          "source_url": "https://www.clubdeportivotenerife.es/ticketing",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 9593,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through CE Sabadell's official ticket route.",
+          "source_type": "official",
+          "source_label": "CE Sabadell",
+          "source_url": "https://cesabadell.compralaentrada.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 9571,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Celta Fortuna's official ticket route.",
+          "source_type": "official",
+          "source_label": "Celta Fortuna",
+          "source_url": "https://rccelta.es/entradas/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 713,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Córdoba CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Córdoba CF",
+          "source_url": "https://entradas.cordobacf.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 8157,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through FC Andorra's official ticket route.",
+          "source_type": "official",
+          "source_label": "FC Andorra",
+          "source_url": "https://tickets.oneboxtds.com/fcandorra/events/56696",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 8157,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Entry",
+          "content": "Even children aged 0–6 need a free match ticket. Tickets can be shown on a phone or printed, and gates normally open one hour before kickoff.",
+          "source_type": "official",
+          "source_label": "FC Andorra",
+          "source_url": "https://www.fcandorra.com/es/matchday",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 2
+        }
+      },
+      {
+        "team_id": 547,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Girona FC's official ticket route.",
+          "source_type": "official",
+          "source_label": "Girona FC",
+          "source_url": "https://www.gironafc.cat/es/entrades",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 715,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Granada CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Granada CF",
+          "source_url": "https://www.granadacf.es/venta-de-entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 9585,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Real Sociedad B's official ticket route.",
+          "source_type": "official",
+          "source_label": "Real Sociedad B",
+          "source_url": "https://www.realsociedad.eus/es/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 798,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through RCD Mallorca's official ticket route.",
+          "source_type": "official",
+          "source_label": "RCD Mallorca",
+          "source_url": "https://www.rcdmallorca.es/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 718,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Real Oviedo's official ticket route.",
+          "source_type": "official",
+          "source_label": "Real Oviedo",
+          "source_url": "https://www.realoviedo.es/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 731,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Real Sporting's official ticket route.",
+          "source_type": "official",
+          "source_label": "Real Sporting",
+          "source_url": "https://tickets.realsporting.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 720,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through Real Valladolid CF's official ticket route.",
+          "source_type": "official",
+          "source_label": "Real Valladolid CF",
+          "source_url": "https://www.realvalladolid.es/ticketing",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 545,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through SD Eibar's official ticket route.",
+          "source_type": "official",
+          "source_label": "SD Eibar",
+          "source_url": "https://www.sdeibar.com/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 545,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Entry",
+          "content": "Eibar's digital season pass can be added to a phone wallet, giving supporters a practical mobile option for stadium entry.",
+          "source_type": "official",
+          "source_label": "SD Eibar",
+          "source_url": "https://www.sdeibar.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 2
+        }
+      },
+      {
+        "team_id": 723,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through UD Almería's official ticket route.",
+          "source_type": "official",
+          "source_label": "UD Almería",
+          "source_url": "https://tickets.udalmeriasad.com/",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      },
+      {
+        "team_id": 534,
+        "values": {
+          "section": "tickets_entry",
+          "topic": "Tickets",
+          "content": "Buy tickets through UD Las Palmas's official ticket route.",
+          "source_type": "official",
+          "source_label": "UD Las Palmas",
+          "source_url": "https://www.udlaspalmas.es/entradas",
+          "reviewed_at": "2026-09-06",
+          "confidence": "high",
+          "status": "current",
+          "review_after": "2027-03-06",
+          "expires_at": null,
+          "display_order": 1
+        }
+      }
+    ],
+    "spot_missing": [
+      {
+        "team_id": 531,
+        "values": {
+          "display_name": "Licenciado Poza / Athletic Plaza",
+          "classification": "SUPPORTER_AREA",
+          "audience": "HOME",
+          "supporting_line": "Licenciado Poza is the bar-lined pre-match street leading toward San Mamés and part of the wider Athletic Plaza matchday area. Head for the central stretch of Licenciado Poza, then continue west toward the stadium.",
+          "maps_destination": "Calle Licenciado Poza 20, 48011 Bilbao, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "EDITORIAL_RESEARCH",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: INDEPENDENT.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 530,
+        "values": {
+          "display_name": "Metropolitano Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "A recurring pre-match fan-zone environment in the surrounds of the Metropolitano. Go to the stadium complex and follow the matchday fan-zone signage once you arrive.",
+          "maps_destination": "Riyadh Air Metropolitano, Avenida de Luis Aragonés 4, Madrid, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 535,
+        "values": {
+          "display_name": "Martiricos / SúperPrevia",
+          "classification": "SUPPORTER_AREA",
+          "audience": "HOME",
+          "supporting_line": "The Martiricos streets around La Rosaleda host Málaga's pre-match build-up, with the club's SúperPrevia activity adding to the atmosphere on matchdays. Aim for the stadium-side Martiricos area before heading to the gates.",
+          "maps_destination": "Estadio La Rosaleda, Paseo de Martiricos, Málaga, Spain",
+          "confidence": "MEDIUM",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 4665,
+        "values": {
+          "display_name": "El Sardinero Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "On selected matchdays, Racing runs a fan zone outside the Palacio de los Deportes beside El Sardinero. It is a pre-match gathering area rather than a permanent venue.",
+          "maps_destination": "Palacio de Deportes de Santander, Avenida del Deporte, Santander, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": "https://www.realracingclub.es/noticias/exito-de-organizacion-y-publico-de-la-fan-zone-racinguista",
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 544,
+        "values": {
+          "display_name": "Riazor pre-match area",
+          "classification": "SUPPORTER_AREA",
+          "audience": "HOME",
+          "supporting_line": "The Riazor esplanade and the streets immediately around the stadium are a natural pre-match meeting area for Dépor supporters; the club also stages fan-zone activity on the esplanade for selected bigger matchdays.",
+          "maps_destination": "Explanada de Riazor, Avenida de Buenos Aires, A Coruña, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": "https://www.rcdeportivo.es/es/noticias/la-fan-zone-de-la-explanada-de-riazor-volvera-a-ser-el-punto-de-encuentro-del-deportivismo",
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 540,
+        "values": {
+          "display_name": "RCDE Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "The RCDE Fan Zone is the club's recurring pre-match meeting point at the stadium, with food, music and supporter activities before home games.",
+          "maps_destination": "RCDE Stadium, Avinguda del Baix Llobregat 100, Cornellà de Llobregat, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": "https://www.rcdespanyol.com/en/new/fan-zone-returns-for-202627/20600",
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 548,
+        "values": {
+          "display_name": "Topagunea / Anoeta explanade",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "On selected matchdays, the Anoeta/Reale Arena explanade hosts Topagunea-style supporter activity before the game. Treat it as a matchday gathering point, not a permanent fan zone.",
+          "maps_destination": "Reale Arena, Anoeta Pasalekua 1, Donostia-San Sebastián, Spain",
+          "confidence": "MEDIUM",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 533,
+        "values": {
+          "display_name": "Estadio de la Cerámica Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "Villarreal's stadium-side fan-zone environment is a recurring pre-match gathering point outside the Estadio de la Cerámica before home games.",
+          "maps_destination": "Estadio de la Cerámica, Calle Blasco Ibáñez 2, Villarreal, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 9580,
+        "values": {
+          "display_name": "El Plantío Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "On selected matchdays, Burgos stages its fan zone in the Fondo Norte car-park area beside El Plantío. It is an event-day supporter space, not a permanent venue.",
+          "maps_destination": "Fondo Norte, Estadio El Plantío, Calle del Dos de Mayo, Burgos, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 724,
+        "values": {
+          "display_name": "Plaza Telegrafía Sin Hilos / La Previa",
+          "classification": "SUPPORTER_AREA",
+          "audience": "HOME",
+          "supporting_line": "Plaza Telegrafía Sin Hilos is a recognised Cádiz pre-match gathering area used for La Previa activity. Head for the plaza beside the stadium district; the exact event setup can vary with the matchday.",
+          "maps_destination": "Plaza Telegrafía Sin Hilos, Cádiz, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 537,
+        "values": {
+          "display_name": "Butarque Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "On selected matchdays, Leganés stages fan-zone activity outside Butarque. Use the stadium exterior as the destination and follow current event signage because the surrounding setup can change with redevelopment.",
+          "maps_destination": "Estadio Municipal de Butarque, Calle Arquitectura, Leganés, Spain",
+          "confidence": "MEDIUM",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 719,
+        "values": {
+          "display_name": "Heliodoro pre-match streets",
+          "classification": "SUPPORTER_AREA",
+          "audience": "HOME",
+          "supporting_line": "The streets and bars immediately around the Heliodoro form the regular pre-match gathering area for Tenerife supporters. This is a neighbourhood-style area rather than a single designated supporter pub.",
+          "maps_destination": "Plaza de la República Dominicana, Santa Cruz de Tenerife, Spain",
+          "confidence": "MEDIUM",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "EDITORIAL_RESEARCH",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: INDEPENDENT.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 547,
+        "values": {
+          "display_name": "La Prèvia / Gol Nord Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "Girona's La Prèvia activity is staged by the Gol Nord side of Montilivi, creating a recurring supporter meeting point before home matches.",
+          "maps_destination": "Gol Nord, Estadi Municipal de Montilivi, Avinguda de Montilivi 141, Girona, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 715,
+        "values": {
+          "display_name": "Granada Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "On selected matchdays, Granada stages a fan zone on the explanade outside the official shop, around the Calle Pintor Manuel Maldonado and Avenida Salvador Allende corner beside Los Cármenes.",
+          "maps_destination": "Calle Pintor Manuel Maldonado & Avenida Salvador Allende, Granada, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 798,
+        "values": {
+          "display_name": "Son Moix Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "On selected matchdays, Mallorca's fan-zone and Sports Bar activity creates a pre-match meeting point at the Son Moix stadium complex. Check the matchday setup once you arrive.",
+          "maps_destination": "Estadi Mallorca Son Moix, Camí dels Reis, Palma, Spain",
+          "confidence": "MEDIUM",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 720,
+        "values": {
+          "display_name": "Pucela Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "On selected matchdays, Valladolid's Pucela Fan Zone operates around the José Zorrilla stadium and training-anexos area. Use the Anexos as the practical arrival point and follow matchday signage.",
+          "maps_destination": "Anexos Estadio José Zorrilla, Avenida del Mundial 82, Valladolid, Spain",
+          "confidence": "MEDIUM",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 545,
+        "values": {
+          "display_name": "Anexo de Ipurua Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "On selected matchdays, Eibar stages fan-zone activity at the Anexo de Ipurua beside the stadium. It is an event-day gathering area rather than a permanently operating venue.",
+          "maps_destination": "Anexo de Ipurua, Ipurua Kalea, Eibar, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      },
+      {
+        "team_id": 723,
+        "values": {
+          "display_name": "Fondo Norte Fan Zone",
+          "classification": "CLUB_MATCHDAY_VENUE",
+          "audience": "HOME",
+          "supporting_line": "UD Almería's recurring pre-match fan-zone activity is staged beside Fondo Norte at the stadium. Head to the north-stand side of the ground for the supporter gathering area.",
+          "maps_destination": "UD Almería Stadium, Calle Alcalde Santiago Martínez Cabrejas 5, Almería, Spain",
+          "confidence": "HIGH",
+          "status": "CURRENT",
+          "business_status": "NOT_APPLICABLE",
+          "reviewed_at": "2026-09-06",
+          "review_after": "2027-03-06",
+          "display_order": 1,
+          "approved_at": "2026-09-06 00:00:00+00:00",
+          "approved_by": "Matchgoer Spain editorial approval 2026-09-06"
+        },
+        "evidence": {
+          "source_type": "OFFICIAL",
+          "source_url": null,
+          "source_date": "2026-09-06",
+          "disposition": "SUPPORTS",
+          "evidence_note": "Supports the reviewed Spain display name, location and supporter-context classification. Reviewed evidence classification: OFFICIAL.",
+          "review_status": "ACCEPTED"
+        }
+      }
+    ],
+    "evidence_missing": [],
+    "decide_missing": [
+      {
+        "subject": "Real Zaragoza — Osasuna",
+        "subject_type": "TEAM_PAIR",
+        "attribute_key": "SIGNIFICANT_RIVALRY",
+        "team_a_id": 727,
+        "team_b_id": 732,
+        "venue_id": null,
+        "team_id": null,
+        "label": "Navarro-Aragonese rivalry",
+        "explanation": "A genuine Spanish rivalry or derby that adds meaningful context to the fixture.",
+        "lead_priority": "NORMAL"
+      },
+      {
+        "subject": "Athletic Club — Deportivo Alavés",
+        "subject_type": "TEAM_PAIR",
+        "attribute_key": "SIGNIFICANT_RIVALRY",
+        "team_a_id": 531,
+        "team_b_id": 542,
+        "venue_id": null,
+        "team_id": null,
+        "label": "Basque derby",
+        "explanation": "A genuine Spanish rivalry or derby that adds meaningful context to the fixture.",
+        "lead_priority": "NORMAL"
+      },
+      {
+        "subject": "Burgos CF — Real Valladolid",
+        "subject_type": "TEAM_PAIR",
+        "attribute_key": "SIGNIFICANT_RIVALRY",
+        "team_a_id": 720,
+        "team_b_id": 9580,
+        "venue_id": null,
+        "team_id": null,
+        "label": "Castilla y León derby",
+        "explanation": "A genuine Spanish rivalry or derby that adds meaningful context to the fixture.",
+        "lead_priority": "NORMAL"
+      },
+      {
+        "subject": "Athletic Club",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 531,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "Real Betis",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 543,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "Sevilla FC",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 536,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "Rayo Vallecano",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 728,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "CA Osasuna",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 727,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "Racing Santander",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 4665,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "Real Sporting",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 731,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "Real Oviedo",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 718,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "RC Deportivo",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 544,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "Cádiz CF",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 724,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "Málaga CF",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 535,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      },
+      {
+        "subject": "CD Castellón",
+        "subject_type": "TEAM",
+        "attribute_key": "EXCEPTIONAL_SUPPORT",
+        "team_a_id": null,
+        "team_b_id": null,
+        "venue_id": null,
+        "team_id": 5254,
+        "label": "Exceptional support",
+        "explanation": "If supporter culture is important to you, this is one of the clubs worth seeing.",
+        "lead_priority": "LEAD"
+      }
+    ],
+    "fixture_updates": [
+      {
+        "fixture_id": 1569872,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1569894,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1569915,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1569928,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1569960,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1569983,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570003,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570025,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570047,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570071,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570102,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570124,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570147,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570180,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570202,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570223,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570236,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570258,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570267,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570289,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570311,
+        "before": 23567,
+        "after": -1
+      },
+      {
+        "fixture_id": 1570340,
+        "before": 23238,
+        "after": 23269
+      }
+    ],
+    "html_plan": [
+      {
+        "venue_id": 562,
+        "field": "address",
+        "before": "St. James&apos; Street",
+        "after": "St. James' Street"
+      },
+      {
+        "venue_id": 20882,
+        "field": "city",
+        "before": "Bishop&apos;s Stortford, Hertfordshire",
+        "after": "Bishop's Stortford, Hertfordshire"
+      },
+      {
+        "venue_id": 21370,
+        "field": "address",
+        "before": "King George&apos;s Way",
+        "after": "King George's Way"
+      },
+      {
+        "venue_id": 21374,
+        "field": "address",
+        "before": "Windleshaw Rd, Denton&apos;s Green",
+        "after": "Windleshaw Rd, Denton's Green"
+      },
+      {
+        "venue_id": 12596,
+        "field": "address",
+        "before": "St. Andrew&apos;s Road",
+        "after": "St. Andrew's Road"
+      },
+      {
+        "venue_id": 20414,
+        "field": "address",
+        "before": "South Africa Road, Shepherd&apos;s Bush",
+        "after": "South Africa Road, Shepherd's Bush"
+      },
+      {
+        "venue_id": 22764,
+        "field": "address",
+        "before": "St. Andrew&apos;s Road",
+        "after": "St. Andrew's Road"
+      },
+      {
+        "venue_id": 21973,
+        "field": "address",
+        "before": "Dover Road &amp; Moneyfields Avenue",
+        "after": "Dover Road & Moneyfields Avenue"
+      },
+      {
+        "venue_id": 11960,
+        "field": "address",
+        "before": "Price&apos;s Avenue",
+        "after": "Price's Avenue"
+      },
+      {
+        "venue_id": 21469,
+        "field": "city",
+        "before": "Stoke d&apos;Abernon, Surrey",
+        "after": "Stoke d'Abernon, Surrey"
+      },
+      {
+        "venue_id": 6208,
+        "field": "city",
+        "before": "Bishop&apos;s Cleeve, Gloucestershire",
+        "after": "Bishop's Cleeve, Gloucestershire"
+      },
+      {
+        "venue_id": 6185,
+        "field": "city",
+        "before": "King&apos;s Lynn, Norfolk",
+        "after": "King's Lynn, Norfolk"
+      },
+      {
+        "venue_id": 6185,
+        "field": "address",
+        "before": "Exton&apos;s Road",
+        "after": "Exton's Road"
+      },
+      {
+        "venue_id": 12175,
+        "field": "address",
+        "before": "10 Robingoodfellow&apos;s Lane",
+        "after": "10 Robingoodfellow's Lane"
+      },
+      {
+        "venue_id": 19855,
+        "field": "address",
+        "before": "St George&apos;s Road, Portsmouth",
+        "after": "St George's Road, Portsmouth"
+      },
+      {
+        "venue_id": 20904,
+        "field": "city",
+        "before": "King&apos;s Lynn, Norfolk",
+        "after": "King's Lynn, Norfolk"
+      },
+      {
+        "venue_id": 21356,
+        "field": "address",
+        "before": "Ruskin Drive, Denton&apos;s Green",
+        "after": "Ruskin Drive, Denton's Green"
+      },
+      {
+        "venue_id": 23095,
+        "field": "address",
+        "before": "Harding&apos;s Road",
+        "after": "Harding's Road"
+      },
+      {
+        "venue_id": 23111,
+        "field": "address",
+        "before": "Isola di Sant&apos;Elena",
+        "after": "Isola di Sant'Elena"
+      },
+      {
+        "venue_id": 23112,
+        "field": "address",
+        "before": "Via Partigiani d&apos;Italia, 1",
+        "after": "Via Partigiani d'Italia, 1"
+      },
+      {
+        "venue_id": 23168,
+        "field": "city",
+        "before": "&apos;s-Hertogenbosch",
+        "after": "'s-Hertogenbosch"
+      },
+      {
+        "venue_id": 23281,
+        "field": "city",
+        "before": "Villeneuve d&apos;Ascq",
+        "after": "Villeneuve d'Ascq"
+      },
+      {
+        "venue_id": 23281,
+        "field": "address",
+        "before": "261, Boulevard de Tournai, l&apos;Hôtel de Ville",
+        "after": "261, Boulevard de Tournai, l'Hôtel de Ville"
+      },
+      {
+        "venue_id": 23288,
+        "field": "address",
+        "before": "12, rue de l&apos;Extenwoerth",
+        "after": "12, rue de l'Extenwoerth"
+      },
+      {
+        "venue_id": 23036,
+        "field": "address",
+        "before": "Chemin de l&apos;Aviation (Larribau)",
+        "after": "Chemin de l'Aviation (Larribau)"
+      },
+      {
+        "venue_id": 23099,
+        "field": "address",
+        "before": "Piazza Azzuri d&apos;Italia, 1",
+        "after": "Piazza Azzuri d'Italia, 1"
+      },
+      {
+        "venue_id": 23606,
+        "field": "address",
+        "before": "Faubourg d&apos;Arival 63",
+        "after": "Faubourg d'Arival 63"
+      },
+      {
+        "venue_id": 23624,
+        "field": "address",
+        "before": "French&apos;s Avenue",
+        "after": "French's Avenue"
+      },
+      {
+        "venue_id": 23659,
+        "field": "address",
+        "before": "Route De L&apos;industrie",
+        "after": "Route De L'industrie"
+      },
+      {
+        "venue_id": 23665,
+        "field": "address",
+        "before": "Zone industrielle d&apos;Erbajolo",
+        "after": "Zone industrielle d'Erbajolo"
+      },
+      {
+        "venue_id": 23743,
+        "field": "address",
+        "before": "Taylor&apos;s Avenue",
+        "after": "Taylor's Avenue"
+      },
+      {
+        "venue_id": 23759,
+        "field": "address",
+        "before": "Carretera d&apos;Os de Civís, Aixovall",
+        "after": "Carretera d'Os de Civís, Aixovall"
+      },
+      {
+        "venue_id": 23794,
+        "field": "address",
+        "before": "ul. Oktyabr&apos;skaya 119",
+        "after": "ul. Oktyabr'skaya 119"
+      },
+      {
+        "venue_id": 23918,
+        "field": "address",
+        "before": "prospekt Abulkhair Khan / ul. Mares&apos;yeva 2",
+        "after": "prospekt Abulkhair Khan / ul. Mares'yeva 2"
+      },
+      {
+        "venue_id": 23898,
+        "field": "city",
+        "before": "Be&apos;er Sheva",
+        "after": "Be'er Sheva"
+      },
+      {
+        "venue_id": 23967,
+        "field": "address",
+        "before": "Rue de l&apos;Alzette",
+        "after": "Rue de l'Alzette"
+      },
+      {
+        "venue_id": 23968,
+        "field": "city",
+        "before": "Ta&apos;Qali",
+        "after": "Ta'Qali"
+      },
+      {
+        "venue_id": 23968,
+        "field": "address",
+        "before": "Villagg Tas-Snajja&apos;",
+        "after": "Villagg Tas-Snajja'"
+      },
+      {
+        "venue_id": 24013,
+        "field": "address",
+        "before": "ul. Bol&apos;shaya Cherkizovskaya 125",
+        "after": "ul. Bol'shaya Cherkizovskaya 125"
+      },
+      {
+        "venue_id": 23786,
+        "field": "address",
+        "before": "ul. Gor&apos;kogo",
+        "after": "ul. Gor'kogo"
+      },
+      {
+        "venue_id": 24016,
+        "field": "address",
+        "before": "ul. Dal&apos;nyaya",
+        "after": "ul. Dal'nyaya"
+      },
+      {
+        "venue_id": 24017,
+        "field": "address",
+        "before": "Tsvetnoy bulvar&apos; 31",
+        "after": "Tsvetnoy bulvar' 31"
+      },
+      {
+        "venue_id": 24018,
+        "field": "city",
+        "before": "Kazan&apos;",
+        "after": "Kazan'"
+      },
+      {
+        "venue_id": 24024,
+        "field": "address",
+        "before": "ul. Bol&apos;shaya Cherkizovskaya 125",
+        "after": "ul. Bol'shaya Cherkizovskaya 125"
+      }
+    ],
+    "html_values": 44,
+    "html_previous_audit_delta": 0,
+    "html_collisions": 0,
+    "proposed_mutations": {
+      "teams": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "venues": {
+        "INSERT": 1,
+        "UPDATE": 41,
+        "DELETE": 0
+      },
+      "fixtures": {
+        "INSERT": 0,
+        "UPDATE": 22,
+        "DELETE": 0
+      },
+      "venue_names": {
+        "INSERT": 1,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "venue_provider_refs": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "club_venues": {
+        "INSERT": 42,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "venue_guide_facts": {
+        "INSERT": 47,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "pre_match_spots": {
+        "INSERT": 18,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "pre_match_spot_evidence": {
+        "INSERT": 18,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "decision_facts": {
+        "INSERT": 15,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "decision_evidence": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      }
+    },
+    "unrelated_mutations": 0,
+    "know": {
+      "clubs": 42,
+      "relationships_present": 0,
+      "tickets": 0,
+      "entry": 0,
+      "btm": 0,
+      "intentional_null": 24,
+      "evidence": 0
+    },
+    "decide": {
+      "catalogue": 52,
+      "current": 51,
+      "dormant_no_write": 1,
+      "present": 36,
+      "categories": {
+        "SIGNIFICANT_RIVALRY": 21,
+        "CLASSIC_GROUND": 11,
+        "FOOTBALL_LANDMARK": 6,
+        "UNIQUE_SETTING": 2,
+        "EXCEPTIONAL_SUPPORT": 12
+      },
+      "great_support": [
+        {
+          "team_id": 531,
+          "club": "Athletic Club"
+        },
+        {
+          "team_id": 543,
+          "club": "Real Betis"
+        },
+        {
+          "team_id": 536,
+          "club": "Sevilla FC"
+        },
+        {
+          "team_id": 728,
+          "club": "Rayo Vallecano"
+        },
+        {
+          "team_id": 727,
+          "club": "CA Osasuna"
+        },
+        {
+          "team_id": 4665,
+          "club": "Racing Santander"
+        },
+        {
+          "team_id": 731,
+          "club": "Real Sporting"
+        },
+        {
+          "team_id": 718,
+          "club": "Real Oviedo"
+        },
+        {
+          "team_id": 544,
+          "club": "RC Deportivo"
+        },
+        {
+          "team_id": 724,
+          "club": "Cádiz CF"
+        },
+        {
+          "team_id": 535,
+          "club": "Málaga CF"
+        },
+        {
+          "team_id": 5254,
+          "club": "CD Castellón"
+        }
+      ]
+    },
+    "andorra_fixture_ids": [
+      1569872,
+      1569894,
+      1569915,
+      1569928,
+      1569960,
+      1569983,
+      1570003,
+      1570025,
+      1570047,
+      1570071,
+      1570102,
+      1570124,
+      1570147,
+      1570180,
+      1570202,
+      1570223,
+      1570236,
+      1570258,
+      1570267,
+      1570289,
+      1570311
+    ],
+    "andorra_unspecified_hosted": [],
+    "andorra_unspecified_note": "Five provider-unspecified fixtures were described in the review; none are currently hosted. No insert or assignment is proposed.",
+    "madrid_correct": 18,
+    "murcia_pair": {
+      "5262": "FC Cartagena",
+      "5275": "Real Murcia"
+    },
+    "unresolved": [
+      "Real Murcia provider venue 3989 inconsistency retained for later fixture-venue audit."
+    ]
+  },
+  "backup": {
+    "path": "C:\\Users\\rmfor\\OneDrive\\Documents\\terrace-talk\\backups\\hosted\\matchgoer-hosted-pre-spain-know-decide-20260906T180632Z.dump",
+    "timestamp_utc": "2026-09-06T18:06:32.632643+00:00",
+    "size_bytes": 743963,
+    "sha256": "91E37543FE5EB07A174A8D7BC222C8BDB49E7722774E95F1AA5D4EDAD7F6960D",
+    "archive_validated": true,
+    "archive_validation": "pg_restore --list and full archive decode to null output both exited 0",
+    "archive_toc_lines": 266,
+    "format": "PostgreSQL custom full database backup",
+    "pg_dump_version": "18.4",
+    "source_identity_sha256": "da71222dd9d6c284b45fea8b75ae85b149e64d8211850dc8c7945ee90a24f93e"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "path": "C:\\Users\\rmfor\\OneDrive\\Documents\\terrace-talk\\backups\\hosted\\matchgoer-hosted-pre-spain-capacity-publication-20260906T182208Z.dump",
+  "timestamp_utc": "2026-09-06T18:22:08.965632+00:00",
+  "size_bytes": 743963,
+  "sha256": "0E45859068C6963F91B6639004DA6C97F6159136A7DFCE491501AFD6637FE38E",
+  "archive_validated": true,
+  "archive_validation": "pg_restore --list and full archive decode to null output both exited 0",
+  "archive_toc_lines": 266,
+  "format": "PostgreSQL custom full database backup",
+  "pg_dump_version": "18.4",
+  "source_identity_sha256": "da71222dd9d6c284b45fea8b75ae85b149e64d8211850dc8c7945ee90a24f93e"
+}

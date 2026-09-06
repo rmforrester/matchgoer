@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "migration_file": "backend\\migrations\\20260906_btm_supporting_line_capacity.sql",
+  "migration_sha256": "40DDD4E6FA9D727C5AC03D21130132BB4E75C6FF109F62515AA4EDBE023D70F1",
+  "applied_at_utc": "2026-09-06T18:23:30.268382+00:00",
+  "previous_limit": 180,
+  "new_limit": 255,
+  "verified_column": {
+    "table_schema": "public",
+    "table_name": "pre_match_spots",
+    "column_name": "supporting_line",
+    "data_type": "character varying",
+    "character_maximum_length": 255,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  "table_rows_unchanged": true,
+  "public_tables_verified": 27,
+  "unrelated_schema_changes": 0,
+  "heap_filenode_unchanged": true,
+  "backup_sha256": "0E45859068C6963F91B6639004DA6C97F6159136A7DFCE491501AFD6637FE38E",
+  "rollback": "Guarded rollback SQL refuses narrowing while any supporting_line exceeds 180 characters."
+}

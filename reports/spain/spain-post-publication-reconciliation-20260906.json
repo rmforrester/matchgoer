@@ -1,0 +1,336 @@
+{
+  "status": "PASS",
+  "checked_at_utc": "2026-09-06T18:30:38.935585+00:00",
+  "final": {
+    "encamp_venue_id": 24094,
+    "relationships_missing": [],
+    "guide_missing": [],
+    "spot_missing": [],
+    "evidence_missing": [],
+    "decide_missing": [],
+    "fixture_updates": [],
+    "html_plan": [],
+    "html_values": 0,
+    "html_previous_audit_delta": -44,
+    "html_collisions": 0,
+    "proposed_mutations": {
+      "teams": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "venues": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "fixtures": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "venue_names": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "venue_provider_refs": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "club_venues": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "venue_guide_facts": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "pre_match_spots": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "pre_match_spot_evidence": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "decision_facts": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      },
+      "decision_evidence": {
+        "INSERT": 0,
+        "UPDATE": 0,
+        "DELETE": 0
+      }
+    },
+    "unrelated_mutations": 0,
+    "know": {
+      "clubs": 42,
+      "relationships_present": 42,
+      "tickets": 42,
+      "entry": 5,
+      "btm": 18,
+      "intentional_null": 24,
+      "evidence": 18
+    },
+    "decide": {
+      "catalogue": 52,
+      "current": 51,
+      "dormant_no_write": 1,
+      "present": 51,
+      "categories": {
+        "SIGNIFICANT_RIVALRY": 21,
+        "CLASSIC_GROUND": 11,
+        "FOOTBALL_LANDMARK": 6,
+        "UNIQUE_SETTING": 2,
+        "EXCEPTIONAL_SUPPORT": 12
+      },
+      "great_support": [
+        {
+          "team_id": 531,
+          "club": "Athletic Club"
+        },
+        {
+          "team_id": 543,
+          "club": "Real Betis"
+        },
+        {
+          "team_id": 536,
+          "club": "Sevilla FC"
+        },
+        {
+          "team_id": 728,
+          "club": "Rayo Vallecano"
+        },
+        {
+          "team_id": 727,
+          "club": "CA Osasuna"
+        },
+        {
+          "team_id": 4665,
+          "club": "Racing Santander"
+        },
+        {
+          "team_id": 731,
+          "club": "Real Sporting"
+        },
+        {
+          "team_id": 718,
+          "club": "Real Oviedo"
+        },
+        {
+          "team_id": 544,
+          "club": "RC Deportivo"
+        },
+        {
+          "team_id": 724,
+          "club": "Cádiz CF"
+        },
+        {
+          "team_id": 535,
+          "club": "Málaga CF"
+        },
+        {
+          "team_id": 5254,
+          "club": "CD Castellón"
+        }
+      ]
+    },
+    "andorra_fixture_ids": [
+      1569872,
+      1569894,
+      1569915,
+      1569928,
+      1569960,
+      1569983,
+      1570003,
+      1570025,
+      1570047,
+      1570071,
+      1570102,
+      1570124,
+      1570147,
+      1570180,
+      1570202,
+      1570223,
+      1570236,
+      1570258,
+      1570267,
+      1570289,
+      1570311
+    ],
+    "andorra_unspecified_hosted": [],
+    "andorra_unspecified_note": "Five provider-unspecified fixtures were described in the review; none are currently hosted. No insert or assignment is proposed.",
+    "madrid_correct": 19,
+    "murcia_pair": {
+      "5262": "FC Cartagena",
+      "5275": "Real Murcia"
+    },
+    "unresolved": [
+      "Real Murcia provider venue 3989 inconsistency retained for later fixture-venue audit."
+    ]
+  },
+  "schema": [
+    {
+      "data_type": "character varying",
+      "character_maximum_length": 255,
+      "is_nullable": "NO"
+    }
+  ],
+  "btm_exact_text_preservation": [
+    {
+      "team_id": 530,
+      "characters": 165,
+      "sha256": "268ca1d710c798d97be2952e7096a9400f4df449889cf4d3fc5714e06a35e703",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 531,
+      "characters": 214,
+      "sha256": "e49d253ce6a9b8f133e1e990b4a79d1f35655cde4267aee3b53e331273cb3924",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 533,
+      "characters": 141,
+      "sha256": "4bc152f24beb468507af0a3394a03a127956455a73b575608a70ca2ca9263aaa",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 535,
+      "characters": 221,
+      "sha256": "7e4af2ca25cdca33425dc80456cd37b31784549041068c8907df94dd6d69483d",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 537,
+      "characters": 211,
+      "sha256": "8bad0dd49a4445742d53a6600085d6f828257d9add8a82e8a95dd4a1c6fe9f1c",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 540,
+      "characters": 142,
+      "sha256": "9e8de655cc393b5d1596071330b1c479404e83279f08763078873ed06e6e32a0",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 544,
+      "characters": 213,
+      "sha256": "50521e6d1602b20acacf36f99f4ba51db98b20d09f28db69662621a0f951b2e0",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 545,
+      "characters": 173,
+      "sha256": "54c46f149d1d2e44686951042933f16a9734f569e3f8a4cc8eab13a98d696f1f",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 547,
+      "characters": 138,
+      "sha256": "d2abebfa9e95fae52da7d5eee1c017c736997de0375f7c36d49112d7a38b98e8",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 548,
+      "characters": 179,
+      "sha256": "5fa9b84e92a7a4de8206a24f418ed1bc3cbfbab9631ff4e8354796e3b264c30c",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 715,
+      "characters": 190,
+      "sha256": "2cf6dbd3f09ab33a1359e52f99810d6885fd2cc5b2099f232d6cf9413f5c1f30",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 719,
+      "characters": 202,
+      "sha256": "1b97ffc1a687296422998ca6e83d2ef600d49716c7ad13d1aa8151a2bd1b802e",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 720,
+      "characters": 194,
+      "sha256": "23b5982e5639ab16e7e88ab60ac7241a612f7fcc5e7fdb4e33abb685f1c4e604",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 723,
+      "characters": 172,
+      "sha256": "2a91a2fd964243d2d00b9556c38ccff01b651c7b1bb62a631c4e0dc796e41ec5",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 724,
+      "characters": 200,
+      "sha256": "f6fce2fed2ed6547adafa243abf7c88d8ac345fc25b88587016a832224d68e92",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 798,
+      "characters": 175,
+      "sha256": "03ad2785e510b634f71bac49f1d7774f90465371ae886558f427c3dce8bca10e",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 4665,
+      "characters": 166,
+      "sha256": "5315741778696a6253364fc94b9b02fded6104c840038c86484001ad6e44452a",
+      "matches_reviewed": true
+    },
+    {
+      "team_id": 9580,
+      "characters": 160,
+      "sha256": "09505bc333d1d2c941812838dc54d1bc3141858d04ece85258b13e2113ad2854",
+      "matches_reviewed": true
+    }
+  ],
+  "max_approved_characters": 221,
+  "lille": [
+    {
+      "venue_id": 23281,
+      "name": "Decathlon Arena - Stade Pierre-Mauroy",
+      "city": "Villeneuve d'Ascq",
+      "address": "261, Boulevard de Tournai, l'Hôtel de Ville"
+    }
+  ],
+  "andorra_venues": [
+    {
+      "venue_id": 23567,
+      "name": "Estadi Nacional",
+      "address": "C/ Baixada del Molí nº33",
+      "city": "Andorra la Vella",
+      "country": "Spain",
+      "capacity": 3306,
+      "latitude": "42.504656",
+      "longitude": "1.517578",
+      "provider_venue_id": 2618
+    },
+    {
+      "venue_id": 24094,
+      "name": "Estadi de la FAF",
+      "address": "Carretera de Vila 23–25, AD200 Encamp",
+      "city": "Encamp",
+      "country": "Andorra",
+      "capacity": null,
+      "latitude": null,
+      "longitude": null,
+      "provider_venue_id": null
+    }
+  ],
+  "artifact_sha256": {
+    "spain-know-publication-inventory-20260906.csv": "665DA96BEBB2975D2ECBBEE2D9DB00E08DA9E7BCFAB312F0C5F2F4F4CE1E6596",
+    "spain-decide-reconciliation-20260906.csv": "6C995556C74D39209E30AB3BB018C0CCF97D3470D6F6604C10C6D0F7C39938B7",
+    "spain-club-venue-remediation-dry-run-20260906.csv": "2E2D179345AC2D71A34F5111FDA5982CB54146DAA63EF269FFA25A7686E1DB3C"
+  },
+  "rollback_guard_test": "PASS: refuses narrowing now that approved lines exceed 180; no rollback ALTER executed"
+}

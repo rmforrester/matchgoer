@@ -16,6 +16,7 @@ from config.leagues import LeagueScope
 from config.venue_overrides import ManualVenueOverride, manual_override_for
 from ingestion.api_football import ApiFootballClient
 from ingestion.coordinates import NominatimCoordinateEnricher, valid_coordinates
+from ingestion.provider_text import normalize_provider_text
 
 
 @dataclass
@@ -217,8 +218,8 @@ class TerraceTalkImporter:
         if not raw.get("id"):
             return None
         return {
-            "provider_venue_id": raw["id"], "name": raw.get("name"), "address": raw.get("address"),
-            "city": raw.get("city"), "country": raw.get("country") or country,
+            "provider_venue_id": raw["id"], "name": raw.get("name"), "address": normalize_provider_text(raw.get("address")),
+            "city": normalize_provider_text(raw.get("city")), "country": raw.get("country") or country,
             "capacity": raw.get("capacity"), "latitude": raw.get("latitude"), "longitude": raw.get("longitude"),
         }
 

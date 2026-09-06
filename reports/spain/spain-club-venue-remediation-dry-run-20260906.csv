@@ -1,0 +1,43 @@
+﻿team_id,venue_id,relationship_type,status,valid_from,valid_until,precondition_note
+531,23262,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+530,23261,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+727,23275,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+538,23266,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+542,23270,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+797,23277,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+529,23260,HOME,CURRENT,,,Canonical row is Camp Nou; Spotify Camp Nou may be used editorially as a naming alias without creating a second venue.
+546,23273,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+539,23267,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+535,23264,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+4665,23278,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+728,23276,HOME,CURRENT,,,Rayo CURRENT/HOME is Vallecas; retain the single Butarque fixture as a fixture-level exception.
+544,23272,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+540,23268,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+543,23271,HOME,CURRENT,,,La Cartuja is the approved current Betis home while Benito Villamarín is redeveloped.
+541,23269,HOME,CURRENT,,,Also correct fixture 1570340 from venue 23238 to canonical Santiago Bernabéu 23269; target 19/19 Real Madrid league home fixtures at 23269.
+548,23274,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+536,23265,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+532,23263,HOME,CURRENT,,,2026/27 remains a Mestalla season; do not move Valencia to Nou Mestalla early.
+533,23243,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+10139,23573,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+722,23561,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+9580,23569,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+724,23563,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+5254,23566,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+9692,23572,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+537,23279,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+719,23559,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+9593,23571,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+9571,23568,HOME,CURRENT,,,Celta Fortuna CURRENT/HOME is Barreiro; retain the single Balaídos fixture as a fixture-level exception; do not collapse into senior Celta.
+713,23556,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+8157,,HOME,CURRENT,,,"Create a distinct canonical Estadi de la FAF / Estadio de Encamp at Carretera de Vila 23–25, AD200 Encamp. No provider venue ID currently; do not reuse 2618 and do not fabricate coordinates. Set CURRENT/HOME to the new venue and relink exactly the 21 identified Segunda home fixtures currently carrying Estadi de la FAF/Encamp text; leave 5 unspecified home fixtures untouched. Keep Estadi Nacional 23567/api_football:2618 intact."
+547,23555,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+715,23557,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+9585,23570,HOME,CURRENT,,,Real Sociedad B remains distinct from senior Real Sociedad; CURRENT/HOME is Zubieta.
+798,23565,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+718,23558,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+731,23564,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+720,23560,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+545,23554,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+723,23562,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.
+534,23553,HOME,CURRENT,,,Prepare deterministic CURRENT/HOME club_venues relationship before publication.

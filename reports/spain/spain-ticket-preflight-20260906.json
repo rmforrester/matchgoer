@@ -1,0 +1,508 @@
+{
+  "checked_at": "2026-09-06T17:23:07.405510+00:00",
+  "routes": [
+    {
+      "team_id": 531,
+      "club": "Athletic Club",
+      "url": "https://www.athletic-club.eus/entradas/",
+      "status": 403,
+      "final_url": "https://www.athletic-club.eus/entradas/",
+      "redirects": [],
+      "publication_url": "https://www.athletic-club.eus/entradas/",
+      "accepted": true,
+      "acceptance_note": "First-party HTTPS route returns an access restriction (403); not a missing/dead route. Retained under France preflight convention."
+    },
+    {
+      "team_id": 530,
+      "club": "Atlético de Madrid",
+      "url": "https://www.atleticodemadrid.com/listado-de-entradas",
+      "status": 200,
+      "final_url": "https://www.atleticodemadrid.com/listado-de-entradas",
+      "redirects": [],
+      "publication_url": "https://www.atleticodemadrid.com/listado-de-entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 727,
+      "club": "CA Osasuna",
+      "url": "https://entradas.osasuna.es/",
+      "status": 200,
+      "final_url": "https://entradas.osasuna.es/",
+      "redirects": [],
+      "publication_url": "https://entradas.osasuna.es/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 538,
+      "club": "Celta Vigo",
+      "url": "https://rccelta.es/entradas/",
+      "status": 200,
+      "final_url": "https://rccelta.es/entradas/",
+      "redirects": [],
+      "publication_url": "https://rccelta.es/entradas/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 542,
+      "club": "Deportivo Alavés",
+      "url": "https://deportivoalaves.com/es/entradas",
+      "status": 200,
+      "final_url": "https://deportivoalaves.com/es/entradas",
+      "redirects": [],
+      "publication_url": "https://deportivoalaves.com/es/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 797,
+      "club": "Elche CF",
+      "url": "https://entradas.elchecf.es/",
+      "status": 200,
+      "final_url": "https://entradas.elchecf.es/",
+      "redirects": [],
+      "publication_url": "https://entradas.elchecf.es/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 529,
+      "club": "FC Barcelona",
+      "url": "https://www.fcbarcelona.com/en/entradas/futbol",
+      "status": 200,
+      "final_url": "https://www.fcbarcelona.com/en/entradas/futbol",
+      "redirects": [],
+      "publication_url": "https://www.fcbarcelona.com/en/entradas/futbol",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 546,
+      "club": "Getafe CF",
+      "url": "https://www.getafecf.com/entradas",
+      "status": 200,
+      "final_url": "https://www.getafecf.com/entradas",
+      "redirects": [],
+      "publication_url": "https://www.getafecf.com/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 539,
+      "club": "Levante UD",
+      "url": "https://ticketing.levanteud.com/es",
+      "status": 200,
+      "final_url": "https://ticketing.levanteud.com/es",
+      "redirects": [],
+      "publication_url": "https://ticketing.levanteud.com/es",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 535,
+      "club": "Málaga CF",
+      "url": "https://entradas.malagacf.com/",
+      "status": 403,
+      "final_url": "https://entradas.malagacf.com/",
+      "redirects": [],
+      "publication_url": "https://entradas.malagacf.com/",
+      "accepted": true,
+      "acceptance_note": "First-party HTTPS route returns an access restriction (403); not a missing/dead route. Retained under France preflight convention."
+    },
+    {
+      "team_id": 4665,
+      "club": "Racing Santander",
+      "url": "https://entradas.realracingclub.es/",
+      "error": "ConnectTimeout",
+      "publication_url": "https://abonados.realracingclub.es/",
+      "maintenance": {
+        "original_status": "ConnectTimeout",
+        "replacement": "https://abonados.realracingclub.es/",
+        "evidence_url": "https://www.realracingclub.es/noticias/arranca-la-venta-anticipada-de-entradas-para-la-visita-del-deportivo-alaves-a-los-campos-de-sport",
+        "status": 200,
+        "final_url": "https://abonados.realracingclub.es/",
+        "reason": "Current official ticket destination linked from the club website; original route is dead, misdirected, or persistently times out."
+      },
+      "accepted": true
+    },
+    {
+      "team_id": 728,
+      "club": "Rayo Vallecano",
+      "url": "https://entradas.rayovallecano.es/",
+      "status": 503,
+      "final_url": "https://entradas.rayovallecano.es/",
+      "redirects": [],
+      "publication_url": "https://entradas.rayovallecano.es/",
+      "accepted": true,
+      "acceptance_note": "HTTP 503 returns the branded Rayo Vallecano Entradas page with 2026 copyright; no unrelated redirect. Club continues to identify this exact platform. Service availability is limited; route retained, no alternative invented.",
+      "evidence_url": "https://www.rayovallecano.es/noticias/campana-de-abonados-202526"
+    },
+    {
+      "team_id": 544,
+      "club": "RC Deportivo",
+      "url": "https://www.rcdeportivo.es/entradas/entradas-online/",
+      "status": 200,
+      "final_url": "https://ticketing.rcdeportivo.es/",
+      "redirects": [
+        "https://www.rcdeportivo.es/entradas/entradas-online/"
+      ],
+      "publication_url": "https://www.rcdeportivo.es/entradas/entradas-online/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 540,
+      "club": "RCD Espanyol",
+      "url": "https://www.rcdespanyol.com/es/entradas",
+      "status": 404,
+      "final_url": "https://www.rcdespanyol.com/es/entradas",
+      "redirects": [],
+      "publication_url": "https://www.rcdespanyol.com/es/proximos-partidos",
+      "maintenance": {
+        "original_status": 404,
+        "replacement": "https://www.rcdespanyol.com/es/proximos-partidos",
+        "evidence_url": "https://www.rcdespanyol.com/es/",
+        "status": 200,
+        "final_url": "https://www.rcdespanyol.com/es/proximos-partidos",
+        "reason": "Current official ticket destination linked from the club website; original route is dead, misdirected, or persistently times out."
+      },
+      "accepted": true
+    },
+    {
+      "team_id": 543,
+      "club": "Real Betis",
+      "url": "https://www.realbetisbalompie.es/entradas/",
+      "status": 200,
+      "final_url": "https://www.realbetisbalompie.es/entradas/",
+      "redirects": [],
+      "publication_url": "https://www.realbetisbalompie.es/entradas/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 541,
+      "club": "Real Madrid",
+      "url": "https://www.realmadrid.com/es-ES/entradas",
+      "status": 200,
+      "final_url": "https://www.realmadrid.com/es-ES/entradas",
+      "redirects": [],
+      "publication_url": "https://www.realmadrid.com/es-ES/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 548,
+      "club": "Real Sociedad",
+      "url": "https://www.realsociedad.eus/es/entradas",
+      "status": 200,
+      "final_url": "https://www.realsociedad.eus/es/entradas",
+      "redirects": [],
+      "publication_url": "https://www.realsociedad.eus/es/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 536,
+      "club": "Sevilla FC",
+      "url": "https://entradas.sevillafc.es/",
+      "status": 200,
+      "final_url": "https://entradas.sevillafc.es/",
+      "redirects": [],
+      "publication_url": "https://entradas.sevillafc.es/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 532,
+      "club": "Valencia CF",
+      "url": "https://www.valenciacf.com/tickets",
+      "status": 200,
+      "final_url": "https://www.valenciacf.com/tickets",
+      "redirects": [],
+      "publication_url": "https://www.valenciacf.com/tickets",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 533,
+      "club": "Villarreal CF",
+      "url": "https://villarrealcf.es/es/venta-de-entradas/",
+      "status": 200,
+      "final_url": "https://villarrealcf.es/es/venta-de-entradas/",
+      "redirects": [],
+      "publication_url": "https://villarrealcf.es/es/venta-de-entradas/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 10139,
+      "club": "AD Ceuta FC",
+      "url": "https://adceutafc.compralaentrada.com/",
+      "status": 200,
+      "final_url": "https://adceutafc.compralaentrada.com/",
+      "redirects": [],
+      "publication_url": "https://adceutafc.compralaentrada.com/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 722,
+      "club": "Albacete BP",
+      "url": "https://albacetebalompie.compralaentrada.com/",
+      "status": 200,
+      "final_url": "https://albacetebalompie.compralaentrada.com/",
+      "redirects": [],
+      "publication_url": "https://albacetebalompie.compralaentrada.com/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 9580,
+      "club": "Burgos CF",
+      "url": "https://entradas.burgoscf.es/",
+      "status": 200,
+      "final_url": "https://entradas.burgoscf.es/",
+      "redirects": [],
+      "publication_url": "https://entradas.burgoscf.es/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 724,
+      "club": "Cádiz CF",
+      "url": "https://entradas.cadizcf.com/cadizcf/events",
+      "status": 403,
+      "final_url": "https://entradas.cadizcf.com/cadizcf/events",
+      "redirects": [],
+      "publication_url": "https://entradas.cadizcf.com/cadizcf/events",
+      "accepted": true,
+      "acceptance_note": "First-party HTTPS route returns an access restriction (403); not a missing/dead route. Retained under France preflight convention."
+    },
+    {
+      "team_id": 5254,
+      "club": "CD Castellón",
+      "url": "https://entradas.cdcastellon.com/",
+      "status": 200,
+      "final_url": "https://entradas.cdcastellon.com/",
+      "redirects": [],
+      "publication_url": "https://entradas.cdcastellon.com/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 9692,
+      "club": "CD Eldense",
+      "url": "https://cdeldense.compralaentrada.com/",
+      "status": 200,
+      "final_url": "https://cdeldense.compralaentrada.com/",
+      "redirects": [],
+      "publication_url": "https://cdeldense.compralaentrada.com/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 537,
+      "club": "CD Leganés",
+      "url": "https://www.cdleganes.com/entradas",
+      "status": 200,
+      "final_url": "https://cdleganes.entradas.com/ticketing/es",
+      "redirects": [
+        "https://www.cdleganes.com/entradas"
+      ],
+      "publication_url": "https://www.cdleganes.com/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 719,
+      "club": "CD Tenerife",
+      "url": "https://www.clubdeportivotenerife.es/ticketing",
+      "status": 200,
+      "final_url": "https://www.clubdeportivotenerife.es/ticketing",
+      "redirects": [],
+      "publication_url": "https://www.clubdeportivotenerife.es/ticketing",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 9593,
+      "club": "CE Sabadell",
+      "url": "https://www.cesabadellfc.com/entrades/",
+      "status": 200,
+      "final_url": "https://www.cesabadellfc.com/entrades-a-9-euros-per-al-partit-entre-el-fc-barcelona-b-i-el-ce-sabadell/",
+      "redirects": [
+        "https://www.cesabadellfc.com/entrades/"
+      ],
+      "publication_url": "https://cesabadell.compralaentrada.com/",
+      "maintenance": {
+        "original_status": 200,
+        "replacement": "https://cesabadell.compralaentrada.com/",
+        "evidence_url": "https://www.cesabadellfc.com/",
+        "status": 200,
+        "final_url": "https://cesabadell.compralaentrada.com/",
+        "reason": "Current official ticket destination linked from the club website; original route is dead, misdirected, or persistently times out."
+      },
+      "accepted": true
+    },
+    {
+      "team_id": 9571,
+      "club": "Celta Fortuna",
+      "url": "https://rccelta.es/entradas/",
+      "status": 200,
+      "final_url": "https://rccelta.es/entradas/",
+      "redirects": [],
+      "publication_url": "https://rccelta.es/entradas/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 713,
+      "club": "Córdoba CF",
+      "url": "https://entradas.cordobacf.com/",
+      "status": 200,
+      "final_url": "https://entradas.cordobacf.com/",
+      "redirects": [],
+      "publication_url": "https://entradas.cordobacf.com/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 8157,
+      "club": "FC Andorra",
+      "url": "https://tickets.oneboxtds.com/fcandorra/events/56696",
+      "status": 403,
+      "final_url": "https://tickets.oneboxtds.com/fcandorra/events/56696",
+      "redirects": [],
+      "publication_url": "https://tickets.oneboxtds.com/fcandorra/events/56696",
+      "accepted": true,
+      "acceptance_note": "First-party HTTPS route returns an access restriction (403); not a missing/dead route. Retained under France preflight convention.",
+      "evidence_url": "https://www.fcandorra.com/es/"
+    },
+    {
+      "team_id": 547,
+      "club": "Girona FC",
+      "url": "https://www.gironafc.cat/es/entrades",
+      "status": 200,
+      "final_url": "https://www.gironafc.cat/es/entrades",
+      "redirects": [],
+      "publication_url": "https://www.gironafc.cat/es/entrades",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 715,
+      "club": "Granada CF",
+      "url": "https://www.granadacf.es/venta-de-entradas",
+      "status": 200,
+      "final_url": "https://www.granadacf.es/venta-de-entradas",
+      "redirects": [],
+      "publication_url": "https://www.granadacf.es/venta-de-entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 9585,
+      "club": "Real Sociedad B",
+      "url": "https://www.realsociedad.eus/es/entradas",
+      "status": 200,
+      "final_url": "https://www.realsociedad.eus/es/entradas",
+      "redirects": [],
+      "publication_url": "https://www.realsociedad.eus/es/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 798,
+      "club": "RCD Mallorca",
+      "url": "https://www.rcdmallorca.es/entradas",
+      "status": 200,
+      "final_url": "https://www.rcdmallorca.es/entradas",
+      "redirects": [],
+      "publication_url": "https://www.rcdmallorca.es/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 718,
+      "club": "Real Oviedo",
+      "url": "https://www.realoviedo.es/entradas",
+      "status": 200,
+      "final_url": "https://www.realoviedo.es/entradas",
+      "redirects": [],
+      "publication_url": "https://www.realoviedo.es/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 731,
+      "club": "Real Sporting",
+      "url": "https://tickets.realsporting.com/",
+      "status": 200,
+      "final_url": "https://tickets.realsporting.com/",
+      "redirects": [],
+      "publication_url": "https://tickets.realsporting.com/",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 720,
+      "club": "Real Valladolid CF",
+      "url": "https://www.realvalladolid.es/entradas",
+      "status": 404,
+      "final_url": "https://www.realvalladolid.es/entradas",
+      "redirects": [],
+      "publication_url": "https://www.realvalladolid.es/ticketing",
+      "maintenance": {
+        "original_status": 404,
+        "replacement": "https://www.realvalladolid.es/ticketing",
+        "evidence_url": "https://www.realvalladolid.es/ticketing",
+        "status": 200,
+        "final_url": "https://www.realvalladolid.es/ticketing",
+        "reason": "Current official ticket destination linked from the club website; original route is dead, misdirected, or persistently times out."
+      },
+      "accepted": true
+    },
+    {
+      "team_id": 545,
+      "club": "SD Eibar",
+      "url": "https://www.sdeibar.com/entradas",
+      "status": 200,
+      "final_url": "https://www.sdeibar.com/entradas",
+      "redirects": [],
+      "publication_url": "https://www.sdeibar.com/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    },
+    {
+      "team_id": 723,
+      "club": "UD Almería",
+      "url": "https://www.udalmeriasad.com/entradas",
+      "status": 404,
+      "final_url": "https://www.udalmeriasad.com/entradas",
+      "redirects": [],
+      "publication_url": "https://tickets.udalmeriasad.com/",
+      "maintenance": {
+        "original_status": 404,
+        "replacement": "https://tickets.udalmeriasad.com/",
+        "evidence_url": "https://www.udalmeriasad.com/",
+        "status": 200,
+        "final_url": "https://tickets.udalmeriasad.com/",
+        "reason": "Current official ticket destination linked from the club website; original route is dead, misdirected, or persistently times out."
+      },
+      "accepted": true
+    },
+    {
+      "team_id": 534,
+      "club": "UD Las Palmas",
+      "url": "https://www.udlaspalmas.es/entradas",
+      "status": 200,
+      "final_url": "https://www.udlaspalmas.es/entradas",
+      "redirects": [],
+      "publication_url": "https://www.udlaspalmas.es/entradas",
+      "accepted": true,
+      "acceptance_note": "Reviewed official first-party route; no unrelated redirect."
+    }
+  ]
+}

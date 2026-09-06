@@ -1,0 +1,4 @@
+# Immutable reviewed inputs: preserve their exact SHA-256 across platforms.
+spain-know-publication-inventory-20260906.csv -text whitespace=trailing-space,space-before-tab,cr-at-eol
+spain-decide-reconciliation-20260906.csv -text whitespace=trailing-space,space-before-tab,cr-at-eol
+spain-club-venue-remediation-dry-run-20260906.csv -text whitespace=trailing-space,space-before-tab,cr-at-eol

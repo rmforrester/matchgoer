@@ -1,0 +1,12 @@
+{
+  "path": "C:\\Users\\rmfor\\OneDrive\\Documents\\terrace-talk\\backups\\hosted\\matchgoer-hosted-pre-spain-know-decide-20260906T180632Z.dump",
+  "timestamp_utc": "2026-09-06T18:06:32.632643+00:00",
+  "size_bytes": 743963,
+  "sha256": "91E37543FE5EB07A174A8D7BC222C8BDB49E7722774E95F1AA5D4EDAD7F6960D",
+  "archive_validated": true,
+  "archive_validation": "pg_restore --list and full archive decode to null output both exited 0",
+  "archive_toc_lines": 266,
+  "format": "PostgreSQL custom full database backup",
+  "pg_dump_version": "18.4",
+  "source_identity_sha256": "da71222dd9d6c284b45fea8b75ae85b149e64d8211850dc8c7945ee90a24f93e"
+}

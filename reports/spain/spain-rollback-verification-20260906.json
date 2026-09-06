@@ -1,0 +1,169 @@
+{
+  "action": "read-only post-rollback comparison",
+  "method": "Every full table COPY payload compared with validated pre-write backup; row order ignored",
+  "tables": [
+    {
+      "table": "public.account_conversion_handoffs",
+      "backup_rows": 10,
+      "hosted_rows": 10,
+      "identical": true
+    },
+    {
+      "table": "public.account_merge_audits",
+      "backup_rows": 6,
+      "hosted_rows": 6,
+      "identical": true
+    },
+    {
+      "table": "public.anonymous_sessions",
+      "backup_rows": 83,
+      "hosted_rows": 83,
+      "identical": true
+    },
+    {
+      "table": "public.away_day_reviews",
+      "backup_rows": 1,
+      "hosted_rows": 1,
+      "identical": true
+    },
+    {
+      "table": "public.away_day_votes",
+      "backup_rows": 0,
+      "hosted_rows": 0,
+      "identical": true
+    },
+    {
+      "table": "public.club_venues",
+      "backup_rows": 304,
+      "hosted_rows": 304,
+      "identical": true
+    },
+    {
+      "table": "public.decision_evidence",
+      "backup_rows": 8,
+      "hosted_rows": 8,
+      "identical": true
+    },
+    {
+      "table": "public.decision_facts",
+      "backup_rows": 246,
+      "hosted_rows": 246,
+      "identical": true
+    },
+    {
+      "table": "public.fixture_meeting_intents",
+      "backup_rows": 4,
+      "hosted_rows": 4,
+      "identical": true
+    },
+    {
+      "table": "public.fixtures",
+      "backup_rows": 27200,
+      "hosted_rows": 27200,
+      "identical": true
+    },
+    {
+      "table": "public.interested_fixtures",
+      "backup_rows": 17,
+      "hosted_rows": 17,
+      "identical": true
+    },
+    {
+      "table": "public.leagues",
+      "backup_rows": 1,
+      "hosted_rows": 1,
+      "identical": true
+    },
+    {
+      "table": "public.match_board_posts",
+      "backup_rows": 1,
+      "hosted_rows": 1,
+      "identical": true
+    },
+    {
+      "table": "public.match_board_reports",
+      "backup_rows": 0,
+      "hosted_rows": 0,
+      "identical": true
+    },
+    {
+      "table": "public.matchday_tips",
+      "backup_rows": 0,
+      "hosted_rows": 0,
+      "identical": true
+    },
+    {
+      "table": "public.pre_match_spot_evidence",
+      "backup_rows": 148,
+      "hosted_rows": 148,
+      "identical": true
+    },
+    {
+      "table": "public.pre_match_spots",
+      "backup_rows": 119,
+      "hosted_rows": 119,
+      "identical": true
+    },
+    {
+      "table": "public.social_events",
+      "backup_rows": 365,
+      "hosted_rows": 365,
+      "identical": true
+    },
+    {
+      "table": "public.teams",
+      "backup_rows": 1652,
+      "hosted_rows": 1652,
+      "identical": true
+    },
+    {
+      "table": "public.user_identities",
+      "backup_rows": 5,
+      "hosted_rows": 5,
+      "identical": true
+    },
+    {
+      "table": "public.user_profiles",
+      "backup_rows": 5,
+      "hosted_rows": 5,
+      "identical": true
+    },
+    {
+      "table": "public.users",
+      "backup_rows": 83,
+      "hosted_rows": 83,
+      "identical": true
+    },
+    {
+      "table": "public.venue_guide_facts",
+      "backup_rows": 321,
+      "hosted_rows": 321,
+      "identical": true
+    },
+    {
+      "table": "public.venue_names",
+      "backup_rows": 2219,
+      "hosted_rows": 2219,
+      "identical": true
+    },
+    {
+      "table": "public.venue_provider_refs",
+      "backup_rows": 2204,
+      "hosted_rows": 2204,
+      "identical": true
+    },
+    {
+      "table": "public.venue_visits",
+      "backup_rows": 10,
+      "hosted_rows": 10,
+      "identical": true
+    },
+    {
+      "table": "public.venues",
+      "backup_rows": 2217,
+      "hosted_rows": 2217,
+      "identical": true
+    }
+  ],
+  "all_table_rows_unchanged": true
+}
