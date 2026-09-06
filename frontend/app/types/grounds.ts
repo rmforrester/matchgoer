@@ -17,6 +17,7 @@ export type AttendedFixture = {
   fixture_date: string;
   home_team: string;
   away_team: string;
+  league_name: string;
 };
 
 export type GroundVisit = {

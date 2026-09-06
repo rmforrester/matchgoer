@@ -298,6 +298,7 @@ class MyGroundFixtureSummary(BaseModel):
     fixture_date: datetime
     home_team: str
     away_team: str
+    league_name: str
 
 
 class MyGroundVisitSummary(BaseModel):

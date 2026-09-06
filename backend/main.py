@@ -2326,6 +2326,7 @@ def get_my_grounds(
                         "fixture_date": fixture_datetime_utc(visit.fixture.fixture_date),
                         "home_team": visit.fixture.home_team,
                         "away_team": visit.fixture.away_team,
+                        "league_name": visit.fixture.league_name,
                     }
                     for visit in venue_visits if visit.fixture is not None
                 ],

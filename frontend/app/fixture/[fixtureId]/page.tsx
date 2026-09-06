@@ -257,7 +257,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         <dl className="grid gap-3 border-t-2 border-[var(--tt-ink)] pt-4 text-sm lg:border-l-2 lg:border-t-0 lg:pl-6 lg:pt-0">
           <div><dt className="tt-kicker">Date</dt><dd className="mt-1 font-bold">{kickoff.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</dd></div>
           <div><dt className="tt-kicker">Kickoff</dt><dd className="mt-1 font-bold">{kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</dd><dd className="mt-1 text-xs text-[var(--tt-muted)]">Your current timezone</dd></div>
-          {statusGroup !== "upcoming" && <div><dt className="tt-kicker">Status</dt><dd className="mt-1 font-bold">{fixtureStatusLabel(data.fixture.status)}</dd></div>}
+          {statusGroup !== "upcoming" && !completed && <div><dt className="tt-kicker">Status</dt><dd className="mt-1 font-bold">{fixtureStatusLabel(data.fixture.status)}</dd></div>}
           <div><dt className="tt-kicker">Ground</dt><dd className="mt-1 min-w-0 break-words font-bold">{data.fixture.venue_name || "Ground to be confirmed"}{data.fixture.venue_city ? ` · ${data.fixture.venue_city}` : ""}</dd></div>
         </dl>
       </div>

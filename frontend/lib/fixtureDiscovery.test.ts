@@ -17,6 +17,7 @@ import {
   GEOLOCATION_UNSUPPORTED_MESSAGE,
   isCurrentDiscoveryRequest,
   manualCurrentLocationOrigin,
+  nextFourteenDaysDateRange,
   resolvedLocationTransition,
   upcomingWeekendDateRange,
   groupFixturesByVenue,
@@ -44,6 +45,7 @@ const shortlistSource = readFileSync(new URL("../app/components/DiscoverShortlis
 const matchdaysSource = readFileSync(new URL("../app/components/InterestedTab.tsx", import.meta.url), "utf8");
 const groundsSource = readFileSync(new URL("../app/components/VisitedTab.tsx", import.meta.url), "utf8");
 const groundPageSource = readFileSync(new URL("../app/venue/[venueId]/page.tsx", import.meta.url), "utf8");
+const awayDayScoreSource = readFileSync(new URL("../app/components/AwayDayScore.tsx", import.meta.url), "utf8");
 
 function decisionFixture(overrides: Partial<Fixture>): Fixture {
   return {
@@ -193,6 +195,8 @@ test("My Grounds filters one coherent visit view and keeps cards supporter-facin
   assert.doesNotMatch(groundsSource, />Visits</);
   assert.doesNotMatch(groundsSource, />My rating</);
   assert.doesNotMatch(groundsSource, />Terrace rating</);
+  assert.match(groundsSource, /min-h-11 shrink-0 border-b-2/);
+  assert.doesNotMatch(groundsSource, /timeframe === option\.key \? "bg-/);
 });
 
 test("visits can attach, change, or remove an optional fixture without another model", () => {
@@ -201,12 +205,26 @@ test("visits can attach, change, or remove an optional fixture without another m
   assert.match(groundsSource, /Attach match/);
   assert.match(groundsSource, /Change match/);
   assert.match(groundsSource, /Remove link/);
+  assert.match(groundsSource, /visit\.visit_date \? knownDate\(visit\.visit_date\) : "Date not remembered"/);
+  assert.match(groundsSource, /fixture\.home_team} v \{fixture\.away_team/);
+  assert.match(groundsSource, /fixture\.league_name/);
 });
 
 test("Ground surfaces approved WHY GO only and suppresses meaningless zero interested counts", () => {
   assert.match(groundPageSource, /decisionReasons\.length > 0/);
   assert.match(groundPageSource, /Why go\?/);
   assert.match(groundPageSource, /fixture\.interested_count > 0/);
+});
+
+test("Ground avoids a duplicate empty-rating visit prompt while keeping Your visit and tips", () => {
+  assert.doesNotMatch(awayDayScoreSource, /Been here\? Add your take/);
+  assert.match(awayDayScoreSource, /if \(!hasReviews\) return null/);
+  assert.match(groundPageSource, /03 \/ Your visit/);
+  assert.match(groundPageSource, /<MatchdayTips tips=\{tips\}/);
+});
+
+test("completed fixture detail relies on its result and past-match context, not a status row", () => {
+  assert.match(fixturePageSource, /statusGroup !== "upcoming" && !completed/);
 });
 
 test("manual search keeps dates visible before genuinely optional filters and the single Search action", () => {
@@ -222,6 +240,16 @@ test("From selection visibly hands off to To and To selection clears that state"
   assert.match(searchBarSource, /setToNeedsAttention\(Boolean\(nextStartDate\)\)/);
   assert.match(searchBarSource, /toNeedsAttention \? "border-2 border-\[var\(--tt-blue\)\]/);
   assert.match(searchBarSource, /setToNeedsAttention\(false\)/);
+});
+
+test("untouched Discover defaults to fourteen local calendar days", () => {
+  assert.deepEqual(nextFourteenDaysDateRange(new Date(2026, 8, 6, 23, 30)), {
+    startDate: "2026-09-06",
+    endDate: "2026-09-19",
+  });
+  assert.match(discoverPageSource, /useState\(\(\) => nextFourteenDaysDateRange\(discoveryNow\)\.startDate\)/);
+  assert.match(discoverPageSource, /useState\(\(\) => nextFourteenDaysDateRange\(discoveryNow\)\.endDate\)/);
+  assert.match(discoverPageSource, /"Next 14 days" : "Custom dates"/);
 });
 
 test("weekend shortcut selects the upcoming Friday through Sunday on a weekday", () => {

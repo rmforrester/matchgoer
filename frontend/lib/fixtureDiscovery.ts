@@ -26,6 +26,17 @@ export function upcomingWeekendDateRange(now = new Date()) {
   };
 }
 
+export function nextFourteenDaysDateRange(now = new Date()) {
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const end = new Date(start);
+  end.setDate(end.getDate() + 13);
+
+  return {
+    startDate: localCalendarDateValue(start),
+    endDate: localCalendarDateValue(end),
+  };
+}
+
 export function normalizeDiscoveryStartDate(
   value: string,
   today = localCalendarDateValue()

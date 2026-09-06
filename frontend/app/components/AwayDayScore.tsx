@@ -12,7 +12,7 @@ export default function AwayDayScore({ reviewCount, recommendPercentage, categor
     { label: "Getting there", value: categoryScores?.getting_there ?? null },
     { label: "Stadium / food / facilities", value: categoryScores?.stadium_food_facilities ?? null },
   ];
-  if (!hasReviews) return <aside className="mt-6 text-sm text-[var(--tt-muted)]">Been here? Add your take on the ground from My Grounds.</aside>;
+  if (!hasReviews) return null;
   return (
     <section className="tt-section-rule mt-10 pt-4" aria-labelledby="rating-heading">
       <p className="tt-kicker">02 / Terrace Rating</p>

@@ -33,6 +33,7 @@ import {
   GEOLOCATION_UNSUPPORTED_MESSAGE,
   localCalendarDateValue,
   manualCurrentLocationOrigin,
+  nextFourteenDaysDateRange,
   normalizeDiscoveryStartDate,
   resolvedLocationTransition,
   selectDiscoveryFixtures,
@@ -143,7 +144,7 @@ export default function Home() {
   const today = localCalendarDateValue(discoveryNow);
 
   const [selectedStartDate, setSelectedStartDate] =
-    useState(() => upcomingWeekendDateRange(discoveryNow).startDate);
+    useState(() => nextFourteenDaysDateRange(discoveryNow).startDate);
 
   const startDate = normalizeDiscoveryStartDate(
     selectedStartDate,
@@ -151,7 +152,7 @@ export default function Home() {
   );
 
   const [endDate, setEndDate] =
-    useState(() => upcomingWeekendDateRange(discoveryNow).endDate);
+    useState(() => nextFourteenDaysDateRange(discoveryNow).endDate);
 
   const [dateError, setDateError] = useState("");
   const [discoveryError, setDiscoveryError] = useState("");
@@ -690,6 +691,8 @@ const loadVisitedStadiums = () => {
       ? formatSummaryDate(appliedSearch.startDate)
       : `${formatSummaryDate(appliedSearch.startDate)}–${formatSummaryDate(appliedSearch.endDate)}`
     : "";
+  const defaultDateRange = nextFourteenDaysDateRange(discoveryNow);
+  const usingDefaultDateRange = startDate === defaultDateRange.startDate && endDate === defaultDateRange.endDate;
 
   return (
     <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-2 sm:px-6 sm:py-8">
@@ -744,7 +747,7 @@ const loadVisitedStadiums = () => {
             </div>
 
             <div className="mt-2 border-t border-[var(--tt-rule)] pt-2">
-              <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.12em]">When?</p>
+              <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.12em]">When? · {usingDefaultDateRange ? "Next 14 days" : "Custom dates"}</p>
               <DateRangeFields startDate={startDate} setStartDate={setSelectedStartDate} minimumStartDate={today} endDate={endDate} setEndDate={setEndDate} />
             </div>
 
