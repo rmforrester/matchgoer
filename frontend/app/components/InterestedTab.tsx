@@ -4,7 +4,6 @@ import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react
 import Link from "next/link";
 import { apiErrorMessage } from "../../lib/api-error";
 import api from "../../lib/api";
-import FixtureTeams from "./FixtureTeams";
 import type { InterestedFixture } from "../types/interested";
 import type { AttendedFixture, MyGround } from "../types/grounds";
 
@@ -21,11 +20,11 @@ function MatchdayCard({ fixture, venueName, venueCity, state, footer }: {
   state: "answer" | "attended";
   footer: ReactNode;
 }) {
-  return <article className={`tt-panel flex min-w-0 flex-col p-3.5 sm:p-4 ${state === "answer" ? "border-l-[5px] border-l-[var(--tt-ink)]" : "border-t-[5px] border-t-[var(--tt-rule)]"}`}>
-    <p className="tt-kicker">{displayDate(fixture.fixture_date, state === "answer")}</p>
-    <Link href={`/fixture/${fixture.fixture_id}`} className="mt-2 block min-w-0 hover:text-[var(--tt-blue)]"><FixtureTeams homeTeam={fixture.home_team} awayTeam={fixture.away_team} teamClassName="text-[clamp(1.5rem,7vw,2rem)] leading-[0.92] sm:text-[2rem]" separatorClassName="my-0.5 text-[0.65rem] tracking-[0.16em]" /></Link>
-    <div className="mt-3 min-w-0 border-t border-[var(--tt-rule)] pt-2.5"><p className="truncate text-sm font-extrabold uppercase tracking-[0.06em]">{venueName ?? "Ground to be confirmed"}</p>{venueCity && <p className="mt-1 truncate text-xs font-semibold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{venueCity}</p>}</div>
-    <footer className="mt-3 border-t border-[var(--tt-ink)] pt-3">{footer}</footer>
+  return <article className={`min-w-0 border-b-2 border-[var(--tt-ink)] py-3 ${state === "answer" ? "border-l-4 border-l-[var(--tt-blue)] pl-3" : ""}`}>
+    <p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{displayDate(fixture.fixture_date, state === "answer")}</p>
+    <Link href={`/fixture/${fixture.fixture_id}`} className="mt-1 block min-w-0 break-words font-extrabold hover:text-[var(--tt-blue)]">{fixture.home_team} v {fixture.away_team}</Link>
+    <p className="mt-1 min-w-0 break-words text-sm text-[var(--tt-muted)]">{venueName ?? "Ground to be confirmed"}{venueCity ? ` · ${venueCity}` : ""}</p>
+    <footer className="mt-2">{footer}</footer>
   </article>;
 }
 
@@ -60,6 +59,7 @@ export default function InterestedTab() {
   const resolveCompletedFixture = async (fixture: InterestedFixture, attended: boolean) => {
     if (updatingFixtureIds.includes(fixture.fixture_id)) return;
     setUpdatingFixtureIds((current) => [...current, fixture.fixture_id]);
+    setFixtures((current) => current.filter((item) => item.fixture_id !== fixture.fixture_id));
     setError("");
     try {
       if (attended && !attendedFixtureIds.has(fixture.fixture_id)) await api.post(`/fixtures/${fixture.fixture_id}/attendance`);
@@ -68,6 +68,7 @@ export default function InterestedTab() {
       await loadMatchdays();
     } catch (requestError) {
       setError(apiErrorMessage(requestError, "Unable to resolve this match."));
+      await loadMatchdays();
     } finally {
       setUpdatingFixtureIds((current) => current.filter((id) => id !== fixture.fixture_id));
     }
@@ -76,16 +77,16 @@ export default function InterestedTab() {
   const empty = !loading && unresolvedFixtures.length === 0 && attendedFixtures.length === 0;
 
   return <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10">
-    <header className="border-b-[3px] border-[var(--tt-ink)] pb-4"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My Matchdays</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Confirm recent matches and remember the football you&apos;ve attended.</p></header>
+    <header className="border-b-[3px] border-[var(--tt-ink)] pb-4"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My Matchdays</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">The matches you&apos;ve been to.</p><p className="mt-1 text-xs text-[var(--tt-muted)]">Times shown in your current timezone.</p></header>
     {loading && <p className="mt-8 font-semibold text-[var(--tt-muted)]">Loading your matchdays…</p>}
     {error && <p role="alert" className="mt-6 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
-    {attendanceResolution && <aside role="status" className="tt-panel mt-6 border-l-[8px] border-l-[var(--tt-blue)] p-5"><p className="tt-kicker">Attendance recorded</p><p className="mt-2 font-bold">{attendanceResolution.home_team} v {attendanceResolution.away_team} is now in Past Matchdays and its ground is in My Grounds.</p></aside>}
+    {attendanceResolution && <p role="status" className="mt-5 border-l-4 border-[var(--tt-blue)] px-3 py-2 font-bold">✓ You were there · {attendanceResolution.home_team} v {attendanceResolution.away_team}</p>}
 
     {empty && <section className="tt-panel mt-7 border-l-[8px] border-l-[var(--tt-blue)] p-6"><p className="tt-kicker">Your matchday history starts here</p><p className="mt-2 max-w-xl text-sm leading-6 text-[var(--tt-muted)]">When you attend a match you&apos;ve shortlisted, confirm it here and we&apos;ll build your matchday history.</p><Link href="/" className="tt-action mt-5 inline-flex px-5">Find a match →</Link></section>}
 
-    {!loading && unresolvedFixtures.length > 0 && <section className="tt-section-rule mt-7 pt-3" aria-labelledby="answer-heading"><h2 id="answer-heading" className="tt-display text-3xl leading-none sm:text-4xl">Did you go?</h2><p className="mt-1 text-sm text-[var(--tt-muted)]">Confirm your recent matchdays.</p><div className="mt-5 grid gap-4 md:grid-cols-2">{unresolvedFixtures.map((fixture) => {
+    {!loading && unresolvedFixtures.length > 0 && <section className="tt-section-rule mt-7 pt-3" aria-labelledby="answer-heading"><h2 id="answer-heading" className="tt-display text-3xl leading-none sm:text-4xl">Did you go?</h2><div className="mt-3">{unresolvedFixtures.map((fixture) => {
       const updating = updatingFixtureIds.includes(fixture.fixture_id);
-      return <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="answer" footer={<div className="grid gap-2 sm:grid-cols-2"><button type="button" disabled={updating} onClick={() => void resolveCompletedFixture(fixture, true)} className="tt-action px-3">{updating ? "Saving…" : "Yes, I was there"}</button><button type="button" disabled={updating} onClick={() => void resolveCompletedFixture(fixture, false)} className="tt-action tt-action-secondary px-3">No, I didn&apos;t go</button></div>} />;
+      return <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="answer" footer={<div className="flex flex-wrap items-center gap-x-4"><button type="button" disabled={updating} onClick={() => void resolveCompletedFixture(fixture, true)} className="tt-action px-4">{updating ? "Saving…" : "Yes, I was there"}</button><button type="button" disabled={updating} onClick={() => void resolveCompletedFixture(fixture, false)} className="min-h-11 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Didn&apos;t go</button></div>} />;
     })}</div></section>}
 
     {!loading && attendedFixtures.length > 0 && <section className="tt-section-rule mt-9 pt-3" aria-labelledby="past-heading"><div className="flex items-end justify-between gap-3"><div><h2 id="past-heading" className="tt-display text-3xl leading-none sm:text-4xl">Past Matchdays</h2><p className="mt-1 text-sm text-[var(--tt-muted)]">The football you&apos;ve been to.</p></div><span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-muted)]">{attendedFixtures.length} matches</span></div><div className="mt-5 grid gap-4 md:grid-cols-2">{attendedFixtures.map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="attended" footer={<Link href={`/fixture/${fixture.fixture_id}`} className="min-h-11 content-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">View match →</Link>} />)}</div></section>}

@@ -19,6 +19,12 @@ export type AttendedFixture = {
   away_team: string;
 };
 
+export type GroundVisit = {
+  visit_id: number;
+  visit_date: string | null;
+  fixture_id: number | null;
+};
+
 export type MyGround = {
   venue_id: number;
   venue_name: string;
@@ -31,6 +37,7 @@ export type MyGround = {
   first_visit_date: string | null;
   latest_visit_date: string | null;
   has_undated_visit: boolean;
+  visits: GroundVisit[];
   attended_fixtures: AttendedFixture[];
   review: GroundReview | null;
   community_terrace_rating: number | null;

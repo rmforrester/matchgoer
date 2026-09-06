@@ -47,10 +47,8 @@ export function createGroundMarkerIcon(visited = false, selected = false, highli
 }
 
 const attendedGroundMarkerSvg = `
-  <svg aria-hidden="true" width="30" height="36" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 2H27L29 5V24L15 35L1 24V5L3 2Z" fill="#171717" stroke="#171717" stroke-width="2" stroke-linejoin="miter" />
-    <circle cx="15" cy="15" r="8" fill="#FCFAF5" />
-    <path d="M10.5 15L13.7 18L20 11.5" fill="none" stroke="#2146D0" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter" />
+  <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="9" cy="9" r="6" fill="#2146D0" stroke="#171717" stroke-width="2" />
   </svg>
 `;
 
@@ -59,8 +57,8 @@ export function createAttendedGroundMarkerIcon(): L.DivIcon {
     className: "tt-attended-ground-marker",
     html: `<span class="tt-attended-ground-marker__visual">${attendedGroundMarkerSvg}</span>`,
     iconSize: [VENUE_MARKER_DESIGN.hitSize, VENUE_MARKER_DESIGN.hitSize],
-    iconAnchor: [VENUE_MARKER_DESIGN.hitSize / 2, VENUE_MARKER_DESIGN.hitSize - 4],
-    popupAnchor: [0, -38],
+    iconAnchor: [VENUE_MARKER_DESIGN.hitSize / 2, VENUE_MARKER_DESIGN.hitSize / 2],
+    popupAnchor: [0, -12],
   });
 }
 

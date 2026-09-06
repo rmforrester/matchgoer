@@ -11,7 +11,7 @@ import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
 import { hasPendingAuthAction, parsePendingWhosGoingAction, pendingWhosGoingReturnTo } from "@/lib/pending-auth-action";
 import { applyPendingWhosGoing, clearPendingWhosGoing, loadPendingWhosGoing } from "@/lib/account-conversion-checkpoint";
-import { fixtureGuideActions, guideSummary, type VenueGuide } from "../../../lib/venue-guide";
+import { type VenueGuide } from "../../../lib/venue-guide";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -35,8 +35,6 @@ type SocialFixture = {
   board_closed: boolean; posts: BoardPost[];
 };
 
-type VenueCoordinates = { latitude: number | null; longitude: number | null };
-
 export default function FixturePage({ params, searchParams }: { params: Promise<{ fixtureId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { fixtureId } = use(params);
   const pendingSearchParams = use(searchParams);
@@ -49,7 +47,6 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const [accountPrompt, setAccountPrompt] = useState<"interested" | "mate" | "board" | null>(null);
   const [saving, setSaving] = useState(false);
   const [venueGuideResult, setVenueGuideResult] = useState<{ venueId: number; guide: VenueGuide | null } | null>(null);
-  const [venueCoordinatesResult, setVenueCoordinatesResult] = useState<{ venueId: number; coordinates: VenueCoordinates | null } | null>(null);
   const [reporting, setReporting] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("other");
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -84,9 +81,6 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     api.get<VenueGuide>(`/venues/${venueId}/guide`, { params: { team_id: data?.fixture.home_team_id ?? undefined } })
       .then((response) => setVenueGuideResult({ venueId, guide: response.data }))
       .catch(() => setVenueGuideResult({ venueId, guide: null }));
-    api.get<VenueCoordinates>(`/venue/${venueId}`)
-      .then((response) => setVenueCoordinatesResult({ venueId, coordinates: response.data }))
-      .catch(() => setVenueCoordinatesResult({ venueId, coordinates: null }));
   }, [data?.fixture.home_team_id, data?.fixture.venue_id]);
 
   useEffect(() => {
@@ -228,11 +222,8 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const kickoff = new Date(data.fixture.fixture_date);
   const statusGroup = fixtureStatusGroup(data.fixture.status);
   const venueGuide = venueGuideResult?.venueId === data.fixture.venue_id ? venueGuideResult.guide : null;
-  const venueCoordinates = venueCoordinatesResult?.venueId === data.fixture.venue_id ? venueCoordinatesResult.coordinates : null;
-  const knowSummary = guideSummary(venueGuide);
   const decisionReasons = data.decision_reasons ?? [];
   const hasDecisionReasons = decisionReasons.length > 0;
-  const knowActions = venueGuide && data.fixture.venue_id ? fixtureGuideActions(venueGuide, data.fixture.venue_id, venueCoordinates, data.fixture.home_team_id) : [];
   const completed = statusGroup === "finished";
   const hasResult = completed && data.fixture.home_goals !== null && data.fixture.away_goals !== null;
   const renderPost = (post: BoardPost, reply = false) => (
@@ -265,7 +256,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         </div>
         <dl className="grid gap-3 border-t-2 border-[var(--tt-ink)] pt-4 text-sm lg:border-l-2 lg:border-t-0 lg:pl-6 lg:pt-0">
           <div><dt className="tt-kicker">Date</dt><dd className="mt-1 font-bold">{kickoff.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</dd></div>
-          <div><dt className="tt-kicker">Kickoff</dt><dd className="mt-1 font-bold">{kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</dd></div>
+          <div><dt className="tt-kicker">Kickoff</dt><dd className="mt-1 font-bold">{kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</dd><dd className="mt-1 text-xs text-[var(--tt-muted)]">Your current timezone</dd></div>
           {statusGroup !== "upcoming" && <div><dt className="tt-kicker">Status</dt><dd className="mt-1 font-bold">{fixtureStatusLabel(data.fixture.status)}</dd></div>}
           <div><dt className="tt-kicker">Ground</dt><dd className="mt-1 min-w-0 break-words font-bold">{data.fixture.venue_name || "Ground to be confirmed"}{data.fixture.venue_city ? ` · ${data.fixture.venue_city}` : ""}</dd></div>
         </dl>
@@ -286,21 +277,10 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       </div>
     </section>}
 
-    {knowSummary && data.fixture.venue_id && <aside className="tt-panel mt-6 border-l-[8px] border-l-[var(--tt-blue)] p-5" aria-labelledby="know-before-heading">
-      <p className="tt-kicker">Know before you go</p>
-      <h2 id="know-before-heading" className="tt-display mt-1 text-3xl leading-none">{data.fixture.venue_name ?? "Plan this matchday"}</h2>
-      <nav aria-label="Matchday planning" className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)]">
-        {knowActions.map((action) => action.external
-          ? <a key={action.label} href={action.href} target="_blank" rel="noreferrer" className="underline decoration-2 underline-offset-4">{action.label} →</a>
-          : <Link key={action.label} href={action.href} className="underline decoration-2 underline-offset-4">{action.label} →</Link>)}
-      </nav>
-      {venueGuide && venueGuide.before_match.length > 0 && <p className="mt-3 text-sm font-bold">Before the match · {venueGuide.before_match.length} {venueGuide.before_match.length === 1 ? "place" : "places"}</p>}
-    </aside>}
-
     {data.fixture.venue_id && <section className="tt-section-rule mt-10 pt-4" aria-labelledby="ground-heading">
       <p className="tt-kicker">{hasDecisionReasons ? "03" : "02"} / Matchday · The ground</p>
       <div className="mt-2 grid gap-4 border-b-2 border-[var(--tt-ink)] pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div className="min-w-0"><h2 id="ground-heading" className="tt-display break-words text-4xl leading-none sm:text-5xl">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mt-2 font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{data.fixture.venue_city}</p>}</div>
+        <div className="min-w-0"><h2 id="ground-heading" className="tt-display break-words text-4xl leading-none sm:text-5xl">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mt-2 font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{data.fixture.venue_city}</p>}{venueGuide && venueGuide.before_match.length > 0 && <p className="mt-3 text-sm font-bold">Before the match · {venueGuide.before_match.length} {venueGuide.before_match.length === 1 ? "place" : "places"}</p>}</div>
         <Link href={`/venue/${data.fixture.venue_id}${data.fixture.home_team_id ? `?teamId=${data.fixture.home_team_id}` : ""}`} className="tt-action inline-flex items-center justify-center px-5">Explore the ground →</Link>
       </div>
       {(data.terrace_rating !== null || data.recommend_percentage !== null) && <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs font-extrabold uppercase tracking-[0.08em]">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div>}
@@ -309,7 +289,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
       <p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · Did you go?</p>
       <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div><h2 id="matchday-heading" className="tt-display text-4xl leading-none sm:text-5xl">{data.own_attendance.attended ? "✓ Attendance recorded" : "Did you go?"}</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">{data.fixture.venue_id ? data.own_attendance.attended ? "This match is in your attended history. Rating the ground and adding a supporter tip are optional." : "Record the match now. You can rate the ground or leave a tip separately." : "This fixture is not linked to a ground, so attendance cannot be recorded yet."}</p></div>
+        <div><h2 id="matchday-heading" className="tt-display text-4xl leading-none sm:text-5xl">{data.own_attendance.attended ? "You were there" : "Did you go?"}</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">{data.fixture.venue_id ? data.own_attendance.attended ? `${data.fixture.venue_name ?? "This ground"} · ${kickoff.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Add this match to your history." : "Ground not confirmed, so this match can’t be added yet."}</p></div>
         {data.fixture.venue_id && !data.own_attendance.attended && <button type="button" disabled={saving} onClick={recordAttendance} className="tt-action px-5">{saving ? "Recording…" : "Yes — I was there"}</button>}
       </div>
       {data.own_attendance.attended && data.fixture.venue_id && <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--tt-rule)] pt-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" disabled={saving} onClick={openPostMatchReview} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">{data.own_review?.state === "completed" ? "Edit my review →" : data.own_review?.state === "partial" ? "Continue review →" : "Rate the ground →"}</button><Link href={`/venue/${data.fixture.venue_id}#tips-add`} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Add a tip →</Link><button type="button" disabled={saving} onClick={removeAttendance} className="text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove attendance</button></div>}
@@ -332,7 +312,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
 
     <section className="tt-section-rule mt-10 pt-4" aria-labelledby="board-heading">
       <p className="tt-kicker">{hasDecisionReasons ? "05" : "04"} / Social · Supporter correspondence</p>
-      <div className="mt-1 flex flex-wrap items-end justify-between gap-3"><h2 id="board-heading" className="tt-display text-4xl leading-none sm:text-5xl">Match Board</h2><span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-muted)]">{data.posts.length} {data.posts.length === 1 ? "thread" : "threads"}</span></div>
+      <div className="mt-1 flex flex-wrap items-end justify-between gap-3"><h2 id="board-heading" className="tt-display text-4xl leading-none sm:text-5xl">Match Board</h2>{data.posts.length > 0 && <span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-muted)]">{data.posts.length} {data.posts.length === 1 ? "thread" : "threads"}</span>}</div>
       {data.board_closed ? <div className="tt-panel mt-5 p-4 sm:p-5"><p className="tt-display text-2xl">The board is closed</p><p className="mt-2 text-[var(--tt-muted)]">{statusGroup === "cancelled" ? "This match was cancelled." : "This match has finished."}</p></div> : <div className="tt-panel mt-5 p-4 sm:p-5">{data.posts.length === 0 && <p className="mb-4 max-w-2xl leading-7 text-[var(--tt-muted)]">Going to this one? Ask about pubs, travel, the ground, or see who else is heading along.</p>}<label htmlFor="match-board-message" className="tt-kicker">{replyingTo ? "Your reply" : "Post to the board"}</label><textarea id="match-board-message" ref={composerRef} value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={4} placeholder={replyingTo ? "Write a reply" : "Ask about travel, pubs, tickets or the ground…"} className="tt-control mt-2 w-full min-w-0 resize-y p-3"/><div className="mt-3 grid gap-3 sm:flex sm:items-center sm:justify-between"><span className="text-xs font-semibold text-[var(--tt-muted)]">{body.length} / 500</span><button type="button" disabled={saving || !body.trim()} onClick={submitPost} className="tt-action w-full px-5 sm:w-auto">{replyingTo ? "Post reply" : "Post to board"}</button></div></div>}
       {data.posts.length > 0 && <div className="mt-6">{data.posts.map((post) => renderPost(post))}</div>}
     </section>

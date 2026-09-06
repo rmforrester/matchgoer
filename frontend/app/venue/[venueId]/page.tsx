@@ -58,6 +58,7 @@ type VenueFixture = {
   status: string | null;
   interested_count: number;
 };
+type DecisionReason = { key: string; emoji: string; label: string; explanation: string; importance: string };
 
 type Props = {
   params: Promise<{
@@ -83,6 +84,7 @@ export default function VenuePage({
   const [awayDayScore, setAwayDayScore] =
     useState<AwayDayScoreData | null>(null);
   const [guide, setGuide] = useState<VenueGuideData | null>(null);
+  const [decisionReasons, setDecisionReasons] = useState<DecisionReason[]>([]);
 
   const [myGround, setMyGround] =
     useState<MyGround | null>(null);
@@ -111,6 +113,11 @@ const [showAccountPrompt, setShowAccountPrompt] = useState(false);
 
   api
     .get("/session")
+    .then(() => {
+      return api.get(`/venues/${venueId}/decision`, { params: { team_id: teamId ?? undefined } })
+        .then((response) => setDecisionReasons(response.data.decision_reasons ?? []))
+        .catch(() => setDecisionReasons([]));
+    })
     .then(() => {
       // -------------------------------------------------
       // Load venue
@@ -330,6 +337,8 @@ api
         <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{visitedError}</p>
       )}
 
+      {decisionReasons.length > 0 && <section className="tt-section-rule mt-8 pt-4" aria-labelledby="why-go-heading"><p className="tt-kicker">Why go?</p><div className="mt-2 border-l-[8px] border-[var(--tt-gold)] bg-[var(--tt-paper)] p-5"><h2 id="why-go-heading" className="tt-display break-words text-4xl leading-none">{decisionReasons[0].emoji} {decisionReasons[0].label}</h2><p className="mt-3 max-w-3xl leading-7">{decisionReasons[0].explanation}</p></div></section>}
+
       {guide && <VenueGuide guide={guide} />}
 
       <AwayDayScore reviewCount={awayDayScore?.review_count} recommendPercentage={awayDayScore?.recommend_percentage} categoryScores={awayDayScore?.category_scores} />
@@ -337,7 +346,7 @@ api
       <section className="tt-section-rule mt-10 pt-4" aria-labelledby="visit-heading">
         <p className="tt-kicker">03 / Your visit</p>
         <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">{hasVisited ? "Been here" : "Make it one of yours"}</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">{reviewState === "completed" ? "This ground is in My Grounds and your review is complete." : hasVisited ? `This ground is in My Grounds${myGround && myGround.visit_count > 1 ? ` with ${myGround.visit_count} recorded visits` : ""}. Your rating is optional.` : "Add this ground to My Grounds. You can rate it separately whenever you are ready."}</p></div>
+          <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">{hasVisited ? "You've been here" : "Make it one of yours"}</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">{hasVisited ? myGround?.latest_visit_date ? `Last there · ${new Date(`${myGround.latest_visit_date}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Date not remembered" : "Been here? Add it to your football world."}</p></div>
           {!hasVisited ? <button type="button" onClick={addToVisited} disabled={addingVisited} className="tt-action px-5">{addingVisited ? "Adding…" : "Add to My Grounds"}</button> : <button type="button" onClick={openReview} className="tt-action px-5">{reviewState === "completed" ? "Edit my review" : reviewState === "partial" ? "Continue review" : "Rate this ground"}</button>}
         </div>
       </section>
@@ -347,7 +356,7 @@ api
       <section className="tt-section-rule mt-10 pt-4" aria-labelledby="fixtures-heading">
         <p className="tt-kicker">05 / What&apos;s on</p>
         <h2 id="fixtures-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">Upcoming fixtures</h2>
-        {upcomingFixtures.length === 0 ? <div className="mt-5 border-y-2 border-[var(--tt-ink)] py-6"><p className="tt-display text-3xl">Nothing scheduled yet.</p><p className="mt-2 text-[var(--tt-muted)]">There are no upcoming fixtures for this ground in Matchgoer.</p></div> : <><div className="mt-5 grid gap-3 sm:grid-cols-2">{featuredFixtures.map((fixture) => {
+        {upcomingFixtures.length === 0 ? <p className="mt-4 text-sm text-[var(--tt-muted)]">Nothing scheduled here yet.</p> : <><p className="mt-2 text-xs text-[var(--tt-muted)]">Times shown in your current timezone.</p><div className="mt-5 grid gap-3 sm:grid-cols-2">{featuredFixtures.map((fixture) => {
         const isInterested =
           interestedFixtureIds.includes(
             Number(fixture.fixture_id)
@@ -365,7 +374,7 @@ api
               <p className="tt-kicker">{fixture.league_name}</p>
               <FixtureTeams homeTeam={fixture.home_team} awayTeam={fixture.away_team} className="mt-3" teamClassName="text-[1.65rem] leading-[0.9]" separatorClassName="my-1 text-[0.65rem] tracking-[0.16em]" />
               <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.08em]">{statusGroup === "postponed" || statusGroup === "cancelled" ? fixtureStatusLabel(fixture.status) : <>{fixtureDate.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {fixtureDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}</p>
-              <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">{fixture.interested_count} interested</p>
+              {fixture.interested_count > 0 && <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">{fixture.interested_count} interested</p>}
             </Link>
             <button
               type="button"

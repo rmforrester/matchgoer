@@ -265,6 +265,10 @@ class VenueVisitCreate(BaseModel):
     fixture_id: int | None = None
 
 
+class VenueVisitUpdate(BaseModel):
+    fixture_id: int | None = None
+
+
 class VenueVisitResponse(BaseModel):
     visit_id: int
     venue_id: int
@@ -296,6 +300,12 @@ class MyGroundFixtureSummary(BaseModel):
     away_team: str
 
 
+class MyGroundVisitSummary(BaseModel):
+    visit_id: int
+    visit_date: date | None = None
+    fixture_id: int | None = None
+
+
 class MyGroundResponse(BaseModel):
     venue_id: int
     venue_name: str
@@ -308,6 +318,7 @@ class MyGroundResponse(BaseModel):
     first_visit_date: date | None = None
     latest_visit_date: date | None = None
     has_undated_visit: bool
+    visits: list[MyGroundVisitSummary]
     attended_fixtures: list[MyGroundFixtureSummary]
     review: MyGroundReviewSummary | None = None
     community_terrace_rating: float | None = None

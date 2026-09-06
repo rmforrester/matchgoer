@@ -23,7 +23,7 @@ from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, fixture_kickoff_has_passed, utc_date_expression
 from location_safety import has_usable_coordinates
 from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue, resolve_unique_home_club
-from decision import fixture_decision_leads, fixture_decision_payload
+from decision import applicable_decision_payload, fixture_decision_leads, fixture_decision_payload
 
 from models import (
     Fixture,
@@ -43,6 +43,7 @@ from models import (
     MatchBoardPost,
     MatchBoardReport,
     SocialEvent,
+    DecisionFact,
 )
 
 from schemas import (
@@ -57,6 +58,7 @@ from schemas import (
     AwayDayScoreResponse,
     MyReviewResponse,
     VenueVisitCreate,
+    VenueVisitUpdate,
     VenueVisitResponse,
     MyGroundResponse,
     ProfileCreate,
@@ -2187,6 +2189,70 @@ def record_manual_venue_visit(
         db.close()
 
 
+@app.get("/venues/{venue_id}/decision")
+def get_venue_decision(venue_id: int, team_id: int | None = None):
+    db = SessionLocal()
+    try:
+        subjects = [
+            (DecisionFact.subject_type == "VENUE") & (DecisionFact.venue_id == venue_id),
+        ]
+        if team_id is not None:
+            subjects.append((DecisionFact.subject_type == "TEAM") & (DecisionFact.team_id == team_id))
+        facts = db.query(DecisionFact).filter(or_(*subjects)).all()
+        return applicable_decision_payload(facts, date.today())
+    finally:
+        db.close()
+
+
+@app.patch("/venues/{venue_id}/visits/{visit_id}", response_model=VenueVisitResponse)
+def update_venue_visit_fixture(
+    venue_id: int,
+    visit_id: int,
+    data: VenueVisitUpdate,
+    identity: ResolvedIdentity = Depends(required_current_identity),
+):
+    db = SessionLocal()
+    try:
+        visit = db.query(VenueVisit).filter(
+            VenueVisit.visit_id == visit_id,
+            VenueVisit.user_id == identity.user_id,
+            VenueVisit.venue_id == venue_id,
+        ).with_for_update().first()
+        if visit is None:
+            raise HTTPException(status_code=404, detail="Visit not found")
+        if data.fixture_id is None:
+            visit.fixture_id = None
+            visit.source = "manual"
+        else:
+            fixture = db.query(Fixture).filter(Fixture.fixture_id == data.fixture_id).first()
+            if fixture is None:
+                raise HTTPException(status_code=404, detail="Fixture not found")
+            if fixture.venue_id != venue_id:
+                raise HTTPException(status_code=400, detail="Fixture was not played at this venue")
+            duplicate = db.query(VenueVisit.visit_id).filter(
+                VenueVisit.user_id == identity.user_id,
+                VenueVisit.fixture_id == data.fixture_id,
+                VenueVisit.visit_id != visit_id,
+            ).first()
+            if duplicate is not None:
+                raise HTTPException(status_code=409, detail="That match is already in your history")
+            visit.fixture_id = fixture.fixture_id
+            visit.source = "fixture_confirmation"
+            if visit.visit_date is None:
+                visit.visit_date = fixture_datetime_utc(fixture.fixture_date).date()
+        db.commit()
+        db.refresh(visit)
+        return visit
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 @app.get("/my-grounds", response_model=list[MyGroundResponse])
 def get_my_grounds(
     identity: ResolvedIdentity = Depends(required_current_identity),
@@ -2246,6 +2312,14 @@ def get_my_grounds(
                 "first_visit_date": min(dated) if dated else None,
                 "latest_visit_date": max(dated) if dated else None,
                 "has_undated_visit": any(visit.visit_date is None for visit in venue_visits),
+                "visits": [
+                    {
+                        "visit_id": visit.visit_id,
+                        "visit_date": visit.visit_date,
+                        "fixture_id": visit.fixture_id,
+                    }
+                    for visit in venue_visits
+                ],
                 "attended_fixtures": [
                     {
                         "fixture_id": visit.fixture.fixture_id,

@@ -42,6 +42,8 @@ const fixturePageSource = readFileSync(new URL("../app/fixture/[fixtureId]/page.
 const groundMarkerSource = readFileSync(new URL("../app/components/groundMarkerIcon.ts", import.meta.url), "utf8");
 const shortlistSource = readFileSync(new URL("../app/components/DiscoverShortlist.tsx", import.meta.url), "utf8");
 const matchdaysSource = readFileSync(new URL("../app/components/InterestedTab.tsx", import.meta.url), "utf8");
+const groundsSource = readFileSync(new URL("../app/components/VisitedTab.tsx", import.meta.url), "utf8");
+const groundPageSource = readFileSync(new URL("../app/venue/[venueId]/page.tsx", import.meta.url), "utf8");
 
 function decisionFixture(overrides: Partial<Fixture>): Fixture {
   return {
@@ -139,6 +141,15 @@ test("fixture page renders WHY THIS MATCH only when DECIDE reasons exist", () =>
   assert.match(fixturePageSource, /decisionReasons\.slice\(1\)/);
 });
 
+test("fixture page keeps one ground route and surfaces only the differentiated before-match signal", () => {
+  assert.doesNotMatch(fixturePageSource, /Know before you go/);
+  assert.doesNotMatch(fixturePageSource, /Ground guide/);
+  assert.doesNotMatch(fixturePageSource, /fixtureGuideActions/);
+  assert.equal(fixturePageSource.match(/Explore the ground/g)?.length, 1);
+  assert.match(fixturePageSource, /venueGuide\.before_match\.length > 0/);
+  assert.match(fixturePageSource, /Before the match · \{venueGuide\.before_match\.length\}/);
+});
+
 test("Discover shortlist contains only future interested fixtures and stays compact", () => {
   assert.match(discoverPageSource, /!fixture\.kickoff_passed/);
   assert.match(discoverPageSource, /fixture\.fixture_date/);
@@ -156,7 +167,8 @@ test("My Matchdays is confirmation and attended history, never prospective plann
   assert.match(matchdaysSource, /setInterval\(\(\) => setMatchdayNow\(new Date\(\)\), 60_000\)/);
   assert.match(matchdaysSource, /Did you go\?/);
   assert.match(matchdaysSource, /Yes, I was there/);
-  assert.match(matchdaysSource, /No, I didn&apos;t go/);
+  assert.match(matchdaysSource, /Didn&apos;t go/);
+  assert.match(matchdaysSource, /setFixtures\(\(current\) => current\.filter/);
   assert.match(matchdaysSource, /if \(attended && !attendedFixtureIds\.has/);
   assert.match(matchdaysSource, /api\.post\(`\/fixtures\/\$\{fixture\.fixture_id\}\/attendance`\)/);
   assert.match(matchdaysSource, /api\.delete\(`\/fixtures\/\$\{fixture\.fixture_id\}\/interested`\)/);
@@ -171,6 +183,30 @@ test("My Matchdays uses one empty state and does not preserve non-attendance his
   assert.equal((matchdaysSource.match(/Your matchday history starts here/g) ?? []).length, 1);
   assert.doesNotMatch(matchdaysSource, /No upcoming plans|No past plans|No attended matches/);
   assert.doesNotMatch(matchdaysSource, /didn.?t attend.*history/i);
+});
+
+test("My Grounds filters one coherent visit view and keeps cards supporter-facing", () => {
+  assert.match(groundsSource, /groundTimeframes/);
+  assert.match(groundsSource, /groundsInTimeframe\(grounds, timeframe\)/);
+  assert.match(groundsSource, /PersonalGroundMap grounds=\{visibleGrounds\}/);
+  assert.match(groundsSource, /Last there ·/);
+  assert.doesNotMatch(groundsSource, />Visits</);
+  assert.doesNotMatch(groundsSource, />My rating</);
+  assert.doesNotMatch(groundsSource, />Terrace rating</);
+});
+
+test("visits can attach, change, or remove an optional fixture without another model", () => {
+  assert.match(groundsSource, /visits\/\$\{visitId\}/);
+  assert.match(groundsSource, /fixture_id: fixtureId/);
+  assert.match(groundsSource, /Attach match/);
+  assert.match(groundsSource, /Change match/);
+  assert.match(groundsSource, /Remove link/);
+});
+
+test("Ground surfaces approved WHY GO only and suppresses meaningless zero interested counts", () => {
+  assert.match(groundPageSource, /decisionReasons\.length > 0/);
+  assert.match(groundPageSource, /Why go\?/);
+  assert.match(groundPageSource, /fixture\.interested_count > 0/);
 });
 
 test("manual search keeps dates visible before genuinely optional filters and the single Search action", () => {
