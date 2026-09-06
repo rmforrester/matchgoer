@@ -1,0 +1,34 @@
+{
+  "action": "dry-run",
+  "hosted_writes": 0,
+  "migrations": 0,
+  "know": {
+    "total": 36,
+    "btm_populated": 21,
+    "intentional_null": 15,
+    "status": {
+      "TECHNICAL_PRECONDITION / MISSING_CURRENT_HOME": 36
+    }
+  },
+  "decide": {
+    "total": 59,
+    "existing_approved": 47,
+    "great_support": 12,
+    "status": {
+      "CURRENT": 51,
+      "DORMANT": 8
+    },
+    "actions": {
+      "ALREADY_PRESENT": 37,
+      "DORMANT_NO_WRITE": 8,
+      "INSERT": 14
+    }
+  },
+  "entry_candidates": 0,
+  "entry_omissions": 36,
+  "club_venue_remediation": {
+    "proposed_relationships": 36,
+    "hosted_writes": 0
+  },
+  "reviewed_at": "2026-09-06"
+}
