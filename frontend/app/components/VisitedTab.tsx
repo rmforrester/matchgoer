@@ -182,7 +182,7 @@ export default function VisitedTab() {
 
   return <main className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
     <header className="border-b-2 border-[var(--tt-ink)] pb-3"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My football world</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Where football has taken you.</p></header>
-    <a href="#add-ground-heading" className="tt-action mt-4 inline-flex px-5">Add a ground</a>
+    <a href="#add-ground-heading" className="tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">+ Add a ground</a>
     {error && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
     {loading && <p className="mt-6 font-semibold">Loading your ground history…</p>}
     {!loading && grounds.length === 0 && <section className="mt-8 border-y-2 border-[var(--tt-ink)] py-8"><p className="tt-display text-3xl">No grounds recorded yet.</p><p className="mt-2 text-[var(--tt-muted)]">Search below to make your first ground one of yours.</p></section>}

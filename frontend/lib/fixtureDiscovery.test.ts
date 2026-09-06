@@ -46,6 +46,7 @@ const matchdaysSource = readFileSync(new URL("../app/components/InterestedTab.ts
 const groundsSource = readFileSync(new URL("../app/components/VisitedTab.tsx", import.meta.url), "utf8");
 const groundPageSource = readFileSync(new URL("../app/venue/[venueId]/page.tsx", import.meta.url), "utf8");
 const awayDayScoreSource = readFileSync(new URL("../app/components/AwayDayScore.tsx", import.meta.url), "utf8");
+const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 
 function decisionFixture(overrides: Partial<Fixture>): Fixture {
   return {
@@ -197,6 +198,15 @@ test("My Grounds filters one coherent visit view and keeps cards supporter-facin
   assert.doesNotMatch(groundsSource, />Terrace rating</);
   assert.match(groundsSource, /min-h-11 shrink-0 border-b-2/);
   assert.doesNotMatch(groundsSource, /timeframe === option\.key \? "bg-/);
+});
+
+test("My Grounds keeps Add a ground secondary and visited dots light but tappable", () => {
+  assert.match(groundsSource, /tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">\+ Add a ground/);
+  assert.match(groundMarkerSource, /width="14" height="14" viewBox="0 0 14 14"/);
+  assert.match(groundMarkerSource, /r="6" fill="#2146D0" stroke="#171717" stroke-width="1\.5"/);
+  assert.match(groundMarkerSource, /iconSize: \[VENUE_MARKER_DESIGN\.hitSize, VENUE_MARKER_DESIGN\.hitSize\]/);
+  assert.equal(VENUE_MARKER_DESIGN.hitSize, 44);
+  assert.match(globalStylesSource, /\.tt-attended-ground-marker__visual \{ display: grid; height: 44px; place-items: center; width: 44px; \}/);
 });
 
 test("visits can attach, change, or remove an optional fixture without another model", () => {

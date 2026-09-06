@@ -47,8 +47,8 @@ export function createGroundMarkerIcon(visited = false, selected = false, highli
 }
 
 const attendedGroundMarkerSvg = `
-  <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="9" cy="9" r="6" fill="#2146D0" stroke="#171717" stroke-width="2" />
+  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="7" cy="7" r="6" fill="#2146D0" stroke="#171717" stroke-width="1.5" />
   </svg>
 `;
 
