@@ -37,8 +37,9 @@ class PreMatchSpotResponse(BaseModel):
     display_name: str
     classification: str
     audience: str
-    supporting_line: str
-    directions_url: str
+    supporting_line: str | None = None
+    location_context: str | None = None
+    directions_url: str | None = None
 
 
 class VenueGuideResponse(BaseModel):

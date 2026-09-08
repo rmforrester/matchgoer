@@ -332,8 +332,9 @@ class PreMatchSpot(Base):
     __tablename__ = "pre_match_spots"
     __table_args__ = (
         CheckConstraint("btrim(display_name) <> ''", name="ck_pre_match_spots_name_not_blank"),
-        CheckConstraint("btrim(supporting_line) <> ''", name="ck_pre_match_spots_line_not_blank"),
-        CheckConstraint("btrim(maps_destination) <> ''", name="ck_pre_match_spots_maps_not_blank"),
+        CheckConstraint("supporting_line IS NULL OR btrim(supporting_line) <> ''", name="ck_pre_match_spots_line_not_blank"),
+        CheckConstraint("maps_destination IS NULL OR btrim(maps_destination) <> ''", name="ck_pre_match_spots_maps_not_blank"),
+        CheckConstraint("location_context IS NULL OR btrim(location_context) <> ''", name="ck_pre_match_spots_location_context_not_blank"),
         CheckConstraint("classification IN ('SUPPORTER_SPOT', 'CLUB_MATCHDAY_VENUE', 'SUPPORTER_AREA')", name="ck_pre_match_spots_classification"),
         CheckConstraint("audience IN ('HOME', 'MIXED')", name="ck_pre_match_spots_audience"),
         CheckConstraint("confidence IN ('HIGH', 'MEDIUM', 'LOW')", name="ck_pre_match_spots_confidence"),
@@ -349,8 +350,9 @@ class PreMatchSpot(Base):
     display_name = Column(String(160), nullable=False)
     classification = Column(String(30), nullable=False)
     audience = Column(String(10), nullable=False)
-    supporting_line = Column(String(255), nullable=False)
-    maps_destination = Column(String(300), nullable=False)
+    supporting_line = Column(String(255), nullable=True)
+    maps_destination = Column(String(300), nullable=True)
+    location_context = Column(String(255), nullable=True)
     confidence = Column(String(10), nullable=False)
     status = Column(String(20), nullable=False, default="DRAFT")
     business_status = Column(String(20), nullable=False, default="UNKNOWN")

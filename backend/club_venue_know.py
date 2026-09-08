@@ -5,6 +5,13 @@ from __future__ import annotations
 from datetime import date
 from typing import Iterable
 from urllib.parse import urlencode
+import re
+
+INTERNAL_PUBLIC_COPY = re.compile(
+    r"\b(recovered?|approved?|editorial(?:ly)?|catalog(?:ue)?|canonical|evidence(?:d)?|"
+    r"implementation|reconciliation|dormant|candidate|provenance|ledger|manifest|materiali[sz]ed)\b",
+    re.IGNORECASE,
+)
 
 
 def resolve_club_venue(home_team_id: int | None, venue_id: int | None, relationships: Iterable, *, on_date: date | None = None):
@@ -61,7 +68,16 @@ def publishable_spots(relationship, spots: Iterable, *, today: date | None = Non
     )
 
 
-def google_maps_search_url(destination: str) -> str:
+def public_supporting_line(value: str | None) -> str | None:
+    """Fail closed when internal workflow copy reaches a public field."""
+    if value is None or not value.strip() or INTERNAL_PUBLIC_COPY.search(value):
+        return None
+    return value
+
+
+def google_maps_search_url(destination: str | None) -> str | None:
+    if destination is None or not destination.strip():
+        return None
     return "https://www.google.com/maps/search/?" + urlencode({"api": "1", "query": destination})
 
 

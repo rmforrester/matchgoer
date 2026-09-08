@@ -6,6 +6,7 @@ from urllib.parse import parse_qs, urlparse
 from club_venue_know import (
     google_maps_search_url,
     guide_facts_for_relationship,
+    public_supporting_line,
     publishable_spots,
     resolve_club_venue,
     resolve_unique_home_club,
@@ -135,6 +136,15 @@ class PreMatchPublicationTests(unittest.TestCase):
         query = parse_qs(urlparse(url).query)
         self.assertEqual(query, {"api": ["1"], "query": ["Bishop Blaize, Stretford"]})
         self.assertNotIn("origin", url)
+
+    def test_missing_destination_suppresses_directions(self):
+        self.assertIsNone(google_maps_search_url(None))
+        self.assertIsNone(google_maps_search_url("  "))
+
+    def test_internal_public_copy_fails_closed(self):
+        self.assertIsNone(public_supporting_line("Recovered approved pre-match destination."))
+        self.assertIsNone(public_supporting_line(None))
+        self.assertEqual(public_supporting_line("Open before kick-off."), "Open before kick-off.")
 
 
 class EvidenceAndFactTests(unittest.TestCase):

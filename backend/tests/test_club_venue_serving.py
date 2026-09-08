@@ -28,7 +28,9 @@ class ClubVenueServingTests(unittest.TestCase):
                 VenueGuideFact(club_venue_id=self.other_club_venue_id, section="tickets_entry", topic="other_club", content="Must not leak", source_type="official", reviewed_at=today, confidence="high", status="current", display_order=1),
             ])
             spots = [
-                self.spot("Third", 3), self.spot("First", 1, classification="SUPPORTER_SPOT", audience="HOME", supporting_line="Popular with home fans before matches."), self.spot("Second", 2, audience="MIXED"),
+                self.spot("Third", 3, supporting_line=None, maps_destination=None),
+                self.spot("First", 1, classification="SUPPORTER_SPOT", audience="HOME", supporting_line="Popular with home fans before matches."),
+                self.spot("Second", 2, audience="MIXED", maps_destination=None, location_context="Behind the north stand."),
             ]
             db.add_all(spots); db.commit()
         finally:
@@ -94,9 +96,14 @@ class ClubVenueServingTests(unittest.TestCase):
         self.assertEqual([spot["display_name"] for spot in spots], ["First", "Second", "Third"])
         self.assertEqual(spots[0]["classification"], "SUPPORTER_SPOT")
         self.assertEqual(spots[1]["audience"], "MIXED")
-        self.assertEqual(set(spots[0]), {"pre_match_spot_id", "display_name", "classification", "audience", "supporting_line", "directions_url"})
+        self.assertEqual(set(spots[0]), {"pre_match_spot_id", "display_name", "classification", "audience", "supporting_line", "location_context", "directions_url"})
         self.assertIn("query=First%2C+Test", spots[0]["directions_url"])
         self.assertNotIn("origin", spots[0]["directions_url"])
+        self.assertEqual(spots[1]["location_context"], "Behind the north stand.")
+        self.assertIsNone(spots[1]["directions_url"])
+        self.assertIsNone(spots[2]["supporting_line"])
+        self.assertIsNone(spots[2]["location_context"])
+        self.assertIsNone(spots[2]["directions_url"])
 
 
 if __name__ == "__main__":

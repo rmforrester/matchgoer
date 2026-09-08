@@ -22,8 +22,9 @@ export type VenueGuide = {
     display_name: string;
     classification: "SUPPORTER_SPOT" | "CLUB_MATCHDAY_VENUE" | "SUPPORTER_AREA";
     audience: "HOME" | "MIXED";
-    supporting_line: string;
-    directions_url: string;
+    supporting_line: string | null;
+    location_context: string | null;
+    directions_url: string | null;
   }>;
 };
 

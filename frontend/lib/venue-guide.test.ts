@@ -146,6 +146,7 @@ test("fixture guide context is explicit, shareable, and keeps the gateway compac
     classification: "SUPPORTER_SPOT",
     audience: "HOME",
     supporting_line: "Popular with home fans before matches.",
+    location_context: null,
     directions_url: "https://www.google.com/maps/search/?api=1&query=The+Supporters+Pub",
   }];
   const actions = fixtureGuideActions(contextual, 494, { latitude: 51.5, longitude: -0.1 }, 42);

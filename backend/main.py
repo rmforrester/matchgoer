@@ -22,7 +22,7 @@ from identity import (
 from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, fixture_kickoff_has_passed, utc_date_expression
 from location_safety import has_usable_coordinates
-from club_venue_know import google_maps_search_url, guide_facts_for_relationship, publishable_spots, resolve_club_venue, resolve_unique_home_club
+from club_venue_know import google_maps_search_url, guide_facts_for_relationship, public_supporting_line, publishable_spots, resolve_club_venue, resolve_unique_home_club
 from decision import applicable_decision_payload, fixture_decision_leads, fixture_decision_payload
 
 from models import (
@@ -290,7 +290,8 @@ def get_venue_guide(venue_id: int, team_id: int | None = None):
                 "display_name": spot.display_name,
                 "classification": spot.classification,
                 "audience": spot.audience,
-                "supporting_line": spot.supporting_line,
+                "supporting_line": public_supporting_line(spot.supporting_line),
+                "location_context": spot.location_context,
                 "directions_url": google_maps_search_url(spot.maps_destination),
             } for spot in spots],
         })
