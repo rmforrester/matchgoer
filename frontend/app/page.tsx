@@ -794,6 +794,7 @@ const loadVisitedStadiums = () => {
   userLocation={userLocation}
   selectedFixtureId={selectedFixtureId}
   onFixtureSelect={setSelectedFixtureId}
+  onFixtureDismiss={(fixtureId) => setSelectedFixtureId((current) => current === fixtureId ? null : current)}
   showDistance={appliedSearch.mode !== "viewport"}
 />
             </div>

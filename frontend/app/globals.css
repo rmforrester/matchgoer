@@ -89,5 +89,7 @@ body {
 .tt-scrollbar::-webkit-scrollbar-thumb { background: var(--tt-blue); }
 
 @media (max-width: 640px) {
-  .tt-map { height: 18rem; }
+  .tt-map { height: min(65vh, 24rem); min-height: 22rem; }
+  .tt-fixture-popup .leaflet-popup-content { margin: 0.45rem; min-width: min(12rem, calc(100vw - 5rem)); }
+  .tt-fixture-popup .tt-fixture-popup-optional { display: none; }
 }

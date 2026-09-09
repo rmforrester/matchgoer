@@ -55,6 +55,7 @@ type Props = {
   userLocation: { latitude: number; longitude: number } | null;
   selectedFixtureId: number | null;
   onFixtureSelect: (fixtureId: number) => void;
+  onFixtureDismiss: (fixtureId: number) => void;
   showDistance: boolean;
 };
 
@@ -65,10 +66,12 @@ type FixtureVenueMarkerProps = {
   visited: boolean;
   icon: L.DivIcon;
   onFixtureSelect: (fixtureId: number) => void;
+  onFixtureDismiss: (fixtureId: number) => void;
   showDistance: boolean;
+  compactMobile: boolean;
 };
 
-function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, showDistance }: FixtureVenueMarkerProps) {
+function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, onFixtureDismiss, showDistance, compactMobile }: FixtureVenueMarkerProps) {
   const map = useMap();
   const decision = fixtureGroupDecision(group.fixtures);
   const [fixtureIndex, setFixtureIndex] = useState(decision.initialFixtureIndex);
@@ -83,11 +86,11 @@ function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, showDistanc
   const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
   const statusGroup = fixtureStatusGroup(fixture.status);
 
-  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => { setFixtureIndex(decision.initialFixtureIndex); onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id); } }}>
-    <Popup closeButton={false} offset={[0, -8]} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
-      <button type="button" onClick={() => map.closePopup()} aria-label="Close fixture details" className="absolute right-2 top-2 grid min-h-9 min-w-9 place-items-center border border-[var(--tt-ink)] text-lg font-bold leading-none">×</button>
+  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => { setFixtureIndex(decision.initialFixtureIndex); onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id); }, popupclose: () => onFixtureDismiss(fixture.fixture_id) }}>
+    <Popup closeButton={false} offset={[0, -8]} {...FIXTURE_POPUP_BEHAVIOR} autoPan={!compactMobile} className="tt-fixture-popup">
+      <button type="button" onClick={() => { onFixtureDismiss(fixture.fixture_id); map.closePopup(); }} aria-label="Dismiss selected fixture" className="absolute right-2 top-2 grid min-h-11 min-w-11 place-items-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-2xl font-bold leading-none">×</button>
       <div className="pr-10">
-      {fixture.highlight_eligible && fixture.lead_decision_reason && <div className="mb-2 border-l-4 border-[var(--tt-gold)] pl-3">
+      {fixture.highlight_eligible && fixture.lead_decision_reason && <div className="tt-fixture-popup-optional mb-2 border-l-4 border-[var(--tt-gold)] pl-3">
         <strong className="line-clamp-2 break-words text-sm leading-tight">{fixture.lead_decision_reason.emoji} {fixture.lead_decision_reason.label}</strong>
       </div>}
       <strong className="line-clamp-2 break-words leading-tight">{card.matchup}</strong>
@@ -98,7 +101,7 @@ function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, showDistanc
       </span>
       <span className="mt-1 block text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)]">{fixture.league_name}</span>
       <span className="mt-1 block truncate text-xs font-bold">{fixture.venue_name}</span>
-      {showDistance && Number.isFinite(fixture.distance_miles) && <span className="mt-1 block text-xs text-[var(--tt-muted)]">{fixture.distance_miles.toFixed(1)} mi away</span>}
+      {showDistance && Number.isFinite(fixture.distance_miles) && <span className="tt-fixture-popup-optional mt-1 block text-xs text-[var(--tt-muted)]">{fixture.distance_miles.toFixed(1)} mi away</span>}
       </div>
       {fixtureCount > 1 && <div className="mt-3 flex items-center justify-between gap-3" aria-label="Fixtures at this stadium">
         <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="min-h-11 px-2 text-lg">←</button>
@@ -190,6 +193,7 @@ export default function FixtureMap({
   userLocation,
   selectedFixtureId,
   onFixtureSelect,
+  onFixtureDismiss,
   showDistance,
 }: Props) {
   const fixtureGroups = useMemo(() => groupFixturesByVenue(fixtures), [fixtures]);
@@ -197,6 +201,7 @@ export default function FixtureMap({
   const [areaSearchAvailable, setAreaSearchAvailable] = useState(false);
   const [tileError, setTileError] = useState(false);
   const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(null);
+  const [compactMobile, setCompactMobile] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const suppressMovementRef = useRef(false);
   const groundIcon = useMemo(() => createGroundMarkerIcon(false), []);
@@ -208,6 +213,13 @@ export default function FixtureMap({
   const selectedHighlightedGroundIcon = useMemo(() => createGroundMarkerIcon(false, true, true), []);
   const selectedHighlightedVisitedGroundIcon = useMemo(() => createGroundMarkerIcon(true, true, true), []);
   const userLocationIcon = useMemo(() => createUserLocationIcon(), []);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 640px)");
+    const update = () => setCompactMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   // Fixture and venue locations share the same editorial ground marker.
 
@@ -357,7 +369,7 @@ export default function FixtureMap({
           : selected
             ? visited ? selectedVisitedGroundIcon : selectedGroundIcon
             : visited ? visitedGroundIcon : groundIcon;
-        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icon={icon} onFixtureSelect={onFixtureSelect} showDistance={showDistance} />;
+        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icon={icon} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} showDistance={showDistance} compactMobile={compactMobile} />;
       })}
 
     </MapContainer>
@@ -367,6 +379,8 @@ export default function FixtureMap({
       const liveCenter = area.center;
       console.info("[discovery] Search this area pressed", { appliedCenter: { latitude, longitude }, liveCenter });
       console.assert(hasMeaningfulMapMovement({ latitude, longitude }, liveCenter, radius), "Search this area must use a meaningfully changed live map center");
+      mapRef.current.closePopup();
+      if (selectedFixtureId !== null) onFixtureDismiss(selectedFixtureId);
       await onSearchArea(area);
       setAreaSearchAvailable(false);
     }} className="tt-action tt-map-search-action absolute left-1/2 top-3 z-[1000] -translate-x-1/2 shadow-[2px_2px_0_var(--tt-ink)] disabled:opacity-60">{searchingArea ? "Searching…" : "Search this area"}</button>}

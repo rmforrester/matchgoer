@@ -123,14 +123,51 @@ test("Discover popup and carousel expose only the compact lead reason with restr
   assert.doesNotMatch(fixtureCarouselSource, /decision_reasons/);
 });
 
-test("fixture popup keeps ordinary details, mobile bounds, close control, and View match action", () => {
+test("fixture popup keeps required match details, accessible dismiss, and View match action", () => {
   assert.match(fixtureMapSource, /line-clamp-2 break-words leading-tight/);
   assert.match(fixtureMapSource, /fixture\.league_name/);
   assert.match(fixtureMapSource, /fixture\.venue_name/);
   assert.match(fixtureMapSource, /fixture\.distance_miles\.toFixed\(1\)/);
-  assert.match(fixtureMapSource, /aria-label="Close fixture details"/);
+  assert.match(fixtureMapSource, /aria-label="Dismiss selected fixture"/);
+  assert.match(fixtureMapSource, /min-h-11 min-w-11/);
   assert.match(fixtureMapSource, /View match/);
   assert.match(fixtureMapSource, /tt-fixture-popup/);
+});
+
+test("mobile fixture popup stays compact while preserving the core match fields", () => {
+  assert.match(globalStylesSource, /\.tt-map \{ height: min\(65vh, 24rem\); min-height: 22rem; \}/);
+  assert.match(globalStylesSource, /\.tt-fixture-popup \.tt-fixture-popup-optional \{ display: none; \}/);
+  assert.match(fixtureMapSource, /card\.matchup/);
+  assert.match(fixtureMapSource, /fixture\.fixture_date/);
+  assert.match(fixtureMapSource, /fixture\.league_name/);
+  assert.match(fixtureMapSource, /fixture\.venue_name/);
+  assert.match(fixtureMapSource, /View match/);
+});
+
+test("mobile selection does not own the viewport and dismiss only clears that fixture", () => {
+  assert.match(fixtureMapSource, /autoPan=\{!compactMobile\}/);
+  assert.match(fixtureMapSource, /popupclose: \(\) => onFixtureDismiss\(fixture\.fixture_id\)/);
+  assert.match(fixtureMapSource, /onFixtureDismiss\(fixture\.fixture_id\); map\.closePopup\(\)/);
+  assert.match(discoverPageSource, /setSelectedFixtureId\(\(current\) => current === fixtureId \? null : current\)/);
+  assert.doesNotMatch(fixtureMapSource, /onFixtureDismiss[\s\S]{0,100}setView/);
+});
+
+test("Search This Area captures the live viewport before closing selection and never sets a view", () => {
+  const areaCapture = fixtureMapSource.indexOf("const area = currentMapArea(mapRef.current)");
+  const closeSelection = fixtureMapSource.indexOf("mapRef.current.closePopup()", areaCapture);
+  const request = fixtureMapSource.indexOf("await onSearchArea(area)", closeSelection);
+  assert.ok(areaCapture > -1 && areaCapture < closeSelection && closeSelection < request);
+  const handler = fixtureMapSource.slice(areaCapture, fixtureMapSource.indexOf("setAreaSearchAvailable(false)", request));
+  assert.doesNotMatch(handler, /setView|selectedFixture.*latitude|viewportLatitude/);
+  assert.match(discoverPageSource, /origin: area\.center/);
+  assert.match(discoverPageSource, /latitude: area\.center\.latitude/);
+  assert.match(discoverPageSource, /longitude: area\.center\.longitude/);
+});
+
+test("opening another marker replaces selection without locking pan or zoom", () => {
+  assert.match(fixtureMapSource, /onFixtureSelect\(group\.fixtures\[decision\.initialFixtureIndex\]\.fixture_id\)/);
+  assert.match(fixtureMapSource, /useMapEvents\(\{[\s\S]*moveend\(event\)[\s\S]*zoomend\(\)/);
+  assert.doesNotMatch(fixtureMapSource, /dragging=\{false\}|scrollWheelZoom=\{false\}|doubleClickZoom=\{false\}/);
 });
 
 test("fixture page renders WHY THIS MATCH only when DECIDE reasons exist", () => {
