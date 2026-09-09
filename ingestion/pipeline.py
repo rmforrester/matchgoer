@@ -120,6 +120,43 @@ class TerraceTalkImporter:
             if key != "provider_venue_id" and value is not None
         }
 
+    def _venue_observations(self, team_payloads, fixture_payloads, country: str):
+        observations: dict[int, list[dict[str, Any]]] = {}
+        for item in [*team_payloads, *fixture_payloads]:
+            raw = item.get("venue") or (item.get("fixture") or {}).get("venue") or {}
+            record = self._venue_record(raw, country)
+            if record:
+                observations.setdefault(record["provider_venue_id"], []).append(record)
+        return observations
+
+    def _retained_coordinate_identity_conflict(self, canonical, observations):
+        """Flag an identity change before inherited coordinates can be retained."""
+        def normalized(value):
+            return self._normalize_venue_identity_name(value or "")
+
+        reasons: set[str] = set()
+        for incoming in observations:
+            if canonical.get("country") and incoming.get("country") and normalized(canonical["country"]) != normalized(incoming["country"]):
+                reasons.add("conflicting_country")
+            if canonical.get("city") and incoming.get("city") and normalized(canonical["city"]) != normalized(incoming["city"]):
+                reasons.add("conflicting_city")
+            if canonical.get("name") and incoming.get("name") and normalized(canonical["name"]) != normalized(incoming["name"]):
+                reasons.add("unresolved_name_change")
+        if not reasons:
+            return None
+        return {
+            "existing_venue_id": canonical["venue_id"],
+            "provider": "api_football",
+            "incoming_provider_venue_id": observations[0]["provider_venue_id"],
+            "canonical": {key: canonical.get(key) for key in ("name", "city", "country", "latitude", "longitude")},
+            "observations": [
+                {key: item.get(key) for key in ("name", "city", "country")}
+                for item in observations
+            ],
+            "reasons": sorted(reasons),
+            "action": "preserve canonical identity and coordinates; require reviewed reconciliation",
+        }
+
     def _provider_mapping(self, connection, provider_ids: set[int]) -> dict[int, int]:
         if not provider_ids:
             return {}
@@ -273,6 +310,7 @@ class TerraceTalkImporter:
         if not report.season_available:
             report.failed_api_requests.append("League or requested provider season is unavailable.")
             return report
+        observations = self._venue_observations(team_payloads, fixture_payloads, scope.country)
         report.fixture_coverage = "available" if fixture_payloads else "available, no fixtures returned"
         report.team_coverage = "available" if team_payloads else "available, no teams returned"
         teams: dict[int, dict[str, Any]] = {}
@@ -339,6 +377,15 @@ class TerraceTalkImporter:
         old_teams = self._existing_ids(self.teams, "team_id", set(teams))
         with self.engine.connect() as connection:
             old_venues = set(self._provider_mapping(connection, set(venues)))
+            for provider_id, internal_id in self._provider_mapping(connection, set(observations)).items():
+                canonical = connection.execute(
+                    select(self.venues).where(self.venues.c.venue_id == internal_id)
+                ).mappings().one()
+                conflict = self._retained_coordinate_identity_conflict(
+                    canonical, observations[provider_id]
+                )
+                if conflict:
+                    report.provider_reference_review_candidates.append(conflict)
             existing_venues = connection.execute(select(
                 self.venues.c.venue_id, self.venues.c.provider_venue_id, self.venues.c.name,
                 self.venues.c.address, self.venues.c.city,
@@ -433,6 +480,7 @@ class TerraceTalkImporter:
             if item.get("team", {}).get("id")
         }
         home_team_venues = self._home_team_venues(team_payloads)
+        observations = self._venue_observations(team_payloads, fixture_payloads, scope.country)
         venues: dict[int, dict[str, Any]] = {}
         for item in [*team_payloads, *fixture_payloads]:
             raw = item.get("venue") or (item.get("fixture") or {}).get("venue") or {}
@@ -473,6 +521,17 @@ class TerraceTalkImporter:
             provider_to_internal = self._provider_mapping(connection, set(venues))
             for provider_venue_id, values in venues.items():
                 internal_venue_id = provider_to_internal.get(provider_venue_id)
+                if internal_venue_id is not None:
+                    canonical = connection.execute(
+                        select(self.venues).where(self.venues.c.venue_id == internal_venue_id).with_for_update()
+                    ).mappings().one()
+                    conflict = self._retained_coordinate_identity_conflict(
+                        canonical, observations[provider_venue_id]
+                    )
+                    if conflict:
+                        if conflict not in report.provider_reference_review_candidates:
+                            report.provider_reference_review_candidates.append(conflict)
+                        continue
                 if internal_venue_id is None:
                     internal_venue_id = connection.execute(
                         self.venues.insert().values(**values).returning(self.venues.c.venue_id)

@@ -24,3 +24,31 @@ class VenueReuseTests(unittest.TestCase):
             "latitude": 52.360026,
             "longitude": 9.731016,
         })
+
+    def test_identity_change_with_retained_coordinates_requires_review(self):
+        importer = TerraceTalkImporter.__new__(TerraceTalkImporter)
+        canonical = {
+            "venue_id": 566, "name": "Wembley Stadium", "city": "London",
+            "country": "England", "latitude": 51.556070, "longitude": -0.279603,
+        }
+        incoming = [{
+            "provider_venue_id": 566, "name": "The City Ground",
+            "city": "Nottingham", "country": "England",
+        }]
+        conflict = importer._retained_coordinate_identity_conflict(canonical, incoming)
+        self.assertIsNotNone(conflict)
+        self.assertIn("conflicting_city", conflict["reasons"])
+        self.assertIn("unresolved_name_change", conflict["reasons"])
+        self.assertEqual(conflict["action"], "preserve canonical identity and coordinates; require reviewed reconciliation")
+
+    def test_matching_identity_can_reuse_reviewed_coordinates(self):
+        importer = TerraceTalkImporter.__new__(TerraceTalkImporter)
+        canonical = {
+            "venue_id": 566, "name": "The City Ground", "city": "Nottingham",
+            "country": "England", "latitude": 52.9400, "longitude": -1.1328,
+        }
+        incoming = [{
+            "provider_venue_id": 566, "name": "The City Ground",
+            "city": "Nottingham", "country": "England",
+        }]
+        self.assertIsNone(importer._retained_coordinate_identity_conflict(canonical, incoming))
