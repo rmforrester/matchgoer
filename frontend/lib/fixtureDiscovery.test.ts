@@ -16,6 +16,7 @@ import {
   GEOLOCATION_INSECURE_MESSAGE,
   GEOLOCATION_UNSUPPORTED_MESSAGE,
   isCurrentDiscoveryRequest,
+  localCalendarDateValue,
   manualCurrentLocationOrigin,
   nextFourteenDaysDateRange,
   resolvedLocationTransition,
@@ -294,9 +295,54 @@ test("untouched Discover defaults to fourteen local calendar days", () => {
     startDate: "2026-09-06",
     endDate: "2026-09-19",
   });
-  assert.match(discoverPageSource, /useState\(\(\) => nextFourteenDaysDateRange\(discoveryNow\)\.startDate\)/);
-  assert.match(discoverPageSource, /useState\(\(\) => nextFourteenDaysDateRange\(discoveryNow\)\.endDate\)/);
+  assert.match(discoverPageSource, /useState<Date \| null>\(null\)/);
+  assert.match(discoverPageSource, /const localNow = new Date\(\)/);
+  assert.match(discoverPageSource, /setSelectedStartDate\(\(current\) => current \|\| initialRange\.startDate\)/);
+  assert.match(discoverPageSource, /setEndDate\(\(current\) => current \|\| initialRange\.endDate\)/);
+  assert.match(discoverPageSource, /const endDate = endDateAtOrAfterStart\(startDate, selectedEndDate\)/);
   assert.match(discoverPageSource, /"Next 14 days" : "Custom dates"/);
+});
+
+test("Discover calendar dates follow the browser timezone across UTC boundaries and DST", () => {
+  const originalTimezone = process.env.TZ;
+  const localValue = (timezone: string, instant: string) => {
+    process.env.TZ = timezone;
+    return localCalendarDateValue(new Date(instant));
+  };
+
+  try {
+    assert.equal(localValue("America/New_York", "2026-09-09T01:27:00Z"), "2026-09-08");
+    assert.equal(localValue("America/New_York", "2026-09-09T04:01:00Z"), "2026-09-09");
+    assert.equal(localValue("America/Los_Angeles", "2026-09-09T06:30:00Z"), "2026-09-08");
+    assert.equal(localValue("Europe/Berlin", "2026-09-08T22:30:00Z"), "2026-09-09");
+    assert.equal(localValue("Europe/London", "2026-10-25T00:30:00Z"), "2026-10-25");
+    assert.equal(localValue("Europe/London", "2026-10-25T02:30:00Z"), "2026-10-25");
+  } finally {
+    if (originalTimezone === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTimezone;
+  }
+});
+
+test("weekend shortcut stays on the browser-local week when UTC is already next day", () => {
+  const originalTimezone = process.env.TZ;
+  process.env.TZ = "America/New_York";
+  try {
+    assert.deepEqual(upcomingWeekendDateRange(new Date("2026-09-09T01:27:00Z")), {
+      startDate: "2026-09-11",
+      endDate: "2026-09-13",
+    });
+  } finally {
+    if (originalTimezone === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTimezone;
+  }
+});
+
+test("server render leaves user-local date inputs neutral until client initialization", () => {
+  assert.match(discoverPageSource, /const today = discoveryNow \? localCalendarDateValue\(discoveryNow\) : ""/);
+  assert.match(discoverPageSource, /const \[selectedStartDate, setSelectedStartDate\] =\s*useState\(""\)/);
+  assert.match(discoverPageSource, /className=\{discoveryNow \? "" : "invisible"\}/);
+  assert.match(searchBarSource, /min=\{minimumStartDate\}/);
+  assert.match(searchBarSource, /min=\{startDate \|\| minimumStartDate\}/);
 });
 
 test("weekend shortcut selects the upcoming Friday through Sunday on a weekday", () => {

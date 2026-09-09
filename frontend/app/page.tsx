@@ -27,6 +27,7 @@ import {
   beginGeolocationTransition,
   buildViewportDiscoveryParams,
   discoveryDateRangeError,
+  endDateAtOrAfterStart,
   isCurrentDiscoveryRequest,
   geolocationErrorMessage,
   GEOLOCATION_INSECURE_MESSAGE,
@@ -139,20 +140,21 @@ export default function Home() {
   const [mapViewportTarget, setMapViewportTarget] = useState({ latitude: 0, longitude: 0, revision: 0 });
 
   const [discoveryNow, setDiscoveryNow] =
-    useState(() => new Date());
+    useState<Date | null>(null);
 
-  const today = localCalendarDateValue(discoveryNow);
+  const today = discoveryNow ? localCalendarDateValue(discoveryNow) : "";
 
   const [selectedStartDate, setSelectedStartDate] =
-    useState(() => nextFourteenDaysDateRange(discoveryNow).startDate);
+    useState("");
 
-  const startDate = normalizeDiscoveryStartDate(
-    selectedStartDate,
-    today
-  );
+  const startDate = today
+    ? normalizeDiscoveryStartDate(selectedStartDate, today)
+    : "";
 
-  const [endDate, setEndDate] =
-    useState(() => nextFourteenDaysDateRange(discoveryNow).endDate);
+  const [selectedEndDate, setEndDate] =
+    useState("");
+
+  const endDate = endDateAtOrAfterStart(startDate, selectedEndDate);
 
   const [dateError, setDateError] = useState("");
   const [discoveryError, setDiscoveryError] = useState("");
@@ -347,7 +349,7 @@ const loadVisitedStadiums = () => {
         discoveryRequest.current = null;
       }
     }
-  }, [setSelectedStartDate]);
+  }, [setEndDate, setSelectedStartDate]);
 
   const handleResolvedViewport = useCallback((area: MapSearchArea) => {
     const pending = pendingResolvedSearch.current;
@@ -654,12 +656,23 @@ const loadVisitedStadiums = () => {
   };
 
   useEffect(() => {
+    const initializeClock = window.requestAnimationFrame(() => {
+      const localNow = new Date();
+      const initialRange = nextFourteenDaysDateRange(localNow);
+      setDiscoveryNow(localNow);
+      setSelectedStartDate((current) => current || initialRange.startDate);
+      setEndDate((current) => current || initialRange.endDate);
+    });
+
     const clock = window.setInterval(
       () => setDiscoveryNow(new Date()),
       60_000
     );
 
-    return () => window.clearInterval(clock);
+    return () => {
+      window.cancelAnimationFrame(initializeClock);
+      window.clearInterval(clock);
+    };
   }, []);
 
   // -------------------------
@@ -667,20 +680,20 @@ const loadVisitedStadiums = () => {
   // -------------------------
 
   const visibleFixtures = useMemo(
-    () => selectDiscoveryFixtures(
+    () => discoveryNow ? selectDiscoveryFixtures(
       fixtures,
       appliedSearch?.radius ?? radius,
       discoveryNow,
       appliedSearch?.startDate ?? startDate,
       appliedSearch?.endDate ?? endDate,
       appliedSearch?.mode !== "viewport",
-    ),
+    ) : [],
     [appliedSearch, discoveryNow, endDate, fixtures, radius, startDate]
   );
 
-  const shortlistFixtures = useMemo(() => interestedFixtures
+  const shortlistFixtures = useMemo(() => discoveryNow ? interestedFixtures
     .filter((fixture) => !fixture.kickoff_passed && new Date(fixture.fixture_date).getTime() > discoveryNow.getTime())
-    .sort((left, right) => new Date(left.fixture_date).getTime() - new Date(right.fixture_date).getTime()), [discoveryNow, interestedFixtures]);
+    .sort((left, right) => new Date(left.fixture_date).getTime() - new Date(right.fixture_date).getTime()) : [], [discoveryNow, interestedFixtures]);
 
   const formatSummaryDate = (value: string) => value
     ? new Date(`${value}T12:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short" })
@@ -691,7 +704,9 @@ const loadVisitedStadiums = () => {
       ? formatSummaryDate(appliedSearch.startDate)
       : `${formatSummaryDate(appliedSearch.startDate)}–${formatSummaryDate(appliedSearch.endDate)}`
     : "";
-  const defaultDateRange = nextFourteenDaysDateRange(discoveryNow);
+  const defaultDateRange = discoveryNow
+    ? nextFourteenDaysDateRange(discoveryNow)
+    : { startDate: "", endDate: "" };
   const usingDefaultDateRange = startDate === defaultDateRange.startDate && endDate === defaultDateRange.endDate;
 
   return (
@@ -717,7 +732,7 @@ const loadVisitedStadiums = () => {
         ) : (
           <form onSubmit={submitDiscovery}>
             <p className="tt-kicker mb-2" id="search-heading">Start here</p>
-            <button type="button" onClick={findFootballThisWeekend} disabled={loading || locationLoading} className="tt-action w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14">
+            <button type="button" onClick={findFootballThisWeekend} disabled={!discoveryNow || loading || locationLoading} className="tt-action w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14">
               {locationLoading ? "Finding your location…" : "Find football near me this weekend"}
             </button>
             <div className="my-3 flex items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
@@ -748,7 +763,9 @@ const loadVisitedStadiums = () => {
 
             <div className="mt-2 border-t border-[var(--tt-rule)] pt-2">
               <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.12em]">When? · {usingDefaultDateRange ? "Next 14 days" : "Custom dates"}</p>
-              <DateRangeFields startDate={startDate} setStartDate={setSelectedStartDate} minimumStartDate={today} endDate={endDate} setEndDate={setEndDate} />
+              <div className={discoveryNow ? "" : "invisible"} aria-hidden={discoveryNow ? undefined : true}>
+                <DateRangeFields startDate={startDate} setStartDate={setSelectedStartDate} minimumStartDate={today} endDate={endDate} setEndDate={setEndDate} />
+              </div>
             </div>
 
             <details className="mt-3 border-t border-[var(--tt-rule)] pt-3">
@@ -764,7 +781,7 @@ const loadVisitedStadiums = () => {
               </div>
             </details>
 
-            <button type="submit" disabled={loading || locationLoading} className="tt-action mt-2 w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:block sm:w-auto sm:min-w-40">{loading ? "Searching…" : "Search"}</button>
+            <button type="submit" disabled={!discoveryNow || loading || locationLoading} className="tt-action mt-2 w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:block sm:w-auto sm:min-w-40">{loading ? "Searching…" : "Search"}</button>
 
             {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
             {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
