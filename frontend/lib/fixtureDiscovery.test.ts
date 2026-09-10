@@ -295,10 +295,12 @@ test("manual search keeps dates visible before genuinely optional filters and th
   assert.equal((discoverPageSource.match(/type="submit"/g) ?? []).length, 1);
 });
 
-test("From selection visibly hands off to To and To selection clears that state", () => {
-  assert.match(searchBarSource, /setToNeedsAttention\(Boolean\(nextStartDate\)\)/);
-  assert.match(searchBarSource, /toNeedsAttention \? "border-2 border-\[var\(--tt-blue\)\]/);
-  assert.match(searchBarSource, /setToNeedsAttention\(false\)/);
+test("unified date picker opens one controlled calendar and selects a range", () => {
+  assert.match(searchBarSource, /aria-haspopup="dialog" aria-expanded=\{open\}/);
+  assert.match(searchBarSource, /role="dialog" aria-modal="true" aria-label="Choose match dates"/);
+  assert.match(searchBarSource, /setDraftStart\(day\)[\s\S]*setChoosingEnd\(true\)/);
+  assert.match(searchBarSource, /commit\(draftStart, day\)/);
+  assert.match(searchBarSource, /value >= draftStart && value <= draftEnd/);
 });
 
 test("untouched Discover defaults to fourteen local calendar days", () => {
@@ -314,15 +316,18 @@ test("untouched Discover defaults to fourteen local calendar days", () => {
   assert.match(discoverPageSource, /"Next 14 days" : "Custom dates"/);
 });
 
-test("mobile date controls stack before the desktop breakpoint with explicit logical containment", () => {
-  assert.match(searchBarSource, /tt-date-range grid w-full min-w-0 items-end gap-2/);
-  assert.equal((searchBarSource.match(/<div className="min-w-0">\s*<input\s+(?:ref=\{toDateInput\}\s+)?type="date"/g) ?? []).length, 2);
-  assert.equal((searchBarSource.match(/tt-control w-full min-w-0 px-4 py-2 \[color-scheme:light\]/g) ?? []).length, 2);
-  assert.match(globalStylesSource, /\.tt-date-range \{ grid-template-columns: minmax\(0, 1fr\); \}/);
-  assert.match(globalStylesSource, /@media \(min-width: 641px\)[\s\S]*\.tt-date-range \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/);
-  assert.match(globalStylesSource, /\.tt-date-range > label \{ min-inline-size: 0; \}/);
-  assert.doesNotMatch(globalStylesSource, /\.tt-date-control/);
-  assert.doesNotMatch(globalStylesSource, /\.tt-date-range[^}]*overflow:\s*hidden/);
+test("unified date picker supports one day and the four frozen shortcuts", () => {
+  assert.match(searchBarSource, /setDraftEnd\(day\)[\s\S]*setChoosingEnd\(true\)/);
+  assert.match(searchBarSource, /Tap the same date twice for one day/);
+  for (const label of ["Today", "Tomorrow", "This weekend", "Next weekend"]) assert.match(searchBarSource, new RegExp(label));
+  assert.match(searchBarSource, /upcomingWeekendDateRange\(now\)/);
+  assert.match(searchBarSource, /addCalendarDays\(weekend\.startDate, 7\)/);
+});
+
+test("mobile Discover exposes no visible native date inputs", () => {
+  assert.doesNotMatch(searchBarSource, /type="date"/);
+  assert.doesNotMatch(searchBarSource, /showPicker/);
+  assert.match(searchBarSource, /min-h-11/);
 });
 
 test("Discover landing keeps the two current-location jobs distinct and removes redundant instruction", () => {
@@ -386,12 +391,12 @@ test("weekend shortcut stays on the browser-local week when UTC is already next 
   }
 });
 
-test("server render leaves user-local date inputs neutral until client initialization", () => {
+test("server render leaves the controlled calendar neutral until client initialization", () => {
   assert.match(discoverPageSource, /const today = discoveryNow \? localCalendarDateValue\(discoveryNow\) : ""/);
   assert.match(discoverPageSource, /const \[selectedStartDate, setSelectedStartDate\] =\s*useState\(""\)/);
   assert.match(discoverPageSource, /className=\{discoveryNow \? "" : "invisible"\}/);
-  assert.match(searchBarSource, /min=\{minimumStartDate\}/);
-  assert.match(searchBarSource, /min=\{startDate \|\| minimumStartDate\}/);
+  assert.match(searchBarSource, /disabled = value < minimumStartDate/);
+  assert.match(searchBarSource, /monthStart\(startDate \|\| minimumStartDate\)/);
 });
 
 test("weekend shortcut selects the upcoming Friday through Sunday on a weekday", () => {
