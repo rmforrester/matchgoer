@@ -36,34 +36,38 @@ export function DateRangeFields({ startDate, setStartDate, minimumStartDate, end
     <div className="tt-date-range grid w-full min-w-0 items-end gap-2">
       <label className="grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
         From
-        <input
-          type="date"
-          value={startDate}
-          min={minimumStartDate}
-          className="tt-control tt-date-control w-full min-w-0 max-w-full px-2 [color-scheme:light] sm:px-3"
-          onChange={(event) => {
-            const nextStartDate = event.target.value && event.target.value < minimumStartDate ? minimumStartDate : event.target.value;
-            setStartDate(nextStartDate);
-            setEndDate(endDateAtOrAfterStart(nextStartDate, endDate));
-            setToNeedsAttention(Boolean(nextStartDate));
-            openToPickerAfterUpdate.current = Boolean(nextStartDate);
-          }}
-        />
+        <div className="min-w-0">
+          <input
+            type="date"
+            value={startDate}
+            min={minimumStartDate}
+            className="tt-control w-full min-w-0 px-4 py-2 [color-scheme:light] sm:px-3"
+            onChange={(event) => {
+              const nextStartDate = event.target.value && event.target.value < minimumStartDate ? minimumStartDate : event.target.value;
+              setStartDate(nextStartDate);
+              setEndDate(endDateAtOrAfterStart(nextStartDate, endDate));
+              setToNeedsAttention(Boolean(nextStartDate));
+              openToPickerAfterUpdate.current = Boolean(nextStartDate);
+            }}
+          />
+        </div>
       </label>
 
       <label className={`grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em] ${toNeedsAttention ? "text-[var(--tt-blue)]" : ""}`}>
         To
-        <input
-          ref={toDateInput}
-          type="date"
-          value={endDate}
-          min={startDate || minimumStartDate}
-          className={`tt-control tt-date-control w-full min-w-0 max-w-full px-2 [color-scheme:light] sm:px-3 ${toNeedsAttention ? "border-2 border-[var(--tt-blue)] shadow-[2px_2px_0_var(--tt-blue)]" : ""}`}
-          onChange={(event) => {
-            setEndDate(event.target.value);
-            setToNeedsAttention(false);
-          }}
-        />
+        <div className="min-w-0">
+          <input
+            ref={toDateInput}
+            type="date"
+            value={endDate}
+            min={startDate || minimumStartDate}
+            className={`tt-control w-full min-w-0 px-4 py-2 [color-scheme:light] sm:px-3 ${toNeedsAttention ? "border-2 border-[var(--tt-blue)] shadow-[2px_2px_0_var(--tt-blue)]" : ""}`}
+            onChange={(event) => {
+              setEndDate(event.target.value);
+              setToNeedsAttention(false);
+            }}
+          />
+        </div>
       </label>
     </div>
   );

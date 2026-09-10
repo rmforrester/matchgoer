@@ -316,11 +316,12 @@ test("untouched Discover defaults to fourteen local calendar days", () => {
 
 test("mobile date controls stack before the desktop breakpoint with explicit logical containment", () => {
   assert.match(searchBarSource, /tt-date-range grid w-full min-w-0 items-end gap-2/);
-  assert.equal((searchBarSource.match(/tt-date-control/g) ?? []).length, 2);
+  assert.equal((searchBarSource.match(/<div className="min-w-0">\s*<input\s+(?:ref=\{toDateInput\}\s+)?type="date"/g) ?? []).length, 2);
+  assert.equal((searchBarSource.match(/tt-control w-full min-w-0 px-4 py-2 \[color-scheme:light\]/g) ?? []).length, 2);
   assert.match(globalStylesSource, /\.tt-date-range \{ grid-template-columns: minmax\(0, 1fr\); \}/);
   assert.match(globalStylesSource, /@media \(min-width: 641px\)[\s\S]*\.tt-date-range \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/);
   assert.match(globalStylesSource, /\.tt-date-range > label \{ min-inline-size: 0; \}/);
-  assert.match(globalStylesSource, /\.tt-date-control \{ display: block; inline-size: 100%; max-inline-size: 100%; min-inline-size: 0; \}/);
+  assert.doesNotMatch(globalStylesSource, /\.tt-date-control/);
   assert.doesNotMatch(globalStylesSource, /\.tt-date-range[^}]*overflow:\s*hidden/);
 });
 

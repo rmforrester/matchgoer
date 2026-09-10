@@ -86,7 +86,6 @@ body {
 .tt-mobile-fixture-safe-area { display: none; }
 .tt-date-range { grid-template-columns: minmax(0, 1fr); }
 .tt-date-range > label { min-inline-size: 0; }
-.tt-date-control { display: block; inline-size: 100%; max-inline-size: 100%; min-inline-size: 0; }
 .tt-league-options { max-height: min(40dvh, 20rem); position: relative; width: 100%; }
 .tt-scrollbar { scrollbar-color: var(--tt-blue) var(--tt-rule); scrollbar-width: thin; }
 .tt-scrollbar::-webkit-scrollbar { height: 8px; }
