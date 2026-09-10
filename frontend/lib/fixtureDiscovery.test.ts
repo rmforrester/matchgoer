@@ -136,7 +136,7 @@ test("fixture popup keeps required match details, accessible dismiss, and View m
 });
 
 test("mobile fixture overlay stays in a control-safe area and preserves core match fields", () => {
-  assert.match(globalStylesSource, /\.tt-map \{ height: min\(68vh, 28rem\); min-height: 26rem; \}/);
+  assert.match(globalStylesSource, /\.tt-map \{ height: clamp\(22rem, 58dvh, 25rem\); \}/);
   assert.match(globalStylesSource, /\.tt-mobile-fixture-safe-area \{[\s\S]*bottom: 2rem;[\s\S]*top: 5\.75rem;/);
   assert.match(globalStylesSource, /\.tt-mobile-fixture-card \{[\s\S]*max-width: 100%;[\s\S]*min-width: 0;/);
   assert.match(fixtureMapSource, /tt-mobile-fixture-card/);
@@ -288,7 +288,7 @@ test("completed fixture detail relies on its result and past-match context, not 
 
 test("manual search keeps dates visible before genuinely optional filters and the single Search action", () => {
   const dates = discoverPageSource.indexOf("<DateRangeFields");
-  const optionalFilters = discoverPageSource.indexOf("<span>Optional filters</span>");
+  const optionalFilters = discoverPageSource.indexOf("<span>Filters</span>");
   const search = discoverPageSource.indexOf('type="submit"', optionalFilters);
   assert.ok(dates > -1 && dates < optionalFilters);
   assert.ok(optionalFilters < search);
@@ -312,6 +312,33 @@ test("untouched Discover defaults to fourteen local calendar days", () => {
   assert.match(discoverPageSource, /setEndDate\(\(current\) => current \|\| initialRange\.endDate\)/);
   assert.match(discoverPageSource, /const endDate = endDateAtOrAfterStart\(startDate, selectedEndDate\)/);
   assert.match(discoverPageSource, /"Next 14 days" : "Custom dates"/);
+});
+
+test("Discover landing keeps the two current-location jobs distinct and removes redundant instruction", () => {
+  assert.match(discoverPageSource, /Find football near me this weekend/);
+  assert.match(discoverPageSource, /Use my location/);
+  assert.match(discoverPageSource, /\n\s+Where\?\n/);
+  assert.doesNotMatch(discoverPageSource, /Start here|or search a place|Where do you want to go\?/i);
+});
+
+test("successful results collapse to the applied summary and Edit reopens the form", () => {
+  assert.match(discoverPageSource, /!editingSearch && appliedSearch/);
+  assert.match(discoverPageSource, /appliedSearch\.locationName[\s\S]*appliedDateSummary[\s\S]*All leagues/);
+  assert.match(discoverPageSource, /onClick=\{\(\) => setEditingSearch\(true\)\}/);
+  assert.match(discoverPageSource, /setEditingSearch\(false\)/);
+});
+
+test("mobile filters are bounded inline while desktop retains its dropdown", () => {
+  assert.match(searchBarSource, /tt-league-options/);
+  assert.match(globalStylesSource, /\.tt-league-options \{ max-height: min\(40dvh, 20rem\); position: relative; width: 100%; \}/);
+  assert.match(globalStylesSource, /@media \(min-width: 641px\)[\s\S]*\.tt-league-options \{ max-height: 20rem; position: absolute;/);
+});
+
+test("mobile results retain an intentional carousel teaser and wrap long metadata", () => {
+  assert.match(fixtureCarouselSource, /w-\[87%\] min-w-\[87%\] max-w-none/);
+  assert.match(fixtureCarouselSource, /snap-x snap-mandatory/);
+  assert.match(fixtureCarouselSource, /line-clamp-2 min-w-0 break-words[\s\S]*fixture\.league_name/);
+  assert.match(fixtureCarouselSource, /line-clamp-2 min-w-0 break-words[\s\S]*fixture\.venue_name/);
 });
 
 test("Discover calendar dates follow the browser timezone across UTC boundaries and DST", () => {

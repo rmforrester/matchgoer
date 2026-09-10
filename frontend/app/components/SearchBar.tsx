@@ -97,11 +97,11 @@ export default function SearchBar({ leagues, selectedLeagueIds, setSelectedLeagu
 
       <div className="grid min-w-0 gap-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">
         League <span className="normal-case tracking-normal">Optional</span>
-        <details className="relative">
+        <details className="group relative">
           <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between border border-[var(--tt-rule)] bg-[var(--tt-newsprint)] px-3 font-medium normal-case tracking-normal text-[var(--tt-ink)] marker:content-none hover:border-[var(--tt-ink)]">
             <span>{selectedLeagueIds.length === 0 ? "All leagues" : `${selectedLeagueIds.length} ${selectedLeagueIds.length === 1 ? "league" : "leagues"} selected`}</span><span aria-hidden="true">▾</span>
           </summary>
-          <div className="absolute left-0 z-[1000] mt-1 max-h-80 w-[min(20rem,calc(100vw-3rem))] overflow-y-auto border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 shadow-[4px_4px_0_var(--tt-blue)] sm:left-auto sm:right-0">
+          <div className="tt-league-options mt-1 overflow-y-auto border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 shadow-[3px_3px_0_var(--tt-blue)]">
             <button type="button" onClick={() => setSelectedLeagueIds([])} className="mb-3 min-h-11 w-full border border-[var(--tt-ink)] px-3 text-left text-xs font-extrabold uppercase hover:bg-[var(--tt-blue)] hover:text-[var(--tt-paper)]">All leagues</button>
             <div className="space-y-4">
               {leagues.map((group) => <fieldset key={group.country}>

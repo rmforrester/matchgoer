@@ -50,7 +50,7 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
               key={fixture.fixture_id}
               onFocus={() => onFixtureSelect(fixture.fixture_id)}
               onPointerEnter={() => onFixtureSelect(fixture.fixture_id)}
-              className={`group relative flex h-[18.5rem] w-[72vw] min-w-[14.5rem] max-w-[16rem] snap-start flex-col border-2 bg-[var(--tt-paper)] text-[var(--tt-ink)] transition sm:w-64 ${highlighted ? isSelected ? "-translate-y-0.5 border-[var(--tt-gold)] shadow-[3px_3px_0_var(--tt-gold)]" : "border-[var(--tt-gold)] hover:-translate-y-0.5" : isSelected ? "-translate-y-0.5 border-[var(--tt-blue)] shadow-[3px_3px_0_var(--tt-blue)]" : "border-[var(--tt-ink)] hover:-translate-y-0.5 hover:border-[var(--tt-blue)]"}`}
+              className={`group relative flex h-[18.5rem] w-[87%] min-w-[87%] max-w-none snap-start flex-col border-2 bg-[var(--tt-paper)] text-[var(--tt-ink)] transition sm:w-64 sm:min-w-64 sm:max-w-[16rem] ${highlighted ? isSelected ? "-translate-y-0.5 border-[var(--tt-gold)] shadow-[3px_3px_0_var(--tt-gold)]" : "border-[var(--tt-gold)] hover:-translate-y-0.5" : isSelected ? "-translate-y-0.5 border-[var(--tt-blue)] shadow-[3px_3px_0_var(--tt-blue)]" : "border-[var(--tt-ink)] hover:-translate-y-0.5 hover:border-[var(--tt-blue)]"}`}
             >
               <Link href={`/fixture/${fixture.fixture_id}`} className="flex min-h-0 flex-1 flex-col overflow-hidden p-3 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[var(--tt-blue)]" aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}>
                 {highlighted && fixture.lead_decision_reason && <div className="mb-2 border-l-4 border-[var(--tt-gold)] pl-2">
@@ -67,10 +67,10 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
                 <div className="h-[5.15rem] shrink-0 overflow-hidden">
                   <FixtureTeams homeTeam={fixture.home_team} awayTeam={fixture.away_team} teamClassName="line-clamp-2 text-[1.28rem] leading-[0.92]" separatorClassName="my-0.5 text-[0.62rem]" />
                 </div>
-                <p className="mt-2 truncate text-[0.66rem] font-extrabold uppercase tracking-[0.1em] text-[var(--tt-blue)]">{fixture.league_name}</p>
+                <p className="mt-2 line-clamp-2 min-w-0 break-words text-[0.66rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-[var(--tt-blue)]">{fixture.league_name}</p>
 
                 <div className="mt-auto border-t border-[var(--tt-rule)] pt-2 text-[0.68rem]">
-                  <p className="truncate font-extrabold uppercase tracking-[0.08em]">{fixture.venue_name}</p>
+                  <p className="line-clamp-2 min-w-0 break-words font-extrabold uppercase leading-tight tracking-[0.08em]">{fixture.venue_name}</p>
                   <div className="mt-1 flex items-center justify-between gap-2">
                     <span className="font-bold text-[var(--tt-muted)]">{showMeaningfulDistance ? `${fixture.distance_miles.toFixed(1)} mi away` : ""}</span>
                     {fixture.away_day_score !== null && <span className="font-extrabold text-[var(--tt-blue)]">★ {fixture.away_day_score.toFixed(1)}</span>}

@@ -731,15 +731,15 @@ const loadVisitedStadiums = () => {
           </div>
         ) : (
           <form onSubmit={submitDiscovery}>
-            <p className="tt-kicker mb-2" id="search-heading">Start here</p>
+            <h2 className="sr-only" id="search-heading">Search for football</h2>
             <button type="button" onClick={findFootballThisWeekend} disabled={!discoveryNow || loading || locationLoading} className="tt-action w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14">
               {locationLoading ? "Finding your location…" : "Find football near me this weekend"}
             </button>
-            <div className="my-3 flex items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
-              <span className="h-px flex-1 bg-[var(--tt-rule)]" />or search a place<span className="h-px flex-1 bg-[var(--tt-rule)]" />
+            <div className="my-2 flex items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
+              <span className="h-px flex-1 bg-[var(--tt-rule)]" />or<span className="h-px flex-1 bg-[var(--tt-rule)]" />
             </div>
             <div className="grid gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
-              Where do you want to go?
+              Where?
               <div>
                 <input
                   id="location-search"
@@ -761,16 +761,16 @@ const loadVisitedStadiums = () => {
               </div>
             </div>
 
-            <div className="mt-2 border-t border-[var(--tt-rule)] pt-2">
-              <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.12em]">When? · {usingDefaultDateRange ? "Next 14 days" : "Custom dates"}</p>
+            <div className="mt-1.5 pt-1.5">
+              <p className="mb-1 text-xs font-extrabold uppercase tracking-[0.12em]">When? <span className="ml-1 font-bold normal-case tracking-normal text-[var(--tt-muted)]">{usingDefaultDateRange ? "Next 14 days" : "Custom dates"}</span></p>
               <div className={discoveryNow ? "" : "invisible"} aria-hidden={discoveryNow ? undefined : true}>
                 <DateRangeFields startDate={startDate} setStartDate={setSelectedStartDate} minimumStartDate={today} endDate={endDate} setEndDate={setEndDate} />
               </div>
             </div>
 
-            <details className="mt-3 border-t border-[var(--tt-rule)] pt-3">
+            <details className="mt-2 border-t border-[var(--tt-rule)] pt-1">
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-xs font-extrabold uppercase tracking-[0.12em] marker:content-none">
-                <span>Optional filters</span><span aria-hidden="true">＋</span>
+                <span>Filters</span><span aria-hidden="true">＋</span>
               </summary>
               <div className="pb-1 pt-2">
                 <SearchBar leagues={leagues} selectedLeagueIds={selectedLeagueIds} setSelectedLeagueIds={setSelectedLeagueIds} radius={radius} setRadius={setRadius} />
@@ -781,7 +781,7 @@ const loadVisitedStadiums = () => {
               </div>
             </details>
 
-            <button type="submit" disabled={!discoveryNow || loading || locationLoading} className="tt-action mt-2 w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:block sm:w-auto sm:min-w-40">{loading ? "Searching…" : "Search"}</button>
+            <button type="submit" disabled={!discoveryNow || loading || locationLoading} className="tt-action mt-1.5 w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:mt-2 sm:block sm:w-auto sm:min-w-40">{loading ? "Searching…" : "Search"}</button>
 
             {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
             {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
@@ -793,7 +793,8 @@ const loadVisitedStadiums = () => {
 
       {appliedSearch && (
           <section className="mb-5 w-full min-w-0 max-w-full overflow-x-clip" aria-label={`Matches near ${appliedSearch.locationName.split(",")[0]}`}>
-            <div className="border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-1.5">
+            <p className="tt-kicker mb-1">02 / Map · Geography</p>
+            <div className="border border-[var(--tt-rule)] bg-[var(--tt-paper)] p-1">
 <FixtureMap
   fixtures={visibleFixtures}
   venues={venues}

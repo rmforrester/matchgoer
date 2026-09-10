@@ -84,6 +84,7 @@ body {
 .tt-fixture-popup .leaflet-popup-content { margin: 0.65rem; max-width: min(15rem, calc(100vw - 5rem)); min-width: 12rem; }
 .tt-fixture-popup .leaflet-popup-content-wrapper { border-radius: var(--tt-radius); }
 .tt-mobile-fixture-safe-area { display: none; }
+.tt-league-options { max-height: min(40dvh, 20rem); position: relative; width: 100%; }
 .tt-scrollbar { scrollbar-color: var(--tt-blue) var(--tt-rule); scrollbar-width: thin; }
 .tt-scrollbar::-webkit-scrollbar { height: 8px; }
 .tt-scrollbar::-webkit-scrollbar-track { background: var(--tt-rule); }
@@ -93,7 +94,7 @@ body {
   input.tt-control,
   select.tt-control,
   textarea.tt-control { font-size: 1rem; }
-  .tt-map { height: min(68vh, 28rem); min-height: 26rem; }
+  .tt-map { height: clamp(22rem, 58dvh, 25rem); }
   .tt-fixture-popup .leaflet-popup-content { margin: 0.45rem; min-width: min(12rem, calc(100vw - 5rem)); }
   .tt-fixture-popup .tt-fixture-popup-optional { display: none; }
   .tt-mobile-fixture-safe-area {
@@ -119,4 +120,8 @@ body {
     pointer-events: auto;
     width: 100%;
   }
+}
+
+@media (min-width: 641px) {
+  .tt-league-options { max-height: 20rem; position: absolute; right: 0; width: min(20rem, calc(100vw - 3rem)); z-index: 1000; }
 }
