@@ -570,6 +570,20 @@ class TerraceTalkImporter:
                 )
                 if link_source != "manual_verified" or override is None or override in manual_internal_ids:
                     continue
+                if override.canonical_provider_venue_id is not None:
+                    internal_venue_id = connection.execute(
+                        select(self.venue_provider_refs.c.venue_id).where(
+                            self.venue_provider_refs.c.provider == override.provider,
+                            self.venue_provider_refs.c.provider_venue_id == override.canonical_provider_venue_id,
+                        )
+                    ).scalar_one_or_none()
+                    if internal_venue_id is None:
+                        raise RuntimeError(
+                            "Reviewed provider-backed venue override is unresolved: "
+                            f"{override.provider}:{override.canonical_provider_venue_id}"
+                        )
+                    manual_internal_ids[override] = internal_venue_id
+                    continue
                 internal_venue_id = connection.execute(
                     select(self.venues.c.venue_id).where(
                         self.venues.c.provider_venue_id.is_(None),

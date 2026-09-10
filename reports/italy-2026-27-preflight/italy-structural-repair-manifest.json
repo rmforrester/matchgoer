@@ -1,0 +1,711 @@
+[
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23424
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 879,
+    "team_name": "Albinoleffe"
+  },
+  {
+    "canonical_basis": {
+      "contradiction": "All 19 imported provider fixtures currently resolve to canonical 23439 Stadio Ernesto Breda, contrary to the current official club announcement and schedule.",
+      "official_announcement_date": "2026-06-21",
+      "official_announcement_url": "https://www.milanorange1952.com/nuovo-accordo-tra-alcione-milano-e-seregno-fbc-il-club-orange-giochera-le-gare-casalinghe-allo-stadio-ferruccio/",
+      "official_schedule_url": "https://www.milanorange1952.com/schedule/",
+      "provider_directory_identity": {
+        "address": "Via Avogadro",
+        "capacity": 3700,
+        "city": "Seregno",
+        "country": "Italy",
+        "id": 2772,
+        "name": "Stadio Ferrucio"
+      },
+      "provider_directory_snapshot": "C:/Users/rmfor/OneDrive/Documents/terrace-talk/.cache/italy-readonly-20260906/italy_venues.json"
+    },
+    "code_files_required": [
+      "config/venue_overrides.py",
+      "ingestion/pipeline.py",
+      "ingestion/tests/test_venue_override_precedence.py"
+    ],
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "address": "Via Avogadro",
+      "canonical_name": "Stadio Ferruccio",
+      "capacity": 3700,
+      "city": "Seregno",
+      "country": "Italy",
+      "fixture_ids": [
+        1608231,
+        1608252,
+        1608281,
+        1608301,
+        1608322,
+        1608331,
+        1608351,
+        1608371,
+        1608391,
+        1608411,
+        1608431,
+        1608452,
+        1608461,
+        1608486,
+        1608502,
+        1608531,
+        1608551,
+        1608571,
+        1608591
+      ],
+      "provider": "api_football",
+      "provider_observed_name": "Stadio Ferrucio",
+      "provider_venue_id": 2772,
+      "relationship_status": "CURRENT",
+      "relationship_type": "HOME",
+      "venue_editorial_key": "italy:venue:stadio-ferruccio:seregno"
+    },
+    "current_state": {
+      "club_venue": null,
+      "fixture_venue_city": "Sesto San Giovanni",
+      "fixture_venue_id": 23439,
+      "fixture_venue_name": "Stadio Ernesto Breda",
+      "home_fixture_count": 19,
+      "teams_venue_id": 23435,
+      "teams_venue_name": "Campo Comunale Kennedy"
+    },
+    "entity": "venue + team venue + fixtures + club_venue + ingestion override",
+    "exact_proposed_mutation": [
+      "Insert one canonical Stadio Ferruccio venue only if provider reference api_football:2772 remains absent; bind provider 2772 to that new venue and retain provider spelling as an observed name.",
+      "Set Alcione teams.venue_id to the resolved Stadio Ferruccio canonical venue.",
+      "Update only the listed 19 Alcione 2026/27 home fixtures to the Stadio Ferruccio venue, name and city; do not alter fixture identity, date, teams, competition or status.",
+      "Insert exactly one Alcione HOME/CURRENT club_venue at Stadio Ferruccio.",
+      "Extend the reviewed override model to target canonical provider venue 2772, then add a league=138, season=2026, home_team_provider_id=17824 manual_verified override so future imports select that provider-backed Stadio Ferruccio identity before the erroneous fixture provider venue; never create a second provider-null manual venue."
+    ],
+    "explicit_non_actions": [
+      "Do not rename canonical venue 23439.",
+      "Do not alias Stadio Ernesto Breda to Stadio Ferruccio.",
+      "Do not move or rebind the provider reference belonging to Stadio Ernesto Breda.",
+      "Do not delete historical Campo Comunale Kennedy identity data."
+    ],
+    "hosted_impact": {
+      "club_venues_insert": 1,
+      "fixtures_update": 19,
+      "provider_refs_insert": 1,
+      "teams_update": 1,
+      "venues_insert": 1
+    },
+    "local_impact": {
+      "club_venues_insert": 1,
+      "fixtures_update": 19,
+      "provider_refs_insert": 1,
+      "teams_update": 1,
+      "venues_insert": 1
+    },
+    "mutation": "APPROVED_COMPOUND_REPAIR_PENDING_PUBLICATION",
+    "resolution": "RESOLVED_TO_STADIO_FERRUCCIO",
+    "team_id": 17824,
+    "team_name": "Alcione"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23428
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 6378,
+    "team_name": "Arzignano Valchiampo"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23436
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 17825,
+    "team_name": "Athletic Carpi"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23421
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 510,
+    "team_name": "Cittadella"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23433
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 17816,
+    "team_name": "Desenzano Calvina"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23434
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 17820,
+    "team_name": "Dolomiti Bellunesi"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23431
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 9450,
+    "team_name": "Folgore Caratese"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23424
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 865,
+    "team_name": "Giana Erminio"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23429
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 6379,
+    "team_name": "Lecco"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23426
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 1689,
+    "team_name": "Lumezzane"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23422
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 513,
+    "team_name": "Novara"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23438
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 24696,
+    "team_name": "Ospitaletto"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23430
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 6380,
+    "team_name": "Pergolettese"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23423
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 526,
+    "team_name": "PRO Vercelli"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23425
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 875,
+    "team_name": "Renate"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23432
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 17147,
+    "team_name": "Trento"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23437
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 22319,
+    "team_name": "Treviso"
+  },
+  {
+    "canonical_basis": "Existing canonical venue 23440 has primary API-Football provider reference 882 and all 19 current Union Brescia home fixtures already use venue 23440.",
+    "competition": "Serie C - Girone A",
+    "correct_state": {
+      "provider": "api_football",
+      "provider_venue_id": 882,
+      "relationship_status": "CURRENT",
+      "relationship_type": "HOME",
+      "venue_id": 23440,
+      "venue_name": "Stadio Mario Rigamonti"
+    },
+    "current_state": {
+      "club_venue": null,
+      "fixture_venue_id": 23440,
+      "home_fixture_count": 19,
+      "teams_venue_id": null
+    },
+    "entity": "team venue + club_venue",
+    "exact_proposed_mutation": [
+      "Set Union Brescia teams.venue_id to 23440.",
+      "Insert exactly one Union Brescia HOME/CURRENT club_venue at venue 23440."
+    ],
+    "hosted_impact": {
+      "club_venues_insert": 1,
+      "teams_update": 1
+    },
+    "local_impact": {
+      "club_venues_insert": 1,
+      "teams_update": 1
+    },
+    "mutation": "APPROVED_COMPOUND_REPAIR_PENDING_PUBLICATION",
+    "resolution": "RESOLVED_TO_STADIO_MARIO_RIGAMONTI",
+    "team_id": 26356,
+    "team_name": "Union Brescia"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23455
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 9510,
+    "team_name": "Campobasso FC"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23449
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 1688,
+    "team_name": "Forli"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23454
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 9499,
+    "team_name": "Grosseto"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23445
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 866,
+    "team_name": "Gubbio"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23448
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 882,
+    "team_name": "Guidonia Montecelio 1937"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23444
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 804,
+    "team_name": "Latina"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23446
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 868,
+    "team_name": "Livorno"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23457
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 9530,
+    "team_name": "Ostia Mare"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23442
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 524,
+    "team_name": "Perugia"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23443
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 525,
+    "team_name": "Pescara"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23452
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 6381,
+    "team_name": "Pianese"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23456
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 9514,
+    "team_name": "Pineto"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23450
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 1705,
+    "team_name": "Ravenna"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23099
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 880,
+    "team_name": "Reggiana"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23447
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 871,
+    "team_name": "Sambenedettese"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23441
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 515,
+    "team_name": "Spezia"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23458
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 9534,
+    "team_name": "Torres"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23453
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 9442,
+    "team_name": "Vado"
+  },
+  {
+    "basis": "teams.venue_id, unique provider venue reference and all 19 current home fixtures agree",
+    "competition": "Serie C - Girone B",
+    "correct_state": {
+      "relationship_type": "HOME",
+      "status": "CURRENT",
+      "venue_id": 23451
+    },
+    "current_state": "ABSENT",
+    "entity": "club_venue",
+    "hosted_impact": 1,
+    "local_impact": 1,
+    "mutation": "INSERT HOME/CURRENT",
+    "team_id": 1708,
+    "team_name": "Vis Pesaro"
+  }
+]

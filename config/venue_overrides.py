@@ -13,9 +13,10 @@ class ManualVenueOverride:
     venue_name: str
     city: str
     country: str
-    latitude: float
-    longitude: float
+    latitude: float | None
+    longitude: float | None
     fixture_provider_id: int | None = None
+    canonical_provider_venue_id: int | None = None
     source: str = "manual_verified"
 
 
@@ -126,6 +127,12 @@ MANUAL_VENUE_OVERRIDES = (
         venue_name="Estadio Francisco de la Hera", city="Almendralejo", country="Spain",
         latitude=38.6843830, longitude=-6.4146752,
         source="manual_verified",
+    ),
+    ManualVenueOverride(
+        provider="api_football", league_id=138, season=2026,
+        home_team_provider_id=17824, team_name="Alcione",
+        venue_name="Stadio Ferruccio", city="Seregno", country="Italy",
+        latitude=None, longitude=None, canonical_provider_venue_id=2772,
     ),
     ManualVenueOverride(
         provider="api_football", league_id=943, season=2026,

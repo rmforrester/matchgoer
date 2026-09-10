@@ -235,6 +235,21 @@ class VenueOverridePrecedenceTests(unittest.TestCase):
         TerraceTalkImporter._fixture_venue_link(fixture(1, 1466), 593, home_venues, scope(436))
         self.assertEqual(home_venues, {593: 1466})
 
+    def test_alcione_current_season_uses_provider_backed_ferruccio_override(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1608231, 1083), 17824, {17824: 1083}, scope(138)
+        )
+        self.assertEqual(result[0], None)
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Stadio Ferruccio")
+        self.assertEqual(result[3].canonical_provider_venue_id, 2772)
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(1608231, 1083), 17824, {17824: 1083}, scope(138, 2027)
+            ),
+            (1083, "fixture_provider", 1083, None),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
