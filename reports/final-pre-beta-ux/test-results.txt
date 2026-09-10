@@ -3,7 +3,7 @@ TypeScript (tsc --noEmit): PASS
 ESLint: PASS after removal of one unused import
 Next.js production build: PASS
 git diff --check: PASS
-Responsive source regression: PASS at 320, 375, 390 and 430px; min-width guards, wrapping and 44px controls retained.
+Responsive hosted Chrome regression: PASS at 320, 375, 390 and 430px; exact viewport widths, no horizontal overflow, and expected fixture/venue/empty-state content.
 KNOW local dry run: PASS (11 updates)
 KNOW local write: PASS (11 content updates)
 KNOW local idempotent rerun: PASS (0 pending)

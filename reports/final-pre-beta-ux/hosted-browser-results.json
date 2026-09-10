@@ -1,0 +1,514 @@
+﻿[
+  {
+    "width": 320,
+    "name": "fixture",
+    "title": "Matchgoer",
+    "viewport": 320,
+    "documentWidth": 320,
+    "overflow": false,
+    "fixture": {
+      "why": true,
+      "know": true,
+      "ground": true,
+      "rollCall": false,
+      "boardCopy": true
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": true,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 320,
+    "name": "venue",
+    "title": "Matchgoer",
+    "viewport": 320,
+    "documentWidth": 320,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": true,
+      "tickets": true,
+      "add": true
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 320,
+    "name": "my-grounds-empty",
+    "title": "Matchgoer",
+    "viewport": 320,
+    "documentWidth": 320,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": false,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": true,
+      "direct": true,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 320,
+    "name": "my-matchdays",
+    "title": "Matchgoer",
+    "viewport": 320,
+    "documentWidth": 320,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": false,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": true,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 375,
+    "name": "fixture",
+    "title": "Matchgoer",
+    "viewport": 375,
+    "documentWidth": 375,
+    "overflow": false,
+    "fixture": {
+      "why": true,
+      "know": true,
+      "ground": true,
+      "rollCall": false,
+      "boardCopy": true
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": true,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 375,
+    "name": "venue",
+    "title": "Matchgoer",
+    "viewport": 375,
+    "documentWidth": 375,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": true,
+      "tickets": true,
+      "add": true
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 375,
+    "name": "my-grounds-empty",
+    "title": "Matchgoer",
+    "viewport": 375,
+    "documentWidth": 375,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": false,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": true,
+      "direct": true,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 375,
+    "name": "my-matchdays",
+    "title": "Matchgoer",
+    "viewport": 375,
+    "documentWidth": 375,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": false,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": true,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 390,
+    "name": "fixture",
+    "title": "Matchgoer",
+    "viewport": 390,
+    "documentWidth": 390,
+    "overflow": false,
+    "fixture": {
+      "why": true,
+      "know": true,
+      "ground": true,
+      "rollCall": false,
+      "boardCopy": true
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": true,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 390,
+    "name": "venue",
+    "title": "Matchgoer",
+    "viewport": 390,
+    "documentWidth": 390,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": true,
+      "tickets": true,
+      "add": true
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 390,
+    "name": "my-grounds-empty",
+    "title": "Matchgoer",
+    "viewport": 390,
+    "documentWidth": 390,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": false,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": true,
+      "direct": true,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 390,
+    "name": "my-matchdays",
+    "title": "Matchgoer",
+    "viewport": 390,
+    "documentWidth": 390,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": false,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": true,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 430,
+    "name": "fixture",
+    "title": "Matchgoer",
+    "viewport": 430,
+    "documentWidth": 430,
+    "overflow": false,
+    "fixture": {
+      "why": true,
+      "know": true,
+      "ground": true,
+      "rollCall": false,
+      "boardCopy": true
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": true,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 430,
+    "name": "venue",
+    "title": "Matchgoer",
+    "viewport": 430,
+    "documentWidth": 430,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": true,
+      "tickets": true,
+      "add": true
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 430,
+    "name": "my-grounds-empty",
+    "title": "Matchgoer",
+    "viewport": 430,
+    "documentWidth": 430,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": false,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": true,
+      "direct": true,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": false,
+      "didYouGo": false,
+      "past": false
+    }
+  },
+  {
+    "width": 430,
+    "name": "my-matchdays",
+    "title": "Matchgoer",
+    "viewport": 430,
+    "documentWidth": 430,
+    "overflow": false,
+    "fixture": {
+      "why": false,
+      "know": false,
+      "ground": false,
+      "rollCall": false,
+      "boardCopy": false
+    },
+    "venue": {
+      "whyGo": false,
+      "wrappers": false,
+      "before": false,
+      "tickets": false,
+      "add": false
+    },
+    "grounds": {
+      "empty": false,
+      "direct": false,
+      "optionalReview": false
+    },
+    "matchdays": {
+      "empty": true,
+      "didYouGo": false,
+      "past": false
+    }
+  }
+]
