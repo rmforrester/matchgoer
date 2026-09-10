@@ -3,7 +3,7 @@ import { hasKnowContent, type FixtureKnow as FixtureKnowData, type KnowFact } fr
 function FactList({ facts }: { facts: KnowFact[] }) {
   return <div className="mt-3 space-y-4">{facts.map((fact) => <article key={fact.know_fact_id}>
     {fact.headline && <h4 className="text-sm font-extrabold uppercase tracking-[0.06em]">{fact.headline}</h4>}
-    <p className={fact.headline ? "mt-1 leading-7" : "leading-7"}>{fact.content}</p>
+    <p className={fact.headline ? "mt-1 text-[0.95rem] leading-6 sm:text-base sm:leading-7" : "text-[0.95rem] leading-6 sm:text-base sm:leading-7"}>{fact.content}</p>
   </article>)}</div>;
 }
 

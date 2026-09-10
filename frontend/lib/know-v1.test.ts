@@ -29,4 +29,13 @@ test("WHY THIS MATCH stays before KNOW and Ground Essentials stays secondary", (
   const ground = fixturePage.indexOf("Ground essentials");
   assert.ok(why >= 0 && know > why && ground > know);
   assert.match(fixturePage, /decisionReasons\[0\]\.explanation/);
+  assert.doesNotMatch(fixturePage, /Before the match · \{venueGuide\.before_match\.length\}/);
+  assert.doesNotMatch(fixturePage, /Terrace roll call/i);
+  assert.match(fixturePage, /Ask other supporters about the match, pubs, travel or the ground\./);
+});
+
+test("venue guide presents useful sections without redundant wrappers", () => {
+  assert.doesNotMatch(venueGuide, /Know before you go/);
+  assert.doesNotMatch(venueGuide, />The essentials</);
+  assert.match(venueGuide, /Where home supporters gather before the game\./);
 });

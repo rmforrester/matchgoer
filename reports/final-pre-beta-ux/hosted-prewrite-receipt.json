@@ -1,0 +1,48 @@
+{
+  "manifest_file_sha256": "009e76287a3f79b59fc1acd270e63ecd72c12ecf0ae494a2df26423480babc81",
+  "manifest_semantic_sha256": "12306f9d39dbec7f089383978312ea17e4d7c6a629e87c5da694ce04dffd56bd",
+  "dry_run": {
+    "mode": "dry-run",
+    "manifest_sha256": "12306f9d39dbec7f089383978312ea17e4d7c6a629e87c5da694ce04dffd56bd",
+    "planned_updates": 11,
+    "already_correct": 0,
+    "executed_updates": 0,
+    "before": {
+      "know_facts": {
+        "rows": 48,
+        "sha256": "ad6c294780ce50a4fa42428c21c04776547214f3a50477eb5666e607ed9e739c"
+      },
+      "know_fact_evidence": {
+        "rows": 63,
+        "sha256": "5eba8bf5d02cab3f7ca11ff28982c21ed4b8ad73b6655458be3e395a5b571a0d"
+      }
+    },
+    "after": {
+      "know_facts": {
+        "rows": 48,
+        "sha256": "ad6c294780ce50a4fa42428c21c04776547214f3a50477eb5666e607ed9e739c"
+      },
+      "know_fact_evidence": {
+        "rows": 63,
+        "sha256": "5eba8bf5d02cab3f7ca11ff28982c21ed4b8ad73b6655458be3e395a5b571a0d"
+      }
+    }
+  },
+  "prewrite_metrics": {
+    "published": {
+      "rows": 48,
+      "fingerprint": "d72153cbbfe27cd4781fca911ac6f4fe"
+    },
+    "untouched_37": {
+      "rows": 37,
+      "fingerprint": "2ba394b603b1e8a7e4d777fe21e0f210"
+    },
+    "evidence": {
+      "rows": 63,
+      "fingerprint": "ff9382981fcc32e81a1e7b975cc81e25"
+    }
+  },
+  "inserts": 0,
+  "deletes": 0,
+  "field": "know_facts.content"
+}

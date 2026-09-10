@@ -58,8 +58,6 @@ type VenueFixture = {
   status: string | null;
   interested_count: number;
 };
-type DecisionReason = { key: string; emoji: string; label: string; explanation: string; importance: string };
-
 type Props = {
   params: Promise<{
     venueId: string;
@@ -84,7 +82,6 @@ export default function VenuePage({
   const [awayDayScore, setAwayDayScore] =
     useState<AwayDayScoreData | null>(null);
   const [guide, setGuide] = useState<VenueGuideData | null>(null);
-  const [decisionReasons, setDecisionReasons] = useState<DecisionReason[]>([]);
 
   const [myGround, setMyGround] =
     useState<MyGround | null>(null);
@@ -113,11 +110,6 @@ const [showAccountPrompt, setShowAccountPrompt] = useState(false);
 
   api
     .get("/session")
-    .then(() => {
-      return api.get(`/venues/${venueId}/decision`, { params: { team_id: teamId ?? undefined } })
-        .then((response) => setDecisionReasons(response.data.decision_reasons ?? []))
-        .catch(() => setDecisionReasons([]));
-    })
     .then(() => {
       // -------------------------------------------------
       // Load venue
@@ -336,8 +328,6 @@ api
       {visitedError && (
         <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{visitedError}</p>
       )}
-
-      {decisionReasons.length > 0 && <section className="tt-section-rule mt-8 pt-4" aria-labelledby="why-go-heading"><p className="tt-kicker">Why go?</p><div className="mt-2 border-l-[8px] border-[var(--tt-gold)] bg-[var(--tt-paper)] p-5"><h2 id="why-go-heading" className="tt-display break-words text-4xl leading-none">{decisionReasons[0].emoji} {decisionReasons[0].label}</h2><p className="mt-3 max-w-3xl leading-7">{decisionReasons[0].explanation}</p></div></section>}
 
       {guide && <VenueGuide guide={guide} />}
 

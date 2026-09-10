@@ -194,13 +194,13 @@ test("fixture page renders WHY THIS MATCH only when DECIDE reasons exist", () =>
   assert.match(fixturePageSource, /decisionReasons\.slice\(1\)/);
 });
 
-test("fixture page keeps one ground route and surfaces only the differentiated before-match signal", () => {
+test("fixture page keeps one compact ground route without repeating BTM counts", () => {
   assert.doesNotMatch(fixturePageSource, /Know before you go/);
   assert.doesNotMatch(fixturePageSource, /Ground guide/);
   assert.doesNotMatch(fixturePageSource, /fixtureGuideActions/);
   assert.equal(fixturePageSource.match(/Explore the ground/g)?.length, 1);
-  assert.match(fixturePageSource, /venueGuide\.before_match\.length > 0/);
-  assert.match(fixturePageSource, /Before the match · \{venueGuide\.before_match\.length\}/);
+  assert.doesNotMatch(fixturePageSource, /venueGuide\.before_match\.length > 0/);
+  assert.doesNotMatch(fixturePageSource, /Before the match · \{venueGuide\.before_match\.length\}/);
 });
 
 test("Discover shortlist contains only future interested fixtures and stays compact", () => {
@@ -251,7 +251,8 @@ test("My Grounds filters one coherent visit view and keeps cards supporter-facin
 });
 
 test("My Grounds keeps Add a ground secondary and visited dots light but tappable", () => {
-  assert.match(groundsSource, /tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">\+ Add a ground/);
+  assert.match(groundsSource, /aria-controls="add-ground"/);
+  assert.match(groundsSource, /"\+ Add a ground"/);
   assert.match(groundMarkerSource, /width="14" height="14" viewBox="0 0 14 14"/);
   assert.match(groundMarkerSource, /r="6" fill="#2146D0" stroke="#171717" stroke-width="1\.5"/);
   assert.match(groundMarkerSource, /iconSize: \[VENUE_MARKER_DESIGN\.hitSize, VENUE_MARKER_DESIGN\.hitSize\]/);
@@ -270,9 +271,9 @@ test("visits can attach, change, or remove an optional fixture without another m
   assert.match(groundsSource, /fixture\.league_name/);
 });
 
-test("Ground surfaces approved WHY GO only and suppresses meaningless zero interested counts", () => {
-  assert.match(groundPageSource, /decisionReasons\.length > 0/);
-  assert.match(groundPageSource, /Why go\?/);
+test("Ground suppresses DECIDE presentation and meaningless zero interested counts", () => {
+  assert.doesNotMatch(groundPageSource, /decisionReasons\.length > 0/);
+  assert.doesNotMatch(groundPageSource, /Why go\?/);
   assert.match(groundPageSource, /fixture\.interested_count > 0/);
 });
 

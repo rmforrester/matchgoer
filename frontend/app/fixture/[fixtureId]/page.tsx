@@ -11,7 +11,6 @@ import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
 import { hasPendingAuthAction, parsePendingWhosGoingAction, pendingWhosGoingReturnTo } from "@/lib/pending-auth-action";
 import { applyPendingWhosGoing, clearPendingWhosGoing, loadPendingWhosGoing } from "@/lib/account-conversion-checkpoint";
-import { type VenueGuide } from "../../../lib/venue-guide";
 import FixtureKnow from "../../components/FixtureKnow";
 import { type FixtureKnow as FixtureKnowData } from "../../../lib/know-v1";
 
@@ -48,7 +47,6 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [accountPrompt, setAccountPrompt] = useState<"interested" | "mate" | "board" | null>(null);
   const [saving, setSaving] = useState(false);
-  const [venueGuideResult, setVenueGuideResult] = useState<{ venueId: number; guide: VenueGuide | null } | null>(null);
   const [know, setKnow] = useState<FixtureKnowData | null>(null);
   const [reporting, setReporting] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("other");
@@ -77,14 +75,6 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       return load();
     }).catch(() => setError("Unable to load this fixture."));
   }, [load]);
-
-  useEffect(() => {
-    const venueId = data?.fixture.venue_id;
-    if (!venueId) return;
-    api.get<VenueGuide>(`/venues/${venueId}/guide`, { params: { team_id: data?.fixture.home_team_id ?? undefined } })
-      .then((response) => setVenueGuideResult({ venueId, guide: response.data }))
-      .catch(() => setVenueGuideResult({ venueId, guide: null }));
-  }, [data?.fixture.home_team_id, data?.fixture.venue_id]);
 
   useEffect(() => {
     if (!data) return;
@@ -231,7 +221,6 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   if (!data) return <main className="mx-auto w-full max-w-5xl p-4 sm:p-6"><p className="tt-kicker">01 / Match</p><p className="mt-3 font-semibold" role={error ? "alert" : undefined}>{error || "Loading fixture…"}</p></main>;
   const kickoff = new Date(data.fixture.fixture_date);
   const statusGroup = fixtureStatusGroup(data.fixture.status);
-  const venueGuide = venueGuideResult?.venueId === data.fixture.venue_id ? venueGuideResult.guide : null;
   const decisionReasons = data.decision_reasons ?? [];
   const hasDecisionReasons = decisionReasons.length > 0;
   const completed = statusGroup === "finished";
@@ -292,7 +281,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     {data.fixture.venue_id && <section className="tt-section-rule mt-10 pt-4" aria-labelledby="ground-heading">
       <p className="tt-kicker">Ground essentials</p>
       <div className="mt-2 grid gap-4 border-b-2 border-[var(--tt-ink)] pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div className="min-w-0"><h2 id="ground-heading" className="tt-display break-words text-4xl leading-none sm:text-5xl">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mt-2 font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{data.fixture.venue_city}</p>}{venueGuide && venueGuide.before_match.length > 0 && <p className="mt-3 text-sm font-bold">Before the match · {venueGuide.before_match.length} {venueGuide.before_match.length === 1 ? "place" : "places"}</p>}</div>
+        <div className="min-w-0"><h2 id="ground-heading" className="tt-display break-words text-4xl leading-none sm:text-5xl">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mt-2 font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{data.fixture.venue_city}</p>}</div>
         <Link href={`/venue/${data.fixture.venue_id}${data.fixture.home_team_id ? `?teamId=${data.fixture.home_team_id}` : ""}`} className="tt-action inline-flex items-center justify-center px-5">Explore the ground →</Link>
       </div>
       {(data.terrace_rating !== null || data.recommend_percentage !== null) && <details className="mt-4 text-xs text-[var(--tt-muted)]"><summary className="cursor-pointer font-bold uppercase tracking-[0.08em]">Community ground ratings</summary><div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div></details>}
@@ -305,7 +294,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         {data.fixture.venue_id && !data.own_attendance.attended && <button type="button" disabled={saving} onClick={recordAttendance} className="tt-action px-5">{saving ? "Recording…" : "Yes — I was there"}</button>}
       </div>
       {data.own_attendance.attended && data.fixture.venue_id && <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--tt-rule)] pt-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" disabled={saving} onClick={openPostMatchReview} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">{data.own_review?.state === "completed" ? "Edit my review →" : data.own_review?.state === "partial" ? "Continue review →" : "Rate the ground →"}</button><Link href={`/venue/${data.fixture.venue_id}#tips-add`} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Add a tip →</Link><button type="button" disabled={saving} onClick={removeAttendance} className="text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove attendance</button></div>}
-    </section> : statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It will not be treated as an upcoming plan or attendance opportunity.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : <section className="tt-section-rule mt-8 grid gap-5 pt-4 lg:grid-cols-[minmax(0,1fr)_18rem]" aria-labelledby="matchday-heading">
+    </section> : statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It will not be treated as an upcoming plan or attendance opportunity.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
       <div>
         <p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · {statusGroup === "postponed" ? "Match update" : "Your matchday"}</p>
         <h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">{statusGroup === "postponed" ? "Match postponed" : "Make it yours"}</h2>
@@ -314,18 +303,15 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
           <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`tt-action px-5 py-3 text-left ${data.interested ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}>{data.interested ? "✓ Interested" : "Interested"}</button>
           <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`tt-action px-5 py-3 text-left ${data.open_to_meet ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Open to meeting supporters"}</button>
         </div>
+        {data.open_to_meet_count > 0 && <p className="mt-3 text-xs font-bold text-[var(--tt-muted)]">{data.open_to_meet_count} {data.open_to_meet_count === 1 ? "supporter is" : "supporters are"} open to meeting.</p>}
+        <p className="mt-2 text-xs leading-5 text-[var(--tt-muted)]">Meet safely in public matchday locations and use your judgment when meeting someone new.</p>
       </div>
-      <aside className="tt-panel self-end p-4" aria-label="Matchday community">
-        <p className="tt-kicker">Terrace roll call</p>
-        <p className="tt-display mt-2 text-3xl leading-none">Open to meeting · {data.open_to_meet_count}</p>
-        <p className="mt-3 text-xs leading-5 text-[var(--tt-muted)]">Meet safely in public matchday locations and use your judgment when meeting someone new.</p>
-      </aside>
     </section>}
 
     <section className="tt-section-rule mt-10 pt-4" aria-labelledby="board-heading">
       <p className="tt-kicker">{hasDecisionReasons ? "05" : "04"} / Social · Supporter correspondence</p>
       <div className="mt-1 flex flex-wrap items-end justify-between gap-3"><h2 id="board-heading" className="tt-display text-4xl leading-none sm:text-5xl">Match Board</h2>{data.posts.length > 0 && <span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-muted)]">{data.posts.length} {data.posts.length === 1 ? "thread" : "threads"}</span>}</div>
-      {data.board_closed ? <div className="tt-panel mt-5 p-4 sm:p-5"><p className="tt-display text-2xl">The board is closed</p><p className="mt-2 text-[var(--tt-muted)]">{statusGroup === "cancelled" ? "This match was cancelled." : "This match has finished."}</p></div> : <div className="tt-panel mt-5 p-4 sm:p-5">{data.posts.length === 0 && <p className="mb-4 max-w-2xl leading-7 text-[var(--tt-muted)]">Going to this one? Ask about pubs, travel, the ground, or see who else is heading along.</p>}<label htmlFor="match-board-message" className="tt-kicker">{replyingTo ? "Your reply" : "Post to the board"}</label><textarea id="match-board-message" ref={composerRef} value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={4} placeholder={replyingTo ? "Write a reply" : "Ask about travel, pubs, tickets or the ground…"} className="tt-control mt-2 w-full min-w-0 resize-y p-3"/><div className="mt-3 grid gap-3 sm:flex sm:items-center sm:justify-between"><span className="text-xs font-semibold text-[var(--tt-muted)]">{body.length} / 500</span><button type="button" disabled={saving || !body.trim()} onClick={submitPost} className="tt-action w-full px-5 sm:w-auto">{replyingTo ? "Post reply" : "Post to board"}</button></div></div>}
+      {data.board_closed ? <div className="tt-panel mt-5 p-4 sm:p-5"><p className="tt-display text-2xl">The board is closed</p><p className="mt-2 text-[var(--tt-muted)]">{statusGroup === "cancelled" ? "This match was cancelled." : "This match has finished."}</p></div> : <div className="tt-panel mt-5 p-4 sm:p-5">{data.posts.length === 0 && <p className="mb-4 max-w-2xl leading-7 text-[var(--tt-muted)]">Ask other supporters about the match, pubs, travel or the ground.</p>}<label htmlFor="match-board-message" className="tt-kicker">{replyingTo ? "Your reply" : "Post to the board"}</label><textarea id="match-board-message" ref={composerRef} value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={4} placeholder={replyingTo ? "Write a reply" : "Ask about travel, pubs, tickets or the ground…"} className="tt-control mt-2 w-full min-w-0 resize-y p-3"/><div className="mt-3 grid gap-3 sm:flex sm:items-center sm:justify-between"><span className="text-xs font-semibold text-[var(--tt-muted)]">{body.length} / 500</span><button type="button" disabled={saving || !body.trim()} onClick={submitPost} className="tt-action w-full px-5 sm:w-auto">{replyingTo ? "Post reply" : "Post to board"}</button></div></div>}
       {data.posts.length > 0 && <div className="mt-6">{data.posts.map((post) => renderPost(post))}</div>}
     </section>
 

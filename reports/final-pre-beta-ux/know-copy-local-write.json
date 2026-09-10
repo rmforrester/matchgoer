@@ -1,0 +1,27 @@
+{
+  "mode": "write",
+  "manifest_sha256": "12306f9d39dbec7f089383978312ea17e4d7c6a629e87c5da694ce04dffd56bd",
+  "planned_updates": 11,
+  "already_correct": 0,
+  "executed_updates": 11,
+  "before": {
+    "know_facts": {
+      "rows": 48,
+      "sha256": "e60b331557a95721e111a58ac0e31079c6d514924b64a5d4c228bec716eba5b3"
+    },
+    "know_fact_evidence": {
+      "rows": 63,
+      "sha256": "aadfad509b834e1682d9c4cb1b3f3b72d20f130d992be8ff0ee4a8fc833b3e39"
+    }
+  },
+  "after": {
+    "know_facts": {
+      "rows": 48,
+      "sha256": "de93a89ae983dd0e7689d95684166d5c24a71bbc50c1eaeb81dcbe38a54783d9"
+    },
+    "know_fact_evidence": {
+      "rows": 63,
+      "sha256": "aadfad509b834e1682d9c4cb1b3f3b72d20f130d992be8ff0ee4a8fc833b3e39"
+    }
+  }
+}

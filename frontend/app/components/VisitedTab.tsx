@@ -8,7 +8,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 import type { GroundReview, MyGround } from "../types/grounds";
-import FixtureTeams from "./FixtureTeams";
 import MatchdayTips from "./MatchdayTips";
 import { groundTimeframes, groundsInTimeframe, type GroundTimeframe } from "../../lib/my-grounds";
 
@@ -37,15 +36,14 @@ export default function VisitedTab() {
   const [selected, setSelected] = useState<VenueResult | null>(null);
   const [visitDate, setVisitDate] = useState("");
   const [saving, setSaving] = useState(false);
-  const [visitSuccess, setVisitSuccess] = useState<{ venueId: number; message: string } | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [pastMatchId, setPastMatchId] = useState<number | null>(null);
   const [pastMatchDate, setPastMatchDate] = useState("");
   const [fixtureCandidates, setFixtureCandidates] = useState<FixtureCandidate[]>([]);
   const [findingMatches, setFindingMatches] = useState(false);
   const [editingVisitId, setEditingVisitId] = useState<number | null>(null);
   const [timeframe, setTimeframe] = useState<GroundTimeframe>("lifetime");
   const [reviewingId, setReviewingId] = useState<number | null>(null);
+  const [showAddGround, setShowAddGround] = useState(false);
   const [scores, setScores] = useState({ atmosphere: null as number | null, pubs: null as number | null, travel: null as number | null, facilities: null as number | null, recommend: null as boolean | null });
 
   const loadGrounds = useCallback(async () => {
@@ -68,7 +66,7 @@ export default function VisitedTab() {
   };
 
   const openReview = useCallback(async (ground: MyGround) => {
-    setSaving(true); setError(""); setVisitSuccess(null);
+    setSaving(true); setError("");
     try {
       let current = ground;
       if (!ground.review) {
@@ -101,7 +99,7 @@ export default function VisitedTab() {
 
   const addVisit = async (venueId: number, date: string, done: () => void) => {
     if (saving) return;
-    setSaving(true); setError(""); setVisitSuccess(null);
+    setSaving(true); setError("");
     try { await api.post(`/venues/${venueId}/visits`, { visit_date: date || null }); await loadGrounds(); done(); }
     catch (requestError) { setError(apiErrorMessage(requestError, "Unable to record this visit.")); }
     finally { setSaving(false); }
@@ -148,20 +146,6 @@ export default function VisitedTab() {
     finally { setSaving(false); }
   };
 
-  const recordPastFixture = async (venueId: number, fixtureId: number) => {
-    if (saving) return;
-    setSaving(true); setError(""); setVisitSuccess(null);
-    try {
-      const response = await api.post(`/venues/${venueId}/visits`, { fixture_id: fixtureId });
-      if (response.data.fixture_id !== fixtureId) throw new Error("Selected fixture was not attached to attendance");
-      await loadGrounds();
-      setPastMatchId(null); setPastMatchDate(""); setFixtureCandidates([]);
-      setVisitSuccess({ venueId, message: "Visit added with match details" });
-    } catch (requestError) {
-      setError(apiErrorMessage(requestError, "Unable to add this past match."));
-    } finally { setSaving(false); }
-  };
-
   const enteredScores = [scores.atmosphere, scores.pubs, scores.travel, scores.facilities].filter((score): score is number => score !== null);
   const overall = enteredScores.length ? (enteredScores.reduce((sum, score) => sum + score, 0) / enteredScores.length).toFixed(1) : "—";
   const visibleGrounds = useMemo(() => groundsInTimeframe(grounds, timeframe), [grounds, timeframe]);
@@ -182,27 +166,25 @@ export default function VisitedTab() {
 
   return <main className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
     <header className="border-b-2 border-[var(--tt-ink)] pb-3"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My football world</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Where football has taken you.</p></header>
-    <a href="#add-ground-heading" className="tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">+ Add a ground</a>
+    {!loading && grounds.length > 0 && <button type="button" onClick={() => setShowAddGround((current) => !current)} aria-expanded={showAddGround} aria-controls="add-ground" className="tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">{showAddGround ? "Close add ground" : "+ Add a ground"}</button>}
     {error && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
     {loading && <p className="mt-6 font-semibold">Loading your ground history…</p>}
-    {!loading && grounds.length === 0 && <section className="mt-8 border-y-2 border-[var(--tt-ink)] py-8"><p className="tt-display text-3xl">No grounds recorded yet.</p><p className="mt-2 text-[var(--tt-muted)]">Search below to make your first ground one of yours.</p></section>}
+    {!loading && grounds.length === 0 && <section className="mt-8 border-y-2 border-[var(--tt-ink)] py-8"><p className="tt-display text-3xl">No grounds recorded yet.</p><p className="mt-2 text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p></section>}
 
     {!loading && grounds.length > 0 && <section className="mt-5" aria-labelledby="football-map-heading"><h2 id="football-map-heading" className="sr-only">My football world map</h2><div className="mb-4 inline-flex max-w-full overflow-x-auto border-b border-[var(--tt-rule)]" aria-label="Show visits from">{groundTimeframes.map((option) => <button key={option.key} type="button" aria-pressed={timeframe === option.key} onClick={() => setTimeframe(option.key)} className={`min-h-11 shrink-0 border-b-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] ${timeframe === option.key ? "border-[var(--tt-blue)] text-[var(--tt-blue)]" : "border-transparent text-[var(--tt-muted)]"}`}>{option.label}</button>)}</div><p className="mb-3 text-xs font-extrabold uppercase tracking-[0.09em] text-[var(--tt-blue)]">{visibleGrounds.length} grounds{cityCount > 0 ? ` · ${cityCount} cities` : ""}{countryCount > 0 ? ` · ${countryCount} countries` : ""} · {matchdayCount} matchdays</p>{visibleGrounds.length > 0 ? <PersonalGroundMap grounds={visibleGrounds}/> : <div className="border-y-2 border-[var(--tt-ink)] py-6"><p className="font-bold">No visits in this timeframe.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a longer timeframe.</p></div>}{unplottableCount > 0 && <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">{unplottableCount} visited {unplottableCount === 1 ? "ground could" : "grounds could"} not be plotted because coordinates are unavailable.</p>}</section>}
 
     {!loading && visibleGrounds.length > 0 && <section className="mt-7 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="grounds-list-heading"><h2 id="grounds-list-heading" className="tt-display text-3xl leading-none sm:text-4xl">The grounds you know</h2><div className="mt-4 grid gap-3 sm:grid-cols-2">{visibleGrounds.map((ground) => <article key={ground.venue_id} className={`tt-panel flex min-w-0 flex-col p-4 ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>
-      <h2 className="tt-display break-words text-3xl leading-[0.92]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
+      <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
       <p className="mt-3 text-sm font-bold text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last there · ${knownDate(ground.latest_visit_date)}` : "Date not remembered"}</p>
-      <div className="mt-3"><Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex items-center px-4">View ground</Link></div>
+      <div className="mt-2"><Link href={`/venue/${ground.venue_id}`} className="inline-flex min-h-11 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">View ground →</Link></div>
       {reviewingId === ground.venue_id && renderReviewPanel(ground)}
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--tt-rule)] pt-2 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" onClick={() => { setPastMatchId(pastMatchId === ground.venue_id ? null : ground.venue_id); setPastMatchDate(""); setFixtureCandidates([]); }} className="min-h-11 text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Add a visit</button><button type="button" onClick={() => setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id)} className="min-h-11 text-[var(--tt-muted)] underline decoration-2 underline-offset-4">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button></div>
-      {visitSuccess?.venueId === ground.venue_id && <p role="status" className="mt-4 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] px-3 py-2 text-sm font-bold uppercase tracking-[0.08em]">✓ {visitSuccess.message}</p>}
-      {pastMatchId === ground.venue_id && <div className="mt-4 border-t border-[var(--tt-rule)] pt-4"><p className="tt-kicker">Add a visit</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Choose the date you remember. We&apos;ll find the match details when we can.</p><div className="mt-3 flex flex-wrap gap-2"><label htmlFor={`past-match-${ground.venue_id}`} className="sr-only">Visit date</label><input id={`past-match-${ground.venue_id}`} type="date" value={pastMatchDate} onChange={(event) => { setPastMatchDate(event.target.value); setFixtureCandidates([]); }} className="tt-control px-3"/><button type="button" disabled={!pastMatchDate || findingMatches} onClick={() => void findPastMatches(ground.venue_id)} className="tt-action px-4">{findingMatches ? "Finding…" : "Continue / find match"}</button></div>{!ground.has_undated_visit && !pastMatchDate && <button type="button" disabled={saving} onClick={() => void addVisit(ground.venue_id, "", () => { setPastMatchId(null); setFixtureCandidates([]); setVisitSuccess({ venueId: ground.venue_id, message: "Visit added with date not remembered" }); })} className="mt-3 min-h-11 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">I don&apos;t remember the date</button>}{ground.has_undated_visit && !pastMatchDate && <p className="mt-3 text-xs text-[var(--tt-muted)]">You already have one visit here without a remembered date. Choose a date to add another.</p>}{fixtureCandidates.length > 0 && <div className="mt-4"><p className="tt-display text-2xl">Which game did you see?</p><div className="mt-3 grid gap-3">{fixtureCandidates.map((fixture) => <article key={fixture.fixture_id} className="border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="tt-kicker">{new Date(fixture.fixture_date).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>{fixture.fixture_date.slice(0, 10) === pastMatchDate && <span className="bg-[var(--tt-blue)] px-2 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.1em] text-[var(--tt-paper)]">Exact date</span>}</div><FixtureTeams homeTeam={fixture.home_team} awayTeam={fixture.away_team} className="mt-2" teamClassName="text-2xl leading-none" separatorClassName="my-1 text-[0.65rem]"/><button type="button" disabled={saving} onClick={() => void recordPastFixture(ground.venue_id, fixture.fixture_id)} className="tt-action mt-3 px-4">This one</button></article>)}</div></div>}{pastMatchDate && !findingMatches && <button type="button" disabled={saving} onClick={() => void addVisit(ground.venue_id, pastMatchDate, () => { setPastMatchId(null); setPastMatchDate(""); setFixtureCandidates([]); setVisitSuccess({ venueId: ground.venue_id, message: "Visit added without match details" }); })} className="mt-4 min-h-11 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">I don&apos;t remember / none of these</button>}</div>}
+      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--tt-rule)] pt-1 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" onClick={() => setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id)} className="min-h-11 text-[var(--tt-muted)] underline decoration-2 underline-offset-4">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button></div>
       {expandedId === ground.venue_id && <ul className="mt-4 border-t border-[var(--tt-rule)] pt-3">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-b border-[var(--tt-rule)] py-3 last:border-0"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{visit.visit_date ? knownDate(visit.visit_date) : "Date not remembered"}</p>{fixture && <><p className="mt-1 font-bold">{fixture.home_team} v {fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}{fixture && <Link href={`/fixture/${fixture.fixture_id}`} className="mt-1 inline-flex min-h-10 items-center text-xs font-extrabold uppercase text-[var(--tt-blue)] underline">View match →</Link>}<button type="button" onClick={() => { setEditingVisitId(visit.visit_id); setPastMatchDate(visit.visit_date ?? ""); setFixtureCandidates([]); }} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--tt-blue)] underline">{fixture ? "Change match" : "Attach match"}</button>{fixture && <button type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, null)} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--tt-muted)] underline">Remove link</button>}{editingVisitId === visit.visit_id && <div className="mt-2"><div className="flex flex-wrap gap-2"><input type="date" aria-label="Visit date" value={pastMatchDate} onChange={(event) => { setPastMatchDate(event.target.value); setFixtureCandidates([]); }} className="tt-control px-3"/><button type="button" disabled={!pastMatchDate || findingMatches} onClick={() => void findPastMatches(ground.venue_id)} className="tt-action px-3">Find matches</button></div>{fixtureCandidates.map((candidate) => <button key={candidate.fixture_id} type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, candidate.fixture_id)} className="mt-2 block min-h-10 text-left font-bold text-[var(--tt-blue)] underline">{candidate.home_team} v {candidate.away_team} · {knownDate(candidate.fixture_date.slice(0, 10))}</button>)}</div>}</li>; })}</ul>}
     </article>)}</div></section>}
 
-    <section className="mt-8 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="add-ground-heading"><h2 id="add-ground-heading" className="tt-display text-3xl leading-none sm:text-4xl">Add a ground</h2><p className="mt-1 text-sm text-[var(--tt-muted)]">Add somewhere you&apos;ve been. A review is optional.</p><div className="mt-4 flex flex-wrap gap-2"><label htmlFor="ground-search" className="sr-only">Search for a ground or city</label><input id="ground-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} placeholder="Search ground or city" className="tt-control min-w-0 flex-1 px-4"/><button type="button" disabled={searching || query.trim().length < 2} onClick={() => void search()} className="tt-action px-5">{searching ? "Searching…" : "Search"}</button></div>
+    {!loading && (grounds.length === 0 || showAddGround) && <section id="add-ground" className="mt-8 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="add-ground-heading"><h2 id="add-ground-heading" className="tt-display text-3xl leading-none sm:text-4xl">Add a ground</h2>{grounds.length > 0 && <p className="mt-1 text-sm text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>}<div className="mt-4 flex flex-wrap gap-2"><label htmlFor="ground-search" className="sr-only">Search for a ground or city</label><input id="ground-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} placeholder="Search ground or city" className="tt-control min-w-0 flex-1 px-4"/><button type="button" disabled={searching || query.trim().length < 2} onClick={() => void search()} className="tt-action px-5">{searching ? "Searching…" : "Search"}</button></div>
       {!selected && results.length > 0 && <div className="tt-panel mt-4 divide-y divide-[var(--tt-rule)]">{results.map((venue) => <button key={venue.venue_id} type="button" onClick={() => setSelected(venue)} className="block min-h-12 w-full px-4 py-3 text-left hover:bg-[var(--tt-paper)]"><strong>{venue.name}</strong>{venue.city && <span className="ml-2 text-[var(--tt-muted)]">{venue.city}</span>}{grounds.some((ground) => ground.venue_id === venue.venue_id) && <span className="ml-2 text-xs font-bold uppercase text-[var(--tt-blue)]">Already visited</span>}</button>)}</div>}
       {selected && <div className="tt-panel mt-4 p-5"><p className="tt-display break-words text-3xl">{selected.name}</p>{selected.city && <p className="break-words text-[var(--tt-muted)]">{selected.city}</p>}<label htmlFor="new-visit-date" className="tt-kicker mt-4 block">Visit date (optional)</label><input id="new-visit-date" type="date" value={visitDate} onChange={(event) => { setVisitDate(event.target.value); setFixtureCandidates([]); }} className="tt-control mt-2 px-3"/>{visitDate && <button type="button" disabled={findingMatches} onClick={() => void findPastMatches(selected.venue_id, visitDate)} className="ml-2 min-h-11 text-xs font-extrabold uppercase text-[var(--tt-blue)] underline">Find the match</button>}{fixtureCandidates.length > 0 && <div className="mt-3">{fixtureCandidates.map((fixture) => <button key={fixture.fixture_id} type="button" disabled={saving} onClick={() => void recordSelectedFixture(fixture.fixture_id)} className="block min-h-11 w-full border-t border-[var(--tt-rule)] py-2 text-left font-bold text-[var(--tt-blue)]">{fixture.home_team} v {fixture.away_team} · {knownDate(fixture.fixture_date.slice(0, 10))}</button>)}</div>}<div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={() => setSelected(null)} className="tt-action tt-action-secondary px-4">Change ground</button><button type="button" disabled={saving || (grounds.some((ground) => ground.venue_id === selected.venue_id) && !visitDate)} onClick={() => void addVisit(selected.venue_id, visitDate, () => { setSelected(null); setVisitDate(""); setQuery(""); setResults([]); setFixtureCandidates([]); })} className="tt-action px-4">{saving ? "Adding…" : fixtureCandidates.length > 0 ? "Add without a match" : grounds.some((ground) => ground.venue_id === selected.venue_id) ? "Add another visit" : "Add to My Grounds"}</button></div></div>}
-    </section>
+    </section>}
   </main>;
 }

@@ -27,11 +27,10 @@ export default function VenueGuide({ guide }: Props) {
     </article>;
   };
   return (
-    <section className="tt-section-rule mt-10 pt-4" aria-labelledby="venue-guide-heading">
-      <p className="tt-kicker">Know before you go</p>
-      <h2 id="venue-guide-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">The essentials</h2>
-      {guide.before_match.length > 0 && <section className="mt-6" aria-labelledby="guide-before-match">
+    <section className="tt-section-rule mt-10 pt-4" aria-label="Ground essentials">
+      {guide.before_match.length > 0 && <section aria-labelledby="guide-before-match">
         <h3 id="guide-before-match" className="tt-display text-3xl leading-none">Before the match</h3>
+        <p className="mt-2 text-sm text-[var(--tt-muted)]">Where home supporters gather before the game.</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {guide.before_match.map((spot) => <article key={spot.pre_match_spot_id} className="tt-panel p-4">
             <h4 className="tt-display text-2xl leading-none">{spot.display_name}</h4>

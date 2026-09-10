@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { groundsInTimeframe } from "./my-grounds.ts";
 import type { MyGround } from "../app/types/grounds.ts";
+import { readFileSync } from "node:fs";
+
+const visitedTab = readFileSync(new URL("../app/components/VisitedTab.tsx", import.meta.url), "utf8");
 
 const ground = (visits: MyGround["visits"]): MyGround => ({
   venue_id: 1, venue_name: "A Very Long Community Football Stadium Name", venue_city: "A long city name",
@@ -24,4 +27,14 @@ test("finite timeframes use visit dates and do not invent dates", () => {
   const filtered = groundsInTimeframe([item], "30d", new Date("2026-09-06T12:00:00Z"));
   assert.equal(filtered[0].visit_count, 1);
   assert.equal(filtered[0].latest_visit_date, "2026-08-20");
+});
+
+test("My Grounds keeps one contextual add flow and compact card actions", () => {
+  assert.match(visitedTab, /grounds\.length > 0 && <button/);
+  assert.match(visitedTab, /aria-controls="add-ground"/);
+  assert.match(visitedTab, /grounds\.length === 0 \|\| showAddGround/);
+  assert.match(visitedTab, /Add somewhere you&apos;ve been\./);
+  assert.doesNotMatch(visitedTab, /A review is optional\./);
+  assert.doesNotMatch(visitedTab, />Add a visit<\/button>/);
+  assert.match(visitedTab, /View ground →/);
 });

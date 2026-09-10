@@ -1,0 +1,205 @@
+{
+  "title": "Final pre-beta supporter-facing KNOW copy cleanup",
+  "serving_inventory_count": 48,
+  "unchanged_count": 37,
+  "updates": [
+    {
+      "editorial_key": "IT-1687-SUPPORTERS-01",
+      "club": "Catanzaro",
+      "module": "SUPPORTERS",
+      "before": "Catanzaro’s support travels unusually well for the size of the city. The club reported its fans as the leading away support in its division in 2024/25 and describes the club as something shared across generations of the community.",
+      "after": "Catanzaro’s support travels unusually well for the size of the city. In 2024/25, its fans were the leading away support in the division, while support for the club remains shared across generations of the community.",
+      "evidence": "Il messaggio del Presidente Noto alla tifoseria giallorossa | https://www.uscatanzaro1929.com/2025/05/28/il-messaggio-del-presidente-noto-alla-tifoseria-giallorossa/",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "SUPPORTERS",
+        "team_id": 1687,
+        "club_venue_id": null,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-492-CLUB-01",
+      "club": "Napoli",
+      "module": "CLUB",
+      "before": "Napoli’s identity is deliberately tied to the city around it. For the club’s centenary, the imagery runs from Vesuvius and Posillipo through the historic centre, while the crest revives the Corsiero del Sole — the club’s original 1926 symbol.",
+      "after": "Napoli’s identity is deliberately tied to the city around it. Its centenary imagery runs from Vesuvius and Posillipo through the historic centre, while the crest revives the Corsiero del Sole — the club’s original 1926 symbol.",
+      "evidence": "Pe’ cient’anne | SSC Napoli | https://sscnapoli.it/centenario/",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "CLUB",
+        "team_id": 492,
+        "club_venue_id": null,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-492-SUPPORTERS-01",
+      "club": "Napoli",
+      "module": "SUPPORTERS",
+      "before": "Napoli’s centenary campaign tells its supporter story through generations rather than trophies. Its central figure, born in 1926, passed his support for Napoli to his children, grandchildren and great-grandchildren — a deliberate reflection of how the club sees its relationship with the city.",
+      "after": "Napoli’s supporter story runs through generations rather than trophies. A central figure born in 1926 passes his support for Napoli to his children, grandchildren and great-grandchildren, reflecting the club’s relationship with the city.",
+      "evidence": "PE’ CIENT’ANNE: parte la Campagna Abbonamenti 2026/2027 | https://sscnapoli.it/pe-cientanne-parte-la-campagna-abbonamenti-2026-2027/",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "SUPPORTERS",
+        "team_id": 492,
+        "club_venue_id": null,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-494-CLUB-01",
+      "club": "Udinese",
+      "module": "CLUB",
+      "before": "Udinese presents itself as a football expression of Friuli rather than simply a club based in Udine. In its 130th year, the club made that relationship with the region the central theme of its identity and season-ticket campaign.",
+      "after": "Udinese is a football expression of Friuli as well as a club based in Udine. In its 130th year, that relationship with the region became the central theme of the club’s identity and season-ticket campaign.",
+      "evidence": "Udinese official history/campaign | https://www.udinese.it/news/tifosi/al-via-ci-siamo-sempre-stati-la-campagna-abbonamenti-202627-delludinese",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "CLUB",
+        "team_id": 494,
+        "club_venue_id": null,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-497-MATCHDAY-01",
+      "club": "AS Roma",
+      "module": "MATCHDAY",
+      "before": "The Curva Sud tradition is built around sustained vocal support. Roma’s own history of CUCS recalls drums beginning before kick-off and supporters singing continuously for the full 90 minutes — a style of support that became part of the identity of the Sud.",
+      "after": "The Curva Sud tradition is built around sustained vocal support. Drums begin before kick-off and supporters sing continuously for the full 90 minutes — a style of support that became part of the identity of the Sud.",
+      "evidence": "On This Day: The formation of CUCS, and a new Curva tradition | https://www.asroma.com/en/news/60193/on-this-day-the-formation-of-cucs-and-a-new-curva-tradition",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "MATCHDAY",
+        "team_id": null,
+        "club_venue_id": 446,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-509-MATCHDAY-01",
+      "club": "Cesena",
+      "module": "MATCHDAY",
+      "before": "Curva Mare remains the focal point of Cesena’s home support. The club’s recent campaigns still treat years spent in the Curva as one of the defining ways supporters experience the Manuzzi.",
+      "after": "Curva Mare remains the focal point of Cesena’s home support. Years spent in the Curva are still treated as one of the defining ways supporters experience the Manuzzi.",
+      "evidence": "Cesena FC official history/campaign | https://www.cesenafc.com/it/teams/prima-squadra/news/il-cesena-e-negli-occhi-di-chi-lo-guarda-la-campagna-abbonamenti-2026-27",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "MATCHDAY",
+        "team_id": null,
+        "club_venue_id": 457,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-509-SUPPORTERS-01",
+      "club": "Cesena",
+      "module": "SUPPORTERS",
+      "before": "Cesena describes its support in explicitly generational terms: people with decades in the Curva Mare share the same ground with families and first-time supporters building their own memories there.",
+      "after": "Cesena’s support spans generations: people with decades in the Curva Mare share the same ground with families and first-time supporters building their own memories there.",
+      "evidence": "Cesena FC official history/campaign | https://www.cesenafc.com/it/teams/prima-squadra/news/il-cesena-e-negli-occhi-di-chi-lo-guarda-la-campagna-abbonamenti-2026-27",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "SUPPORTERS",
+        "team_id": 509,
+        "club_venue_id": null,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-522-SUPPORTERS-01",
+      "club": "Palermo",
+      "module": "SUPPORTERS",
+      "before": "Palermo’s own COPA90 collaboration puts supporters at the centre of the club’s identity: long-standing Curva Nord fans, families and ordinary Palermitans tell a story of football as a language passed between generations in the city.",
+      "after": "Palermo’s identity is carried by long-standing Curva Nord fans, families and ordinary Palermitans, for whom football is a language passed between generations in the city.",
+      "evidence": "COPA90 and Palermo FC present: This Is Palermo | https://www.palermofc.com/en/news/copa90-and-palermo-fc-present-this-is-palermo",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "SUPPORTERS",
+        "team_id": 522,
+        "club_venue_id": null,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-527-CLUB-01",
+      "club": "Virtus Entella",
+      "module": "CLUB",
+      "before": "Entella sees itself as more than Chiavari’s team. The club’s own history describes it as an identity shared by the city and the communities of the surrounding hinterland that grew around the Entella river.",
+      "after": "Entella is more than Chiavari’s team. Its identity is shared by the city and the communities of the surrounding hinterland that grew around the Entella river.",
+      "evidence": "Storia | Virtus Entella | https://www.entella.it/storia/",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "CLUB",
+        "team_id": 527,
+        "club_venue_id": null,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "IT-9534-CLUB-01",
+      "club": "Torres",
+      "module": "CLUB",
+      "before": "Torres’ history reaches beyond Sassari unusually early: in 1908 the club played an exhibition in Ajaccio which it describes as the first football match on foreign soil by a Sardinian team.",
+      "after": "Torres’ history reached beyond Sassari unusually early: in 1908 the club played an exhibition in Ajaccio, the first football match on foreign soil by a Sardinian team.",
+      "evidence": "Storia | Torres Calcio | https://seftorrescalcio.it/storia/",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "CLUB",
+        "team_id": 9534,
+        "club_venue_id": null,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    },
+    {
+      "editorial_key": "know-v1-proof:real-oviedo:matchday",
+      "club": "Oviedo",
+      "module": "MATCHDAY",
+      "before": "Carlos Tartiere continues to draw support on a scale that stands out against much of Real Oviedo’s recent football history. The club reported an average home attendance of 24,888 in 2025/26, with strong crowds even for Monday and midweek fixtures.",
+      "after": "Carlos Tartiere continues to draw support on a scale that stands out against much of Real Oviedo’s recent football history. Average home attendance reached 24,888 in 2025/26, with strong crowds even for Monday and midweek fixtures.",
+      "evidence": "La fuerza del oviedismo, también en las gradas | https://www.realoviedo.es/noticias/la-fuerza-del-oviedismo-tambien-en-las-gradas",
+      "reason": "Remove source/campaign narration and state the same approved claim directly for supporters.",
+      "evidence_faithful": true,
+      "stable_identity": {
+        "module": "MATCHDAY",
+        "team_id": null,
+        "club_venue_id": 425,
+        "venue_id": null,
+        "fixture_id": null,
+        "publication_status": "PUBLISHED"
+      }
+    }
+  ]
+}
