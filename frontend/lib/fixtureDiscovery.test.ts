@@ -350,6 +350,13 @@ test("mobile filters are bounded inline while desktop retains its dropdown", () 
   assert.match(globalStylesSource, /@media \(min-width: 641px\)[\s\S]*\.tt-league-options \{ max-height: 20rem; position: absolute;/);
 });
 
+test("optional filter labels and selected values share a calm hierarchy", () => {
+  assert.equal((searchBarSource.match(/text-xs font-bold uppercase tracking-\[0\.1em\] text-\[var\(--tt-muted\)\]/g) ?? []).length, 2);
+  assert.equal((searchBarSource.match(/text-\[0\.65rem\] font-medium normal-case tracking-normal">Optional/g) ?? []).length, 2);
+  assert.match(searchBarSource, /select value=\{radius\}[\s\S]*font-medium normal-case tracking-normal text-\[var\(--tt-ink\)\]/);
+  assert.match(searchBarSource, /summary className="[^"]*font-medium normal-case tracking-normal text-\[var\(--tt-ink\)\]/);
+});
+
 test("mobile results retain an intentional carousel teaser and wrap long metadata", () => {
   assert.match(fixtureCarouselSource, /w-\[87%\] min-w-\[87%\] max-w-none/);
   assert.match(fixtureCarouselSource, /snap-x snap-mandatory/);

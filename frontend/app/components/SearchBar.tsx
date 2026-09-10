@@ -104,9 +104,9 @@ export default function SearchBar({ leagues, selectedLeagueIds, setSelectedLeagu
 
   return (
     <div className="grid min-w-0 gap-2.5 sm:grid-cols-[0.8fr_1.2fr]">
-      <label className="grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
-        Distance
-        <select value={radius} onChange={(event) => setRadius(Number(event.target.value))} className="tt-control w-full min-w-0 px-3 [color-scheme:light]">
+      <label className="grid min-w-0 gap-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">
+        Distance <span className="text-[0.65rem] font-medium normal-case tracking-normal">Optional</span>
+        <select value={radius} onChange={(event) => setRadius(Number(event.target.value))} className="tt-control w-full min-w-0 px-3 font-medium normal-case tracking-normal text-[var(--tt-ink)] [color-scheme:light]">
           <option value={10}>Local · 10 mi scale</option>
           <option value={25}>City · 25 mi scale</option>
           <option value={50}>Region · 50 mi scale</option>
@@ -115,7 +115,7 @@ export default function SearchBar({ leagues, selectedLeagueIds, setSelectedLeagu
       </label>
 
       <div className="grid min-w-0 gap-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">
-        League <span className="normal-case tracking-normal">Optional</span>
+        League <span className="text-[0.65rem] font-medium normal-case tracking-normal">Optional</span>
         <details className="group relative">
           <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between border border-[var(--tt-rule)] bg-[var(--tt-newsprint)] px-3 font-medium normal-case tracking-normal text-[var(--tt-ink)] marker:content-none hover:border-[var(--tt-ink)]">
             <span>{selectedLeagueIds.length === 0 ? "All leagues" : `${selectedLeagueIds.length} ${selectedLeagueIds.length === 1 ? "league" : "leagues"} selected`}</span><span aria-hidden="true">▾</span>
