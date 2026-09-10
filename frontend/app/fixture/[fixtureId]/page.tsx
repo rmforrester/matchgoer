@@ -12,6 +12,8 @@ import { accountRoute } from "@/lib/auth-flow";
 import { hasPendingAuthAction, parsePendingWhosGoingAction, pendingWhosGoingReturnTo } from "@/lib/pending-auth-action";
 import { applyPendingWhosGoing, clearPendingWhosGoing, loadPendingWhosGoing } from "@/lib/account-conversion-checkpoint";
 import { type VenueGuide } from "../../../lib/venue-guide";
+import FixtureKnow from "../../components/FixtureKnow";
+import { type FixtureKnow as FixtureKnowData } from "../../../lib/know-v1";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -47,6 +49,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const [accountPrompt, setAccountPrompt] = useState<"interested" | "mate" | "board" | null>(null);
   const [saving, setSaving] = useState(false);
   const [venueGuideResult, setVenueGuideResult] = useState<{ venueId: number; guide: VenueGuide | null } | null>(null);
+  const [know, setKnow] = useState<FixtureKnowData | null>(null);
   const [reporting, setReporting] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("other");
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -82,6 +85,13 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       .then((response) => setVenueGuideResult({ venueId, guide: response.data }))
       .catch(() => setVenueGuideResult({ venueId, guide: null }));
   }, [data?.fixture.home_team_id, data?.fixture.venue_id]);
+
+  useEffect(() => {
+    if (!data) return;
+    api.get<FixtureKnowData>(`/fixtures/${fixtureId}/know`)
+      .then((response) => setKnow(response.data))
+      .catch(() => setKnow(null));
+  }, [data, fixtureId]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -277,13 +287,15 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       </div>
     </section>}
 
+    <FixtureKnow know={know} />
+
     {data.fixture.venue_id && <section className="tt-section-rule mt-10 pt-4" aria-labelledby="ground-heading">
-      <p className="tt-kicker">{hasDecisionReasons ? "03" : "02"} / Matchday · The ground</p>
+      <p className="tt-kicker">Ground essentials</p>
       <div className="mt-2 grid gap-4 border-b-2 border-[var(--tt-ink)] pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="min-w-0"><h2 id="ground-heading" className="tt-display break-words text-4xl leading-none sm:text-5xl">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mt-2 font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{data.fixture.venue_city}</p>}{venueGuide && venueGuide.before_match.length > 0 && <p className="mt-3 text-sm font-bold">Before the match · {venueGuide.before_match.length} {venueGuide.before_match.length === 1 ? "place" : "places"}</p>}</div>
         <Link href={`/venue/${data.fixture.venue_id}${data.fixture.home_team_id ? `?teamId=${data.fixture.home_team_id}` : ""}`} className="tt-action inline-flex items-center justify-center px-5">Explore the ground →</Link>
       </div>
-      {(data.terrace_rating !== null || data.recommend_percentage !== null) && <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs font-extrabold uppercase tracking-[0.08em]">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div>}
+      {(data.terrace_rating !== null || data.recommend_percentage !== null) && <details className="mt-4 text-xs text-[var(--tt-muted)]"><summary className="cursor-pointer font-bold uppercase tracking-[0.08em]">Community ground ratings</summary><div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div></details>}
     </section>}
 
     {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">

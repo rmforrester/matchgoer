@@ -24,6 +24,7 @@ from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime
 from location_safety import has_usable_coordinates
 from club_venue_know import google_maps_search_url, guide_facts_for_relationship, public_supporting_line, publishable_spots, resolve_club_venue, resolve_unique_home_club
 from decision import applicable_decision_payload, fixture_decision_leads, fixture_decision_payload
+from know_v1 import compose_fixture_know
 
 from models import (
     Fixture,
@@ -44,6 +45,7 @@ from models import (
     MatchBoardReport,
     SocialEvent,
     DecisionFact,
+    KnowFact,
 )
 
 from schemas import (
@@ -70,6 +72,7 @@ from schemas import (
     AccountClaimRequest,
     AccountClaimResponse,
     AccountConversionHandoffResponse,
+    FixtureKnowResponse,
 )
 
 from fastapi import Cookie, Depends, FastAPI, Header, Response, HTTPException, Query
@@ -296,6 +299,44 @@ def get_venue_guide(venue_id: int, team_id: int | None = None):
             } for spot in spots],
         })
         return guide
+    finally:
+        db.close()
+
+
+@app.get("/fixtures/{fixture_id}/know", response_model=FixtureKnowResponse)
+def get_fixture_know(fixture_id: int):
+    db = SessionLocal()
+    try:
+        fixture = db.query(Fixture).filter(Fixture.fixture_id == fixture_id).first()
+        if fixture is None:
+            raise HTTPException(status_code=404, detail="Fixture not found")
+
+        relationships = (
+            db.query(ClubVenue)
+            .filter(ClubVenue.team_id == fixture.home_team_id, ClubVenue.venue_id == fixture.venue_id)
+            .all()
+        ) if fixture.home_team_id is not None and fixture.venue_id is not None else []
+        relationship = resolve_club_venue(fixture.home_team_id, fixture.venue_id, relationships)
+        relationship_id = relationship.club_venue_id if relationship is not None else None
+
+        subject_filters = [KnowFact.fixture_id == fixture.fixture_id]
+        if fixture.home_team_id is not None:
+            subject_filters.append(KnowFact.team_id == fixture.home_team_id)
+        if fixture.venue_id is not None:
+            subject_filters.append(KnowFact.venue_id == fixture.venue_id)
+        if relationship_id is not None:
+            subject_filters.append(KnowFact.club_venue_id == relationship_id)
+        facts = (
+            db.query(KnowFact)
+            .options(joinedload(KnowFact.evidence))
+            .filter(or_(*subject_filters))
+            .all()
+        )
+        spots = (
+            db.query(PreMatchSpot).filter(PreMatchSpot.club_venue_id == relationship_id).all()
+            if relationship_id is not None else []
+        )
+        return compose_fixture_know(fixture, relationship, facts, spots)
     finally:
         db.close()
 
@@ -745,6 +786,7 @@ def create_tip(
         venue_id=data.venue_id,
         tip=data.tip,
         author_user_id=identity.user_id if identity else None,
+        status="pending",
     )
 
     db.add(tip)

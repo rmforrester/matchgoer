@@ -58,6 +58,33 @@ class ClubVenueKnowResponse(BaseModel):
     before_match: list[PreMatchSpotResponse]
 
 
+class KnowProvenanceResponse(BaseModel):
+    source_type: str
+    source_title: str
+    source_url: str | None = None
+    source_date: date | None = None
+
+
+class KnowFactResponse(BaseModel):
+    know_fact_id: int
+    headline: str | None = None
+    content: str
+    provenance: list[KnowProvenanceResponse] = Field(default_factory=list)
+
+
+class FixtureKnowResponse(BaseModel):
+    fixture_id: int
+    team_id: int | None = None
+    venue_id: int | None = None
+    club_venue_id: int | None = None
+    club: list[KnowFactResponse] = Field(default_factory=list)
+    supporters: list[KnowFactResponse] = Field(default_factory=list)
+    matchday: list[KnowFactResponse] = Field(default_factory=list)
+    dont_miss: list[KnowFactResponse] = Field(default_factory=list)
+    before_match: list[PreMatchSpotResponse] = Field(default_factory=list)
+    good_to_know: list[KnowFactResponse] = Field(default_factory=list)
+
+
 class FixtureResponse(BaseModel):
 
     fixture_id: int

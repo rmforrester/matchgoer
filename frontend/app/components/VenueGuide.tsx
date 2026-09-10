@@ -12,7 +12,7 @@ export default function VenueGuide({ guide }: Props) {
   const sections = primaryGuideSections(guide);
   const secondarySections = secondaryGuideSections(guide);
   const ticket = ticketPresentation(guide);
-  if (guide.sections.length === 0) return null;
+  if (guide.sections.length === 0 && guide.before_match.length === 0) return null;
   const factRow = (fact: VenueGuideFact, sectionKey: string) => {
     const stale = freshnessLabel[fact.freshness];
     const isTicketLink = sectionKey === "tickets_entry" && fact.provenance.source_url === ticket.url;
@@ -42,10 +42,6 @@ export default function VenueGuide({ guide }: Props) {
         </div>
       </section>}
       <div className="mt-6 grid gap-7 md:grid-cols-2">
-        {ticket.unknownMessage && <section aria-labelledby="guide-tickets-unknown">
-          <h3 id="guide-tickets-unknown" className="tt-display text-3xl leading-none">Tickets</h3>
-          <p className="mt-3 border-y-2 border-[var(--tt-ink)] py-4">{ticket.unknownMessage}</p>
-        </section>}
         {sections.map((section) => (
           <section key={section.key} aria-labelledby={`guide-${section.key}`}>
             <h3 id={`guide-${section.key}`} className="tt-display text-3xl leading-none">{section.label}</h3>

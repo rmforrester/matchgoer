@@ -185,9 +185,10 @@ test("opening another marker replaces selection without locking pan or zoom", ()
 test("fixture page renders WHY THIS MATCH only when DECIDE reasons exist", () => {
   const match = fixturePageSource.indexOf("01 / Match");
   const why = fixturePageSource.indexOf("02 / Why this match");
-  const matchday = fixturePageSource.indexOf("/ Matchday · The ground");
+  const know = fixturePageSource.indexOf("<FixtureKnow know={know}");
+  const matchday = fixturePageSource.indexOf("Ground essentials");
   const social = fixturePageSource.indexOf("/ Social · Did you go?");
-  assert.ok(match < why && why < matchday && matchday < social);
+  assert.ok(match < why && why < know && know < matchday && matchday < social);
   assert.match(fixturePageSource, /\{hasDecisionReasons && <section/);
   assert.match(fixturePageSource, /decisionReasons\[0\]\.explanation/);
   assert.match(fixturePageSource, /decisionReasons\.slice\(1\)/);

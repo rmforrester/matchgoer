@@ -276,6 +276,117 @@ class DecisionEvidence(Base):
     fact = relationship("DecisionFact", back_populates="evidence")
 
 
+class KnowFact(Base):
+    """A reviewed KNOW v1 claim with one canonical editorial owner."""
+
+    __tablename__ = "know_facts"
+    __table_args__ = (
+        CheckConstraint(
+            "num_nonnulls(team_id, club_venue_id, venue_id, fixture_id) = 1",
+            name="ck_know_facts_exactly_one_subject",
+        ),
+        CheckConstraint(
+            "module IN ('CLUB', 'SUPPORTERS', 'MATCHDAY', 'DONT_MISS', 'GOOD_TO_KNOW')",
+            name="ck_know_facts_module",
+        ),
+        CheckConstraint(
+            "(module IN ('CLUB', 'SUPPORTERS') AND team_id IS NOT NULL) OR "
+            "(module = 'MATCHDAY' AND club_venue_id IS NOT NULL) OR "
+            "module IN ('DONT_MISS', 'GOOD_TO_KNOW')",
+            name="ck_know_facts_module_subject",
+        ),
+        CheckConstraint(
+            "publication_status IN ('DRAFT', 'PUBLISHED', 'NEEDS_REVIEW', 'ARCHIVED', 'REJECTED')",
+            name="ck_know_facts_publication_status",
+        ),
+        CheckConstraint("confidence IN ('HIGH', 'MEDIUM', 'LOW')", name="ck_know_facts_confidence"),
+        CheckConstraint(
+            "claim_sensitivity IN ('STANDARD', 'SENSITIVE')",
+            name="ck_know_facts_claim_sensitivity",
+        ),
+        CheckConstraint("btrim(content) <> ''", name="ck_know_facts_content_not_blank"),
+        CheckConstraint("headline IS NULL OR btrim(headline) <> ''", name="ck_know_facts_headline_not_blank"),
+        CheckConstraint("display_order > 0", name="ck_know_facts_display_order_positive"),
+        CheckConstraint(
+            "expires_at IS NULL OR reviewed_at IS NULL OR expires_at >= reviewed_at",
+            name="ck_know_facts_expiry_after_review",
+        ),
+        CheckConstraint(
+            "review_after IS NULL OR reviewed_at IS NULL OR review_after >= reviewed_at",
+            name="ck_know_facts_review_after_review",
+        ),
+        CheckConstraint("(approved_at IS NULL) = (approved_by IS NULL)", name="ck_know_facts_approval_pair"),
+        Index("ix_know_facts_team_publication", "team_id", "publication_status", "module", "display_order"),
+        Index("ix_know_facts_club_venue_publication", "club_venue_id", "publication_status", "module", "display_order"),
+        Index("ix_know_facts_venue_publication", "venue_id", "publication_status", "module", "display_order"),
+        Index("ix_know_facts_fixture_publication", "fixture_id", "publication_status", "module", "display_order"),
+        Index("uq_know_facts_team_dont_miss", "team_id", unique=True,
+              postgresql_where=text("module = 'DONT_MISS' AND publication_status = 'PUBLISHED'")),
+        Index("uq_know_facts_club_venue_dont_miss", "club_venue_id", unique=True,
+              postgresql_where=text("module = 'DONT_MISS' AND publication_status = 'PUBLISHED'")),
+        Index("uq_know_facts_venue_dont_miss", "venue_id", unique=True,
+              postgresql_where=text("module = 'DONT_MISS' AND publication_status = 'PUBLISHED'")),
+        Index("uq_know_facts_fixture_dont_miss", "fixture_id", unique=True,
+              postgresql_where=text("module = 'DONT_MISS' AND publication_status = 'PUBLISHED'")),
+    )
+
+    know_fact_id = Column(BigInteger, primary_key=True)
+    editorial_key = Column(String(160), nullable=False, unique=True)
+    team_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=True)
+    club_venue_id = Column(BigInteger, ForeignKey("club_venues.club_venue_id", ondelete="RESTRICT"), nullable=True)
+    venue_id = Column(Integer, ForeignKey("venues.venue_id", ondelete="RESTRICT"), nullable=True)
+    fixture_id = Column(Integer, ForeignKey("fixtures.fixture_id", ondelete="RESTRICT"), nullable=True)
+    module = Column(String(30), nullable=False)
+    headline = Column(String(160), nullable=True)
+    content = Column(Text, nullable=False)
+    display_order = Column(Integer, nullable=False, default=1)
+    publication_status = Column(String(20), nullable=False, default="DRAFT", index=True)
+    confidence = Column(String(10), nullable=False, default="MEDIUM")
+    claim_sensitivity = Column(String(20), nullable=False, default="STANDARD")
+    reviewed_at = Column(Date, nullable=True)
+    review_after = Column(Date, nullable=True)
+    expires_at = Column(Date, nullable=True)
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    approved_by = Column(String(160), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    evidence = relationship("KnowFactEvidence", back_populates="fact", cascade="all, delete-orphan")
+
+
+class KnowFactEvidence(Base):
+    __tablename__ = "know_fact_evidence"
+    __table_args__ = (
+        CheckConstraint(
+            "source_type IN ('OFFICIAL', 'SUPPORTER_ORGANISATION', 'LOCAL_MEDIA', 'ACADEMIC', "
+            "'BOOK', 'INTERVIEW', 'REDDIT', 'FAN_FORUM', 'MATCHGOER_SUPPORTER_SUBMISSION', "
+            "'EDITORIAL_RESEARCH', 'OTHER')",
+            name="ck_know_fact_evidence_source_type",
+        ),
+        CheckConstraint("disposition IN ('SUPPORTS', 'CONTRADICTS')", name="ck_know_fact_evidence_disposition"),
+        CheckConstraint("review_status IN ('PENDING', 'ACCEPTED', 'REJECTED')", name="ck_know_fact_evidence_review_status"),
+        CheckConstraint("btrim(source_title) <> ''", name="ck_know_fact_evidence_source_title_not_blank"),
+        CheckConstraint("btrim(evidence_note) <> ''", name="ck_know_fact_evidence_note_not_blank"),
+        Index("ix_know_fact_evidence_review", "know_fact_id", "review_status", "disposition"),
+        UniqueConstraint("know_fact_id", "source_title", "source_url", name="uq_know_fact_evidence_source"),
+    )
+
+    evidence_id = Column(BigInteger, primary_key=True)
+    know_fact_id = Column(BigInteger, ForeignKey("know_facts.know_fact_id", ondelete="CASCADE"), nullable=False)
+    source_type = Column(String(40), nullable=False)
+    source_title = Column(String(200), nullable=False)
+    source_url = Column(Text, nullable=True)
+    source_date = Column(Date, nullable=True)
+    evidence_note = Column(String(500), nullable=False)
+    disposition = Column(String(20), nullable=False, default="SUPPORTS")
+    review_status = Column(String(20), nullable=False, default="PENDING")
+    contributor_user_id = Column(Integer, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    fact = relationship("KnowFact", back_populates="evidence")
+
+
 class Team(Base):
     """Existing provider-ID keyed teams table used by ingestion."""
 
@@ -428,7 +539,7 @@ class MatchdayTip(Base):
 
     status = Column(
         String,
-        default="active"
+        default="pending"
     )
 
     created_at = Column(
