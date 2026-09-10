@@ -1,0 +1,218 @@
+{
+  "status": "PASS",
+  "action": "DRY_RUN",
+  "preflight": {
+    "structural": {
+      "simple_relationship_inserts": [
+        [
+          879,
+          23424
+        ],
+        [
+          6378,
+          23428
+        ],
+        [
+          17825,
+          23436
+        ],
+        [
+          510,
+          23421
+        ],
+        [
+          17816,
+          23433
+        ],
+        [
+          17820,
+          23434
+        ],
+        [
+          9450,
+          23431
+        ],
+        [
+          865,
+          23424
+        ],
+        [
+          6379,
+          23429
+        ],
+        [
+          1689,
+          23426
+        ],
+        [
+          513,
+          23422
+        ],
+        [
+          24696,
+          23438
+        ],
+        [
+          6380,
+          23430
+        ],
+        [
+          526,
+          23423
+        ],
+        [
+          875,
+          23425
+        ],
+        [
+          17147,
+          23432
+        ],
+        [
+          22319,
+          23437
+        ],
+        [
+          9510,
+          23455
+        ],
+        [
+          1688,
+          23449
+        ],
+        [
+          9499,
+          23454
+        ],
+        [
+          866,
+          23445
+        ],
+        [
+          882,
+          23448
+        ],
+        [
+          804,
+          23444
+        ],
+        [
+          868,
+          23446
+        ],
+        [
+          9530,
+          23457
+        ],
+        [
+          524,
+          23442
+        ],
+        [
+          525,
+          23443
+        ],
+        [
+          6381,
+          23452
+        ],
+        [
+          9514,
+          23456
+        ],
+        [
+          1705,
+          23450
+        ],
+        [
+          880,
+          23099
+        ],
+        [
+          871,
+          23447
+        ],
+        [
+          515,
+          23441
+        ],
+        [
+          9534,
+          23458
+        ],
+        [
+          9442,
+          23453
+        ],
+        [
+          1708,
+          23451
+        ]
+      ],
+      "alcione_venue_insert": true,
+      "alcione_venue_id": null,
+      "alcione_team_update": true,
+      "alcione_fixture_updates": 19,
+      "alcione_relationship_insert": true,
+      "union_team_update": true,
+      "union_relationship_insert": true
+    },
+    "btm": {
+      "inserts": [
+        {
+          "team_id": 507,
+          "club_venue_id": 452
+        },
+        {
+          "team_id": 6379,
+          "blocked": "relationship_missing"
+        }
+      ],
+      "palermo_spot_id": 190,
+      "palermo_update": true
+    },
+    "know": {
+      "state": "ABSENT",
+      "fact_inserts": 26,
+      "evidence_inserts": 26,
+      "atalanta": 2
+    },
+    "denominator": 78,
+    "current_home": 40,
+    "serving_btm_clubs": 33,
+    "italy_know_facts": 2,
+    "italy_clubs_with_know": 1
+  },
+  "fingerprints": {
+    "account_conversion_handoffs": "d0083d9294672dd2a1c154d5230215b7",
+    "account_merge_audits": "abc58c008a2eb97f0bf04ac5402d8b89",
+    "anonymous_sessions": "f84516685abecb511611c2bb7e8c882c",
+    "away_day_reviews": "8c596fc1643ccffa64d596ef0cd53a28",
+    "away_day_votes": "d41d8cd98f00b204e9800998ecf8427e",
+    "club_venues": "ad585240d91bc577c6dc8aac528e2a32",
+    "decision_evidence": "fd66f4ba09da8af9ffac2d9669312c8e",
+    "decision_facts": "52fe39b6d10c117c237b6565c4b50cb0",
+    "fixture_meeting_intents": "8bce2663b5b6374eac34dffd65cc7709",
+    "fixtures": "a262d41fb0b1298466f90c6419d396a4",
+    "interested_fixtures": "5da70a8a4eb53bda107d905e22987891",
+    "know_fact_evidence": "adc21494fd8721fdbbaa5c4eb749249e",
+    "know_facts": "491303689b8640f8254201c812bb7a0a",
+    "leagues": "f54ac10c61cab1c2b7bb5c7ceca38d33",
+    "match_board_posts": "b8fb0e49e7290ab4753898307dcc4302",
+    "match_board_reports": "d41d8cd98f00b204e9800998ecf8427e",
+    "matchday_tips": "d41d8cd98f00b204e9800998ecf8427e",
+    "pre_match_spot_evidence": "234f5c31e2df85a155ebb6b9885dd4a0",
+    "pre_match_spots": "575acbbad6632b10ea4d9b92e5d3d7c2",
+    "social_events": "3fae741358c46bafb3f03875839e799d",
+    "teams": "c0d3347df0dd6cf97ce004aa3e3ceddb",
+    "user_identities": "9d30bbfc5ad048812815134d48b21963",
+    "user_profiles": "bdd29fcd4abb6500e20e140cc13bde3b",
+    "users": "1bc966d2085fe4c242f2daed10d27275",
+    "venue_guide_facts": "9dd4b20361d9f6e53bf1e3c0e443ca88",
+    "venue_names": "e6c7a85331245da3b96815e9cd720f78",
+    "venue_provider_refs": "8bdf2def8bd7167c736e1cc871234e39",
+    "venue_visits": "5bda78bd46c374688c0b9b8f8dd2fa24",
+    "venues": "77172fc8f5ce275b973b9110c7d8ae0a"
+  },
+  "checked_at": "2026-09-10T19:55:48.273860+00:00"
+}

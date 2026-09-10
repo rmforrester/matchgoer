@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "action": "DRY_RUN",
+  "preflight": {
+    "structural": {
+      "simple_relationship_inserts": [],
+      "alcione_venue_insert": false,
+      "alcione_venue_id": 24282,
+      "alcione_team_update": false,
+      "alcione_fixture_updates": 0,
+      "alcione_relationship_insert": false,
+      "union_team_update": false,
+      "union_relationship_insert": false
+    },
+    "btm": {
+      "inserts": [],
+      "palermo_spot_id": 190,
+      "palermo_update": false
+    },
+    "know": {
+      "state": "EXACTLY_PRESENT",
+      "fact_inserts": 0,
+      "evidence_inserts": 0,
+      "atalanta": 2
+    },
+    "denominator": 78,
+    "current_home": 78,
+    "serving_btm_clubs": 35,
+    "italy_know_facts": 28,
+    "italy_clubs_with_know": 20
+  },
+  "fingerprints": {
+    "account_conversion_handoffs": "d0083d9294672dd2a1c154d5230215b7",
+    "account_merge_audits": "abc58c008a2eb97f0bf04ac5402d8b89",
+    "anonymous_sessions": "f84516685abecb511611c2bb7e8c882c",
+    "away_day_reviews": "8c596fc1643ccffa64d596ef0cd53a28",
+    "away_day_votes": "d41d8cd98f00b204e9800998ecf8427e",
+    "club_venues": "e81dac685985eaf6b02bc8ec04ef6ec3",
+    "decision_evidence": "fd66f4ba09da8af9ffac2d9669312c8e",
+    "decision_facts": "52fe39b6d10c117c237b6565c4b50cb0",
+    "fixture_meeting_intents": "8bce2663b5b6374eac34dffd65cc7709",
+    "fixtures": "6086e83b0a64cf593757715e1b2bf754",
+    "interested_fixtures": "5da70a8a4eb53bda107d905e22987891",
+    "know_fact_evidence": "e94f78b4e775799685e8aadc04be5f56",
+    "know_facts": "ea2a5b6f85e7f21e023757fb3893acff",
+    "leagues": "f54ac10c61cab1c2b7bb5c7ceca38d33",
+    "match_board_posts": "b8fb0e49e7290ab4753898307dcc4302",
+    "match_board_reports": "d41d8cd98f00b204e9800998ecf8427e",
+    "matchday_tips": "d41d8cd98f00b204e9800998ecf8427e",
+    "pre_match_spot_evidence": "0f3b5400a44672c6cbb643681fad552f",
+    "pre_match_spots": "214dcb112a43181e2866d45d4f8a8387",
+    "social_events": "3fae741358c46bafb3f03875839e799d",
+    "teams": "229267e0b15a7437be826c2a1b624750",
+    "user_identities": "9d30bbfc5ad048812815134d48b21963",
+    "user_profiles": "bdd29fcd4abb6500e20e140cc13bde3b",
+    "users": "1bc966d2085fe4c242f2daed10d27275",
+    "venue_guide_facts": "9dd4b20361d9f6e53bf1e3c0e443ca88",
+    "venue_names": "e79e5d19341bcf70dfc2259a8ca6693f",
+    "venue_provider_refs": "56510ba9c93feb7493a83dd62ebb25d7",
+    "venue_visits": "5bda78bd46c374688c0b9b8f8dd2fa24",
+    "venues": "2b3055bb037c43b832f1a79bdfdfae6e"
+  },
+  "checked_at": "2026-09-10T19:59:13.391618+00:00"
+}

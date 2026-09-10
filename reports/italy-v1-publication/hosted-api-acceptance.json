@@ -1,0 +1,353 @@
+{
+  "status": "PASS",
+  "checked_at": "2026-09-10T20:01:51.160767+00:00",
+  "hosted_writes": 0,
+  "results": [
+    {
+      "team_id": 497,
+      "fixture_id": 1550087,
+      "venue_id": 23098,
+      "http": 200,
+      "modules": [
+        "MATCHDAY",
+        "SUPPORTERS"
+      ],
+      "expected_modules": [
+        "MATCHDAY",
+        "SUPPORTERS"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 499,
+      "fixture_id": 1550088,
+      "venue_id": 23106,
+      "http": 200,
+      "modules": [
+        "CLUB",
+        "SUPPORTERS"
+      ],
+      "expected_modules": [
+        "CLUB",
+        "SUPPORTERS"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 895,
+      "fixture_id": 1550118,
+      "venue_id": 23114,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 492,
+      "fixture_id": 1550105,
+      "venue_id": 23102,
+      "http": 200,
+      "modules": [
+        "CLUB",
+        "SUPPORTERS"
+      ],
+      "expected_modules": [
+        "CLUB",
+        "SUPPORTERS"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 494,
+      "fixture_id": 1550095,
+      "venue_id": 23103,
+      "http": 200,
+      "modules": [
+        "CLUB",
+        "SUPPORTERS"
+      ],
+      "expected_modules": [
+        "CLUB",
+        "SUPPORTERS"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 517,
+      "fixture_id": 1550096,
+      "venue_id": 23111,
+      "http": 200,
+      "modules": [
+        "CLUB",
+        "GOOD_TO_KNOW"
+      ],
+      "expected_modules": [
+        "CLUB",
+        "GOOD_TO_KNOW"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 528,
+      "fixture_id": 1601493,
+      "venue_id": 23124,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 509,
+      "fixture_id": 1601496,
+      "venue_id": 23119,
+      "http": 200,
+      "modules": [
+        "CLUB",
+        "MATCHDAY",
+        "SUPPORTERS"
+      ],
+      "expected_modules": [
+        "CLUB",
+        "MATCHDAY",
+        "SUPPORTERS"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 1687,
+      "fixture_id": 1601525,
+      "venue_id": 23133,
+      "http": 200,
+      "modules": [
+        "SUPPORTERS"
+      ],
+      "expected_modules": [
+        "SUPPORTERS"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 522,
+      "fixture_id": 1601499,
+      "venue_id": 23122,
+      "http": 200,
+      "modules": [
+        "SUPPORTERS"
+      ],
+      "expected_modules": [
+        "SUPPORTERS"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 863,
+      "fixture_id": 1601518,
+      "venue_id": 23126,
+      "http": 200,
+      "modules": [
+        "CLUB",
+        "MATCHDAY"
+      ],
+      "expected_modules": [
+        "CLUB",
+        "MATCHDAY"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 879,
+      "fixture_id": 1608241,
+      "venue_id": 23424,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 6378,
+      "fixture_id": 1608242,
+      "venue_id": 23428,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 865,
+      "fixture_id": 1608235,
+      "venue_id": 23424,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 17147,
+      "fixture_id": 1608240,
+      "venue_id": 23432,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 880,
+      "fixture_id": 1608618,
+      "venue_id": 23099,
+      "http": 200,
+      "modules": [
+        "SUPPORTERS"
+      ],
+      "expected_modules": [
+        "SUPPORTERS"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 527,
+      "fixture_id": 1601508,
+      "venue_id": 23123,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 868,
+      "fixture_id": 1608615,
+      "venue_id": 23446,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 515,
+      "fixture_id": 1608628,
+      "venue_id": 23441,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 9534,
+      "fixture_id": 1608629,
+      "venue_id": 23458,
+      "http": 200,
+      "modules": [
+        "CLUB"
+      ],
+      "expected_modules": [
+        "CLUB"
+      ],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 17824,
+      "fixture_id": 1608231,
+      "venue_id": 24282,
+      "http": 200,
+      "modules": [],
+      "expected_modules": [],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 26356,
+      "fixture_id": 1608232,
+      "venue_id": 23440,
+      "http": 200,
+      "modules": [],
+      "expected_modules": [],
+      "pass": true,
+      "before_match": 0
+    },
+    {
+      "team_id": 507,
+      "fixture_id": 1601504,
+      "venue_id": 23118,
+      "http": 200,
+      "modules": [],
+      "expected_modules": [],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 6379,
+      "fixture_id": 1608237,
+      "venue_id": 23429,
+      "http": 200,
+      "modules": [],
+      "expected_modules": [],
+      "pass": true,
+      "before_match": 1
+    },
+    {
+      "team_id": 500,
+      "fixture_id": 1550089,
+      "venue_id": 23107,
+      "http": 200,
+      "modules": [],
+      "expected_modules": [],
+      "pass": true,
+      "before_match": 1
+    }
+  ]
+}
