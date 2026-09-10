@@ -33,14 +33,14 @@ export function DateRangeFields({ startDate, setStartDate, minimumStartDate, end
   }, [endDate, startDate]);
 
   return (
-    <div className="grid min-w-0 grid-cols-2 items-end gap-2">
+    <div className="tt-date-range grid w-full min-w-0 items-end gap-2">
       <label className="grid min-w-0 gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
         From
         <input
           type="date"
           value={startDate}
           min={minimumStartDate}
-          className="tt-control w-full min-w-0 max-w-full px-2 [color-scheme:light] sm:px-3"
+          className="tt-control tt-date-control w-full min-w-0 max-w-full px-2 [color-scheme:light] sm:px-3"
           onChange={(event) => {
             const nextStartDate = event.target.value && event.target.value < minimumStartDate ? minimumStartDate : event.target.value;
             setStartDate(nextStartDate);
@@ -58,7 +58,7 @@ export function DateRangeFields({ startDate, setStartDate, minimumStartDate, end
           type="date"
           value={endDate}
           min={startDate || minimumStartDate}
-          className={`tt-control w-full min-w-0 max-w-full px-2 [color-scheme:light] sm:px-3 ${toNeedsAttention ? "border-2 border-[var(--tt-blue)] shadow-[2px_2px_0_var(--tt-blue)]" : ""}`}
+          className={`tt-control tt-date-control w-full min-w-0 max-w-full px-2 [color-scheme:light] sm:px-3 ${toNeedsAttention ? "border-2 border-[var(--tt-blue)] shadow-[2px_2px_0_var(--tt-blue)]" : ""}`}
           onChange={(event) => {
             setEndDate(event.target.value);
             setToNeedsAttention(false);
