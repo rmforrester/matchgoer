@@ -125,7 +125,7 @@ test("Discover popup and carousel expose only the compact lead reason with restr
 });
 
 test("fixture popup keeps required match details, accessible dismiss, and View match action", () => {
-  assert.match(fixtureMapSource, /line-clamp-2 break-words leading-tight/);
+  assert.match(fixtureMapSource, /block min-w-0 break-words leading-tight/);
   assert.match(fixtureMapSource, /fixture\.league_name/);
   assert.match(fixtureMapSource, /fixture\.venue_name/);
   assert.match(fixtureMapSource, /fixture\.distance_miles\.toFixed\(1\)/);
@@ -135,22 +135,33 @@ test("fixture popup keeps required match details, accessible dismiss, and View m
   assert.match(fixtureMapSource, /tt-fixture-popup/);
 });
 
-test("mobile fixture popup stays compact while preserving the core match fields", () => {
-  assert.match(globalStylesSource, /\.tt-map \{ height: min\(65vh, 24rem\); min-height: 22rem; \}/);
-  assert.match(globalStylesSource, /\.tt-fixture-popup \.tt-fixture-popup-optional \{ display: none; \}/);
-  assert.match(fixtureMapSource, /card\.matchup/);
+test("mobile fixture overlay stays in a control-safe area and preserves core match fields", () => {
+  assert.match(globalStylesSource, /\.tt-map \{ height: min\(68vh, 28rem\); min-height: 26rem; \}/);
+  assert.match(globalStylesSource, /\.tt-mobile-fixture-safe-area \{[\s\S]*bottom: 2rem;[\s\S]*top: 5\.75rem;/);
+  assert.match(globalStylesSource, /\.tt-mobile-fixture-card \{[\s\S]*max-width: 100%;[\s\S]*min-width: 0;/);
+  assert.match(fixtureMapSource, /tt-mobile-fixture-card/);
+  assert.match(fixtureMapSource, /fixture\.home_team} v \{fixture\.away_team/);
   assert.match(fixtureMapSource, /fixture\.fixture_date/);
   assert.match(fixtureMapSource, /fixture\.league_name/);
   assert.match(fixtureMapSource, /fixture\.venue_name/);
   assert.match(fixtureMapSource, /View match/);
+  assert.match(fixtureMapSource, /grid-cols-\[minmax\(0,1fr\)_2\.75rem\]/);
+  assert.match(fixtureMapSource, /block min-w-0 break-words text-base leading-snug/);
 });
 
 test("mobile selection does not own the viewport and dismiss only clears that fixture", () => {
-  assert.match(fixtureMapSource, /autoPan=\{!compactMobile\}/);
+  assert.match(fixtureMapSource, /!compactMobile && <Popup/);
+  assert.match(fixtureMapSource, /if \(compactMobile\) \{[\s\S]*onFixtureSelect/);
   assert.match(fixtureMapSource, /popupclose: \(\) => onFixtureDismiss\(fixture\.fixture_id\)/);
   assert.match(fixtureMapSource, /onFixtureDismiss\(fixture\.fixture_id\); map\.closePopup\(\)/);
   assert.match(discoverPageSource, /setSelectedFixtureId\(\(current\) => current === fixtureId \? null : current\)/);
   assert.doesNotMatch(fixtureMapSource, /onFixtureDismiss[\s\S]{0,100}setView/);
+});
+
+test("editable mobile controls prevent Safari focus zoom without disabling page zoom", () => {
+  assert.match(globalStylesSource, /input\.tt-control,[\s\S]*select\.tt-control,[\s\S]*textarea\.tt-control \{ font-size: 1rem; \}/);
+  assert.doesNotMatch(globalStylesSource, /user-scalable|max(?:imum)?-scale/i);
+  assert.doesNotMatch(readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8"), /userScalable|maximumScale/);
 });
 
 test("Search This Area captures the live viewport before closing selection and never sets a view", () => {

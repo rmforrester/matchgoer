@@ -86,21 +86,26 @@ function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, onFixtureDi
   const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
   const statusGroup = fixtureStatusGroup(fixture.status);
 
-  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ popupopen: () => { setFixtureIndex(decision.initialFixtureIndex); onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id); }, popupclose: () => onFixtureDismiss(fixture.fixture_id) }}>
-    <Popup closeButton={false} offset={[0, -8]} {...FIXTURE_POPUP_BEHAVIOR} autoPan={!compactMobile} className="tt-fixture-popup">
+  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icon} title={markerLabel} alt={markerLabel} eventHandlers={{ click: () => {
+    if (compactMobile) {
+      setFixtureIndex(decision.initialFixtureIndex);
+      onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id);
+    }
+  }, popupopen: () => { setFixtureIndex(decision.initialFixtureIndex); onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id); }, popupclose: () => onFixtureDismiss(fixture.fixture_id) }}>
+    {!compactMobile && <Popup closeButton={false} offset={[0, -8]} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
       <button type="button" onClick={() => { onFixtureDismiss(fixture.fixture_id); map.closePopup(); }} aria-label="Dismiss selected fixture" className="absolute right-2 top-2 grid min-h-11 min-w-11 place-items-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-2xl font-bold leading-none">×</button>
       <div className="pr-10">
       {fixture.highlight_eligible && fixture.lead_decision_reason && <div className="tt-fixture-popup-optional mb-2 border-l-4 border-[var(--tt-gold)] pl-3">
         <strong className="line-clamp-2 break-words text-sm leading-tight">{fixture.lead_decision_reason.emoji} {fixture.lead_decision_reason.label}</strong>
       </div>}
-      <strong className="line-clamp-2 break-words leading-tight">{card.matchup}</strong>
+      <strong className="block min-w-0 break-words leading-tight">{card.matchup}</strong>
       <span className="mt-2 block text-xs font-bold">
       {statusGroup === "postponed" || statusGroup === "cancelled"
         ? fixtureStatusLabel(fixture.status)
         : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {new Date(fixture.fixture_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}
       </span>
       <span className="mt-1 block text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)]">{fixture.league_name}</span>
-      <span className="mt-1 block truncate text-xs font-bold">{fixture.venue_name}</span>
+      <span className="mt-1 block min-w-0 break-words text-xs font-bold">{fixture.venue_name}</span>
       {showDistance && Number.isFinite(fixture.distance_miles) && <span className="tt-fixture-popup-optional mt-1 block text-xs text-[var(--tt-muted)]">{fixture.distance_miles.toFixed(1)} mi away</span>}
       </div>
       {fixtureCount > 1 && <div className="mt-3 flex items-center justify-between gap-3" aria-label="Fixtures at this stadium">
@@ -109,8 +114,51 @@ function FixtureVenueMarker({ group, visited, icon, onFixtureSelect, onFixtureDi
         <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="min-h-11 px-2 text-lg">→</button>
       </div>}
       <div><Link href={card.href} className="mt-2 inline-flex min-h-10 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">View match →</Link></div>
-    </Popup>
+    </Popup>}
   </Marker>;
+}
+
+function MobileFixtureCard({
+  fixture,
+  group,
+  onFixtureSelect,
+  onFixtureDismiss,
+}: {
+  fixture: Fixture;
+  group: FixtureVenueGroup;
+  onFixtureSelect: (fixtureId: number) => void;
+  onFixtureDismiss: (fixtureId: number) => void;
+}) {
+  const fixtureIndex = group.fixtures.findIndex((candidate) => candidate.fixture_id === fixture.fixture_id);
+  const statusGroup = fixtureStatusGroup(fixture.status);
+  const move = (offset: number) => {
+    const next = (fixtureIndex + offset + group.fixtures.length) % group.fixtures.length;
+    onFixtureSelect(group.fixtures[next].fixture_id);
+  };
+
+  return <article className="tt-mobile-fixture-card" aria-label="Selected fixture">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.75rem] gap-3">
+      <div className="min-w-0">
+        <strong className="block min-w-0 break-words text-base leading-snug">{fixture.home_team} v {fixture.away_team}</strong>
+        <span className="mt-1.5 block text-sm font-bold leading-snug">
+          {statusGroup === "postponed" || statusGroup === "cancelled"
+            ? fixtureStatusLabel(fixture.status)
+            : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {new Date(fixture.fixture_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}
+        </span>
+        <span className="mt-1 block min-w-0 break-words text-xs font-extrabold uppercase leading-snug tracking-[0.06em] text-[var(--tt-blue)]">{fixture.league_name}</span>
+        <span className="mt-1 block min-w-0 break-words text-sm font-bold leading-snug">{fixture.venue_name}</span>
+      </div>
+      <button type="button" onClick={() => onFixtureDismiss(fixture.fixture_id)} aria-label="Dismiss selected fixture" className="grid h-11 w-11 place-items-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-2xl font-bold leading-none">×</button>
+    </div>
+    <div className="mt-2 flex min-w-0 items-center justify-between gap-3">
+      <Link href={`/fixture/${fixture.fixture_id}`} className="inline-flex min-h-10 min-w-0 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">View match →</Link>
+      {group.fixtures.length > 1 && <div className="flex shrink-0 items-center gap-1" aria-label="Fixtures at this stadium">
+        <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="grid h-10 w-10 place-items-center text-lg">←</button>
+        <span className="text-xs font-bold">{fixtureIndex + 1}/{group.fixtures.length}</span>
+        <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="grid h-10 w-10 place-items-center text-lg">→</button>
+      </div>}
+    </div>
+  </article>;
 }
 
 function currentMapArea(map: L.Map): MapSearchArea {
@@ -213,6 +261,13 @@ export default function FixtureMap({
   const selectedHighlightedGroundIcon = useMemo(() => createGroundMarkerIcon(false, true, true), []);
   const selectedHighlightedVisitedGroundIcon = useMemo(() => createGroundMarkerIcon(true, true, true), []);
   const userLocationIcon = useMemo(() => createUserLocationIcon(), []);
+  const selectedFixtureGroup = useMemo(
+    () => selectedFixtureId === null
+      ? null
+      : fixtureGroups.find((group) => group.fixtures.some((fixture) => fixture.fixture_id === selectedFixtureId)) ?? null,
+    [fixtureGroups, selectedFixtureId],
+  );
+  const selectedFixture = selectedFixtureGroup?.fixtures.find((fixture) => fixture.fixture_id === selectedFixtureId) ?? null;
   useEffect(() => {
     const query = window.matchMedia("(max-width: 640px)");
     const update = () => setCompactMobile(query.matches);
@@ -384,6 +439,9 @@ export default function FixtureMap({
       await onSearchArea(area);
       setAreaSearchAvailable(false);
     }} className="tt-action tt-map-search-action absolute left-1/2 top-3 z-[1000] -translate-x-1/2 shadow-[2px_2px_0_var(--tt-ink)] disabled:opacity-60">{searchingArea ? "Searching…" : "Search this area"}</button>}
+    {compactMobile && selectedFixture && selectedFixtureGroup && <div className="tt-mobile-fixture-safe-area">
+      <MobileFixtureCard fixture={selectedFixture} group={selectedFixtureGroup} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} />
+    </div>}
     {tileError && <p role="status" className="absolute bottom-3 left-3 right-3 z-[1000] border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">The map background could not load. Fixture cards and ground links are still available below.</p>}
 </div>
   );

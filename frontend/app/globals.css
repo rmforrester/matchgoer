@@ -83,13 +83,40 @@ body {
 .tt-user-location-marker__visual { background: var(--tt-paper); border: 3px solid var(--tt-blue); border-radius: 50%; box-shadow: 0 0 0 2px var(--tt-ink); display: block; height: 16px; margin: 14px; width: 16px; }
 .tt-fixture-popup .leaflet-popup-content { margin: 0.65rem; max-width: min(15rem, calc(100vw - 5rem)); min-width: 12rem; }
 .tt-fixture-popup .leaflet-popup-content-wrapper { border-radius: var(--tt-radius); }
+.tt-mobile-fixture-safe-area { display: none; }
 .tt-scrollbar { scrollbar-color: var(--tt-blue) var(--tt-rule); scrollbar-width: thin; }
 .tt-scrollbar::-webkit-scrollbar { height: 8px; }
 .tt-scrollbar::-webkit-scrollbar-track { background: var(--tt-rule); }
 .tt-scrollbar::-webkit-scrollbar-thumb { background: var(--tt-blue); }
 
 @media (max-width: 640px) {
-  .tt-map { height: min(65vh, 24rem); min-height: 22rem; }
+  input.tt-control,
+  select.tt-control,
+  textarea.tt-control { font-size: 1rem; }
+  .tt-map { height: min(68vh, 28rem); min-height: 26rem; }
   .tt-fixture-popup .leaflet-popup-content { margin: 0.45rem; min-width: min(12rem, calc(100vw - 5rem)); }
   .tt-fixture-popup .tt-fixture-popup-optional { display: none; }
+  .tt-mobile-fixture-safe-area {
+    bottom: 2rem;
+    display: block;
+    left: 0.75rem;
+    max-width: calc(100% - 1.5rem);
+    pointer-events: none;
+    position: absolute;
+    right: 0.75rem;
+    top: 5.75rem;
+    z-index: 1000;
+  }
+  .tt-mobile-fixture-card {
+    background: var(--tt-paper);
+    border: 2px solid var(--tt-ink);
+    box-shadow: 3px 3px 0 var(--tt-ink);
+    max-height: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: auto;
+    padding: 0.75rem;
+    pointer-events: auto;
+    width: 100%;
+  }
 }
