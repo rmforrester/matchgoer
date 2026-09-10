@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -88,7 +88,9 @@ EVIDENCE_FIELDS = ("fact_editorial_key", "source_type", "source_title", "source_
 
 
 def _scalar(value):
-    return value.isoformat() if isinstance(value, (date, datetime)) else value
+    if isinstance(value, datetime):
+        return value.astimezone(timezone.utc).isoformat()
+    return value.isoformat() if isinstance(value, date) else value
 
 
 def _state(connection, pack: dict) -> str:
@@ -97,13 +99,13 @@ def _state(connection, pack: dict) -> str:
     if not facts:
         return "ABSENT"
     actual_facts = {tuple(_scalar(row[key]) for key in FACT_FIELDS) for row in facts}
-    expected_facts = {tuple(row.get(key) for key in FACT_FIELDS) for row in pack["facts"]}
+    expected_facts = {tuple(_scalar(_dates(row).get(key)) for key in FACT_FIELDS) for row in pack["facts"]}
     evidence = connection.execute(text("""SELECT f.editorial_key fact_editorial_key,e.source_type,e.source_title,e.source_url,
         e.source_date,e.evidence_note,e.disposition,e.review_status,e.contributor_user_id
         FROM know_fact_evidence e JOIN know_facts f ON f.know_fact_id=e.know_fact_id
         WHERE f.editorial_key = ANY(:keys)"""), {"keys": keys}).mappings().all()
     actual_evidence = {tuple(_scalar(row[key]) for key in EVIDENCE_FIELDS) for row in evidence}
-    expected_evidence = {tuple(row.get(key) for key in EVIDENCE_FIELDS) for row in pack["evidence"]}
+    expected_evidence = {tuple(_scalar(_dates(row).get(key)) for key in EVIDENCE_FIELDS) for row in pack["evidence"]}
     if actual_facts == expected_facts and actual_evidence == expected_evidence:
         return "EXACTLY_PRESENT"
     raise RuntimeError("manifest editorial keys exist with conflicting fact or evidence state")
