@@ -314,10 +314,11 @@ test("untouched Discover defaults to fourteen local calendar days", () => {
   assert.match(discoverPageSource, /"Next 14 days" : "Custom dates"/);
 });
 
-test("mobile date controls use zero-minimum equal tracks and explicit logical containment", () => {
+test("mobile date controls stack before the desktop breakpoint with explicit logical containment", () => {
   assert.match(searchBarSource, /tt-date-range grid w-full min-w-0 items-end gap-2/);
   assert.equal((searchBarSource.match(/tt-date-control/g) ?? []).length, 2);
-  assert.match(globalStylesSource, /\.tt-date-range \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/);
+  assert.match(globalStylesSource, /\.tt-date-range \{ grid-template-columns: minmax\(0, 1fr\); \}/);
+  assert.match(globalStylesSource, /@media \(min-width: 641px\)[\s\S]*\.tt-date-range \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\); \}/);
   assert.match(globalStylesSource, /\.tt-date-range > label \{ min-inline-size: 0; \}/);
   assert.match(globalStylesSource, /\.tt-date-control \{ display: block; inline-size: 100%; max-inline-size: 100%; min-inline-size: 0; \}/);
   assert.doesNotMatch(globalStylesSource, /\.tt-date-range[^}]*overflow:\s*hidden/);

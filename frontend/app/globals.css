@@ -84,7 +84,7 @@ body {
 .tt-fixture-popup .leaflet-popup-content { margin: 0.65rem; max-width: min(15rem, calc(100vw - 5rem)); min-width: 12rem; }
 .tt-fixture-popup .leaflet-popup-content-wrapper { border-radius: var(--tt-radius); }
 .tt-mobile-fixture-safe-area { display: none; }
-.tt-date-range { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tt-date-range { grid-template-columns: minmax(0, 1fr); }
 .tt-date-range > label { min-inline-size: 0; }
 .tt-date-control { display: block; inline-size: 100%; max-inline-size: 100%; min-inline-size: 0; }
 .tt-league-options { max-height: min(40dvh, 20rem); position: relative; width: 100%; }
@@ -126,5 +126,6 @@ body {
 }
 
 @media (min-width: 641px) {
+  .tt-date-range { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tt-league-options { max-height: 20rem; position: absolute; right: 0; width: min(20rem, calc(100vw - 3rem)); z-index: 1000; }
 }
