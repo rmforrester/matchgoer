@@ -10,7 +10,8 @@
     "test:pending-auth": "node --experimental-strip-types --test lib/pending-auth-action.test.ts",
     "test:auth-flow": "node --experimental-strip-types --test lib/auth-flow.test.ts",
     "test:discovery": "node --experimental-strip-types --test lib/fixtureDiscovery.test.ts",
-    "test:guide": "node --experimental-strip-types --test lib/venue-guide.test.ts"
+    "test:guide": "node --experimental-strip-types --test lib/venue-guide.test.ts",
+    "test:matchdays": "node --experimental-strip-types --test lib/matchdays.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
