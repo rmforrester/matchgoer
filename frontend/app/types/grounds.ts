@@ -18,6 +18,9 @@ export type AttendedFixture = {
   home_team: string;
   away_team: string;
   league_name: string;
+  status: string | null;
+  home_goals: number | null;
+  away_goals: number | null;
 };
 
 export type GroundVisit = {

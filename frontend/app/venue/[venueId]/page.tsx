@@ -329,19 +329,30 @@ api
         <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{visitedError}</p>
       )}
 
+      {hasVisited && <>
+      <section className="tt-section-rule mt-10 pt-4" aria-labelledby="visit-heading">
+        <p className="tt-kicker">Your visit</p>
+        <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">You&apos;ve been here</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">{myGround.latest_visit_date ? `Last visit · ${new Date(`${myGround.latest_visit_date}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Date not remembered"}</p></div>
+          <button type="button" onClick={openReview} className="tt-action px-5">{reviewState === "completed" ? "Edit my review" : reviewState === "partial" ? "Continue review" : "Rate this ground"}</button>
+        </div>
+      </section>
+        <MatchdayTips tips={tips} venueId={Number(venueId)} />
+      </>}
+
       {guide && <VenueGuide guide={guide} />}
 
       <AwayDayScore reviewCount={awayDayScore?.review_count} recommendPercentage={awayDayScore?.recommend_percentage} categoryScores={awayDayScore?.category_scores} />
 
-      <section className="tt-section-rule mt-10 pt-4" aria-labelledby="visit-heading">
-        <p className="tt-kicker">03 / Your visit</p>
+      {!hasVisited && <section className="tt-section-rule mt-10 pt-4" aria-labelledby="visit-heading">
+        <p className="tt-kicker">Your visit</p>
         <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">{hasVisited ? "You've been here" : "Make it one of yours"}</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">{hasVisited ? myGround?.latest_visit_date ? `Last there · ${new Date(`${myGround.latest_visit_date}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Date not remembered" : "Been here? Add it to your football world."}</p></div>
-          {!hasVisited ? <button type="button" onClick={addToVisited} disabled={addingVisited} className="tt-action px-5">{addingVisited ? "Adding…" : "Add to My Grounds"}</button> : <button type="button" onClick={openReview} className="tt-action px-5">{reviewState === "completed" ? "Edit my review" : reviewState === "partial" ? "Continue review" : "Rate this ground"}</button>}
+          <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">Make it one of yours</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">Been here? Add it to your football world.</p></div>
+          <button type="button" onClick={addToVisited} disabled={addingVisited} className="tt-action px-5">{addingVisited ? "Adding…" : "Add to My Grounds"}</button>
         </div>
-      </section>
+      </section>}
 
-      <MatchdayTips tips={tips} venueId={Number(venueId)} />
+      {!hasVisited && <MatchdayTips tips={tips} venueId={Number(venueId)} />}
 
       <section className="tt-section-rule mt-10 pt-4" aria-labelledby="fixtures-heading">
         <p className="tt-kicker">05 / What&apos;s on</p>
