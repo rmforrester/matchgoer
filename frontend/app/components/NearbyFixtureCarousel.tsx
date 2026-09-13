@@ -39,7 +39,7 @@ export default function NearbyFixtureCarousel({
             {viewportMode ? "Matches in this area" : `Within ${radius} miles`} · earliest kickoff first
           </p>
         </div>
-        <span className="shrink-0 bg-[var(--tt-blue)] px-2 py-1 text-xs font-extrabold uppercase tracking-wider text-[var(--tt-paper)]">
+        <span className="shrink-0 bg-[var(--brand-interactive)] px-2 py-1 text-xs font-extrabold uppercase tracking-wider text-[var(--tt-paper)]">
           {resultsLimited ? `${fixtures.length} of ${totalMatches}` : totalMatches} {totalMatches === 1 ? "match" : "matches"} →
         </span>
       </div>
@@ -60,17 +60,17 @@ export default function NearbyFixtureCarousel({
           return (
             <article
               key={fixture.fixture_id}
-              className="group relative aspect-square w-[78vw] max-w-[18rem] min-w-[16rem] snap-start overflow-hidden border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-[var(--tt-ink)] transition hover:-translate-y-0.5 hover:border-[var(--tt-blue)] sm:w-72"
+              className="group relative aspect-square w-[78vw] max-w-[18rem] min-w-[16rem] snap-start overflow-hidden border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-[var(--tt-ink)] transition hover:-translate-y-0.5 hover:border-[var(--brand-interactive)] sm:w-72"
             >
               <Link
                 href={`/fixture/${fixture.fixture_id}`}
-                className="flex h-full flex-col justify-between p-4 pb-16 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[var(--tt-blue)]"
+                className="flex h-full flex-col justify-between p-4 pb-16 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[var(--brand-interactive)]"
                 aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}
               >
                 <div className="min-w-0">
                   <div className="mb-3 flex items-start justify-between gap-3 border-b-2 border-[var(--tt-ink)] pb-3">
                     <div className="flex items-end gap-2">
-                      <span className="tt-display text-4xl leading-[0.8] text-[var(--tt-blue)]">
+                      <span className="tt-display text-4xl leading-[0.8] text-[var(--brand-interactive)]">
                         {kickoff.toLocaleDateString(undefined, { day: "2-digit" })}
                       </span>
                       <p className="text-[0.68rem] font-extrabold uppercase leading-tight tracking-[0.12em]">
@@ -102,7 +102,7 @@ export default function NearbyFixtureCarousel({
                     separatorClassName="my-1 text-xs"
                   />
                   {fixture.open_to_meet_count > 0 && (
-                    <p className="mt-2 text-xs font-extrabold uppercase tracking-wide text-[var(--tt-blue)]">
+                    <p className="mt-2 text-xs font-extrabold uppercase tracking-wide text-[var(--brand-interactive)]">
                       Who&apos;s Going? · {fixture.open_to_meet_count}
                     </p>
                   )}
@@ -115,7 +115,7 @@ export default function NearbyFixtureCarousel({
                     <span className="font-bold text-[var(--tt-muted)]">
                       {fixture.distance_miles.toFixed(1)} mi away
                     </span>
-                    <span className="min-w-0 text-right font-extrabold text-[var(--tt-blue)]">
+                    <span className="min-w-0 text-right font-extrabold text-[var(--brand-interactive)]">
                       {fixture.away_day_score !== null ? `★ ${fixture.away_day_score.toFixed(1)} rating` : "Unrated"}
                     </span>
                   </div>
@@ -130,7 +130,7 @@ export default function NearbyFixtureCarousel({
                 aria-pressed={isInterested}
                 disabled={isUpdating}
                 onClick={() => onToggleInterested(fixture.fixture_id)}
-                className={`absolute inset-x-0 bottom-0 z-10 flex min-h-11 items-center justify-center border-t-2 border-[var(--tt-ink)] px-4 text-[0.7rem] font-extrabold uppercase tracking-[0.12em] transition focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[var(--tt-blue)] disabled:cursor-wait disabled:opacity-60 ${isInterested ? "bg-[var(--tt-blue)] text-[var(--tt-paper)]" : "bg-[var(--tt-paper)] text-[var(--tt-ink)] hover:bg-[var(--tt-blue)] hover:text-[var(--tt-paper)]"}`}
+                className={`absolute inset-x-0 bottom-0 z-10 flex min-h-11 items-center justify-center border-t-2 border-[var(--tt-ink)] px-4 text-[0.7rem] font-extrabold uppercase tracking-[0.12em] transition focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[var(--brand-interactive)] disabled:cursor-wait disabled:opacity-60 ${isInterested ? "bg-[var(--brand-interactive)] text-[var(--tt-paper)]" : "bg-[var(--tt-paper)] text-[var(--tt-ink)] hover:bg-[var(--brand-interactive)] hover:text-[var(--tt-paper)]"}`}
               >
                 <span>{isInterested ? "✓ Interested" : "Interested"}</span>
               </button>

@@ -82,7 +82,7 @@ function FixtureVenueMarker({ group, visited, icon }: FixtureVenueMarkerProps) {
         <span>{fixtureIndex + 1} of {fixtureCount}</span>
         <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="min-h-11 px-2 text-lg">→</button>
       </div>}
-      <div><Link href={`/fixture/${fixture.fixture_id}`} className="mt-3 inline-flex min-h-11 items-center font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">View match →</Link></div>
+      <div><Link href={`/fixture/${fixture.fixture_id}`} className="mt-3 inline-flex min-h-11 items-center font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">View match →</Link></div>
       {visited && <><br /><br /><strong>✓ You&apos;ve visited this stadium</strong></>}
     </Popup>
   </Marker>;

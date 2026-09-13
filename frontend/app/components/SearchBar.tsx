@@ -90,18 +90,18 @@ export default function SearchBar({
             <span>{selectedLeagueIds.length === 0 ? "All leagues" : `${selectedLeagueIds.length} ${selectedLeagueIds.length === 1 ? "league" : "leagues"} selected`}</span>
             <span aria-hidden="true">▾</span>
           </summary>
-          <div className="absolute left-0 z-[1000] mt-1 max-h-80 w-[min(20rem,calc(100vw-3rem))] overflow-y-auto border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 shadow-[4px_4px_0_var(--tt-blue)] lg:left-auto lg:right-0">
+          <div className="absolute left-0 z-[1000] mt-1 max-h-80 w-[min(20rem,calc(100vw-3rem))] overflow-y-auto border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 shadow-[4px_4px_0_var(--brand-interactive)] lg:left-auto lg:right-0">
             <button
               type="button"
               onClick={() => setSelectedLeagueIds([])}
-              className="mb-3 min-h-11 w-full border border-[var(--tt-ink)] px-3 text-left text-xs font-extrabold uppercase hover:bg-[var(--tt-blue)] hover:text-[var(--tt-paper)]"
+              className="mb-3 min-h-11 w-full border border-[var(--tt-ink)] px-3 text-left text-xs font-extrabold uppercase hover:bg-[var(--brand-interactive)] hover:text-[var(--tt-paper)]"
             >
               All leagues
             </button>
             <div className="space-y-4">
               {leagues.map((group) => (
                 <fieldset key={group.country}>
-                  <legend className="mb-1 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--tt-blue)]">{group.country}</legend>
+                  <legend className="mb-1 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-interactive)]">{group.country}</legend>
                   <div className="space-y-1">
                     {group.leagues.map((league) => (
                       <label key={`${group.country}-${league.league_id}`} className="flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium normal-case tracking-normal">
@@ -109,7 +109,7 @@ export default function SearchBar({
                           type="checkbox"
                           checked={selected.has(league.league_id)}
                           onChange={() => toggleLeague(league.league_id)}
-                          className="h-4 w-4 accent-[var(--tt-blue)]"
+                          className="h-4 w-4 accent-[var(--brand-interactive)]"
                         />
                         <span>{league.league_name}</span>
                       </label>

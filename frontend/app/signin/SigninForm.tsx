@@ -51,6 +51,6 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken }
       {error && <p role="alert" className="text-sm font-bold text-red-800">{error}</p>}
       <button disabled={saving} className="tt-action px-5">{saving ? "Signing in…" : "Sign in"}</button>
     </form>
-    <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">New to Matchgoer? <Link className="font-extrabold uppercase text-[var(--tt-blue)] underline decoration-2 underline-offset-4" href={accountRoute("/signup", returnTo)}>Create account →</Link></p>
+    <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">New to Matchgoer? <Link className="font-extrabold uppercase text-[var(--brand-interactive)] underline decoration-2 underline-offset-4" href={accountRoute("/signup", returnTo)}>Create account →</Link></p>
   </AccountShell>;
 }

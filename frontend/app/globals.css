@@ -1,12 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --tt-blue: #2146d0;
+  --brand-primary: #00903a;
+  --brand-interactive: #007a31;
+  --brand-interactive-hover: #006c2b;
+  --brand-interactive-active: #005d25;
+  --brand-primary-subtle: #ddeee4;
   --tt-newsprint: #f3efe4;
   --tt-ink: #171717;
   --tt-paper: #fcfaf5;
   --tt-muted: #6b6862;
   --tt-rule: #c9c4b8;
+  --text-primary: var(--tt-ink);
+  --text-secondary: var(--tt-muted);
+  --surface-primary: var(--tt-paper);
+  --surface-secondary: var(--tt-newsprint);
+  --border-primary: var(--tt-ink);
   --tt-display: var(--font-barlow-condensed), "Arial Narrow", "Roboto Condensed", sans-serif;
   --tt-ui: var(--font-geist-sans), Inter, Arial, sans-serif;
   --tt-rule-width: 2px;
@@ -30,8 +39,8 @@ body {
   font-family: var(--tt-ui);
 }
 
-::selection { background: var(--tt-blue); color: var(--tt-paper); }
-:focus-visible { outline: 3px solid var(--tt-blue); outline-offset: 3px; }
+::selection { background: var(--brand-interactive); color: var(--tt-paper); }
+:focus-visible { outline: 3px solid var(--brand-interactive); outline-offset: 3px; }
 
 .tt-display {
   font-family: var(--tt-display);
@@ -43,7 +52,7 @@ body {
 
 .tt-kicker {
   font-family: var(--tt-display);
-  color: var(--tt-blue);
+  color: var(--brand-interactive);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -52,13 +61,13 @@ body {
 
 .tt-panel { background: var(--tt-paper); border: var(--tt-rule-width) solid var(--tt-ink); border-radius: var(--tt-radius); }
 .tt-control { min-height: 2.75rem; border: 1px solid var(--tt-ink); border-radius: var(--tt-radius); background: var(--tt-paper); color: var(--tt-ink); }
-.tt-control:hover { border-color: var(--tt-blue); }
+.tt-control:hover { border-color: var(--brand-interactive); }
 
 .tt-action {
   min-height: 2.75rem;
   border: 2px solid var(--tt-ink);
   border-radius: var(--tt-radius);
-  background: var(--tt-blue);
+  background: var(--brand-interactive);
   color: var(--tt-paper);
   font-size: 0.78rem;
   font-weight: 850;
@@ -66,7 +75,8 @@ body {
   text-transform: uppercase;
 }
 
-.tt-action:hover:not(:disabled) { background: var(--tt-ink); }
+.tt-action:hover:not(:disabled) { background: var(--brand-interactive-hover); }
+.tt-action:active:not(:disabled) { background: var(--brand-interactive-active); }
 .tt-action-secondary { background: var(--tt-paper); color: var(--tt-ink); }
 .tt-action-secondary:hover:not(:disabled) { background: var(--tt-ink); color: var(--tt-paper); }
 .tt-section-rule { border-top: var(--tt-rule-width) solid var(--tt-ink); }
@@ -74,10 +84,10 @@ body {
 .tt-ground-marker { background: transparent; border: 0; }
 .tt-ground-marker__visual { display: grid; height: 44px; place-items: center; width: 44px; }
 .tt-ground-marker:focus { outline: 3px solid var(--tt-paper); outline-offset: 1px; }
-.tt-scrollbar { scrollbar-color: var(--tt-blue) var(--tt-rule); scrollbar-width: thin; }
+.tt-scrollbar { scrollbar-color: var(--brand-interactive) var(--tt-rule); scrollbar-width: thin; }
 .tt-scrollbar::-webkit-scrollbar { height: 8px; }
 .tt-scrollbar::-webkit-scrollbar-track { background: var(--tt-rule); }
-.tt-scrollbar::-webkit-scrollbar-thumb { background: var(--tt-blue); }
+.tt-scrollbar::-webkit-scrollbar-thumb { background: var(--brand-interactive); }
 
 @media (max-width: 640px) {
   .tt-map { height: 22rem; }

@@ -54,14 +54,14 @@ function MatchdayCard({
 }) {
   const statusGroup = fixtureStatusGroup(fixture.status);
   const stateClass = state === "upcoming"
-    ? "border-t-[5px] border-t-[var(--tt-blue)]"
+    ? "border-t-[5px] border-t-[var(--brand-interactive)]"
     : state === "answer"
       ? "border-l-[5px] border-l-[var(--tt-ink)]"
       : "border-t-[5px] border-t-[var(--tt-rule)]";
   return (
     <article className={`tt-panel flex min-w-0 flex-col p-3.5 sm:p-4 ${stateClass}`}>
       <p className="tt-kicker">{statusGroup === "postponed" || statusGroup === "cancelled" ? fixtureStatusLabel(fixture.status) : displayDate(fixture.fixture_date, includeKickoff)}</p>
-      <Link href={`/fixture/${fixture.fixture_id}`} className="mt-2 block min-w-0 hover:text-[var(--tt-blue)]">
+      <Link href={`/fixture/${fixture.fixture_id}`} className="mt-2 block min-w-0 hover:text-[var(--brand-interactive)]">
         <FixtureTeams
           homeTeam={fixture.home_team}
           awayTeam={fixture.away_team}
@@ -81,10 +81,10 @@ function MatchdayCard({
 function FollowUpActions({ venueId, reviewState }: { venueId: number; reviewState: ReviewState | null }) {
   return (
     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-extrabold uppercase tracking-[0.08em]">
-      <Link href={`/my-football?tab=visited&review=${venueId}`} className="min-h-11 content-center text-[var(--tt-blue)] underline decoration-2 underline-offset-4">
+      <Link href={`/my-football?tab=visited&review=${venueId}`} className="min-h-11 content-center text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">
         {reviewState === "completed" ? "Edit my review →" : reviewState === "partial" ? "Continue review →" : "Rate the ground →"}
       </Link>
-      <Link href={`/venue/${venueId}#tips-add`} className="min-h-11 content-center text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Add a tip →</Link>
+      <Link href={`/venue/${venueId}#tips-add`} className="min-h-11 content-center text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Add a tip →</Link>
     </div>
   );
 }
@@ -195,20 +195,20 @@ export default function InterestedTab() {
 
       <header className="border-b-[3px] border-[var(--tt-ink)] pb-4">
         <h1 className="tt-display text-4xl leading-none sm:text-5xl">My Matchdays</h1>
-        <p className="mt-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-blue)]">{upcomingFixtures.length} upcoming · {attendedFixtures.length} attended</p>
+        <p className="mt-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">{upcomingFixtures.length} upcoming · {attendedFixtures.length} attended</p>
       </header>
 
       {loading && <p className="mt-8 font-semibold text-[var(--tt-muted)]">Loading your matchdays…</p>}
       {error && <p role="alert" className="mt-6 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
 
-      {attendanceResolution && <aside role="status" className="tt-panel mt-6 border-l-[8px] border-l-[var(--tt-blue)] p-5"><p className="tt-kicker">Attendance recorded</p><FixtureTeams homeTeam={attendanceResolution.home_team} awayTeam={attendanceResolution.away_team} className="mt-2" teamClassName="text-3xl leading-none" separatorClassName="my-1 text-xs tracking-[0.16em]"/><p className="mt-3 text-sm text-[var(--tt-muted)]">This match is now under Attended and the ground is in My Grounds. A review or tip is optional.</p><FollowUpActions venueId={attendanceResolution.venue_id} reviewState={groundReviewStates[attendanceResolution.venue_id]}/></aside>}
+      {attendanceResolution && <aside role="status" className="tt-panel mt-6 border-l-[8px] border-l-[var(--brand-interactive)] p-5"><p className="tt-kicker">Attendance recorded</p><FixtureTeams homeTeam={attendanceResolution.home_team} awayTeam={attendanceResolution.away_team} className="mt-2" teamClassName="text-3xl leading-none" separatorClassName="my-1 text-xs tracking-[0.16em]"/><p className="mt-3 text-sm text-[var(--tt-muted)]">This match is now under Attended and the ground is in My Grounds. A review or tip is optional.</p><FollowUpActions venueId={attendanceResolution.venue_id} reviewState={groundReviewStates[attendanceResolution.venue_id]}/></aside>}
 
       {!loading && <>
         <section className="tt-section-rule mt-7 pt-3" aria-labelledby="upcoming-heading">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="upcoming-heading" className="tt-display text-3xl leading-none sm:text-4xl">Upcoming</h2><p className="mt-1 text-sm text-[var(--tt-muted)]">Matches you&apos;re considering.</p></div><span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-blue)]">{upcomingFixtures.length} planned</span></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="upcoming-heading" className="tt-display text-3xl leading-none sm:text-4xl">Upcoming</h2><p className="mt-1 text-sm text-[var(--tt-muted)]">Matches you&apos;re considering.</p></div><span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">{upcomingFixtures.length} planned</span></div>
           {upcomingFixtures.length === 0 ? <EmptySection>No upcoming plans yet.</EmptySection> : <div className="mt-5 grid gap-4 md:grid-cols-2">{upcomingFixtures.map((fixture) => {
             const updating = updatingFixtureIds.includes(fixture.fixture_id);
-            return <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} includeKickoff state="upcoming" footer={<><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--tt-blue)]">✓ Interested</span>{fixture.open_to_meet_count > 0 && <span className="text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-muted)]">Who&apos;s Going? · {fixture.open_to_meet_count}</span>}</div><div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1"><button type="button" disabled={updating} onClick={() => toggleMeeting(fixture)} aria-pressed={fixture.open_to_meet} className={`tt-action px-3 ${fixture.open_to_meet ? "" : "tt-action-secondary"}`}>{updating ? "Saving…" : fixture.open_to_meet ? "✓ Open to meeting supporters" : "Who's Going?"}</button><button type="button" disabled={updating} onClick={() => removeInterested(fixture.fixture_id)} className="min-h-11 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove</button></div></>} />;
+            return <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} includeKickoff state="upcoming" footer={<><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-interactive)]">✓ Interested</span>{fixture.open_to_meet_count > 0 && <span className="text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-muted)]">Who&apos;s Going? · {fixture.open_to_meet_count}</span>}</div><div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1"><button type="button" disabled={updating} onClick={() => toggleMeeting(fixture)} aria-pressed={fixture.open_to_meet} className={`tt-action px-3 ${fixture.open_to_meet ? "" : "tt-action-secondary"}`}>{updating ? "Saving…" : fixture.open_to_meet ? "✓ Open to meeting supporters" : "Who's Going?"}</button><button type="button" disabled={updating} onClick={() => removeInterested(fixture.fixture_id)} className="min-h-11 text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove</button></div></>} />;
           })}</div>}
         </section>
 

@@ -6,11 +6,11 @@ export default function VenueHeader({ venue, score, reviewCount = 0, recommendPe
   const hasRating = reviewCount > 0 && score !== undefined && score !== null;
   return (
     <header className="tt-panel overflow-hidden" aria-labelledby="venue-heading">
-      <div className="border-b-2 border-[var(--tt-ink)] bg-[var(--tt-blue)] px-4 py-3 text-[var(--tt-paper)] sm:px-7"><p className="text-xs font-extrabold uppercase tracking-[0.14em]">01 / The ground</p></div>
+      <div className="border-b-2 border-[var(--tt-ink)] bg-[var(--brand-interactive)] px-4 py-3 text-[var(--tt-paper)] sm:px-7"><p className="text-xs font-extrabold uppercase tracking-[0.14em]">01 / The ground</p></div>
       <div className="grid min-w-0 gap-6 px-4 py-6 sm:px-7 sm:py-8 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-end">
         <div className="min-w-0">
           <h1 id="venue-heading" className="tt-display break-words text-[clamp(3.2rem,10vw,7rem)] leading-[0.82]">{venue.name}</h1>
-          <p className="mt-5 font-extrabold uppercase tracking-[0.1em] text-[var(--tt-blue)]">{venue.city}{venue.country ? ` · ${venue.country}` : ""}</p>
+          <p className="mt-5 font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">{venue.city}{venue.country ? ` · ${venue.country}` : ""}</p>
           {venue.capacity !== null && venue.capacity > 0 && <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">Capacity · {venue.capacity.toLocaleString()}</p>}
         </div>
         <div className="border-t-2 border-[var(--tt-ink)] pt-4 lg:border-l-2 lg:border-t-0 lg:pl-6 lg:pt-0">

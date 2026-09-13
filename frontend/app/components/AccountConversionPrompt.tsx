@@ -12,7 +12,7 @@ export default function AccountConversionPrompt({ open, kind, onDismiss, returnT
   const mate = kind === "mate";
   const board = kind === "board";
   return (
-    <aside role="dialog" aria-modal="false" aria-labelledby="account-prompt-title" className="tt-panel fixed inset-x-3 bottom-3 z-50 mx-auto max-w-lg border-l-[8px] border-l-[var(--tt-blue)] p-5 text-[var(--tt-ink)] sm:bottom-6">
+    <aside role="dialog" aria-modal="false" aria-labelledby="account-prompt-title" className="tt-panel fixed inset-x-3 bottom-3 z-50 mx-auto max-w-lg border-l-[8px] border-l-[var(--brand-interactive)] p-5 text-[var(--tt-ink)] sm:bottom-6">
       <h2 id="account-prompt-title" className="tt-display text-2xl">{mate ? "Who's Going?" : board ? "Join the Match Board" : "Going to this one?"}</h2>
       <p className="mt-2 text-[var(--tt-muted)]">{mate ? "Create a Matchgoer account to connect with other supporters going to this match. Account setup takes about a minute." : board ? "Create a Matchgoer account to join the conversation for this match. Account setup takes about a minute." : "Create an account to join the match conversation, save your football across devices and connect with other supporters going. Account setup takes about a minute."}</p>
       <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

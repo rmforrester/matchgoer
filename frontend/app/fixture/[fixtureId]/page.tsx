@@ -209,14 +209,14 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const completed = statusGroup === "finished";
   const hasResult = completed && data.fixture.home_goals !== null && data.fixture.away_goals !== null;
   const renderPost = (post: BoardPost, reply = false) => (
-    <article key={post.post_id} className={`${reply ? "ml-3 border-l-2 border-[var(--tt-blue)] pl-4 sm:ml-6" : "border-t-2 border-[var(--tt-ink)] py-5"} min-w-0`}>
+    <article key={post.post_id} className={`${reply ? "ml-3 border-l-2 border-[var(--brand-interactive)] pl-4 sm:ml-6" : "border-t-2 border-[var(--tt-ink)] py-5"} min-w-0`}>
       <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs uppercase tracking-[0.08em]">
-        <strong className="min-w-0 break-words text-[var(--tt-blue)]">{post.author.display_name}{post.author.username && <span className="ml-2 font-semibold normal-case text-[var(--tt-muted)]">@{post.author.username}</span>}</strong><time className="text-[var(--tt-muted)]">{new Date(post.created_at).toLocaleString()}</time>
+        <strong className="min-w-0 break-words text-[var(--brand-interactive)]">{post.author.display_name}{post.author.username && <span className="ml-2 font-semibold normal-case text-[var(--tt-muted)]">@{post.author.username}</span>}</strong><time className="text-[var(--tt-muted)]">{new Date(post.created_at).toLocaleString()}</time>
       </div>
       {post.author.supported_club && <p className="mt-1 text-xs text-[var(--tt-muted)]">Supports {post.author.supported_club}</p>}
       <p className={`mt-3 whitespace-pre-wrap break-words leading-7 ${post.deleted ? "italic text-[var(--tt-muted)]" : ""}`}>{post.body}</p>
       {!post.deleted && <div className="mt-3 flex flex-wrap gap-4 text-xs font-extrabold uppercase tracking-[0.08em]">
-        {!reply && !data.board_closed && <button type="button" onClick={() => startReply(post.post_id)} className="min-h-11 text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Reply</button>}
+        {!reply && !data.board_closed && <button type="button" onClick={() => startReply(post.post_id)} className="min-h-11 text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Reply</button>}
         {post.can_delete && <button type="button" onClick={() => deletePost(post.post_id)} className="min-h-11 underline decoration-2 underline-offset-4">Delete</button>}
         {post.can_report && <button type="button" onClick={() => setReporting(post.post_id)} className="min-h-11 underline decoration-2 underline-offset-4">Report</button>}
       </div>}
@@ -227,14 +227,14 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
 
   return <main className="mx-auto w-full min-w-0 max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
     <section aria-labelledby="fixture-heading" className="tt-panel overflow-hidden">
-      <div className="border-b-2 border-[var(--tt-ink)] bg-[var(--tt-blue)] px-4 py-3 text-[var(--tt-paper)] sm:px-7">
+      <div className="border-b-2 border-[var(--tt-ink)] bg-[var(--brand-interactive)] px-4 py-3 text-[var(--tt-paper)] sm:px-7">
         <p className="text-xs font-extrabold uppercase tracking-[0.14em]">01 / Match · {data.fixture.league_name}</p>
       </div>
       <div className="grid min-w-0 gap-6 px-4 py-6 sm:px-7 sm:py-8 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-end">
         <div className="min-w-0">
           <h1 id="fixture-heading" className="sr-only">{data.fixture.home_team} versus {data.fixture.away_team}</h1>
           <FixtureTeams homeTeam={data.fixture.home_team} awayTeam={data.fixture.away_team} className="max-w-3xl" teamClassName="text-[clamp(2.5rem,9vw,5.75rem)] leading-[0.82]" separatorClassName="my-2 text-sm tracking-[0.18em] sm:text-base" />
-          {hasResult && <p className="tt-display mt-5 text-5xl leading-none text-[var(--tt-blue)]" aria-label={`Final score ${data.fixture.home_goals} to ${data.fixture.away_goals}`}>{data.fixture.home_goals}–{data.fixture.away_goals}</p>}
+          {hasResult && <p className="tt-display mt-5 text-5xl leading-none text-[var(--brand-interactive)]" aria-label={`Final score ${data.fixture.home_goals} to ${data.fixture.away_goals}`}>{data.fixture.home_goals}–{data.fixture.away_goals}</p>}
         </div>
         <dl className="grid gap-3 border-t-2 border-[var(--tt-ink)] pt-4 text-sm lg:border-l-2 lg:border-t-0 lg:pl-6 lg:pt-0">
           <div><dt className="tt-kicker">Date</dt><dd className="mt-1 font-bold">{kickoff.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</dd></div>
@@ -254,15 +254,15 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         <div><h2 id="matchday-heading" className="tt-display text-4xl leading-none sm:text-5xl">{data.own_attendance.attended ? "✓ Attendance recorded" : "Did you go?"}</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">{data.fixture.venue_id ? data.own_attendance.attended ? "This match is in your attended history. Rating the ground and adding a supporter tip are optional." : "Record the match now. You can rate the ground or leave a tip separately." : "This fixture is not linked to a ground, so attendance cannot be recorded yet."}</p></div>
         {data.fixture.venue_id && !data.own_attendance.attended && <button type="button" disabled={saving} onClick={recordAttendance} className="tt-action px-5">{saving ? "Recording…" : "Yes — I was there"}</button>}
       </div>
-      {data.own_attendance.attended && data.fixture.venue_id && <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--tt-rule)] pt-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" disabled={saving} onClick={openPostMatchReview} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">{data.own_review?.state === "completed" ? "Edit my review →" : data.own_review?.state === "partial" ? "Continue review →" : "Rate the ground →"}</button><Link href={`/venue/${data.fixture.venue_id}#tips-add`} className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Add a tip →</Link><button type="button" disabled={saving} onClick={removeAttendance} className="text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove attendance</button></div>}
+      {data.own_attendance.attended && data.fixture.venue_id && <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--tt-rule)] pt-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" disabled={saving} onClick={openPostMatchReview} className="text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">{data.own_review?.state === "completed" ? "Edit my review →" : data.own_review?.state === "partial" ? "Continue review →" : "Rate the ground →"}</button><Link href={`/venue/${data.fixture.venue_id}#tips-add`} className="text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Add a tip →</Link><button type="button" disabled={saving} onClick={removeAttendance} className="text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove attendance</button></div>}
     </section> : statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">02 / Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It will not be treated as an upcoming plan or attendance opportunity.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : <section className="tt-section-rule mt-8 grid gap-5 pt-4 lg:grid-cols-[minmax(0,1fr)_18rem]" aria-labelledby="matchday-heading">
       <div>
         <p className="tt-kicker">02 / {statusGroup === "postponed" ? "Match update" : "Your matchday"}</p>
         <h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">{statusGroup === "postponed" ? "Match postponed" : "Make it yours"}</h2>
         {statusGroup === "postponed" && <p className="mt-3 text-[var(--tt-muted)]">Keep this on your radar while a new kickoff is confirmed.</p>}
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`tt-action px-5 py-3 text-left ${data.interested ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}>{data.interested ? "✓ Interested" : "Interested"}</button>
-          <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`tt-action px-5 py-3 text-left ${data.open_to_meet ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Who's Going?"}</button>
+          <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`tt-action px-5 py-3 text-left ${data.interested ? "bg-[var(--brand-interactive)]" : "tt-action-secondary"}`}>{data.interested ? "✓ Interested" : "Interested"}</button>
+          <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`tt-action px-5 py-3 text-left ${data.open_to_meet ? "bg-[var(--brand-interactive)]" : "tt-action-secondary"}`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Who's Going?"}</button>
         </div>
       </div>
       <aside className="tt-panel self-end p-4" aria-label="Matchday community">

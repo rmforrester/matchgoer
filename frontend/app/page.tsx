@@ -564,9 +564,9 @@ const loadVisitedStadiums = () => {
 
       <header className="mb-4 border-b-2 border-[var(--tt-ink)] pb-3 sm:mb-6 sm:pb-5">
         <p className="tt-kicker">01 / Match discovery</p>
-        <h1 className="tt-display mt-1 text-4xl leading-[0.9] sm:mt-2 sm:text-6xl">Find a game</h1>
+        <h1 className="tt-display mt-1 text-4xl leading-[0.9] sm:mt-2 sm:text-6xl">Find football worth going to.</h1>
         <p className="mt-2 max-w-xl text-sm text-[var(--tt-muted)] sm:text-base">
-          Pick a place. Find a ground. Make a day of it.
+          Discover matches wherever you are. Know the matchday before you get there.
         </p>
       </header>
 
@@ -578,7 +578,7 @@ const loadVisitedStadiums = () => {
               <p className="mt-1 font-extrabold">
                 {appliedSearch.locationName.split(",")[0]} · {formatSummaryDate(appliedSearch.startDate)}–{formatSummaryDate(appliedSearch.endDate)} · {appliedSearch.mode === "viewport" ? "Matches in this area" : `${appliedSearch.radius} mi`} · {appliedSearch.leagueIds.length === 0 ? "All leagues" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "league" : "leagues"}`}
               </p>
-              {appliedSearch.showAllStadiums && <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--tt-blue)]">All stadiums shown</p>}
+              {appliedSearch.showAllStadiums && <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--brand-interactive)]">All stadiums shown</p>}
             </div>
             <button type="button" onClick={() => setEditingSearch(true)} className="tt-action tt-action-secondary px-4">Edit search</button>
           </div>
@@ -628,7 +628,7 @@ const loadVisitedStadiums = () => {
 
             <div className="mt-3 flex items-center justify-between gap-3 border-t border-[var(--tt-rule)] pt-3">
               <label className="flex min-h-11 cursor-pointer items-center gap-3 text-xs font-extrabold uppercase tracking-[0.1em]">
-                <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-5 w-5 accent-[var(--tt-blue)]" />
+                <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-5 w-5 accent-[var(--brand-interactive)]" />
                 <span>Show all stadiums</span>
               </label>
               <button type="submit" disabled={loading || locationLoading} className="tt-action min-w-28 px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-40">
@@ -636,8 +636,8 @@ const loadVisitedStadiums = () => {
               </button>
             </div>
 
-            {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
-            {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
+            {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--brand-interactive)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
+            {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--brand-interactive)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
           </form>
         )}
       </section>
@@ -688,7 +688,7 @@ const loadVisitedStadiums = () => {
         )}
 
       {!appliedSearch && !loading && (
-        <section className="tt-panel border-l-[8px] border-l-[var(--tt-blue)] p-5">
+        <section className="tt-panel border-l-[8px] border-l-[var(--brand-interactive)] p-5">
           <h2 className="tt-display text-2xl">Find football near you</h2>
           <p className="mt-1 text-sm text-[var(--tt-muted)]">
             Search a city or use your location to see upcoming matches.
@@ -697,7 +697,7 @@ const loadVisitedStadiums = () => {
       )}
 
       {discoveryError && (
-        <p role="alert" className="border-l-4 border-[var(--tt-blue)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">{discoveryError}</p>
+        <p role="alert" className="border-l-4 border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">{discoveryError}</p>
       )}
 
       {!loading &&
@@ -705,7 +705,7 @@ const loadVisitedStadiums = () => {
         !discoveryError &&
         hasCompletedDiscovery &&
         visibleFixtures.length === 0 && (
-          <div className="tt-panel border-l-[8px] border-l-[var(--tt-blue)] p-5"><p className="font-semibold">No fixtures found.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a wider radius, more leagues, or different dates.</p></div>
+          <div className="tt-panel border-l-[8px] border-l-[var(--brand-interactive)] p-5"><p className="font-semibold">No fixtures found.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a wider radius, more leagues, or different dates.</p></div>
         )}
 
       {loading && (
