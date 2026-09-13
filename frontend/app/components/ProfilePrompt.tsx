@@ -66,7 +66,7 @@ export default function ProfilePrompt({ open, purpose, onCancel, onCreated }: Pr
           {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" disabled={saving} onClick={onCancel} className="min-h-11 rounded-lg border px-4 font-semibold">Cancel</button>
-            <button type="submit" disabled={saving} className="min-h-11 rounded-lg border border-blue-700 bg-blue-700 px-4 font-semibold text-white disabled:opacity-60">{saving ? "Creating…" : "Create profile"}</button>
+            <button type="submit" disabled={saving} className="min-h-11 rounded-lg border border-[var(--brand-interactive)] bg-[var(--brand-interactive)] px-4 font-semibold text-white disabled:opacity-60">{saving ? "Creating…" : "Create profile"}</button>
           </div>
         </form>
       </section>

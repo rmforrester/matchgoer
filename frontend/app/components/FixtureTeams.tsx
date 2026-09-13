@@ -16,7 +16,7 @@ export default function FixtureTeams({
   return (
     <div className={`min-w-0 ${className}`} aria-label={`${homeTeam} versus ${awayTeam}`}>
       <p className={`tt-display break-words ${teamClassName}`}>{homeTeam}</p>
-      <p className={`font-extrabold uppercase text-[var(--tt-blue)] ${separatorClassName}`} aria-hidden="true">VS</p>
+      <p className={`font-extrabold uppercase text-[var(--brand-interactive)] ${separatorClassName}`} aria-hidden="true">VS</p>
       <p className={`tt-display break-words ${teamClassName}`}>{awayTeam}</p>
     </div>
   );

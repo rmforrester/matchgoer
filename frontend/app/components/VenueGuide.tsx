@@ -19,9 +19,9 @@ export default function VenueGuide({ guide }: Props) {
     return <article key={fact.topic} className="border-b border-[var(--tt-rule)] py-4">
       <h4 className="text-xs font-extrabold uppercase tracking-[0.08em]">{supporterFacingFactTopic(fact)}</h4>
       <p className="mt-2 leading-7">{supporterFacingFactContent(fact)}</p>
-      {isTicketLink && <a href={fact.provenance.source_url!} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center bg-[var(--tt-blue)] px-4 text-xs font-extrabold uppercase tracking-[0.08em] text-white">Buy tickets →</a>}
+      {isTicketLink && <a href={fact.provenance.source_url!} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center bg-[var(--brand-interactive)] px-4 text-xs font-extrabold uppercase tracking-[0.08em] text-white">Buy tickets →</a>}
       <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">
-        {fact.provenance.source_url && !isTicketLink ? <a href={fact.provenance.source_url} target="_blank" rel="noreferrer" className="text-[var(--tt-blue)] underline decoration-2 underline-offset-4">{fact.provenance.label}</a> : fact.provenance.label}
+        {fact.provenance.source_url && !isTicketLink ? <a href={fact.provenance.source_url} target="_blank" rel="noreferrer" className="text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">{fact.provenance.label}</a> : fact.provenance.label}
         {stale ? <span className="ml-2 text-amber-800"> · {stale}</span> : null}
       </p>
     </article>;
@@ -36,7 +36,7 @@ export default function VenueGuide({ guide }: Props) {
             <h4 className="tt-display text-2xl leading-none">{spot.display_name}</h4>
             {spot.supporting_line && <p className="mt-2 leading-6">{spot.supporting_line}</p>}
             {spot.location_context && <p className="mt-2 text-sm font-bold text-[var(--tt-muted)]">{spot.location_context}</p>}
-            {spot.directions_url && <a href={spot.directions_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Directions →</a>}
+            {spot.directions_url && <a href={spot.directions_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Directions →</a>}
           </article>)}
         </div>
       </section>}
@@ -51,7 +51,7 @@ export default function VenueGuide({ guide }: Props) {
         ))}
       </div>
       {secondarySections.length > 0 && <details className="mt-7 border-y-2 border-[var(--tt-ink)] py-4">
-        <summary className="cursor-pointer text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--tt-blue)]">More ground information</summary>
+        <summary className="cursor-pointer text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)]">More ground information</summary>
         <div className="mt-4 grid gap-7 md:grid-cols-2">
           {secondarySections.map((section) => <section key={section.key} aria-labelledby={`guide-more-${section.key}`}>
             <h3 id={`guide-more-${section.key}`} className="tt-display text-2xl leading-none">{section.label}</h3>

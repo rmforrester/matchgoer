@@ -715,9 +715,9 @@ const loadVisitedStadiums = () => {
 
       <header className="mb-2 border-b-2 border-[var(--tt-ink)] pb-2 sm:mb-6 sm:pb-5">
         <p className="tt-kicker">01 / Match discovery</p>
-        <h1 className="tt-display mt-0.5 text-3xl leading-[0.9] sm:mt-2 sm:text-6xl">Find your next matchday</h1>
+        <h1 className="tt-display mt-0.5 text-3xl leading-[0.9] sm:mt-2 sm:text-6xl">Find football worth going to.</h1>
         <p className="mt-1 max-w-xl text-xs text-[var(--tt-muted)] sm:mt-2 sm:text-base">
-          Find nearby football, compare the choices and understand the matchday before you go.
+          Discover matches wherever you are. Know the matchday before you get there.
         </p>
       </header>
 
@@ -727,7 +727,7 @@ const loadVisitedStadiums = () => {
             <p className="min-w-0 truncate text-sm font-extrabold" id="search-heading">
               {appliedSearch.locationName.split(",")[0]} · {appliedDateSummary} · {appliedSearch.leagueIds.length === 0 ? "All leagues" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "league" : "leagues"}`}
             </p>
-            <button type="button" onClick={() => setEditingSearch(true)} className="min-h-11 shrink-0 px-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--tt-blue)] underline decoration-2 underline-offset-4">Edit</button>
+            <button type="button" onClick={() => setEditingSearch(true)} className="min-h-11 shrink-0 px-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Edit</button>
           </div>
         ) : (
           <form onSubmit={submitDiscovery}>
@@ -755,7 +755,7 @@ const loadVisitedStadiums = () => {
                   aria-label="Where"
                   className="tt-control w-full min-w-0 px-4 py-2 normal-case tracking-normal"
                 />
-                <button type="button" onClick={() => resolveCurrentLocation(undefined, true)} disabled={locationLoading || loading} className="mt-1 min-h-11 px-1 text-left text-xs font-extrabold normal-case tracking-normal text-[var(--tt-blue)] underline decoration-2 underline-offset-4 disabled:opacity-60">
+                <button type="button" onClick={() => resolveCurrentLocation(undefined, true)} disabled={locationLoading || loading} className="mt-1 min-h-11 px-1 text-left text-xs font-extrabold normal-case tracking-normal text-[var(--brand-interactive)] underline decoration-2 underline-offset-4 disabled:opacity-60">
                   {locationLoading ? "Finding your location…" : manualLocationSelected ? "Using your location ✓" : "Use my location"}
                 </button>
               </div>
@@ -775,7 +775,7 @@ const loadVisitedStadiums = () => {
               <div className="pb-1 pt-2">
                 <SearchBar leagues={leagues} selectedLeagueIds={selectedLeagueIds} setSelectedLeagueIds={setSelectedLeagueIds} radius={radius} setRadius={setRadius} />
                 <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-2 border-t border-[var(--tt-rule)] pt-3 text-xs font-bold text-[var(--tt-muted)]">
-                  <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-4 w-4 accent-[var(--tt-blue)]" />
+                  <input type="checkbox" checked={showAllStadiums} onChange={(event) => setShowAllStadiums(event.target.checked)} className="h-4 w-4 accent-[var(--brand-interactive)]" />
                   <span>Show stadiums without fixtures</span>
                 </label>
               </div>
@@ -783,8 +783,8 @@ const loadVisitedStadiums = () => {
 
             <button type="submit" disabled={!discoveryNow || loading || locationLoading} className="tt-action mt-1.5 w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:mt-2 sm:block sm:w-auto sm:min-w-40">{loading ? "Searching…" : "Search"}</button>
 
-            {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
-            {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--tt-blue)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
+            {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--brand-interactive)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
+            {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--brand-interactive)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
           </form>
         )}
       </section>
@@ -831,7 +831,7 @@ const loadVisitedStadiums = () => {
         )}
 
       {discoveryError && (
-        <p role="alert" className="border-l-4 border-[var(--tt-blue)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">{discoveryError}</p>
+        <p role="alert" className="border-l-4 border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">{discoveryError}</p>
       )}
 
       {!loading &&
@@ -839,7 +839,7 @@ const loadVisitedStadiums = () => {
         !discoveryError &&
         hasCompletedDiscovery &&
         visibleFixtures.length === 0 && (
-          <div className="tt-panel border-l-[8px] border-l-[var(--tt-blue)] p-5"><p className="font-semibold">No fixtures found.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a wider radius, more leagues, or different dates.</p></div>
+          <div className="tt-panel border-l-[8px] border-l-[var(--brand-interactive)] p-5"><p className="font-semibold">No fixtures found.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a wider radius, more leagues, or different dates.</p></div>
         )}
 
       {loading && (

@@ -16,7 +16,7 @@ export default function WorthTheTrip({ fixtures }: Props) {
       <p className="tt-kicker">04 / Worth the trip</p>
       <h2 id="worth-the-trip-heading" className="tt-display mb-6 mt-2 max-w-3xl text-4xl leading-[0.9] sm:text-6xl">
         Don&apos;t just find a game.<br />
-        <span className="text-[var(--tt-blue)]">Find one worth going to.</span>
+        <span className="text-[var(--brand-interactive)]">Find one worth going to.</span>
       </h2>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -42,7 +42,7 @@ export default function WorthTheTrip({ fixtures }: Props) {
               className={`flex min-w-0 flex-col border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-[var(--tt-ink)] ${fixture ? "min-h-64 p-4" : "p-3.5"}`}
             >
               <p className="tt-kicker">0{index + 1} / Recommendation</p>
-              <h3 className={`tt-display mt-1 border-b-2 border-[var(--tt-ink)] text-3xl leading-none text-[var(--tt-blue)] sm:text-4xl ${fixture ? "mb-3 pb-2.5" : "mb-2 pb-2"}`}>
+              <h3 className={`tt-display mt-1 border-b-2 border-[var(--tt-ink)] text-3xl leading-none text-[var(--brand-interactive)] sm:text-4xl ${fixture ? "mb-3 pb-2.5" : "mb-2 pb-2"}`}>
                 {recommendationHeadline}
               </h3>
 
@@ -51,7 +51,7 @@ export default function WorthTheTrip({ fixtures }: Props) {
               ) : (
                 <Link
                   href={`/fixture/${fixture.fixture_id}`}
-                  className="flex flex-1 flex-col focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--tt-blue)]"
+                  className="flex flex-1 flex-col focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-interactive)]"
                 >
                   <FixtureTeams
                     homeTeam={fixture.home_team}
@@ -82,20 +82,20 @@ export default function WorthTheTrip({ fixtures }: Props) {
                       <span className="border border-[var(--tt-ink)] px-2.5 py-1">{distanceLabel}</span>
                     )}
                     {metric && !metricDuplicatesDistance && (
-                      <span className="border border-[var(--tt-ink)] px-2.5 py-1 text-[var(--tt-blue)]">{metric}</span>
+                      <span className="border border-[var(--tt-ink)] px-2.5 py-1 text-[var(--brand-interactive)]">{metric}</span>
                     )}
                     {showMetricRecommendation && fixture.recommend_percentage !== null && (
-                      <span className="border border-[var(--tt-ink)] px-2.5 py-1 text-[var(--tt-blue)]">
+                      <span className="border border-[var(--tt-ink)] px-2.5 py-1 text-[var(--brand-interactive)]">
                         👍 {Math.round(fixture.recommend_percentage)}% recommended
                       </span>
                     )}
                     {showOverallRating && fixture.away_day_score !== null && (
-                      <span className="border border-[var(--tt-ink)] px-2.5 py-1 text-[var(--tt-blue)]">
+                      <span className="border border-[var(--tt-ink)] px-2.5 py-1 text-[var(--brand-interactive)]">
                         🎟️ {fixture.away_day_score.toFixed(1)} Terrace Rating
                       </span>
                     )}
                     {showOverallRating && fixture.away_day_score !== null && fixture.recommend_percentage !== null && (
-                      <span className="border border-[var(--tt-ink)] px-2.5 py-1 text-[var(--tt-blue)]">
+                      <span className="border border-[var(--tt-ink)] px-2.5 py-1 text-[var(--brand-interactive)]">
                         👍 {Math.round(fixture.recommend_percentage)}% recommended
                       </span>
                     )}

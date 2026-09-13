@@ -67,7 +67,7 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
 
   if (confirmationPending) return <AccountShell kicker="Account setup" title="Check your email" intro="We've sent you a confirmation link. Confirm your email, then come back to Matchgoer.">
     <p className="mt-5 text-sm font-semibold">Use the same browser so your matchdays and grounds can stay with you.</p>
-    {message && <p role="status" className="mt-4 border-l-4 border-[var(--tt-blue)] pl-3 font-semibold">{message}</p>}
+    {message && <p role="status" className="mt-4 border-l-4 border-[var(--brand-interactive)] pl-3 font-semibold">{message}</p>}
     {error && <p role="alert" className="mt-4 text-sm font-bold text-red-800">{error}</p>}
     <div className="mt-6 flex flex-col gap-3 sm:flex-row"><button type="button" disabled={saving} onClick={() => void resend()} className="tt-action px-4">{saving ? "Sending…" : "Resend email"}</button><Link href={accountRoute("/signin", returnTo)} className="tt-action tt-action-secondary inline-flex items-center justify-center px-4">Sign in →</Link></div>
   </AccountShell>;
@@ -79,6 +79,6 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
       {error && <p role="alert" className="text-sm font-bold text-red-800">{error}</p>}
       <button disabled={saving} className="tt-action px-5">{saving ? "Creating…" : "Create account"}</button>
     </form>
-    <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">Already have an account? <Link className="font-extrabold uppercase text-[var(--tt-blue)] underline decoration-2 underline-offset-4" href={accountRoute("/signin", returnTo)}>Sign in →</Link></p>
+    <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">Already have an account? <Link className="font-extrabold uppercase text-[var(--brand-interactive)] underline decoration-2 underline-offset-4" href={accountRoute("/signin", returnTo)}>Sign in →</Link></p>
   </AccountShell>;
 }

@@ -360,7 +360,7 @@ api
 
         return (
           <article key={fixture.fixture_id} className="tt-panel flex min-w-0 flex-col overflow-hidden">
-            <Link href={`/fixture/${fixture.fixture_id}`} className="min-w-0 flex-1 p-4 hover:text-[var(--tt-blue)] sm:p-5" aria-label={`${fixture.home_team} versus ${fixture.away_team}`}>
+            <Link href={`/fixture/${fixture.fixture_id}`} className="min-w-0 flex-1 p-4 hover:text-[var(--brand-interactive)] sm:p-5" aria-label={`${fixture.home_team} versus ${fixture.away_team}`}>
               <p className="tt-kicker">{fixture.league_name}</p>
               <FixtureTeams homeTeam={fixture.home_team} awayTeam={fixture.away_team} className="mt-3" teamClassName="text-[1.65rem] leading-[0.9]" separatorClassName="my-1 text-[0.65rem] tracking-[0.16em]" />
               <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.08em]">{statusGroup === "postponed" || statusGroup === "cancelled" ? fixtureStatusLabel(fixture.status) : <>{fixtureDate.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {fixtureDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}</p>
@@ -456,7 +456,7 @@ onClick={() => {
 }}
               disabled={updatingInterestedFixtureIds.includes(fixture.fixture_id)}
               aria-pressed={isInterested}
-              className={`tt-action rounded-none border-x-0 border-b-0 px-4 ${isInterested ? "bg-[var(--tt-blue)]" : "tt-action-secondary"}`}
+              className={`tt-action rounded-none border-x-0 border-b-0 px-4 ${isInterested ? "bg-[var(--brand-interactive)]" : "tt-action-secondary"}`}
             >
               {isInterested
                 ? "✓ Interested"
