@@ -28,7 +28,7 @@ export default function Navigation() {
           aria-label="Matchgoer home"
           className="shrink-0"
         >
-          <Image src="/brand/matchgoer-wordmark-primary.png" alt="Matchgoer" width={4202} height={714} className="h-auto w-[7rem] sm:w-[10.5rem]" priority />
+          <Image src="/brand/matchgoer-wordmark-primary.png" alt="Matchgoer" width={4202} height={714} className="h-auto w-[7.75rem] sm:w-[10.5rem]" priority />
         </Link>
 
         <nav aria-label="Primary navigation" className="order-3 flex w-full min-w-0 justify-between gap-x-3 border-t border-[var(--tt-rule)] pt-2 text-[0.6rem] font-extrabold uppercase tracking-[0.04em] sm:order-none sm:w-auto sm:flex-1 sm:justify-end sm:gap-x-5 sm:border-0 sm:pt-0 sm:text-xs sm:tracking-[0.1em]">

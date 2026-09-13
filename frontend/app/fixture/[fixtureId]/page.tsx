@@ -5,7 +5,7 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import api from "../../../lib/api";
-import { fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
+import { fixtureHasFinishedForSocial, fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
 import AccountConversionPrompt from "../../components/AccountConversionPrompt";
 import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
@@ -171,59 +171,13 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     catch (requestError: unknown) { setError(requestMessage(requestError, "Unable to report this post.")); }
   };
 
-  const recordAttendance = async () => {
-    if (!data?.fixture.venue_id || saving || data.own_attendance.attended) return;
-    setSaving(true); setError("");
-    try {
-      await api.post(`/fixtures/${fixtureId}/attendance`);
-      await load();
-    } catch (requestError) {
-      setError(requestMessage(requestError, "Unable to record your attendance."));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const removeAttendance = async () => {
-    if (!data?.own_attendance.attended || saving) return;
-    setSaving(true); setError("");
-    try {
-      await api.delete(`/fixtures/${fixtureId}/attendance`);
-      await load();
-    } catch (requestError) {
-      setError(requestMessage(requestError, "Unable to remove your attendance."));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const openPostMatchReview = async () => {
-    if (!data?.fixture.venue_id || saving) return;
-    setSaving(true); setError("");
-    try {
-      if (!data.own_review) {
-        await api.post(`/venues/${data.fixture.venue_id}/away-day-reviews`, {
-          venue_id: data.fixture.venue_id,
-          fixture_id: data.fixture.fixture_id,
-        });
-      }
-      router.push(`/my-football?tab=visited&review=${data.fixture.venue_id}`);
-    } catch (requestError) {
-      if (axios.isAxiosError(requestError) && requestError.response?.status === 409) {
-        router.push(`/my-football?tab=visited&review=${data.fixture.venue_id}`);
-        return;
-      }
-      setError(requestMessage(requestError, "Unable to open this matchday review."));
-      setSaving(false);
-    }
-  };
-
   if (!data) return <main className="mx-auto w-full max-w-5xl p-4 sm:p-6"><p className="tt-kicker">01 / Match</p><p className="mt-3 font-semibold" role={error ? "alert" : undefined}>{error || "Loading fixture…"}</p></main>;
   const kickoff = new Date(data.fixture.fixture_date);
   const statusGroup = fixtureStatusGroup(data.fixture.status);
   const decisionReasons = data.decision_reasons ?? [];
   const hasDecisionReasons = decisionReasons.length > 0;
   const completed = statusGroup === "finished";
+  const finishedForSocial = fixtureHasFinishedForSocial(data.fixture.status, data.board_closed);
   const hasResult = completed && data.fixture.home_goals !== null && data.fixture.away_goals !== null;
   const renderPost = (post: BoardPost, reply = false) => (
     <article key={post.post_id} className={`${reply ? "ml-3 border-l-2 border-[var(--brand-interactive)] pl-4 sm:ml-6" : "border-t-2 border-[var(--tt-ink)] py-5"} min-w-0`}>
@@ -287,14 +241,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       {(data.terrace_rating !== null || data.recommend_percentage !== null) && <details className="mt-4 text-xs text-[var(--tt-muted)]"><summary className="cursor-pointer font-bold uppercase tracking-[0.08em]">Community ground ratings</summary><div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div></details>}
     </section>}
 
-    {completed ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
-      <p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · Did you go?</p>
-      <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div><h2 id="matchday-heading" className="tt-display text-4xl leading-none sm:text-5xl">{data.own_attendance.attended ? "You were there" : "Did you go?"}</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">{data.fixture.venue_id ? data.own_attendance.attended ? `${data.fixture.venue_name ?? "This ground"} · ${kickoff.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Add this match to your history." : "Ground not confirmed, so this match can’t be added yet."}</p></div>
-        {data.fixture.venue_id && !data.own_attendance.attended && <button type="button" disabled={saving} onClick={recordAttendance} className="tt-action px-5">{saving ? "Recording…" : "Yes — I was there"}</button>}
-      </div>
-      {data.own_attendance.attended && data.fixture.venue_id && <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-[var(--tt-rule)] pt-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" disabled={saving} onClick={openPostMatchReview} className="text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">{data.own_review?.state === "completed" ? "Edit my review →" : data.own_review?.state === "partial" ? "Continue review →" : "Rate the ground →"}</button><Link href={`/venue/${data.fixture.venue_id}#tips-add`} className="text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Add a tip →</Link><button type="button" disabled={saving} onClick={removeAttendance} className="text-[var(--tt-muted)] underline decoration-2 underline-offset-4">Remove attendance</button></div>}
-    </section> : statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It will not be treated as an upcoming plan or attendance opportunity.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
+    {statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It will not be treated as an upcoming plan or attendance opportunity.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : !finishedForSocial ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
       <div>
         <p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · {statusGroup === "postponed" ? "Match update" : "Your matchday"}</p>
         <h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">{statusGroup === "postponed" ? "Match postponed" : "Make it yours"}</h2>
@@ -306,7 +253,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         {data.open_to_meet_count > 0 && <p className="mt-3 text-xs font-bold text-[var(--tt-muted)]">{data.open_to_meet_count} {data.open_to_meet_count === 1 ? "supporter is" : "supporters are"} open to meeting.</p>}
         <p className="mt-2 text-xs leading-5 text-[var(--tt-muted)]">Meet safely in public matchday locations and use your judgment when meeting someone new.</p>
       </div>
-    </section>}
+    </section> : null}
 
     <section className="tt-section-rule mt-10 pt-4" aria-labelledby="board-heading">
       <p className="tt-kicker">{hasDecisionReasons ? "05" : "04"} / Social · Supporter correspondence</p>

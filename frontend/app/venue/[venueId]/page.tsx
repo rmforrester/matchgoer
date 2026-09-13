@@ -330,7 +330,7 @@ api
       )}
 
       {hasVisited && <>
-      <section className="tt-section-rule mt-10 pt-4" aria-labelledby="visit-heading">
+      <section className="tt-panel mt-4 p-4 sm:p-5" aria-labelledby="visit-heading">
         <p className="tt-kicker">Your visit</p>
         <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">You&apos;ve been here</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">{myGround.latest_visit_date ? `Last visit · ${new Date(`${myGround.latest_visit_date}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Date not remembered"}</p></div>

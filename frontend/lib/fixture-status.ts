@@ -24,3 +24,8 @@ export function fixtureStatusLabel(status: string | null | undefined): string {
   if (live.has(value)) return value === "HT" ? "Half time" : "Live";
   return "Scheduled";
 }
+
+export function fixtureHasFinishedForSocial(status: string | null | undefined, boardClosed: boolean): boolean {
+  const group = fixtureStatusGroup(status);
+  return group === "finished" || (boardClosed && group !== "cancelled");
+}
