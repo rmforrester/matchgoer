@@ -29,10 +29,10 @@ export default function Navigation() {
           aria-label="Matchgoer home"
         >
           <Image
-            src="/brand/matchgoer-wordmark-primary.svg"
+            src="/brand/matchgoer-wordmark-primary.png"
             alt="Matchgoer"
-            width={1800}
-            height={306}
+            width={4202}
+            height={714}
             priority
             className="h-auto w-[6.25rem] sm:w-[10.5rem]"
           />
