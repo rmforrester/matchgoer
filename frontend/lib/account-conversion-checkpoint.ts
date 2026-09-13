@@ -44,6 +44,35 @@ export async function prepareConversionHandoff(returnTo: string, target = storag
   return handoff;
 }
 
+export async function prepareSigninConversion(
+  returnTo: string,
+  convertAnonymous: boolean,
+  handoffToken?: string | null,
+  target = storage(),
+  dependencies: {
+    getAnonymousSession?: () => Promise<{ anonymous: boolean; anonymous_activity: boolean }>;
+    issueHandoff?: (returnTo: string, target: BrowserStorage | null) => Promise<StoredHandoff>;
+  } = {},
+) {
+  let checkpoint = loadConversionHandoff(Date.now(), target);
+  if (handoffToken) return checkpoint;
+
+  // A conversion explicitly initiated from an anonymous product action must be
+  // bound to the current anonymous cookie. An older, otherwise valid local
+  // checkpoint may belong to a consumed or replaced browser session.
+  if (!convertAnonymous && checkpoint) return checkpoint;
+
+  const session = dependencies.getAnonymousSession
+    ? await dependencies.getAnonymousSession()
+    : (await anonymousApi.get("/session")).data;
+  if (convertAnonymous || (session.anonymous && session.anonymous_activity)) {
+    checkpoint = dependencies.issueHandoff
+      ? await dependencies.issueHandoff(returnTo, target)
+      : await prepareConversionHandoff(returnTo, target);
+  }
+  return checkpoint;
+}
+
 export async function clearConversionHandoffAfter<T>(operation: Promise<T>, target = storage()) {
   const result = await operation;
   clearConversionHandoff(target);

@@ -7,6 +7,7 @@ import {
   clearConversionHandoffAfter,
   loadConversionHandoff,
   prepareConversionHandoff,
+  prepareSigninConversion,
   saveConversionHandoff,
   type BrowserStorage,
 } from "./account-conversion-checkpoint.ts";
@@ -64,6 +65,65 @@ test("prepares and stores a server-issued handoff before conversion sign-in", as
   } finally {
     anonymousApi.defaults.adapter = previous;
   }
+});
+
+test("anonymous Interested to existing-account sign-in replaces a stale checkpoint and claims the current handoff", async () => {
+  const target = memoryStorage();
+  saveConversionHandoff({ token: "s".repeat(40), expiresAt: "2099-01-01T00:00:00Z", returnTo: "/fixture/7" }, target);
+  const issued: string[] = [];
+  const checkpoint = await prepareSigninConversion(
+    "/fixture/42",
+    true,
+    null,
+    target,
+    {
+      getAnonymousSession: async () => ({ anonymous: true, anonymous_activity: true }),
+      issueHandoff: async (returnTo, storage) => {
+        issued.push(returnTo);
+        const fresh = { token: "f".repeat(40), expiresAt: "2099-01-01T00:00:00Z", returnTo };
+        saveConversionHandoff(fresh, storage);
+        return fresh;
+      },
+    },
+  );
+
+  const requests: Array<{ method?: string; url?: string; data?: string }> = [];
+  const previous = api.defaults.adapter;
+  api.defaults.adapter = async (config) => {
+    requests.push({ method: config.method, url: config.url, data: config.data });
+    return {
+      data: config.url === "/session" ? { anonymous: false } : { profile_complete: true },
+      status: 200, statusText: "OK", headers: {}, config,
+    };
+  };
+  try {
+    const destination = await completeAuthenticatedFlow(
+      { access_token: "existing-account-token" } as never,
+      checkpoint?.returnTo,
+      checkpoint?.token,
+    );
+    assert.deepEqual(issued, ["/fixture/42"]);
+    assert.equal(loadConversionHandoff(Date.now(), target)?.token, "f".repeat(40));
+    assert.equal(destination.kind, "ready");
+    assert.equal(destination.route, "/account/ready?returnTo=%2Ffixture%2F42");
+    assert.match(requests[1].data ?? "", new RegExp("f{40}"));
+    assert.doesNotMatch(requests[1].data ?? "", new RegExp("s{40}"));
+  } finally {
+    api.defaults.adapter = previous;
+  }
+});
+
+test("explicit callback handoff is never replaced by local conversion preparation", async () => {
+  const target = memoryStorage();
+  saveConversionHandoff({ token: "s".repeat(40), expiresAt: "2099-01-01T00:00:00Z", returnTo: "/fixture/7" }, target);
+  let sessionRequests = 0;
+  let handoffsIssued = 0;
+  await prepareSigninConversion("/fixture/42", true, "callback-token", target, {
+    getAnonymousSession: async () => { sessionRequests += 1; return { anonymous: true, anonymous_activity: true }; },
+    issueHandoff: async () => { handoffsIssued += 1; throw new Error("must not issue"); },
+  });
+  assert.equal(sessionRequests, 0);
+  assert.equal(handoffsIssued, 0);
 });
 
 test("successful conversion clears checkpoint while retryable failure preserves it", async () => {
