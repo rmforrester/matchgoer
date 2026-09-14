@@ -1,7 +1,7 @@
 import threading
 import time
 import unittest
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import jwt
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -67,6 +67,8 @@ class AccountClaimTests(unittest.TestCase):
             self.skipTest("A fixture linked to a venue is required")
         self.fixture_id = fixture.fixture_id
         self.venue_id = fixture.venue_id
+        kickoff = fixture.fixture_date
+        self.fixture_date = (kickoff.replace(tzinfo=timezone.utc) if kickoff.tzinfo is None else kickoff.astimezone(timezone.utc)).date()
         self.created_users = []
 
     def tearDown(self):
@@ -347,6 +349,133 @@ class AccountClaimTests(unittest.TestCase):
         self.assertEqual((source.account_status, source.merged_into_user_id), ("merged", target_id))
         audit = self.db.query(AccountMergeAudit).filter_by(source_user_id=source_id).one()
         self.assertEqual((audit.target_user_id, audit.merge_source), (target_id, "account_conversion"))
+
+    def test_existing_identity_transfers_dated_and_undated_manual_visits(self):
+        source_id, session_id = self.new_anonymous("visit-manual-source")
+        target_id = self.new_registered("visit-manual-subject", "visit-manual")
+        dated = VenueVisit(user_id=source_id, venue_id=self.venue_id, visit_date=self.fixture_date, source="manual")
+        undated = VenueVisit(user_id=source_id, venue_id=self.venue_id, visit_date=None, source="manual")
+        self.db.add_all([dated, undated])
+        self.db.commit()
+        visit_ids = {dated.visit_id, undated.visit_id}
+
+        self.claim(session_id, "visit-manual-subject")
+        self.db.expire_all()
+        transferred = self.db.query(VenueVisit).filter(VenueVisit.visit_id.in_(visit_ids)).all()
+        self.assertEqual({visit.user_id for visit in transferred}, {target_id})
+        self.assertEqual({visit.visit_date for visit in transferred}, {self.fixture_date, None})
+
+    def test_existing_identity_transfers_fixture_visit_with_provenance(self):
+        source_id, session_id = self.new_anonymous("visit-fixture-source")
+        target_id = self.new_registered("visit-fixture-subject", "visit-fixture")
+        visit = VenueVisit(user_id=source_id, venue_id=self.venue_id, fixture_id=self.fixture_id, visit_date=self.fixture_date, source="fixture_confirmation")
+        self.db.add(visit)
+        self.db.commit()
+        visit_id = visit.visit_id
+
+        issuer = Session(bind=engine)
+        try:
+            handoff_token, _ = issue_account_conversion_handoff(issuer, session_id=session_id)
+        finally:
+            issuer.close()
+
+        self.claim(None, "visit-fixture-subject", handoff_token=handoff_token)
+        self.db.expire_all()
+        transferred = self.db.get(VenueVisit, visit_id)
+        self.assertEqual((transferred.user_id, transferred.venue_id, transferred.fixture_id, transferred.visit_date, transferred.source),
+                         (target_id, self.venue_id, self.fixture_id, self.fixture_date, "fixture_confirmation"))
+
+    def test_existing_identity_deduplicates_exact_fixture_and_manual_visits(self):
+        source_id, session_id = self.new_anonymous("visit-dedupe-source")
+        target_id = self.new_registered("visit-dedupe-subject", "visit-dedupe")
+        other_date = self.fixture_date - timedelta(days=30)
+        self.db.add_all([
+            VenueVisit(user_id=source_id, venue_id=self.venue_id, fixture_id=self.fixture_id, visit_date=self.fixture_date, source="fixture_confirmation"),
+            VenueVisit(user_id=target_id, venue_id=self.venue_id, fixture_id=self.fixture_id, visit_date=self.fixture_date, source="fixture_confirmation"),
+            VenueVisit(user_id=source_id, venue_id=self.venue_id, visit_date=other_date, source="manual"),
+            VenueVisit(user_id=target_id, venue_id=self.venue_id, visit_date=other_date, source="manual"),
+        ])
+        self.db.commit()
+
+        self.claim(session_id, "visit-dedupe-subject")
+        self.db.expire_all()
+        self.assertEqual(self.db.query(VenueVisit).filter_by(user_id=target_id, fixture_id=self.fixture_id).count(), 1)
+        self.assertEqual(self.db.query(VenueVisit).filter_by(user_id=target_id, venue_id=self.venue_id, fixture_id=None, visit_date=other_date).count(), 1)
+        self.assertEqual(self.db.query(VenueVisit).filter_by(user_id=source_id).count(), 0)
+
+    def test_existing_identity_preserves_distinct_repeat_visits(self):
+        source_id, session_id = self.new_anonymous("visit-repeat-source")
+        target_id = self.new_registered("visit-repeat-subject", "visit-repeat")
+        dates = (self.fixture_date - timedelta(days=60), self.fixture_date - timedelta(days=30))
+        self.db.add_all([
+            VenueVisit(user_id=source_id, venue_id=self.venue_id, visit_date=dates[0], source="manual"),
+            VenueVisit(user_id=target_id, venue_id=self.venue_id, visit_date=dates[1], source="manual"),
+        ])
+        self.db.commit()
+
+        self.claim(session_id, "visit-repeat-subject")
+        self.db.expire_all()
+        visits = self.db.query(VenueVisit).filter_by(user_id=target_id, venue_id=self.venue_id).all()
+        self.assertEqual({visit.visit_date for visit in visits}, set(dates))
+
+    def test_fixture_visit_and_one_compatible_manual_visit_consolidate_to_fixture(self):
+        source_id, session_id = self.new_anonymous("visit-cross-form-source")
+        target_id = self.new_registered("visit-cross-form-subject", "visit-cross-form")
+        linked = VenueVisit(user_id=source_id, venue_id=self.venue_id, fixture_id=self.fixture_id, visit_date=self.fixture_date, source="fixture_confirmation")
+        manual = VenueVisit(user_id=target_id, venue_id=self.venue_id, visit_date=self.fixture_date, source="manual")
+        self.db.add_all([linked, manual])
+        self.db.commit()
+        linked_id = linked.visit_id
+
+        self.claim(session_id, "visit-cross-form-subject")
+        self.db.expire_all()
+        visits = self.db.query(VenueVisit).filter_by(user_id=target_id, venue_id=self.venue_id).all()
+        self.assertEqual(len(visits), 1)
+        self.assertEqual((visits[0].visit_id, visits[0].fixture_id, visits[0].source),
+                         (linked_id, self.fixture_id, "fixture_confirmation"))
+
+    def test_ambiguous_cross_form_visits_fail_closed_and_roll_back(self):
+        source_id, session_id = self.new_anonymous("visit-ambiguous-source")
+        target_id = self.new_registered("visit-ambiguous-subject", "visit-ambiguous")
+        self.db.add_all([
+            InterestedFixture(user_id=source_id, fixture_id=self.fixture_id),
+            VenueVisit(user_id=source_id, venue_id=self.venue_id, fixture_id=self.fixture_id, visit_date=self.fixture_date, source="fixture_confirmation"),
+            VenueVisit(user_id=source_id, venue_id=self.venue_id, visit_date=self.fixture_date, source="manual"),
+            VenueVisit(user_id=target_id, venue_id=self.venue_id, visit_date=self.fixture_date, source="manual"),
+        ])
+        self.db.commit()
+        self.assert_error(409, "ACCOUNT_VISIT_MERGE_CONFLICT", lambda: self.claim(session_id, "visit-ambiguous-subject"))
+        self.db.expire_all()
+        self.assertEqual(self.db.query(VenueVisit).filter_by(user_id=source_id).count(), 2)
+        self.assertEqual(self.db.query(VenueVisit).filter_by(user_id=target_id).count(), 1)
+        self.assertEqual(self.db.query(InterestedFixture).filter_by(user_id=source_id, fixture_id=self.fixture_id).count(), 1)
+        self.assertEqual(self.db.query(AccountMergeAudit).filter_by(source_user_id=source_id).count(), 0)
+        self.assertEqual(self.db.get(User, source_id).account_status, "anonymous")
+        self.assertIsNone(self.db.query(AccountConversionHandoff).filter_by(user_id=source_id).first())
+
+    def test_failure_after_visit_merge_rolls_back_interest_visits_and_claim(self):
+        source_id, session_id = self.new_anonymous("visit-rollback-source")
+        target_id = self.new_registered("visit-rollback-subject", "visit-rollback")
+        self.db.add_all([
+            InterestedFixture(user_id=source_id, fixture_id=self.fixture_id),
+            VenueVisit(user_id=source_id, venue_id=self.venue_id, fixture_id=self.fixture_id, visit_date=self.fixture_date, source="fixture_confirmation"),
+        ])
+        self.db.commit()
+
+        def fail(stage):
+            if stage == "after_visit_merge":
+                raise RuntimeError("injected visit merge failure")
+
+        with self.assertRaises(RuntimeError):
+            self.claim(session_id, "visit-rollback-subject", failure_hook=fail)
+        self.db.expire_all()
+        self.assertEqual(self.db.query(InterestedFixture).filter_by(user_id=source_id, fixture_id=self.fixture_id).count(), 1)
+        self.assertEqual(self.db.query(InterestedFixture).filter_by(user_id=target_id, fixture_id=self.fixture_id).count(), 0)
+        self.assertEqual(self.db.query(VenueVisit).filter_by(user_id=source_id, fixture_id=self.fixture_id).count(), 1)
+        self.assertEqual(self.db.query(VenueVisit).filter_by(user_id=target_id, fixture_id=self.fixture_id).count(), 0)
+        self.assertEqual(self.db.query(AccountMergeAudit).filter_by(source_user_id=source_id).count(), 0)
+        self.assertEqual(self.db.get(User, source_id).account_status, "anonymous")
+        self.assertIsNone(self.db.query(AccountConversionHandoff).filter_by(user_id=source_id).first())
 
     def test_existing_identity_interest_collision_deduplicates_and_replays(self):
         source_id, session_id = self.new_anonymous("collision-source")

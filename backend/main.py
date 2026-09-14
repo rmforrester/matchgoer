@@ -441,7 +441,7 @@ def claim_account(
             provider_identity=provider_identity,
         )
         logger.info(
-            "account_conversion event=claim cookie_present=%s handoff_present=%s outcome=claimed user_id=%s continuity=preserved idempotent=%s",
+            "account_conversion event=claim cookie_present=%s handoff_present=%s outcome=claimed user_id=%s supported_ownership_merge=completed idempotent=%s",
             bool(session_id), bool(request and request.handoff_token), result.user_id, result.idempotent,
         )
         response.delete_cookie(

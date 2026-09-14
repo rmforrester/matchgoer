@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
+import axios from "axios";
 
 import api, { anonymousApi } from "./api.ts";
-import { authCallbackRoute, completeAuthenticatedFlow, signinRoute } from "./auth-flow.ts";
+import { authCallbackRoute, completeAuthenticatedFlow, signinRoute, userFacingAuthError } from "./auth-flow.ts";
 import {
   clearConversionHandoffAfter,
   loadConversionHandoff,
@@ -11,6 +13,8 @@ import {
   saveConversionHandoff,
   type BrowserStorage,
 } from "./account-conversion-checkpoint.ts";
+
+const readyPage = readFileSync(new URL("../app/account/ready/page.tsx", import.meta.url), "utf8");
 
 function memoryStorage(): BrowserStorage {
   const values = new Map<string, string>();
@@ -36,6 +40,30 @@ test("registered session still claims when a conversion handoff exists", async (
     assert.equal(result.kind, "ready");
     assert.deepEqual(requests.map(({ method, url }) => [method, url]), [["get", "/session"], ["post", "/account/claim"]]);
     assert.match(requests[1].data ?? "", /opaque-handoff-token/);
+  } finally {
+    api.defaults.adapter = previous;
+  }
+});
+
+test("successful conversion uses bounded matches-and-grounds confirmation", () => {
+  assert.match(readyPage, /Your saved matches and grounds are now on your account/);
+  assert.doesNotMatch(readyPage, /Anything you did before signing in/);
+});
+
+test("visit merge conflict rejects instead of routing to the success page", async () => {
+  const previous = api.defaults.adapter;
+  api.defaults.adapter = async (config) => {
+    if (config.url === "/session") return { data: { anonymous: false }, status: 200, statusText: "OK", headers: {}, config };
+    const error = new axios.AxiosError("visit conflict", "409", config, null, {
+      data: { detail: { code: "ACCOUNT_VISIT_MERGE_CONFLICT" } }, status: 409, statusText: "Conflict", headers: {}, config,
+    });
+    throw error;
+  };
+  try {
+    await assert.rejects(
+      completeAuthenticatedFlow({ access_token: "provider-token" } as never, "/my-football?tab=visited", "opaque-handoff-token"),
+      (error) => userFacingAuthError(error, "fallback").includes("Nothing was moved or discarded"),
+    );
   } finally {
     api.defaults.adapter = previous;
   }

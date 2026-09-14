@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -19,10 +19,12 @@ from models import (
     AccountConversionHandoff,
     AccountMergeAudit,
     AnonymousSession,
+    Fixture,
     InterestedFixture,
     User,
     UserIdentity,
     UserProfile,
+    VenueVisit,
 )
 
 
@@ -275,6 +277,15 @@ def _merge_into_existing_account(
     if failure_hook:
         failure_hook("after_interest_merge")
 
+    _merge_venue_visits(
+        db,
+        source_user_id=source_user.user_id,
+        target_user_id=target_user.user_id,
+    )
+    db.flush()
+    if failure_hook:
+        failure_hook("after_visit_merge")
+
     db.add(AccountMergeAudit(
         source_user_id=source_user.user_id,
         target_user_id=target_user.user_id,
@@ -305,6 +316,92 @@ def _merge_into_existing_account(
     if failure_hook:
         failure_hook("after_source_revocation")
     return _result(db, target_user, idempotent=False)
+
+
+def _merge_venue_visits(db: Session, *, source_user_id: int, target_user_id: int) -> None:
+    """Transfer anonymous visits using the product's existing exact-match rules."""
+    source_visits = db.query(VenueVisit).filter(
+        VenueVisit.user_id == source_user_id,
+    ).order_by(VenueVisit.visit_id).with_for_update().all()
+    if not source_visits:
+        return
+    target_visits = db.query(VenueVisit).filter(
+        VenueVisit.user_id == target_user_id,
+    ).order_by(VenueVisit.visit_id).with_for_update().all()
+
+    deleted_ids: set[int] = set()
+    target_by_fixture = {
+        visit.fixture_id: visit
+        for visit in target_visits
+        if visit.fixture_id is not None
+    }
+    linked_representatives: list[VenueVisit] = [
+        visit for visit in target_visits if visit.fixture_id is not None
+    ]
+    for visit in source_visits:
+        if visit.fixture_id is None:
+            continue
+        target_duplicate = target_by_fixture.get(visit.fixture_id)
+        if target_duplicate is not None:
+            db.delete(visit)
+            deleted_ids.add(visit.visit_id)
+        else:
+            linked_representatives.append(visit)
+
+    fixture_ids = {visit.fixture_id for visit in linked_representatives if visit.fixture_id is not None}
+    fixtures = {
+        fixture.fixture_id: fixture
+        for fixture in db.query(Fixture).filter(Fixture.fixture_id.in_(fixture_ids)).all()
+    } if fixture_ids else {}
+    linked_by_canonical_day: dict[tuple[int, date], list[VenueVisit]] = {}
+    for visit in linked_representatives:
+        fixture = fixtures.get(visit.fixture_id)
+        if fixture is None or fixture.venue_id != visit.venue_id or visit.visit_date is None:
+            continue
+        kickoff = fixture.fixture_date
+        fixture_day = (
+            kickoff.replace(tzinfo=timezone.utc).date()
+            if kickoff.tzinfo is None
+            else kickoff.astimezone(timezone.utc).date()
+        )
+        if fixture_day != visit.visit_date:
+            continue
+        linked_by_canonical_day.setdefault((visit.venue_id, visit.visit_date), []).append(visit)
+
+    manual_visits = [
+        visit for visit in (*target_visits, *source_visits)
+        if visit.fixture_id is None and visit.visit_id not in deleted_ids
+    ]
+    manual_by_day: dict[tuple[int, date], list[VenueVisit]] = {}
+    for visit in manual_visits:
+        if visit.visit_date is not None:
+            manual_by_day.setdefault((visit.venue_id, visit.visit_date), []).append(visit)
+    for key, manuals in manual_by_day.items():
+        linked = linked_by_canonical_day.get(key, [])
+        if not linked:
+            continue
+        if len(manuals) != 1 or len(linked) != 1:
+            raise _claim_error(
+                409,
+                "ACCOUNT_VISIT_MERGE_CONFLICT",
+                "Saved ground visits could not be reconciled without guessing",
+            )
+        db.delete(manuals[0])
+        deleted_ids.add(manuals[0].visit_id)
+
+    target_manual_keys = {
+        (visit.venue_id, visit.visit_date)
+        for visit in target_visits
+        if visit.fixture_id is None and visit.visit_id not in deleted_ids
+    }
+    for visit in source_visits:
+        if visit.visit_id in deleted_ids:
+            continue
+        if visit.fixture_id is None and (visit.venue_id, visit.visit_date) in target_manual_keys:
+            db.delete(visit)
+            deleted_ids.add(visit.visit_id)
+        else:
+            visit.user_id = target_user_id
 
 
 def _result(db: Session, user: User, *, idempotent: bool) -> AccountClaimResult:

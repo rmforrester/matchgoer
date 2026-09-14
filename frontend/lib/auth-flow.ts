@@ -91,6 +91,7 @@ export function userFacingAuthError(error: unknown, fallback: string) {
   const code = errorCode(error);
   if (code === "TOKEN_EXPIRED") return "Your session has expired. Sign in again.";
   if (code === "IDENTITY_NOT_LINKED") return "This account is not connected to Matchgoer yet.";
+  if (code === "ACCOUNT_VISIT_MERGE_CONFLICT") return "We couldn't safely reconcile the ground visits saved before sign-in. Nothing was moved or discarded.";
   if (code === "ANONYMOUS_SESSION_REQUIRED" || code === "ANONYMOUS_SESSION_INVALID" || code === "ACCOUNT_HANDOFF_INVALID" || code === "ACCOUNT_HANDOFF_EXPIRED" || code === "ACCOUNT_HANDOFF_USED" || code === "ACCOUNT_HANDOFF_SESSION_MISMATCH" || code === "ACCOUNT_HANDOFF_OWNER_MISMATCH") return "We couldn't verify the matchdays saved before signup. Your account was not switched to another supporter. Return to the original browser and try again.";
   return fallback;
 }
