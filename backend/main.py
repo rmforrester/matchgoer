@@ -990,24 +990,48 @@ def _ensure_venue_visit(
 ) -> VenueVisit:
     normalized_date = visit_date.date() if isinstance(visit_date, datetime) else visit_date
     if fixture_id is not None:
-        existing_fixture_visit = db.query(VenueVisit).filter(
+        fixture = db.query(Fixture).filter(Fixture.fixture_id == fixture_id).first()
+        if fixture is None:
+            raise HTTPException(status_code=404, detail="Fixture not found")
+        if fixture.venue_id != venue_id:
+            raise HTTPException(status_code=409, detail="Fixture is linked to a different canonical venue")
+        normalized_date = fixture_datetime_utc(fixture.fixture_date).date()
+        relevant_visits = db.query(VenueVisit).filter(
             VenueVisit.user_id == user_id,
-            VenueVisit.fixture_id == fixture_id,
-        ).first()
-        if existing_fixture_visit is not None:
+            or_(
+                VenueVisit.fixture_id == fixture_id,
+                (
+                    (VenueVisit.venue_id == venue_id)
+                    & VenueVisit.fixture_id.is_(None)
+                    & (VenueVisit.visit_date == normalized_date)
+                ),
+            ),
+        ).order_by(VenueVisit.visit_id).with_for_update().all()
+        existing_fixture_visits = [visit for visit in relevant_visits if visit.fixture_id == fixture_id]
+        if len(existing_fixture_visits) > 1:
+            raise HTTPException(
+                status_code=409,
+                detail={"code": "VENUE_VISIT_RECONCILIATION_CONFLICT", "message": "Multiple attendance records require review"},
+            )
+        if existing_fixture_visits:
+            existing_fixture_visit = existing_fixture_visits[0]
             if existing_fixture_visit.venue_id != venue_id:
                 raise HTTPException(status_code=409, detail="Attendance already exists for a different venue")
             return existing_fixture_visit
-    if fixture_id is not None and normalized_date is not None:
-        manual_visit = db.query(VenueVisit).filter(
-            VenueVisit.user_id == user_id,
-            VenueVisit.venue_id == venue_id,
-            VenueVisit.fixture_id.is_(None),
-            VenueVisit.visit_date == normalized_date,
-        ).with_for_update().first()
-        if manual_visit is not None:
+        manual_visits = [
+            visit for visit in relevant_visits
+            if visit.fixture_id is None
+            and visit.venue_id == venue_id
+            and visit.visit_date == normalized_date
+        ]
+        if len(manual_visits) > 1:
+            raise HTTPException(
+                status_code=409,
+                detail={"code": "VENUE_VISIT_RECONCILIATION_CONFLICT", "message": "Multiple matching manual visits require review"},
+            )
+        if manual_visits:
+            manual_visit = manual_visits[0]
             manual_visit.fixture_id = fixture_id
-            manual_visit.source = source
             db.flush()
             return manual_visit
     db.execute(
