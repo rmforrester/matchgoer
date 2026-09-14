@@ -74,3 +74,11 @@ class ApiFootballClient:
             season=season,
             **{"from": from_date, "to": to_date},
         )
+
+    def fixtures_by_ids(self, fixture_ids: list[int]) -> list[dict[str, Any]]:
+        """Fetch mutable fixture state by up to 20 authoritative IDs, uncached."""
+        if not fixture_ids:
+            return []
+        if len(fixture_ids) > 20:
+            raise ValueError("API-Football accepts at most 20 fixture IDs per request")
+        return self.get("/fixtures", use_cache=False, ids="-".join(map(str, fixture_ids)))
