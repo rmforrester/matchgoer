@@ -26,11 +26,11 @@ import {
   type DiscoveryViewport,
   type FixtureVenueGroup,
 } from "../../lib/fixtureDiscovery";
-import { createGroundMarkerIcon, createUserLocationIcon } from "./groundMarkerIcon";
+import { createGroundMarkerIcon, createUserLocationIcon, markerKeyIconHtml, markerSignalSvg } from "./groundMarkerIcon";
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
 import { configuredDiscoverTileLayer } from "../../lib/discoverMapTiles";
 import { fixtureTypeLabel, safeFixtureType, type FixtureType } from "../../lib/fixtureType";
-import { markerSignalForFixture, type MarkerSignal } from "../../lib/markerSignal";
+import { editorialReasonForMarkerSignal, markerSignalForFixture, type MarkerSignal } from "../../lib/markerSignal";
 
 type Venue = {
   venue_id: number;
@@ -82,6 +82,38 @@ function FixtureTypeIcon({ type }: { type: FixtureType }) {
   </span>;
 }
 
+function MarkerSignalGlyph({ signal }: { signal: Exclude<MarkerSignal, "standard"> }) {
+  const stroke = signal === "international" || signal === "cup" ? "#FCFAF5" : "#171717";
+  return <svg aria-hidden="true" viewBox="0 0 30 30" className="h-4 w-4 shrink-0" dangerouslySetInnerHTML={{ __html: markerSignalSvg(signal, stroke) }} />;
+}
+
+function MarkerEditorialReason({ fixture }: { fixture: Fixture }) {
+  const signal = markerSignalForFixture(fixture);
+  const reason = editorialReasonForMarkerSignal(fixture);
+  if (!reason || (signal !== "rivalry" && signal !== "scenic" && signal !== "classic")) return null;
+  return <div className="tt-fixture-popup-optional mb-2 flex items-start gap-1.5 border-l-4 border-[var(--tt-gold)] pl-2.5">
+    <MarkerSignalGlyph signal={signal} />
+    <strong className="line-clamp-2 break-words text-sm leading-tight">{reason.label}</strong>
+  </div>;
+}
+
+const markerKeyItems: { signal: Exclude<MarkerSignal, "standard">; label: string }[] = [
+  { signal: "international", label: "International" },
+  { signal: "cup", label: "Cup" },
+  { signal: "rivalry", label: "Rivalry" },
+  { signal: "scenic", label: "Scenic" },
+  { signal: "classic", label: "Classic ground" },
+];
+
+function MarkerKey() {
+  return <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--tt-rule)] px-1 pt-1.5 text-[0.65rem] font-extrabold uppercase tracking-[0.06em] text-[var(--tt-muted)]" aria-label="Map key">
+    {markerKeyItems.map(({ signal, label }) => <span key={signal} className="inline-flex items-center gap-1 whitespace-nowrap">
+      <span className="inline-flex h-5 w-4 items-center justify-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: markerKeyIconHtml(signal) }} />
+      {label}
+    </span>)}
+  </div>;
+}
+
 function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureDismiss, showDistance, compactMobile }: FixtureVenueMarkerProps) {
   const map = useMap();
   const decision = fixtureGroupDecision(group.fixtures);
@@ -108,9 +140,7 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
     {!compactMobile && <Popup closeButton={false} offset={[0, -8]} {...FIXTURE_POPUP_BEHAVIOR} className="tt-fixture-popup">
       <button type="button" onClick={() => { onFixtureDismiss(fixture.fixture_id); map.closePopup(); }} aria-label="Dismiss selected fixture" className="absolute right-2 top-2 grid min-h-11 min-w-11 place-items-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-2xl font-bold leading-none">×</button>
       <div className="pr-10">
-      {fixture.highlight_eligible && fixture.lead_decision_reason && <div className="tt-fixture-popup-optional mb-2 border-l-4 border-[var(--tt-gold)] pl-3">
-        <strong className="line-clamp-2 break-words text-sm leading-tight">{fixture.lead_decision_reason.emoji} {fixture.lead_decision_reason.label}</strong>
-      </div>}
+      <MarkerEditorialReason fixture={fixture} />
       <strong className="block min-w-0 break-words leading-tight">{card.matchup}</strong>
       <span className="mt-2 block text-xs font-bold">
       {statusGroup === "postponed" || statusGroup === "cancelled"
@@ -145,6 +175,8 @@ function MobileFixtureCard({
   const fixtureIndex = group.fixtures.findIndex((candidate) => candidate.fixture_id === fixture.fixture_id);
   const statusGroup = fixtureStatusGroup(fixture.status);
   const fixtureType = safeFixtureType(fixture.fixture_type);
+  const markerSignal = markerSignalForFixture(fixture);
+  const editorialReason = editorialReasonForMarkerSignal(fixture);
   const move = (offset: number) => {
     const next = (fixtureIndex + offset + group.fixtures.length) % group.fixtures.length;
     onFixtureSelect(group.fixtures[next].fixture_id);
@@ -153,6 +185,7 @@ function MobileFixtureCard({
   return <article className="tt-mobile-fixture-card" aria-label="Selected fixture">
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.75rem] gap-3">
       <div className="min-w-0">
+        {editorialReason && (markerSignal === "rivalry" || markerSignal === "scenic" || markerSignal === "classic") && <MarkerEditorialReason fixture={fixture} />}
         <strong className="block min-w-0 break-words text-base leading-snug">{fixture.home_team} v {fixture.away_team}</strong>
         <span className="mt-1.5 block text-sm font-bold leading-snug">
           {statusGroup === "postponed" || statusGroup === "cancelled"
@@ -276,9 +309,7 @@ export default function FixtureMap({
     for (const markerSignal of ["standard", "classic", "scenic", "rivalry", "cup", "international"] as const) {
       for (const visited of [false, true]) {
         for (const selected of [false, true]) {
-          for (const highlighted of [false, true]) {
-            icons[`${markerSignal}-${visited}-${selected}-${highlighted}`] = createGroundMarkerIcon(visited, selected, highlighted, markerSignal);
-          }
+          icons[`${markerSignal}-${visited}-${selected}`] = createGroundMarkerIcon(visited, selected, markerSignal);
         }
       }
     }
@@ -327,6 +358,7 @@ export default function FixtureMap({
 
 
   return (
+<div>
 <div className="relative">
 <MapContainer
   ref={mapRef}
@@ -439,11 +471,10 @@ export default function FixtureMap({
       {fixtureGroups.map((group) => {
         const visited = group.venueId !== null && isVisited(group.venueId);
         const selected = group.fixtures.some((fixture) => fixture.fixture_id === selectedFixtureId);
-        const highlighted = fixtureGroupDecision(group.fixtures).highlighted;
         const icons = Object.fromEntries(
           (["standard", "classic", "scenic", "rivalry", "cup", "international"] as const).map((markerSignal) => [
             markerSignal,
-            fixtureIcons[`${markerSignal}-${visited}-${selected}-${highlighted}`],
+            fixtureIcons[`${markerSignal}-${visited}-${selected}`],
           ]),
         ) as Record<MarkerSignal, L.DivIcon>;
         return <FixtureVenueMarker key={group.key} group={group} visited={visited} icons={icons} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} showDistance={showDistance} compactMobile={compactMobile} />;
@@ -465,6 +496,8 @@ export default function FixtureMap({
       <MobileFixtureCard fixture={selectedFixture} group={selectedFixtureGroup} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} />
     </div>}
     {tileError && <p role="status" className="absolute bottom-3 left-3 right-3 z-[1000] border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">The map background could not load. Fixture cards and ground links are still available below.</p>}
+</div>
+<MarkerKey />
 </div>
   );
 }

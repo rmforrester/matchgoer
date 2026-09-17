@@ -149,6 +149,7 @@ def fixture_decision_leads(db, fixtures) -> dict[int, dict]:
                 "highlight_eligible": False,
                 "lead_decision_reason": None,
                 "decision_attribute_keys": [],
+                "decision_reasons": [],
             }
             for item in fixture_rows
         }
@@ -180,5 +181,6 @@ def fixture_decision_leads(db, fixtures) -> dict[int, dict]:
             "highlight_eligible": payload["highlight_eligible"],
             "lead_decision_reason": payload["decision_reasons"][0] if payload["decision_reasons"] else None,
             "decision_attribute_keys": [reason["key"] for reason in payload["decision_reasons"]],
+            "decision_reasons": payload["decision_reasons"],
         }
     return resolved

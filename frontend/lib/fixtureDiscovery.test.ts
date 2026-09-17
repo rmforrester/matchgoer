@@ -106,21 +106,22 @@ test("grouped marker becomes gold and initially selects the earliest eligible fi
   assert.equal(grouped.fixtures.length, 3, "ordinary fixtures remain navigable in the highlighted group");
 });
 
-test("ordinary fixture group and marker/card presentation remain unchanged", () => {
+test("ordinary fixture group keeps a plain blue marker and existing carousel presentation", () => {
   const fixtures = [decisionFixture({ fixture_id: 1 }), decisionFixture({ fixture_id: 2 })];
   assert.deepEqual(fixtureGroupDecision(fixtures), { highlighted: false, initialFixtureIndex: 0 });
-  assert.match(groundMarkerSource, /highlighted \? "#D6A600" : "#2146D0"/);
+  assert.match(groundMarkerSource, /goldSignal \? "#D6A600" : "#2146D0"/);
+  assert.match(groundMarkerSource, /return "";/);
   assert.match(fixtureCarouselSource, /h-\[18\.5rem\]/);
 });
 
-test("Discover popup and carousel expose only the compact lead reason with restrained gold treatment", () => {
-  assert.match(fixtureMapSource, /fixture\.lead_decision_reason\.emoji/);
+test("Discover map exposes only the winning marker reason while the carousel keeps its compact lead reason", () => {
+  assert.match(fixtureMapSource, /editorialReasonForMarkerSignal/);
+  assert.match(fixtureMapSource, /reason\.label/);
   assert.match(fixtureMapSource, /border-\[var\(--tt-gold\)\]/);
   assert.match(fixtureMapSource, /line-clamp-2 break-words text-sm leading-tight/);
-  assert.doesNotMatch(fixtureMapSource, /fixture\.lead_decision_reason\.explanation/);
+  assert.doesNotMatch(fixtureMapSource, /reason\.explanation/);
   assert.match(fixtureCarouselSource, /fixture\.lead_decision_reason\.label/);
   assert.doesNotMatch(fixtureCarouselSource, /fixture\.lead_decision_reason\.explanation/);
-  assert.doesNotMatch(fixtureMapSource, /decision_reasons/);
   assert.doesNotMatch(fixtureCarouselSource, /decision_reasons/);
 });
 

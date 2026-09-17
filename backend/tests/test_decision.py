@@ -169,7 +169,7 @@ class DecisionV1Tests(unittest.TestCase):
         ]
         payloads = fixture_decision_leads(FakeSession([support]), fixtures)
         self.assertEqual(payloads[20]["lead_decision_reason"]["key"], "EXCEPTIONAL_SUPPORT")
-        self.assertEqual(payloads[21], {"highlight_eligible": False, "lead_decision_reason": None, "decision_attribute_keys": []})
+        self.assertEqual(payloads[21], {"highlight_eligible": False, "lead_decision_reason": None, "decision_attribute_keys": [], "decision_reasons": []})
 
     def test_editorial_lead_outweighs_category_fallback(self):
         payload = applicable_decision_payload([
@@ -187,7 +187,7 @@ class DecisionV1Tests(unittest.TestCase):
         )
         session = FakeSession([])
         self.assertEqual(fixture_decision_leads(session, [fixture]), {
-            10: {"highlight_eligible": False, "lead_decision_reason": None, "decision_attribute_keys": []},
+            10: {"highlight_eligible": False, "lead_decision_reason": None, "decision_attribute_keys": [], "decision_reasons": []},
         })
         self.assertEqual(session.query_calls, 1)
 
@@ -208,6 +208,7 @@ class DecisionV1Tests(unittest.TestCase):
         self.assertEqual(payloads[11]["lead_decision_reason"]["key"], "FOOTBALL_LANDMARK")
         self.assertEqual(payloads[10]["decision_attribute_keys"], ["SIGNIFICANT_RIVALRY", "FOOTBALL_LANDMARK"])
         self.assertEqual(payloads[11]["decision_attribute_keys"], ["FOOTBALL_LANDMARK"])
+        self.assertEqual([reason["key"] for reason in payloads[10]["decision_reasons"]], ["SIGNIFICANT_RIVALRY", "FOOTBALL_LANDMARK"])
 
     def test_bulk_discover_tie_is_deterministic_by_normalized_label_then_fact_id(self):
         fixture = SimpleNamespace(

@@ -737,6 +737,7 @@ def get_nearby(
             "highlight_eligible": False,
             "lead_decision_reason": None,
             "decision_attribute_keys": [],
+            "decision_reasons": [],
         }))
 
     meeting_counts = dict(
