@@ -736,6 +736,7 @@ def get_nearby(
         result.update(decision_leads.get(result["fixture_id"], {
             "highlight_eligible": False,
             "lead_decision_reason": None,
+            "decision_attribute_keys": [],
         }))
 
     meeting_counts = dict(

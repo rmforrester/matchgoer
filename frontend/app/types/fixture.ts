@@ -14,6 +14,7 @@ export type Fixture = {
   league_id: number;
   league_name: string;
   fixture_type?: "standard" | "cup" | "international";
+  decision_attribute_keys?: string[];
   venue_id: number | null;
   venue_name: string;
   venue_city: string;

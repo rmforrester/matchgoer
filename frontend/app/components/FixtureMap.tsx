@@ -30,6 +30,7 @@ import { createGroundMarkerIcon, createUserLocationIcon } from "./groundMarkerIc
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
 import { configuredDiscoverTileLayer } from "../../lib/discoverMapTiles";
 import { fixtureTypeLabel, safeFixtureType, type FixtureType } from "../../lib/fixtureType";
+import { markerSignalForFixture, type MarkerSignal } from "../../lib/markerSignal";
 
 type Venue = {
   venue_id: number;
@@ -65,7 +66,7 @@ export type MapSearchArea = DiscoveryViewport;
 type FixtureVenueMarkerProps = {
   group: FixtureVenueGroup;
   visited: boolean;
-  icons: Record<FixtureType, L.DivIcon>;
+  icons: Record<MarkerSignal, L.DivIcon>;
   onFixtureSelect: (fixtureId: number) => void;
   onFixtureDismiss: (fixtureId: number) => void;
   showDistance: boolean;
@@ -87,6 +88,7 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
   const [fixtureIndex, setFixtureIndex] = useState(decision.initialFixtureIndex);
   const fixture = group.fixtures[fixtureIndex];
   const fixtureType = safeFixtureType(fixture.fixture_type);
+  const markerSignal = markerSignalForFixture(fixture);
   const fixtureCount = group.fixtures.length;
   const card = compactFixtureCard(fixture);
   const move = (offset: number) => setFixtureIndex((current) => {
@@ -97,7 +99,7 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
   const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
   const statusGroup = fixtureStatusGroup(fixture.status);
 
-  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icons[fixtureType]} title={markerLabel} alt={markerLabel} eventHandlers={{ click: () => {
+  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icons[markerSignal]} title={markerLabel} alt={markerLabel} eventHandlers={{ click: () => {
     if (compactMobile) {
       setFixtureIndex(decision.initialFixtureIndex);
       onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id);
@@ -271,11 +273,11 @@ export default function FixtureMap({
   const userLocationIcon = useMemo(() => createUserLocationIcon(), []);
   const fixtureIcons = useMemo(() => {
     const icons = {} as Record<string, L.DivIcon>;
-    for (const fixtureType of ["standard", "cup", "international"] as const) {
+    for (const markerSignal of ["standard", "classic", "scenic", "rivalry", "cup", "international"] as const) {
       for (const visited of [false, true]) {
         for (const selected of [false, true]) {
           for (const highlighted of [false, true]) {
-            icons[`${fixtureType}-${visited}-${selected}-${highlighted}`] = createGroundMarkerIcon(visited, selected, highlighted, fixtureType);
+            icons[`${markerSignal}-${visited}-${selected}-${highlighted}`] = createGroundMarkerIcon(visited, selected, highlighted, markerSignal);
           }
         }
       }
@@ -439,11 +441,11 @@ export default function FixtureMap({
         const selected = group.fixtures.some((fixture) => fixture.fixture_id === selectedFixtureId);
         const highlighted = fixtureGroupDecision(group.fixtures).highlighted;
         const icons = Object.fromEntries(
-          (["standard", "cup", "international"] as const).map((fixtureType) => [
-            fixtureType,
-            fixtureIcons[`${fixtureType}-${visited}-${selected}-${highlighted}`],
+          (["standard", "classic", "scenic", "rivalry", "cup", "international"] as const).map((markerSignal) => [
+            markerSignal,
+            fixtureIcons[`${markerSignal}-${visited}-${selected}-${highlighted}`],
           ]),
-        ) as Record<FixtureType, L.DivIcon>;
+        ) as Record<MarkerSignal, L.DivIcon>;
         return <FixtureVenueMarker key={group.key} group={group} visited={visited} icons={icons} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} showDistance={showDistance} compactMobile={compactMobile} />;
       })}
 

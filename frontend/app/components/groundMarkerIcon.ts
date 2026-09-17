@@ -1,16 +1,17 @@
 import L from "leaflet";
 import { USER_MARKER_DESIGN, VENUE_MARKER_DESIGN, venueMarkerPresentation } from "../../lib/mapMarkerDesign";
-import type { FixtureType } from "../../lib/fixtureType";
+import type { MarkerSignal } from "../../lib/markerSignal";
 
-const semanticBadge = (fixtureType: FixtureType) => {
-  if (fixtureType === "standard") return "";
-  const symbol = fixtureType === "cup"
-    ? `<path d="M3.5 2.5H8.5V4.2C8.5 6.1 7.5 7.2 6 7.2C4.5 7.2 3.5 6.1 3.5 4.2V2.5ZM3.5 3.2H2.2V4C2.2 5 2.8 5.6 3.8 5.7M8.5 3.2H9.8V4C9.8 5 9.2 5.6 8.2 5.7M6 7.2V9M3.8 9H8.2" fill="none" stroke="#171717" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter" />`
-    : `<circle cx="6" cy="6" r="3.6" fill="none" stroke="#171717" stroke-width="1"/><path d="M2.7 6H9.3M6 2.4C7 3.4 7.4 4.6 7.4 6C7.4 7.4 7 8.6 6 9.6M6 2.4C5 3.4 4.6 4.6 4.6 6C4.6 7.4 5 8.6 6 9.6" fill="none" stroke="#171717" stroke-width="0.8"/>`;
-  return `<g transform="translate(1 1)"><circle cx="6" cy="6" r="5.3" fill="#FCFAF5" stroke="#171717" stroke-width="1"/>${symbol}</g>`;
+const markerSignalSvg = (signal: MarkerSignal, stroke: string) => {
+  if (signal === "international") return `<g fill="none" stroke="${stroke}" stroke-linecap="round"><circle cx="15" cy="16" r="7" stroke-width="2"/><path d="M8 16H22M15 9C17.1 11 18 13.3 18 16C18 18.7 17.1 21 15 23M15 9C12.9 11 12 13.3 12 16C12 18.7 12.9 21 15 23" stroke-width="1.4"/></g>`;
+  if (signal === "cup") return `<path d="M10 9H20V13C20 17 18.1 19.5 15 19.5C11.9 19.5 10 17 10 13V9ZM10 11H7V13C7 15.4 8.4 16.8 10.7 17M20 11H23V13C23 15.4 21.6 16.8 19.3 17M15 19.5V23M11 24H19" fill="none" stroke="${stroke}" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter"/>`;
+  if (signal === "rivalry") return `<path d="M15 7C18 11 20 13.2 20 17C20 21 17.8 24 15 24C11.3 24 9 21.3 9 18C9 15.2 10.5 13.2 12.5 11.2C12.6 14.1 13.5 15.2 15 16.5C16.4 14.2 16.8 11.5 15 7Z" fill="none" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>`;
+  if (signal === "scenic") return `<g fill="none" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="21" cy="10" r="2.5"/><path d="M7 23L12 15L15 19L18 14L23 23M7 23H23"/></g>`;
+  if (signal === "classic") return `<g fill="none" stroke="${stroke}" stroke-width="1.8" stroke-linejoin="miter"><path d="M7 14L15 9L23 14V23H7V14Z"/><path d="M10 15V12M20 15V12M11 23V18H19V23M7 15H23"/></g>`;
+  return `<g fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"><circle cx="15" cy="16" r="7"/><path d="M15 12L18.4 14.5L17.1 18.5H12.9L11.6 14.5L15 12ZM15 9V12M21.7 13.8L18.4 14.5M19.2 21.7L17.1 18.5M10.8 21.7L12.9 18.5M8.3 13.8L11.6 14.5"/></g>`;
 };
 
-const markerSvg = (visited: boolean, selected: boolean, highlighted: boolean, fixtureType: FixtureType) => {
+const markerSvg = (visited: boolean, selected: boolean, highlighted: boolean, signal: MarkerSignal) => {
   const presentation = venueMarkerPresentation(visited, selected);
   const markerFill = highlighted ? "#D6A600" : "#2146D0";
   const markStroke = highlighted ? "#171717" : "#FCFAF5";
@@ -23,33 +24,15 @@ const markerSvg = (visited: boolean, selected: boolean, highlighted: boolean, fi
       stroke-width="2"
       stroke-linejoin="miter"
     />
-    ${semanticBadge(fixtureType)}
-    <path
-      d="M6 21V10H9L15 17L21 10H24V21"
-      fill="none"
-      stroke="${markStroke}"
-      stroke-width="2.5"
-      stroke-linecap="square"
-    />
-    ${visited ? `
-      <circle cx="25" cy="6" r="4.5" fill="#FCFAF5" stroke="#171717" stroke-width="1.25" />
-      <path
-        d="M22.7 6L24.3 7.5L27.3 4.5"
-        fill="none"
-        stroke="#2146D0"
-        stroke-width="1.5"
-        stroke-linecap="square"
-        stroke-linejoin="miter"
-      />
-    ` : ""}
+    ${markerSignalSvg(signal, markStroke)}
   </svg>
 `;
 };
 
-export function createGroundMarkerIcon(visited = false, selected = false, highlighted = false, fixtureType: FixtureType = "standard"): L.DivIcon {
+export function createGroundMarkerIcon(visited = false, selected = false, highlighted = false, signal: MarkerSignal = "standard"): L.DivIcon {
   return L.divIcon({
     className: `tt-ground-marker${selected ? " tt-ground-marker--selected" : ""}`,
-    html: `<span class="tt-ground-marker__visual">${markerSvg(visited, selected, highlighted, fixtureType)}</span>`,
+    html: `<span class="tt-ground-marker__visual">${markerSvg(visited, selected, highlighted, signal)}</span>`,
     iconSize: [VENUE_MARKER_DESIGN.hitSize, VENUE_MARKER_DESIGN.hitSize],
     iconAnchor: [VENUE_MARKER_DESIGN.hitSize / 2, VENUE_MARKER_DESIGN.hitSize - 2],
     popupAnchor: [0, -32],

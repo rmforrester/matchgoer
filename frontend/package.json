@@ -13,6 +13,7 @@
     "test:guide": "node --experimental-strip-types --test lib/venue-guide.test.ts",
     "test:fixture-lifecycle": "node --experimental-strip-types --test lib/fixture-lifecycle.test.ts",
     "test:fixture-type": "node --experimental-strip-types --test lib/fixtureType.test.ts",
+    "test:marker-signal": "node --experimental-strip-types --test lib/markerSignal.test.ts",
     "test:competition-grouping": "node --experimental-strip-types --test lib/competitionGrouping.test.ts",
     "test:matchdays": "node --experimental-strip-types --test lib/matchdays.test.ts"
   },
