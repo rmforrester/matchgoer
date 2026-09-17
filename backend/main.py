@@ -21,6 +21,7 @@ from identity import (
 )
 from account_claim import claim_anonymous_user, issue_account_conversion_handoff
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, fixture_kickoff_has_passed, utc_date_expression
+from fixture_type import classify_fixture_type
 from location_safety import has_usable_coordinates
 from club_venue_know import google_maps_search_url, guide_facts_for_relationship, public_supporting_line, publishable_spots, resolve_club_venue, resolve_unique_home_club
 from decision import applicable_decision_payload, fixture_decision_leads, fixture_decision_payload
@@ -644,6 +645,9 @@ def get_nearby(
 
                 "league_name":
                     fixture.league_name,
+
+                "fixture_type":
+                    classify_fixture_type(fixture.league_name, fixture.country),
 
                 "status":
                     fixture.status,
