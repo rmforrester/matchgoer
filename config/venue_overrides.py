@@ -1,6 +1,8 @@
 """Reviewed manual venue overrides, separate from provider ingestion logic."""
 
 from dataclasses import dataclass
+import json
+from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -169,6 +171,19 @@ MANUAL_VENUE_OVERRIDES = (
         )
     ),
 )
+
+
+def _usa_venue_remediation_overrides() -> tuple[ManualVenueOverride, ...]:
+    path = Path(__file__).with_name("usa_venue_remediation_v1.json")
+    payload = json.loads(path.read_text(encoding="utf-8-sig"))
+    fields = set(ManualVenueOverride.__dataclass_fields__)
+    return tuple(
+        ManualVenueOverride(**{key: value for key, value in item.items() if key in fields})
+        for item in payload["overrides"]
+    )
+
+
+MANUAL_VENUE_OVERRIDES += _usa_venue_remediation_overrides()
 
 
 def manual_override_for(

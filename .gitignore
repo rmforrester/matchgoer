@@ -33,6 +33,7 @@ htmlcov/
 # Local ingestion artifacts
 .cache/
 reports/
+backups/
 .cache/
 
 # Keep the reviewed venue-identity evidence; other generated reports stay local.

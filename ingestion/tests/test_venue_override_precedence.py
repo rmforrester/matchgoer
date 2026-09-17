@@ -73,13 +73,65 @@ class VenueOverridePrecedenceTests(unittest.TestCase):
             (23636, "fixture_provider_name", 6154, None),
         )
 
-    def test_ambiguous_direct_provider_name_falls_back_without_guessing(self):
+    def test_unreconciled_direct_provider_name_blocks_team_fallback(self):
         self.assertEqual(
             TerraceTalkImporter._fixture_venue_link(
                 fixture(3, None, "Common Stadium"), 1, {1: 901}, scope(999), {}
             ),
+            (None, "home_team_fallback_conflict", 901, None),
+        )
+
+    def test_hinchliffe_does_not_fall_back_to_mcu_park(self):
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(999999, None, "Hinchliffe Stadium"), 9033, {9033: 6274},
+                scope(489), {}, {6274: {"mcu park"}},
+            ),
+            (None, "home_team_fallback_conflict", 6274, None),
+        )
+
+    def test_reviewed_same_ground_aliases_allow_team_fallback(self):
+        cases = (
+            ("Saputo Stadium", "stade saputo"),
+            ("Exploria Stadium", "inter&co stadium"),
+        )
+        for observed, canonical in cases:
+            with self.subTest(observed=observed):
+                accepted = {
+                    TerraceTalkImporter._normalize_venue_identity_name(observed),
+                    TerraceTalkImporter._normalize_venue_identity_name(canonical),
+                }
+                self.assertEqual(
+                    TerraceTalkImporter._fixture_venue_link(
+                        fixture(3, None, observed), 1, {1: 901}, scope(999), {}, {901: accepted}
+                    ),
+                    (901, "home_team_fallback", None, None),
+                )
+
+    def test_null_fixture_venue_name_still_allows_team_fallback(self):
+        self.assertEqual(
+            TerraceTalkImporter._fixture_venue_link(
+                fixture(3, None, None), 1, {1: 901}, scope(999), {}, {901: {"known ground"}}
+            ),
             (901, "home_team_fallback", None, None),
         )
+
+    def test_reviewed_usa_provider_anomaly_keeps_correct_canonical(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1491551, None, "Toyota Stadium"), 20808, {20808: 21619}, scope(255)
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Lexington SC Stadium")
+        self.assertEqual(result[3].canonical_provider_venue_id, 21619)
+
+    def test_reviewed_oakland_fixture_uses_third_venue(self):
+        result = TerraceTalkImporter._fixture_venue_link(
+            fixture(1493437, None, "Laney College Football Stadium"),
+            10874, {10874: 21620}, scope(255),
+        )
+        self.assertEqual(result[1], "manual_verified")
+        self.assertEqual(result[3].venue_name, "Oakland-Alameda County Coliseum")
+        self.assertIsNone(result[3].canonical_provider_venue_id)
 
     def test_slavia_na_chvalech_default_is_unchanged_without_direct_name(self):
         self.assertEqual(
