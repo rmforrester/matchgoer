@@ -1,7 +1,16 @@
 import L from "leaflet";
 import { USER_MARKER_DESIGN, VENUE_MARKER_DESIGN, venueMarkerPresentation } from "../../lib/mapMarkerDesign";
+import type { FixtureType } from "../../lib/fixtureType";
 
-const markerSvg = (visited: boolean, selected: boolean, highlighted: boolean) => {
+const semanticBadge = (fixtureType: FixtureType) => {
+  if (fixtureType === "standard") return "";
+  const symbol = fixtureType === "cup"
+    ? `<path d="M3.5 2.5H8.5V4.2C8.5 6.1 7.5 7.2 6 7.2C4.5 7.2 3.5 6.1 3.5 4.2V2.5ZM3.5 3.2H2.2V4C2.2 5 2.8 5.6 3.8 5.7M8.5 3.2H9.8V4C9.8 5 9.2 5.6 8.2 5.7M6 7.2V9M3.8 9H8.2" fill="none" stroke="#171717" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter" />`
+    : `<circle cx="6" cy="6" r="3.6" fill="none" stroke="#171717" stroke-width="1"/><path d="M2.7 6H9.3M6 2.4C7 3.4 7.4 4.6 7.4 6C7.4 7.4 7 8.6 6 9.6M6 2.4C5 3.4 4.6 4.6 4.6 6C4.6 7.4 5 8.6 6 9.6" fill="none" stroke="#171717" stroke-width="0.8"/>`;
+  return `<g transform="translate(1 1)"><circle cx="6" cy="6" r="5.3" fill="#FCFAF5" stroke="#171717" stroke-width="1"/>${symbol}</g>`;
+};
+
+const markerSvg = (visited: boolean, selected: boolean, highlighted: boolean, fixtureType: FixtureType) => {
   const presentation = venueMarkerPresentation(visited, selected);
   const markerFill = highlighted ? "#D6A600" : "#2146D0";
   const markStroke = highlighted ? "#171717" : "#FCFAF5";
@@ -14,6 +23,7 @@ const markerSvg = (visited: boolean, selected: boolean, highlighted: boolean) =>
       stroke-width="2"
       stroke-linejoin="miter"
     />
+    ${semanticBadge(fixtureType)}
     <path
       d="M6 21V10H9L15 17L21 10H24V21"
       fill="none"
@@ -36,10 +46,10 @@ const markerSvg = (visited: boolean, selected: boolean, highlighted: boolean) =>
 `;
 };
 
-export function createGroundMarkerIcon(visited = false, selected = false, highlighted = false): L.DivIcon {
+export function createGroundMarkerIcon(visited = false, selected = false, highlighted = false, fixtureType: FixtureType = "standard"): L.DivIcon {
   return L.divIcon({
     className: `tt-ground-marker${selected ? " tt-ground-marker--selected" : ""}`,
-    html: `<span class="tt-ground-marker__visual">${markerSvg(visited, selected, highlighted)}</span>`,
+    html: `<span class="tt-ground-marker__visual">${markerSvg(visited, selected, highlighted, fixtureType)}</span>`,
     iconSize: [VENUE_MARKER_DESIGN.hitSize, VENUE_MARKER_DESIGN.hitSize],
     iconAnchor: [VENUE_MARKER_DESIGN.hitSize / 2, VENUE_MARKER_DESIGN.hitSize - 2],
     popupAnchor: [0, -32],

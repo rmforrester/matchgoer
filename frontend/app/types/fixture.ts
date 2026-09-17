@@ -13,6 +13,7 @@ export type Fixture = {
   away_team: string;
   league_id: number;
   league_name: string;
+  fixture_type?: "standard" | "cup" | "international";
   venue_id: number | null;
   venue_name: string;
   venue_city: string;
