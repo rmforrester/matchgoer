@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { matchingCompetitions, supporterCompetitionGroup, supporterCompetitionGroups } from "./competitionGrouping.ts";
+import { matchingCompetitionGroups, supporterCompetitionGroup, supporterCompetitionGroups } from "./competitionGrouping.ts";
 
 const inventory = [
-  { country: "England", leagues: [{ league_id: 39, league_name: "Premier League" }, { league_id: 45, league_name: "FA Cup" }] },
-  { country: "World", leagues: [{ league_id: 2, league_name: "UEFA Champions League" }, { league_id: 3, league_name: "UEFA Europa League" }, { league_id: 5, league_name: "UEFA Nations League" }, { league_id: 13, league_name: "CONMEBOL Libertadores" }] },
+  { country: "England", leagues: [{ league_id: 39, league_name: "Premier League" }, { league_id: 40, league_name: "Championship" }, { league_id: 45, league_name: "FA Cup" }] },
+  { country: "World", leagues: [{ league_id: 2, league_name: "UEFA Champions League" }, { league_id: 3, league_name: "UEFA Europa League" }, { league_id: 5, league_name: "UEFA Nations League" }, { league_id: 12, league_name: "CAF Champions League" }, { league_id: 13, league_name: "CONMEBOL Libertadores" }] },
 ];
 
 test("search is case-insensitive, partial, and spans every geographic group", () => {
   for (const [query, expected] of [["CHAMP", 2], ["fa cup", 45], ["europa", 3], ["nations", 5], ["libertadores", 13]] as const) {
-    assert.equal(matchingCompetitions(inventory, query)[0]?.league_id, expected);
+    assert.ok(matchingCompetitionGroups(supporterCompetitionGroups(inventory), query).flatMap(({ leagues }) => leagues).some(({ league_id }) => league_id === expected));
   }
 });
 
@@ -30,9 +30,13 @@ test("regional World Cup qualification follows its confederation", () => {
   assert.equal(supporterCompetitionGroup("World", "World Cup - Qualification Asia"), "Asia");
 });
 
-test("browse and search preserve the same selectable competition IDs", () => {
+test("search preserves geographic subsections and selectable competition IDs", () => {
   const grouped = supporterCompetitionGroups(inventory);
   assert.deepEqual(grouped.find(({ country }) => country === "Europe")?.leagues.map(({ league_id }) => league_id), [2, 3, 5]);
-  assert.deepEqual(grouped.find(({ country }) => country === "England")?.leagues.map(({ league_id }) => league_id), [45, 39]);
-  assert.equal(matchingCompetitions(grouped, "Champions League")[0]?.league_id, 2);
+  assert.deepEqual(grouped.find(({ country }) => country === "England")?.leagues.map(({ league_id }) => league_id), [40, 45, 39]);
+  assert.deepEqual(matchingCompetitionGroups(grouped, "champ"), [
+    { country: "Africa", leagues: [{ league_id: 12, league_name: "CAF Champions League" }] },
+    { country: "England", leagues: [{ league_id: 40, league_name: "Championship" }] },
+    { country: "Europe", leagues: [{ league_id: 2, league_name: "UEFA Champions League" }] },
+  ]);
 });
