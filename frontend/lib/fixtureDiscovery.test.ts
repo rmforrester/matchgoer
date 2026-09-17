@@ -345,7 +345,7 @@ test("Discover landing keeps the two current-location jobs distinct and removes 
 
 test("successful results collapse to the applied summary and Edit reopens the form", () => {
   assert.match(discoverPageSource, /!editingSearch && appliedSearch/);
-  assert.match(discoverPageSource, /appliedSearch\.locationName[\s\S]*appliedDateSummary[\s\S]*All leagues/);
+  assert.match(discoverPageSource, /appliedSearch\.locationName[\s\S]*appliedDateSummary[\s\S]*All competitions/);
   assert.match(discoverPageSource, /onClick=\{\(\) => setEditingSearch\(true\)\}/);
   assert.match(discoverPageSource, /setEditingSearch\(false\)/);
 });
