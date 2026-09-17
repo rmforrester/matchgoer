@@ -725,7 +725,7 @@ const loadVisitedStadiums = () => {
         {!editingSearch && appliedSearch ? (
           <div className="flex items-center justify-between gap-3">
             <p className="min-w-0 truncate text-sm font-extrabold" id="search-heading">
-              {appliedSearch.locationName.split(",")[0]} · {appliedDateSummary} · {appliedSearch.leagueIds.length === 0 ? "All leagues" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "league" : "leagues"}`}
+              {appliedSearch.locationName.split(",")[0]} · {appliedDateSummary} · {appliedSearch.leagueIds.length === 0 ? "All competitions" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "competition" : "competitions"}`}
             </p>
             <button type="button" onClick={() => setEditingSearch(true)} className="min-h-11 shrink-0 px-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Edit</button>
           </div>
@@ -839,7 +839,7 @@ const loadVisitedStadiums = () => {
         !discoveryError &&
         hasCompletedDiscovery &&
         visibleFixtures.length === 0 && (
-          <div className="tt-panel border-l-[8px] border-l-[var(--brand-interactive)] p-5"><p className="font-semibold">No fixtures found.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a wider radius, more leagues, or different dates.</p></div>
+          <div className="tt-panel border-l-[8px] border-l-[var(--brand-interactive)] p-5"><p className="font-semibold">No fixtures found.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a wider radius, more competitions, or different dates.</p></div>
         )}
 
       {loading && (

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { localCalendarDateValue, upcomingWeekendDateRange } from "../../lib/fixtureDiscovery";
+import { matchingCompetitions, supporterCompetitionGroups } from "../../lib/competitionGrouping";
 
 type League = { league_id: number; league_name: string };
 
@@ -97,7 +98,11 @@ type Props = {
 };
 
 export default function SearchBar({ leagues, selectedLeagueIds, setSelectedLeagueIds, radius, setRadius }: Props) {
+  const [competitionQuery, setCompetitionQuery] = useState("");
   const selected = new Set(selectedLeagueIds);
+  const groupedCompetitions = useMemo(() => supporterCompetitionGroups(leagues), [leagues]);
+  const searchResults = useMemo(() => matchingCompetitions(groupedCompetitions, competitionQuery), [groupedCompetitions, competitionQuery]);
+  const searching = competitionQuery.trim().length > 0;
   const toggleLeague = (leagueId: number) => setSelectedLeagueIds(
     selected.has(leagueId) ? selectedLeagueIds.filter((id) => id !== leagueId) : [...selectedLeagueIds, leagueId]
   );
@@ -115,15 +120,22 @@ export default function SearchBar({ leagues, selectedLeagueIds, setSelectedLeagu
       </label>
 
       <div className="grid min-w-0 gap-1 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">
-        League <span className="text-[0.65rem] font-medium normal-case tracking-normal">Optional</span>
+        Competition <span className="text-[0.65rem] font-medium normal-case tracking-normal">Optional</span>
         <details className="group relative">
           <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between border border-[var(--tt-rule)] bg-[var(--tt-newsprint)] px-3 font-medium normal-case tracking-normal text-[var(--tt-ink)] marker:content-none hover:border-[var(--tt-ink)]">
-            <span>{selectedLeagueIds.length === 0 ? "All leagues" : `${selectedLeagueIds.length} ${selectedLeagueIds.length === 1 ? "league" : "leagues"} selected`}</span><span aria-hidden="true">▾</span>
+            <span>{selectedLeagueIds.length === 0 ? "All competitions" : `${selectedLeagueIds.length} ${selectedLeagueIds.length === 1 ? "competition" : "competitions"} selected`}</span><span aria-hidden="true">▾</span>
           </summary>
           <div className="tt-league-options mt-1 overflow-y-auto border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 shadow-[3px_3px_0_var(--brand-interactive)]">
-            <button type="button" onClick={() => setSelectedLeagueIds([])} className="mb-3 min-h-11 w-full border border-[var(--tt-ink)] px-3 text-left text-xs font-extrabold uppercase hover:bg-[var(--brand-interactive)] hover:text-[var(--tt-paper)]">All leagues</button>
+            <input type="search" value={competitionQuery} onChange={(event) => setCompetitionQuery(event.target.value)} placeholder="Search competitions…" aria-label="Search competitions" className="tt-control mb-3 w-full min-w-0 px-3 font-medium normal-case tracking-normal text-[var(--tt-ink)]" />
+            <button type="button" onClick={() => setSelectedLeagueIds([])} className="mb-3 min-h-11 w-full border border-[var(--tt-ink)] px-3 text-left text-xs font-extrabold uppercase hover:bg-[var(--brand-interactive)] hover:text-[var(--tt-paper)]">All competitions</button>
             <div className="space-y-4">
-              {leagues.map((group) => <fieldset key={group.country}>
+              {searching ? <fieldset>
+                <legend className="mb-1 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-interactive)]">Search results</legend>
+                <div className="space-y-1">{searchResults.map((league) => <label key={`search-${league.league_id}`} className="flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium normal-case tracking-normal">
+                  <input type="checkbox" checked={selected.has(league.league_id)} onChange={() => toggleLeague(league.league_id)} className="h-4 w-4 accent-[var(--brand-interactive)]" /><span>{league.league_name}</span>
+                </label>)}</div>
+                {searchResults.length === 0 && <p className="py-2 text-sm font-medium normal-case tracking-normal text-[var(--tt-muted)]">No matching competitions.</p>}
+              </fieldset> : groupedCompetitions.map((group) => <fieldset key={group.country}>
                 <legend className="mb-1 text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-interactive)]">{group.country}</legend>
                 <div className="space-y-1">{group.leagues.map((league) => <label key={`${group.country}-${league.league_id}`} className="flex min-h-9 cursor-pointer items-center gap-2 text-sm font-medium normal-case tracking-normal">
                   <input type="checkbox" checked={selected.has(league.league_id)} onChange={() => toggleLeague(league.league_id)} className="h-4 w-4 accent-[var(--brand-interactive)]" /><span>{league.league_name}</span>
