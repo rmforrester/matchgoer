@@ -43,14 +43,10 @@ export function supporterCompetitionGroups(groups: CompetitionGroup[]): Competit
     .sort((a, b) => a.country.localeCompare(b.country));
 }
 
-export function matchingCompetitions(groups: CompetitionGroup[], query: string): Competition[] {
+export function matchingCompetitionGroups(groups: CompetitionGroup[], query: string): CompetitionGroup[] {
   const search = normalized(query);
   if (!search) return [];
-  const matches = new Map<number, Competition>();
-  for (const group of groups) {
-    for (const competition of group.leagues) {
-      if (normalized(competition.league_name).includes(search)) matches.set(competition.league_id, competition);
-    }
-  }
-  return [...matches.values()].sort((a, b) => a.league_name.localeCompare(b.league_name));
+  return groups
+    .map((group) => ({ ...group, leagues: group.leagues.filter((competition) => normalized(competition.league_name).includes(search)) }))
+    .filter((group) => group.leagues.length > 0);
 }
