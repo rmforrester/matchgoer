@@ -4,6 +4,8 @@ import { matchingCompetitionGroups, supporterCompetitionGroup, supporterCompetit
 
 const inventory = [
   { country: "England", leagues: [{ league_id: 39, league_name: "Premier League" }, { league_id: 40, league_name: "Championship" }, { league_id: 45, league_name: "FA Cup" }] },
+  { country: "France", leagues: [{ league_id: 61, league_name: "Ligue 1" }, { league_id: 62, league_name: "Ligue 2" }] },
+  { country: "Germany", leagues: [{ league_id: 78, league_name: "Bundesliga" }, { league_id: 81, league_name: "DFB Pokal" }] },
   { country: "World", leagues: [{ league_id: 2, league_name: "UEFA Champions League" }, { league_id: 3, league_name: "UEFA Europa League" }, { league_id: 5, league_name: "UEFA Nations League" }, { league_id: 12, league_name: "CAF Champions League" }, { league_id: 13, league_name: "CONMEBOL Libertadores" }] },
 ];
 
@@ -39,4 +41,18 @@ test("search preserves geographic subsections and selectable competition IDs", (
     { country: "England", leagues: [{ league_id: 40, league_name: "Championship" }] },
     { country: "Europe", leagues: [{ league_id: 2, league_name: "UEFA Champions League" }] },
   ]);
+});
+
+test("searching a geographic group preserves the whole group", () => {
+  const grouped = supporterCompetitionGroups(inventory);
+  assert.deepEqual(matchingCompetitionGroups(grouped, "France"), [
+    { country: "France", leagues: [{ league_id: 61, league_name: "Ligue 1" }, { league_id: 62, league_name: "Ligue 2" }] },
+  ]);
+  assert.deepEqual(matchingCompetitionGroups(grouped, "gErMaNy"), [
+    { country: "Germany", leagues: [{ league_id: 78, league_name: "Bundesliga" }, { league_id: 81, league_name: "DFB Pokal" }] },
+  ]);
+  assert.deepEqual(matchingCompetitionGroups(grouped, "Ligue"), [
+    { country: "France", leagues: [{ league_id: 61, league_name: "Ligue 1" }, { league_id: 62, league_name: "Ligue 2" }] },
+  ]);
+  assert.deepEqual(matchingCompetitionGroups(grouped, "no such competition"), []);
 });

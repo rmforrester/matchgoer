@@ -47,6 +47,8 @@ export function matchingCompetitionGroups(groups: CompetitionGroup[], query: str
   const search = normalized(query);
   if (!search) return [];
   return groups
-    .map((group) => ({ ...group, leagues: group.leagues.filter((competition) => normalized(competition.league_name).includes(search)) }))
+    .map((group) => normalized(group.country).includes(search)
+      ? group
+      : { ...group, leagues: group.leagues.filter((competition) => normalized(competition.league_name).includes(search)) })
     .filter((group) => group.leagues.length > 0);
 }
