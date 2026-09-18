@@ -180,18 +180,25 @@ def load_cohort_leagues(path: Path) -> list[dict[str, Any]]:
 
 def capture_baseline(connection, venues, planned, withheld: list[int], path: Path) -> dict[str, Any]:
     provider_ids = sorted(set(
-        [item["provider_venue_id"] for item in planned] + withheld
+        [item["provider_venue_id"] for item in planned if item["provider_venue_id"] is not None] + withheld
     ))
+    canonical_ids = sorted(item["venue_id"] for item in planned if item["provider_venue_id"] is None)
     rows = list(connection.execute(
         select(
             venues.c.venue_id, venues.c.provider_venue_id, venues.c.name,
             venues.c.city, venues.c.country, venues.c.latitude, venues.c.longitude,
-        ).where(venues.c.provider_venue_id.in_(provider_ids))
+        ).where(
+            venues.c.provider_venue_id.in_(provider_ids)
+            | venues.c.venue_id.in_(canonical_ids)
+        )
     ))
     payload = {
-        "planned_provider_venue_ids": sorted(item["provider_venue_id"] for item in planned),
+        "planned_provider_venue_ids": sorted(
+            item["provider_venue_id"] for item in planned if item["provider_venue_id"] is not None
+        ),
+        "planned_canonical_venue_ids": canonical_ids,
         "target_rows": {
-            str(row.provider_venue_id): {
+            (str(row.provider_venue_id) if row.provider_venue_id is not None else f"venue:{row.venue_id}"): {
                 "venue_id": int(row.venue_id), "name": row.name, "city": row.city,
                 "country": row.country,
                 "latitude": baseline_coordinate(row.latitude),
@@ -201,8 +208,10 @@ def capture_baseline(connection, venues, planned, withheld: list[int], path: Pat
         },
         "venue_row_count": int(connection.execute(select(func.count()).select_from(venues)).scalar_one()),
     }
-    mapped = {int(row.provider_venue_id): row for row in rows}
+    mapped = {int(row.provider_venue_id): row for row in rows if row.provider_venue_id is not None}
     missing = [provider_id for provider_id in provider_ids if provider_id not in mapped]
+    found_canonical_ids = {int(row.venue_id) for row in rows if row.provider_venue_id is None}
+    missing.extend(f"venue:{venue_id}" for venue_id in canonical_ids if venue_id not in found_canonical_ids)
     if missing:
         raise RuntimeError(f"Baseline provider venues do not resolve uniquely: {missing}")
     path.parent.mkdir(parents=True, exist_ok=True)

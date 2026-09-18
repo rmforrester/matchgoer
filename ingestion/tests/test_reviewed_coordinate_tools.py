@@ -62,6 +62,24 @@ class ReviewedCoordinateToolTests(unittest.TestCase):
             baseline = capture_baseline(connection, venues, planned, [], Path(directory) / "baseline.json")
         self.assertEqual(set(baseline["target_rows"]), {"1504"})
 
+    def test_baseline_supports_canonical_venue_without_provider_reference(self):
+        engine, venues = self.baseline_table()
+        with engine.begin() as connection:
+            connection.execute(venues.insert(), {
+                "venue_id": 27509, "provider_venue_id": None,
+                "name": "Reviewed ground", "city": "Houston", "country": "USA",
+                "latitude": None, "longitude": None,
+            })
+        planned = [{
+            "venue_id": 27509, "provider_venue_id": None,
+            "latitude": 29.799406, "longitude": -95.737058,
+        }]
+        with tempfile.TemporaryDirectory() as directory, engine.connect() as connection:
+            baseline = capture_baseline(connection, venues, planned, [], Path(directory) / "baseline.json")
+        self.assertEqual(baseline["planned_provider_venue_ids"], [])
+        self.assertEqual(baseline["planned_canonical_venue_ids"], [27509])
+        self.assertEqual(set(baseline["target_rows"]), {"venue:27509"})
+
     def test_sequential_baselines_are_operation_scoped_and_withheld_is_captured(self):
         engine, venues = self.baseline_table()
         with engine.begin() as connection:
