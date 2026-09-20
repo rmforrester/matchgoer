@@ -401,6 +401,45 @@ class Team(Base):
     club_venues = relationship("ClubVenue", back_populates="team")
 
 
+class TeamIdentityOverride(Base):
+    """Reviewed provider-team resolution limited to one league and season."""
+
+    __tablename__ = "team_identity_overrides"
+    __table_args__ = (
+        UniqueConstraint(
+            "provider", "provider_team_id", "league_id", "season",
+            name="uq_team_identity_overrides_scope",
+        ),
+        CheckConstraint("btrim(provider) <> ''", name="ck_team_identity_overrides_provider_not_blank"),
+        CheckConstraint("provider_team_id > 0", name="ck_team_identity_overrides_provider_team_positive"),
+        CheckConstraint("league_id > 0", name="ck_team_identity_overrides_league_positive"),
+        CheckConstraint("season > 0", name="ck_team_identity_overrides_season_positive"),
+        CheckConstraint("canonical_team_id <> 0", name="ck_team_identity_overrides_canonical_nonzero"),
+        CheckConstraint("btrim(expected_provider_name) <> ''", name="ck_team_identity_overrides_name_not_blank"),
+        CheckConstraint("review_status IN ('APPROVED', 'REVIEW')", name="ck_team_identity_overrides_status"),
+        CheckConstraint("btrim(reason) <> ''", name="ck_team_identity_overrides_reason_not_blank"),
+        CheckConstraint("btrim(provenance) <> ''", name="ck_team_identity_overrides_provenance_not_blank"),
+        CheckConstraint(
+            "review_status <> 'APPROVED' OR reviewed_at IS NOT NULL",
+            name="ck_team_identity_overrides_approval_reviewed",
+        ),
+        Index("ix_team_identity_overrides_canonical_team_id", "canonical_team_id"),
+    )
+
+    team_identity_override_id = Column(BigInteger, primary_key=True)
+    provider = Column(String(40), nullable=False)
+    provider_team_id = Column(Integer, nullable=False)
+    league_id = Column(Integer, nullable=False)
+    season = Column(Integer, nullable=False)
+    canonical_team_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=False)
+    expected_provider_name = Column(String(255), nullable=False)
+    review_status = Column(String(20), nullable=False)
+    reason = Column(Text, nullable=False)
+    provenance = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+
+
 class ClubVenue(Base):
     """A time-bounded relationship between a club and a ground."""
 
