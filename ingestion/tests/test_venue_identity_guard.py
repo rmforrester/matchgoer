@@ -19,13 +19,14 @@ class VenueIdentityGuardIntegrationTest(unittest.TestCase):
             Table("venue_names",m,Column("venue_name_id",Integer,primary_key=True),Column("venue_id",Integer),Column("name",String),Column("normalized_name",String),Column("name_type",String),Column("source",String),Column("valid_to",Date))
             Table("venue_provider_refs",m,Column("venue_provider_ref_id",Integer,primary_key=True),Column("venue_id",Integer),Column("provider",String),Column("provider_venue_id",Integer),Column("is_primary",Boolean))
             Table("teams",m,Column("team_id",Integer,primary_key=True),Column("team_name",String),Column("venue_id",Integer),Column("active",Boolean))
+            Table("team_identity_overrides",m,Column("team_identity_override_id",Integer,primary_key=True),Column("provider",String),Column("provider_team_id",Integer),Column("league_id",Integer),Column("season",Integer),Column("canonical_team_id",Integer),Column("expected_provider_name",String),Column("review_status",String))
             Table("fixtures",m,Column("fixture_id",Integer,primary_key=True),Column("fixture_date",DateTime),Column("venue_id",Integer),Column("venue_name",String),Column("venue_city",String),Column("league_id",Integer),Column("league_name",String),Column("country",String),Column("season",Integer),Column("round",String),Column("status",String),Column("home_team_id",Integer),Column("home_team",String),Column("away_team_id",Integer),Column("away_team",String),Column("home_goals",Integer),Column("away_goals",Integer));m.create_all(engine)
             canonical={"venue_id":566,"provider_venue_id":566,"name":"Wembley Stadium","city":"London","country":"England","address":"Wembley","capacity":90000,"latitude":51.556070,"longitude":-0.279603}
             with engine.begin() as c:
                 c.execute(v.insert().values(**canonical));c.execute(m.tables["venue_provider_refs"].insert().values(venue_provider_ref_id=1,venue_id=566,provider="api_football",provider_venue_id=566,is_primary=True));c.execute(m.tables["teams"].insert().values(team_id=65,team_name="Nottingham Forest",venue_id=566,active=True))
             client=Client();client.team_rows=[{"team":{"id":65,"name":"Nottingham Forest"},"venue":{"id":566,"name":"The City Ground","city":"Nottingham","country":"England","address":"Pavilion Road","capacity":30576}}]
-            with patch("ingestion.pipeline.create_engine",return_value=engine): importer=TerraceTalkImporter(client,"unused")
-            report=importer.write_import(LeagueScope("England",39,"Premier League",2026,"2026/27"),geocode=False)
+            with patch("ingestion.pipeline.create_engine",return_value=engine): importer=TerraceTalkImporter(client,"unused",expected_target=object(),target_environment="test")
+            with patch("ingestion.pipeline.verify_database_target",return_value={}): report=importer.write_import(LeagueScope("England",39,"Premier League",2026,"2026/27"),geocode=False)
             with engine.connect() as c: stored=dict(c.execute(select(v)).mappings().one())
             self.assertEqual(stored,canonical);self.assertEqual(len(report.provider_reference_review_candidates),1);self.assertEqual(set(report.provider_reference_review_candidates[0]["reasons"]),{"conflicting_city","unresolved_name_change"})
             importer.engine.dispose();engine.dispose()

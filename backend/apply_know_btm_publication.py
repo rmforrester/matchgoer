@@ -10,6 +10,9 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, text
 
+from database_target import ExpectedDatabaseTarget, verify_database_target
+from provider_identity_guard import validate_provider_relationship_contract, verify_provider_relationship
+
 REL_TYPES = {"HOME", "TEMPORARY_HOME", "GROUND_SHARE"}
 REL_STATUSES = {"CURRENT", "HISTORICAL", "DRAFT"}
 MODULES = {"CLUB", "SUPPORTERS", "MATCHDAY", "DONT_MISS", "GOOD_TO_KNOW"}
@@ -18,6 +21,8 @@ SOURCE_TYPES = {"OFFICIAL", "SUPPORTER_ORGANISATION", "LOCAL_MEDIA", "ACADEMIC",
 BTM_SOURCE_TYPES = SOURCE_TYPES - {"ACADEMIC", "BOOK", "INTERVIEW"}
 COUNT_KEYS = ("club_venues", "know_facts", "know_fact_evidence", "pre_match_spots", "pre_match_spot_evidence")
 UNRELATED = {"fixtures": 0, "venues": 0, "coordinates": 0, "provider_refs": 0, "aliases": 0, "deletes": 0}
+TARGET_TABLES = ("teams", "venues", "club_venues", "know_facts", "know_fact_evidence", "pre_match_spots", "pre_match_spot_evidence")
+TARGET_COLUMNS = (("teams", "team_id"), ("club_venues", "team_id"), ("know_facts", "editorial_key"), ("pre_match_spots", "club_venue_id"))
 
 
 class PublicationError(RuntimeError):
@@ -66,6 +71,7 @@ def validate_candidate(c: dict) -> None:
             raise PublicationError("invalid relationship lifecycle")
         if not str(r.get("team_name", "")).strip() or not str(r.get("venue_name", "")).strip():
             raise PublicationError("relationship identity names are required")
+        validate_provider_relationship_contract(r, PublicationError)
     for r in c["know_facts"]:
         if r.get("relationship_key") not in relationships or r.get("module") not in MODULES:
             raise PublicationError("invalid KNOW ownership/module")
@@ -134,6 +140,7 @@ def preflight(connection, c: dict) -> dict:
     ids = {"relationships": {}, "facts": {}, "spots": {}}
     blocked, conflicts = [], []
     for r in c["relationships"]:
+        verify_provider_relationship(connection, r, PublicationError)
         team = connection.execute(text("SELECT team_id,team_name,venue_id FROM teams WHERE team_id=:id"), {"id": r["team_id"]}).mappings().all()
         venue = connection.execute(text("SELECT venue_id,name,city,country FROM venues WHERE venue_id=:id"), {"id": r["venue_id"]}).mappings().all()
         if len(team) != 1 or team[0]["team_name"] != r["team_name"] or len(venue) != 1 or venue[0]["name"] != r["venue_name"]:
@@ -205,25 +212,28 @@ def _insert(connection, c, plan):
     return done
 
 
-def execute(database_url, candidate, candidate_sha256, mode, *, confirm_write=False, failure_hook=None):
+def execute(database_url, candidate, candidate_sha256, mode, *, confirm_write=False, failure_hook=None, expected_target=None, target_environment=None):
     if mode == "write" and not confirm_write: raise PublicationError("write requires --confirm-write")
     engine = create_engine(database_url, pool_pre_ping=True)
     completed = []
     try:
         with engine.connect() as connection:
+            target_receipt = None
             transaction = connection.begin()
             try:
                 if mode == "dry-run": connection.execute(text("SET TRANSACTION READ ONLY"))
                 else: connection.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+                if mode != "dry-run" or expected_target is not None:
+                    target_receipt = verify_database_target(connection, expected_target, target_environment)
                 plan = preflight(connection, candidate)
-                if mode == "dry-run": transaction.rollback(); return _receipt(candidate_sha256, mode, plan, "ROLLED_BACK_READ_ONLY", False, completed)
+                if mode == "dry-run": transaction.rollback(); return _receipt(candidate_sha256, mode, plan, "ROLLED_BACK_READ_ONLY", False, completed, target=target_receipt)
                 completed = _insert(connection, candidate, plan)
                 if failure_hook: failure_hook(connection)
                 post = preflight(connection, candidate)
                 if any(post["operations"][k]["insert"] for k in COUNT_KEYS): raise PublicationError("post-write exact reconciliation failed")
                 if mode == "rollback-only": transaction.rollback(); outcome, persistent = "INTENTIONAL_ROLLBACK", False
                 else: transaction.commit(); outcome, persistent = "COMMITTED", True
-                return _receipt(candidate_sha256, mode, plan, outcome, persistent, completed, post)
+                return _receipt(candidate_sha256, mode, plan, outcome, persistent, completed, post, target_receipt)
             except Exception:
                 if transaction.is_active: transaction.rollback()
                 raise
@@ -231,13 +241,15 @@ def execute(database_url, candidate, candidate_sha256, mode, *, confirm_write=Fa
         return {"status": "FAIL", "candidate_sha256": candidate_sha256, "execution_mode": mode, "failing_operation_class": completed[-1] if completed else "PREFLIGHT", "exception_type": type(exc).__name__, "exception_message": str(exc), "transaction_outcome": "ROLLED_BACK", "persistent_mutation": False, "completed_logical_operations": completed}
 
 
-def _receipt(sha, mode, plan, outcome, persistent, completed, post=None):
-    return {"status": "PASS", "candidate_sha256": sha, "execution_mode": mode, "operations": plan["operations"], "reviewed_omissions": plan["reviewed_omissions"], "blocked": plan["blocked"], "conflicts": plan["conflicts"], "unrelated_mutations": plan["unrelated_mutations"], "transaction_outcome": outcome, "persistent_mutation": persistent, "completed_logical_operations": completed, "post_state": post["operations"] if post else None}
+def _receipt(sha, mode, plan, outcome, persistent, completed, post=None, target=None):
+    return {"status": "PASS", "candidate_sha256": sha, "execution_mode": mode, "database_target": target, "operations": plan["operations"], "reviewed_omissions": plan["reviewed_omissions"], "blocked": plan["blocked"], "conflicts": plan["conflicts"], "unrelated_mutations": plan["unrelated_mutations"], "transaction_outcome": outcome, "persistent_mutation": persistent, "completed_logical_operations": completed, "post_state": post["operations"] if post else None}
 
 
 def main():
-    p = argparse.ArgumentParser(); p.add_argument("--database-url", required=True); p.add_argument("--candidate", required=True); p.add_argument("--expected-sha256", required=True); p.add_argument("--mode", choices=("dry-run", "rollback-only", "write"), default="dry-run"); p.add_argument("--confirm-write", action="store_true"); p.add_argument("--receipt")
-    a = p.parse_args(); candidate, sha = load_candidate(a.candidate, a.expected_sha256); result = execute(a.database_url, candidate, sha, a.mode, confirm_write=a.confirm_write)
+    p = argparse.ArgumentParser(); p.add_argument("--database-url", required=True); p.add_argument("--candidate", required=True); p.add_argument("--expected-sha256", required=True); p.add_argument("--mode", choices=("dry-run", "rollback-only", "write"), default="dry-run"); p.add_argument("--confirm-write", action="store_true"); p.add_argument("--receipt"); p.add_argument("--expected-database"); p.add_argument("--expected-schema", default="public"); p.add_argument("--expected-environment"); p.add_argument("--target-environment")
+    a = p.parse_args(); candidate, sha = load_candidate(a.candidate, a.expected_sha256)
+    expected = ExpectedDatabaseTarget(a.expected_database, a.expected_schema, a.expected_environment, TARGET_TABLES, TARGET_COLUMNS) if a.expected_database and a.expected_environment else None
+    result = execute(a.database_url, candidate, sha, a.mode, confirm_write=a.confirm_write, expected_target=expected, target_environment=a.target_environment)
     payload = json.dumps(result, indent=2, default=str) + "\n"
     if a.receipt: Path(a.receipt).write_text(payload, encoding="utf-8")
     print(payload, end="")

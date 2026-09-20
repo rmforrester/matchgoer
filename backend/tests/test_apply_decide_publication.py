@@ -150,19 +150,24 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(result["transaction_outcome"],"ROLLED_BACK_READ_ONLY"); self.assertFalse(result["persistent_mutation"]); self.assertEqual(connection.facts,[])
     def test_rollback_only_and_idempotence(self):
         connection=FakeConnection()
-        with patch.object(publisher,"create_engine",return_value=Engine(connection)):
-            result=publisher.execute("unused",candidate(),"A"*64,"rollback-only")
+        with patch.object(publisher,"create_engine",return_value=Engine(connection)), patch.object(publisher,"verify_database_target",return_value={}):
+            result=publisher.execute("unused",candidate(),"A"*64,"rollback-only",expected_target=object(),target_environment="test")
         self.assertEqual(result["transaction_outcome"],"INTENTIONAL_ROLLBACK"); self.assertEqual(result["temporary_idempotence"]["decision_facts"],{"insert":0,"reuse":1,"conflict":0}); self.assertFalse(result["persistent_mutation"]); self.assertTrue(connection.tx.rolled_back)
     def test_transaction_failure_rolls_back(self):
         connection=FakeConnection()
-        with patch.object(publisher,"create_engine",return_value=Engine(connection)):
-            result=publisher.execute("unused",candidate(),"A"*64,"rollback-only",failure_hook=lambda _: (_ for _ in ()).throw(RuntimeError("boom")))
+        with patch.object(publisher,"create_engine",return_value=Engine(connection)), patch.object(publisher,"verify_database_target",return_value={}):
+            result=publisher.execute("unused",candidate(),"A"*64,"rollback-only",failure_hook=lambda _: (_ for _ in ()).throw(RuntimeError("boom")),expected_target=object(),target_environment="test")
         self.assertEqual(result["status"],"FAIL"); self.assertTrue(connection.tx.rolled_back); self.assertFalse(result["persistent_mutation"])
     def test_write_confirmation_commits(self):
         connection=FakeConnection()
-        with patch.object(publisher,"create_engine",return_value=Engine(connection)):
-            result=publisher.execute("unused",candidate(),"A"*64,"write",confirm_write=True)
+        with patch.object(publisher,"create_engine",return_value=Engine(connection)), patch.object(publisher,"verify_database_target",return_value={}):
+            result=publisher.execute("unused",candidate(),"A"*64,"write",confirm_write=True,expected_target=object(),target_environment="test")
         self.assertEqual(result["transaction_outcome"],"COMMITTED"); self.assertTrue(result["persistent_mutation"]); self.assertTrue(connection.tx.committed)
+    def test_mutation_mode_requires_database_target(self):
+        connection=FakeConnection()
+        with patch.object(publisher,"create_engine",return_value=Engine(connection)):
+            result=publisher.execute("unused",candidate(),"A"*64,"rollback-only")
+        self.assertEqual(result["status"],"FAIL"); self.assertIn("target",result["exception_message"])
 
 
 if __name__ == "__main__": unittest.main()

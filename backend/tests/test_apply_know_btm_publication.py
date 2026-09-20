@@ -86,13 +86,46 @@ class ContractTests(unittest.TestCase):
         class Engine:
             def connect(self): return connection
         empty_plan = {"operations": {}, "ids": {}, "reviewed_omissions": {}, "blocked": [], "conflicts": [], "unrelated_mutations": {}}
-        with patch.object(publisher, "create_engine", return_value=Engine()), patch.object(publisher, "preflight", return_value=empty_plan), patch.object(publisher, "_insert", return_value=["club_venues"]):
-            result = publisher.execute("postgresql://unused", candidate(), "A" * 64, "rollback-only", failure_hook=lambda _: (_ for _ in ()).throw(RuntimeError("mid-write")))
+        with patch.object(publisher, "create_engine", return_value=Engine()), patch.object(publisher, "preflight", return_value=empty_plan), patch.object(publisher, "_insert", return_value=["club_venues"]), patch.object(publisher, "verify_database_target", return_value={}):
+            result = publisher.execute("postgresql://unused", candidate(), "A" * 64, "rollback-only", failure_hook=lambda _: (_ for _ in ()).throw(RuntimeError("mid-write")), expected_target=object(), target_environment="test")
         self.assertTrue(connection.tx.rolled_back); self.assertFalse(connection.tx.committed); self.assertFalse(result["persistent_mutation"])
     def test_26_rollback_only_never_commits(self):
         source = Path(publisher.__file__).read_text(encoding="utf-8")
         rollback_block = source[source.index('if mode == "rollback-only"'):source.index('except Exception as exc:')]
         self.assertIn("transaction.rollback()", rollback_block)
+    def test_27_provider_derived_compatible_receipt_is_accepted(self):
+        c = candidate(); c["relationships"][0].update(provider_derived=True, identity_receipt={
+            "provider":"api_football","provider_team_id":1,"canonical_team_id":1,
+            "observed_name":"Club","canonical_name":"Club","league_id":39,"season":2026,
+            "identity_resolution":"IDENTITY_COMPATIBLE","approved_override_id":None,
+            "resolver_version":"team-identity-option1-v1",
+        }); publisher.validate_candidate(c)
+    def test_28_provider_derived_missing_receipt_is_rejected(self):
+        self.assert_invalid(lambda c: c["relationships"][0].update(provider_derived=True))
+    def test_29_provider_derived_unresolved_receipt_is_rejected(self):
+        def change(c):
+            c["relationships"][0].update(provider_derived=True, identity_receipt={
+                "provider":"api_football","provider_team_id":1,"canonical_team_id":1,
+                "observed_name":"Club","canonical_name":"Club","league_id":39,"season":2026,
+                "identity_resolution":"NEEDS_IDENTITY_REVIEW","approved_override_id":None,
+                "resolver_version":"team-identity-option1-v1",
+            })
+        self.assert_invalid(change)
+    def test_30_mutation_mode_requires_database_target(self):
+        class Connection:
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def begin(self):
+                class Tx:
+                    is_active=True
+                    def rollback(self): self.is_active=False
+                return Tx()
+            def execute(self,*args): return None
+        class Engine:
+            def connect(self): return Connection()
+        with patch.object(publisher,"create_engine",return_value=Engine()):
+            result=publisher.execute("unused",candidate(),"A"*64,"rollback-only")
+        self.assertEqual(result["status"],"FAIL"); self.assertIn("target",result["exception_message"])
 
 
 if __name__ == "__main__": unittest.main()

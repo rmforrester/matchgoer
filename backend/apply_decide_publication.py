@@ -10,6 +10,8 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, text
 
+from database_target import ExpectedDatabaseTarget, verify_database_target
+
 SUBJECT_CATEGORIES = {
     "TEAM_PAIR": {"SIGNIFICANT_RIVALRY"},
     "VENUE": {"FOOTBALL_LANDMARK", "UNIQUE_SETTING", "CLASSIC_GROUND"},
@@ -25,6 +27,8 @@ EVIDENCE_FIELDS = (
     "retrieved_at", "reviewed_at", "review_status",
 )
 MUTABLE_TABLES = {"decision_facts", "decision_evidence"}
+TARGET_TABLES = ("teams", "venues", "decision_facts", "decision_evidence")
+TARGET_COLUMNS = (("teams", "team_id"), ("venues", "venue_id"), ("decision_facts", "subject_type"), ("decision_evidence", "fact_id"))
 
 
 class PublicationError(RuntimeError):
@@ -272,7 +276,7 @@ def _category_proof(connection, candidate: dict) -> dict:
     return result
 
 
-def execute(database_url: str, candidate: dict, candidate_sha256: str, mode: str, *, confirm_write: bool = False, failure_hook=None) -> dict:
+def execute(database_url: str, candidate: dict, candidate_sha256: str, mode: str, *, confirm_write: bool = False, failure_hook=None, expected_target=None, target_environment=None) -> dict:
     if mode == "write" and not confirm_write:
         raise PublicationError("write requires --confirm-write")
     if mode not in {"dry-run", "rollback-only", "write"}:
@@ -281,12 +285,15 @@ def execute(database_url: str, candidate: dict, candidate_sha256: str, mode: str
     completed: list[str] = []
     try:
         with engine.connect() as connection:
+            target_receipt = None
             transaction = connection.begin()
             try:
                 if mode == "dry-run":
                     connection.execute(text("SET TRANSACTION READ ONLY"))
                 else:
                     connection.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+                if mode != "dry-run" or expected_target is not None:
+                    target_receipt = verify_database_target(connection, expected_target, target_environment)
                 baseline = {
                     "decision_facts": connection.execute(text("SELECT count(*) FROM decision_facts")).scalar_one(),
                     "decision_evidence": connection.execute(text("SELECT count(*) FROM decision_evidence")).scalar_one(),
@@ -294,7 +301,7 @@ def execute(database_url: str, candidate: dict, candidate_sha256: str, mode: str
                 plan = preflight(connection, candidate)
                 if mode == "dry-run":
                     transaction.rollback()
-                    return _receipt(candidate_sha256, mode, plan, baseline, "ROLLED_BACK_READ_ONLY", False, completed)
+                    return _receipt(candidate_sha256, mode, plan, baseline, "ROLLED_BACK_READ_ONLY", False, completed, target=target_receipt)
                 completed = apply_candidate(connection, candidate, plan)
                 if failure_hook:
                     failure_hook(connection)
@@ -311,7 +318,7 @@ def execute(database_url: str, candidate: dict, candidate_sha256: str, mode: str
                     transaction.rollback(); outcome, persistent = "INTENTIONAL_ROLLBACK", False
                 else:
                     transaction.commit(); outcome, persistent = "COMMITTED", True
-                return _receipt(candidate_sha256, mode, plan, baseline, outcome, persistent, completed, temporary_counts, second["operations"], serving)
+                return _receipt(candidate_sha256, mode, plan, baseline, outcome, persistent, completed, temporary_counts, second["operations"], serving, target_receipt)
             except Exception:
                 if transaction.is_active:
                     transaction.rollback()
@@ -320,8 +327,8 @@ def execute(database_url: str, candidate: dict, candidate_sha256: str, mode: str
         return {"status":"FAIL","candidate_sha256":candidate_sha256,"execution_mode":mode,"exception_type":type(exc).__name__,"exception_message":str(exc),"transaction_outcome":"ROLLED_BACK","persistent_mutation":False,"completed_logical_operations":completed}
 
 
-def _receipt(sha, mode, plan, baseline, outcome, persistent, completed, temporary_counts=None, idempotence=None, serving=None):
-    return {"status":"PASS","candidate_sha256":sha,"execution_mode":mode,"baseline":baseline,"operations":plan["operations"],"conflicts":plan["conflicts"],"mutable_tables":plan["mutable_tables"],"unrelated_mutations":plan["unrelated_mutations"],"temporary_counts":temporary_counts,"temporary_idempotence":idempotence,"serving_model_proof":serving,"transaction_outcome":outcome,"persistent_mutation":persistent,"completed_logical_operations":completed}
+def _receipt(sha, mode, plan, baseline, outcome, persistent, completed, temporary_counts=None, idempotence=None, serving=None, target=None):
+    return {"status":"PASS","candidate_sha256":sha,"execution_mode":mode,"database_target":target,"baseline":baseline,"operations":plan["operations"],"conflicts":plan["conflicts"],"mutable_tables":plan["mutable_tables"],"unrelated_mutations":plan["unrelated_mutations"],"temporary_counts":temporary_counts,"temporary_idempotence":idempotence,"serving_model_proof":serving,"transaction_outcome":outcome,"persistent_mutation":persistent,"completed_logical_operations":completed}
 
 
 def load_database_url(env_path: str | Path) -> str:
@@ -341,10 +348,15 @@ def main() -> int:
     parser.add_argument("--mode", choices=("dry-run", "rollback-only", "write"), default="dry-run")
     parser.add_argument("--confirm-write", action="store_true")
     parser.add_argument("--receipt")
+    parser.add_argument("--expected-database")
+    parser.add_argument("--expected-schema", default="public")
+    parser.add_argument("--expected-environment")
+    parser.add_argument("--target-environment")
     args = parser.parse_args()
     candidate, actual_sha = load_candidate(args.candidate, args.expected_sha256)
     database_url = load_database_url(args.env_file)
-    result = execute(database_url, candidate, actual_sha, args.mode, confirm_write=args.confirm_write)
+    expected = ExpectedDatabaseTarget(args.expected_database, args.expected_schema, args.expected_environment, TARGET_TABLES, TARGET_COLUMNS) if args.expected_database and args.expected_environment else None
+    result = execute(database_url, candidate, actual_sha, args.mode, confirm_write=args.confirm_write, expected_target=expected, target_environment=args.target_environment)
     payload = json.dumps(result, indent=2, default=str, sort_keys=True) + "\n"
     if args.receipt:
         Path(args.receipt).write_text(payload, encoding="utf-8")

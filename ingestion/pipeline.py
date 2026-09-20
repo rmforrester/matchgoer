@@ -12,11 +12,18 @@ from typing import Any
 
 from sqlalchemy import MetaData, Table, create_engine, select
 
+from backend.database_target import ExpectedDatabaseTarget, verify_database_target
 from config.leagues import LeagueScope
 from config.venue_overrides import ManualVenueOverride, manual_override_for
 from ingestion.api_football import ApiFootballClient
 from ingestion.coordinates import NominatimCoordinateEnricher, valid_coordinates
 from ingestion.provider_text import normalize_provider_text
+from ingestion.team_identity import (
+    ACCEPTABLE_IDENTITY_RESOLUTIONS,
+    ProviderTeamObservation,
+    TeamIdentityReviewRequired,
+    resolve_provider_team_batch,
+)
 
 
 @dataclass
@@ -59,14 +66,18 @@ class QaReport:
     failed_api_requests: list[str] = field(default_factory=list)
     api_requests: int = 0
     api_cache_hits: int = 0
+    team_identity_receipts: list[dict[str, Any]] = field(default_factory=list)
+    identity_review_required: list[dict[str, Any]] = field(default_factory=list)
 
     def serializable(self) -> dict[str, Any]:
         return asdict(self)
 
 
 class TerraceTalkImporter:
-    def __init__(self, client: ApiFootballClient, database_url: str) -> None:
+    def __init__(self, client: ApiFootballClient, database_url: str, *, expected_target: ExpectedDatabaseTarget | None = None, target_environment: str | None = None) -> None:
         self.client = client
+        self.expected_target = expected_target
+        self.target_environment = target_environment
         self.engine = create_engine(database_url, connect_args={"connect_timeout": 10})
         metadata = MetaData()
         metadata.reflect(
@@ -271,6 +282,38 @@ class TerraceTalkImporter:
         if not available:
             return [], [], False
         return self.client.teams(scope.league_id, scope.provider_season), self.client.fixtures(scope.league_id, scope.provider_season), True
+
+    @staticmethod
+    def _team_observations(team_payloads, fixture_payloads, scope: LeagueScope) -> list[ProviderTeamObservation]:
+        observations: dict[tuple[str, int, str, int, int], ProviderTeamObservation] = {}
+        for item in team_payloads:
+            team = item.get("team") or {}
+            if team.get("id") and str(team.get("name") or "").strip():
+                observation = ProviderTeamObservation(
+                    "api_football", int(team["id"]), str(team["name"]),
+                    int(scope.league_id), int(scope.provider_season), scope.country,
+                )
+                observations[observation.key] = observation
+        for item in fixture_payloads:
+            league = item.get("league") or {}
+            league_id = int(league.get("id") or scope.league_id)
+            season = int(league.get("season") or scope.provider_season)
+            country = league.get("country") or scope.country
+            for team in (item.get("teams") or {}).values():
+                if team.get("id") and str(team.get("name") or "").strip():
+                    observation = ProviderTeamObservation(
+                        "api_football", int(team["id"]), str(team["name"]), league_id, season, country,
+                    )
+                    observations[observation.key] = observation
+        return list(observations.values())
+
+    @staticmethod
+    def _identity_key(team: dict[str, Any], league: dict[str, Any], scope: LeagueScope):
+        return (
+            "api_football", int(team["id"]), str(team["name"]),
+            int(league.get("id") or scope.league_id),
+            int(league.get("season") or scope.provider_season),
+        )
 
     @staticmethod
     def _venue_record(raw: dict[str, Any], country: str) -> dict[str, Any] | None:
@@ -564,6 +607,20 @@ class TerraceTalkImporter:
                     result = enricher.enrich(venue)
                     venue["latitude"], venue["longitude"] = result.latitude, result.longitude
         with self.engine.begin() as connection:
+            verify_database_target(connection, self.expected_target, self.target_environment)
+            identity_receipts = resolve_provider_team_batch(
+                connection, self._team_observations(team_payloads, fixture_payloads, scope)
+            )
+            report.team_identity_receipts = [
+                identity_receipts[key].serializable() for key in sorted(identity_receipts)
+            ]
+            blocked = [
+                receipt for receipt in identity_receipts.values()
+                if receipt.identity_resolution not in ACCEPTABLE_IDENTITY_RESOLUTIONS
+            ]
+            if blocked:
+                report.identity_review_required = [receipt.serializable() for receipt in blocked]
+                raise TeamIdentityReviewRequired(blocked)
             canonical_name_venues = self._canonical_venue_name_mapping(connection)
             fallback_identity_names = self._fallback_identity_names(
                 connection, set(home_team_venues.values())
@@ -659,15 +716,21 @@ class TerraceTalkImporter:
                 self._sync_current_name(connection, internal_venue_id, override.venue_name, override.source)
                 manual_internal_ids[override] = internal_venue_id
             for team_id, team in teams.items():
+                receipt = identity_receipts[self._identity_key(team, {}, scope)]
+                canonical_team_id = receipt.canonical_team_id
+                if canonical_team_id is None:
+                    raise TeamIdentityReviewRequired([receipt])
+                if receipt.identity_resolution == "REVIEWED_SCOPED_OVERRIDE":
+                    continue
                 values = {
                     "team_name": team.get("name"),
                     "venue_id": provider_to_internal.get(team.get("provider_venue_id")),
                     "active": not bool(team.get("national")),
                 }
-                if connection.execute(select(self.teams.c.team_id).where(self.teams.c.team_id == team_id)).scalar_one_or_none() is None:
-                    connection.execute(self.teams.insert().values(team_id=team_id, **values))
+                if connection.execute(select(self.teams.c.team_id).where(self.teams.c.team_id == canonical_team_id)).scalar_one_or_none() is None:
+                    connection.execute(self.teams.insert().values(team_id=canonical_team_id, **values))
                 else:
-                    connection.execute(self.teams.update().where(self.teams.c.team_id == team_id).values(**values))
+                    connection.execute(self.teams.update().where(self.teams.c.team_id == canonical_team_id).values(**values))
             for item in fixture_payloads:
                 fixture, league, teams_payload, goals = item["fixture"], item["league"], item["teams"], item["goals"]
                 venue = fixture.get("venue") or {}
@@ -682,7 +745,9 @@ class TerraceTalkImporter:
                 )
                 venue_name = override.venue_name if override else venue.get("name")
                 venue_city = override.city if override else venue.get("city")
-                values = {"fixture_date": datetime.fromisoformat(fixture["date"].replace("Z", "+00:00")), "venue_id": internal_venue_id, "venue_name": venue_name, "venue_city": venue_city, "league_id": league["id"], "league_name": league["name"], "country": league.get("country") or scope.country, "season": scope.provider_season, "round": league.get("round"), "status": fixture.get("status", {}).get("short"), "home_team_id": teams_payload["home"]["id"], "home_team": teams_payload["home"]["name"], "away_team_id": teams_payload["away"]["id"], "away_team": teams_payload["away"]["name"], "home_goals": goals.get("home"), "away_goals": goals.get("away")}
+                home_receipt = identity_receipts[self._identity_key(teams_payload["home"], league, scope)]
+                away_receipt = identity_receipts[self._identity_key(teams_payload["away"], league, scope)]
+                values = {"fixture_date": datetime.fromisoformat(fixture["date"].replace("Z", "+00:00")), "venue_id": internal_venue_id, "venue_name": venue_name, "venue_city": venue_city, "league_id": league["id"], "league_name": league["name"], "country": league.get("country") or scope.country, "season": scope.provider_season, "round": league.get("round"), "status": fixture.get("status", {}).get("short"), "home_team_id": home_receipt.canonical_team_id, "home_team": teams_payload["home"]["name"], "away_team_id": away_receipt.canonical_team_id, "away_team": teams_payload["away"]["name"], "home_goals": goals.get("home"), "away_goals": goals.get("away")}
                 where = self.fixtures.c.fixture_id == fixture["id"]
                 if connection.execute(select(self.fixtures.c.fixture_id).where(where)).scalar_one_or_none() is None:
                     connection.execute(self.fixtures.insert().values(fixture_id=fixture["id"], **values))
