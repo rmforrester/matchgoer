@@ -16,11 +16,26 @@ test("all KNOW modules are independently optional", () => {
   }
 });
 
-test("BTM-only rendering is supported with frozen copy and conditional Directions", () => {
-  assert.match(renderer, /Where home supporters gather before the game\./);
+test("BTM-only rendering is supported with supporter-facing copy and conditional Directions", () => {
+  assert.match(renderer, /Places supporters go before kickoff\./);
   assert.match(renderer, /spot\.directions_url &&/);
   assert.match(venueGuide, /guide\.sections\.length === 0 && guide\.before_match\.length === 0/);
   assert.doesNotMatch(venueGuide, /Ticket information not yet confirmed/);
+});
+
+test("fixture guidance prioritizes essentials, then BTM, then optional context", () => {
+  const essentials = renderer.indexOf("Matchday essentials");
+  const beforeMatch = renderer.indexOf("Before the match");
+  const dontMiss = renderer.indexOf("Don&apos;t miss");
+  const more = renderer.indexOf("More about this matchday");
+  assert.ok(essentials >= 0 && essentials < beforeMatch && beforeMatch < dontMiss && dontMiss < more);
+  assert.match(renderer, /<details className=/);
+  assert.match(renderer, /Useful to know/);
+  assert.doesNotMatch(renderer, /Know the club|The matchday|Good to know/);
+});
+
+test("published provenance remains in the API type but does not dominate the fixture UI", () => {
+  assert.doesNotMatch(renderer, /fact\.provenance|Evidence|Editorial/);
 });
 
 test("WHY THIS MATCH stays before KNOW and Ground Essentials stays secondary", () => {
