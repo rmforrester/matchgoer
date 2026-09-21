@@ -12,6 +12,7 @@ from sqlalchemy import create_engine, text
 
 from database_target import ExpectedDatabaseTarget, verify_database_target
 from provider_identity_guard import validate_provider_relationship_contract, verify_provider_relationship
+import know_btm_remediation as remediation
 
 REL_TYPES = {"HOME", "TEMPORARY_HOME", "GROUND_SHARE"}
 REL_STATUSES = {"CURRENT", "HISTORICAL", "DRAFT"}
@@ -38,7 +39,10 @@ def load_candidate(path: str | Path, expected_sha256: str) -> tuple[dict, str]:
     if actual != expected_sha256.upper():
         raise PublicationError("candidate SHA-256 mismatch")
     candidate = json.loads(Path(path).read_text(encoding="utf-8"))
-    validate_candidate(candidate)
+    if candidate.get("mode") == remediation.CONTRACT_MODE:
+        remediation.validate(candidate, PublicationError)
+    else:
+        validate_candidate(candidate)
     return candidate, actual
 
 
@@ -214,6 +218,8 @@ def _insert(connection, c, plan):
 
 def execute(database_url, candidate, candidate_sha256, mode, *, confirm_write=False, failure_hook=None, expected_target=None, target_environment=None):
     if mode == "write" and not confirm_write: raise PublicationError("write requires --confirm-write")
+    if candidate.get("mode") == remediation.CONTRACT_MODE:
+        return _execute_remediation(database_url, candidate, candidate_sha256, mode, failure_hook=failure_hook, expected_target=expected_target, target_environment=target_environment)
     engine = create_engine(database_url, pool_pre_ping=True)
     completed = []
     try:
@@ -239,6 +245,37 @@ def execute(database_url, candidate, candidate_sha256, mode, *, confirm_write=Fa
                 raise
     except Exception as exc:
         return {"status": "FAIL", "candidate_sha256": candidate_sha256, "execution_mode": mode, "failing_operation_class": completed[-1] if completed else "PREFLIGHT", "exception_type": type(exc).__name__, "exception_message": str(exc), "transaction_outcome": "ROLLED_BACK", "persistent_mutation": False, "completed_logical_operations": completed}
+
+
+def _execute_remediation(database_url, candidate, candidate_sha256, mode, *, failure_hook=None, expected_target=None, target_environment=None):
+    engine = create_engine(database_url, pool_pre_ping=True)
+    completed = []
+    try:
+        with engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                if mode == "dry-run": connection.execute(text("SET TRANSACTION READ ONLY"))
+                else: connection.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+                target = verify_database_target(connection, expected_target, target_environment) if expected_target is not None else None
+                if mode != "dry-run" and expected_target is None:
+                    raise PublicationError("mutation mode requires verified database target")
+                plan = remediation.preflight(connection, candidate, PublicationError)
+                if mode == "dry-run":
+                    transaction.rollback()
+                    return {"status":"PASS","candidate_sha256":candidate_sha256,"execution_mode":mode,"database_target":target,"operations":plan["operations"],"unrelated_mutations":plan["unrelated_mutations"],"transaction_outcome":"ROLLED_BACK_READ_ONLY","persistent_mutation":False,"completed_logical_operations":[]}
+                completed = remediation.apply(connection, candidate, plan)
+                if failure_hook: failure_hook(connection)
+                post = remediation.preflight(connection, candidate, PublicationError)
+                if any(v for group in post["operations"].values() for k,v in group.items() if k not in {"no_op","reuse","preserve","keep"}):
+                    raise PublicationError("post-remediation idempotence failed")
+                if mode == "rollback-only": transaction.rollback(); outcome,persistent="INTENTIONAL_ROLLBACK",False
+                else: transaction.commit(); outcome,persistent="COMMITTED",True
+                return {"status":"PASS","candidate_sha256":candidate_sha256,"execution_mode":mode,"database_target":target,"operations":plan["operations"],"post_state":post["operations"],"unrelated_mutations":plan["unrelated_mutations"],"transaction_outcome":outcome,"persistent_mutation":persistent,"completed_logical_operations":completed}
+            except Exception:
+                if transaction.is_active: transaction.rollback()
+                raise
+    except Exception as exc:
+        return {"status":"FAIL","candidate_sha256":candidate_sha256,"execution_mode":mode,"failing_operation_class":completed[-1] if completed else "PREFLIGHT","exception_type":type(exc).__name__,"exception_message":str(exc),"transaction_outcome":"ROLLED_BACK","persistent_mutation":False,"completed_logical_operations":completed}
 
 
 def _receipt(sha, mode, plan, outcome, persistent, completed, post=None, target=None):
