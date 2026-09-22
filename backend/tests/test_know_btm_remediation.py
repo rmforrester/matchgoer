@@ -50,6 +50,16 @@ class Contract(unittest.TestCase):
             with self.assertRaisesRegex(publisher.PublicationError,"SHA-256"): publisher.load_candidate(p,"0"*64)
     def test_write_confirmation(self):
         with self.assertRaisesRegex(publisher.PublicationError,"confirm-write"): publisher.execute("unused",candidate(),"A"*64,"write")
+    def test_supporters_insert_requires_team_subject(self):
+        c=candidate("KEEP")
+        c["know_operations"]=[{"operation_key":"bad-supporters","operation":"INSERT","club_venue_id":10,"after":{"editorial_key":"bad","team_id":None,"club_venue_id":10,"venue_id":None,"fixture_id":None,"module":"SUPPORTERS","headline":"Support","content":"Supporter culture.","display_order":1,"publication_status":"PUBLISHED","confidence":"HIGH","claim_sensitivity":"STANDARD","reviewed_at":"2026-09-21","review_after":"2027-09-21","expires_at":None,"approved_at":"2026-09-21T00:00:00+00:00","approved_by":"Editor"},"changes":{},"evidence":[]}]
+        c["allowed_mutations"]["know_facts"]=1
+        with self.assertRaisesRegex(publisher.PublicationError,"requires team ownership"): rem.validate(c,publisher.PublicationError)
+    def test_supporters_insert_accepts_team_subject(self):
+        c=candidate("KEEP")
+        c["know_operations"]=[{"operation_key":"good-supporters","operation":"INSERT","club_venue_id":10,"after":{"editorial_key":"good","team_id":1,"club_venue_id":None,"venue_id":None,"fixture_id":None,"module":"SUPPORTERS","headline":"Support","content":"Supporter culture.","display_order":1,"publication_status":"PUBLISHED","confidence":"HIGH","claim_sensitivity":"STANDARD","reviewed_at":"2026-09-21","review_after":"2027-09-21","expires_at":None,"approved_at":"2026-09-21T00:00:00+00:00","approved_by":"Editor"},"changes":{},"evidence":[]}]
+        c["allowed_mutations"]["know_facts"]=1
+        rem.validate(c,publisher.PublicationError)
 
 class Database(unittest.TestCase):
     def test_update_and_idempotence(self):

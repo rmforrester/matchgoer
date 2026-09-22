@@ -40,6 +40,16 @@ def _require(condition, message, error):
         raise error(message)
 
 
+def _validate_fact_subject(row, error):
+    subjects = [row.get(k) for k in ("team_id", "club_venue_id", "venue_id", "fixture_id")]
+    _require(sum(value is not None for value in subjects) == 1, "KNOW fact requires exactly one subject", error)
+    module = row.get("module")
+    if module in {"CLUB", "SUPPORTERS"}:
+        _require(row.get("team_id") is not None, f"{module} KNOW fact requires team ownership", error)
+    elif module == "MATCHDAY":
+        _require(row.get("club_venue_id") is not None, "MATCHDAY KNOW fact requires club-venue ownership", error)
+
+
 def validate(candidate: dict, error=RuntimeError) -> None:
     _require(candidate.get("schema_version") == 2 and candidate.get("mode") == CONTRACT_MODE, "unsupported remediation contract", error)
     for name in ("relationships", "know_operations", "btm_operations", "blocked_relationships"):
@@ -70,6 +80,8 @@ def validate(candidate: dict, error=RuntimeError) -> None:
         if op == "RETIRE": _require(changes == {"publication_status": "ARCHIVED"}, "RETIRE must archive", error)
         if op == "KEEP": _require(not changes, "KEEP cannot change fields", error)
         if op == "REOWN": _require(bool(set(changes) & {"team_id", "club_venue_id", "venue_id", "fixture_id"}), "REOWN requires explicit ownership change", error)
+        if op == "INSERT": _validate_fact_subject(row["after"], error)
+        elif op in {"UPDATE", "REOWN"}: _validate_fact_subject({**row["expected_before"], **changes}, error)
         for ev in row.get("evidence", []):
             _require(ev.get("review_status") == "ACCEPTED" and ev.get("disposition") == "SUPPORTS", "replacement evidence must be accepted/supporting", error)
     for row in candidate["btm_operations"]:
