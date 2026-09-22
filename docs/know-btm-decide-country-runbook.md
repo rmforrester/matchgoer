@@ -2,13 +2,42 @@
 
 This runbook implements [the editorial standard](editorial-standard.md). Its SHA must be recorded before each country starts.
 
-## Pre-country
+## Permanent country workflow
 
-1. Freeze the approved competition/population scope.
-2. Reconcile team, venue, provider, and club-venue identity. Record unresolved items in a blocker ledger and fail them closed.
-3. Select five calibration relationships: one major club, one smaller professional club, one lower-division club, one strong supporter-culture relationship, and one sparse-information relationship.
-4. Research and assemble those five pages with the intended workflow. Sparse output may pass.
-5. Compare them with `docs/editorial-regression-benchmark.json` and obtain explicit methodology approval before bulk work.
+### Phase 0 — country context calibration
+
+Before bulk editorial research, document the country's organised-football history, represented pyramid, regional identities, supporter and matchgoing traditions, relative attendance/support patterns, rivalry structures, ground culture, important football places, distinctive settings, country-specific behaviours and meaningful differences between levels. This is an editorial lens, never a quota.
+
+### Phase 1 — DECIDE landscape calibration
+
+Deliberately inventory and adjudicate potential `SIGNIFICANT_RIVALRY`, `CLASSIC_GROUND`, `FOOTBALL_LANDMARK`, `UNIQUE_SETTING`, and `EXCEPTIONAL_SUPPORT` candidates in the country's own football context. For each candidate record why and at what level it matters, whether it could influence fixture choice, the evidence, and the disappearance loss. Zero requires documented investigation.
+
+### Phase 2 — five-relationship calibration
+
+1. Freeze the approved competition/population scope and reconcile team, venue, provider and club-venue identity. Fail unresolved items closed.
+2. Select an approximately five-relationship representative sample spanning relevant levels and types. Normally include a major/high-profile club, ordinary professional club, lower-level club, strong supporter-culture case and sparse-information case; adapt when the country structure requires it.
+3. Research complete supporter experiences: CLUB, SUPPORTERS, MATCHDAY, BTM, practical actions and relevant DECIDE. Do not use quotas. Sparse output may pass.
+4. Compare assembled pages with `docs/editorial-regression-benchmark.json`.
+
+### Phase 3 — mandatory human first-pass review
+
+Stop at `FIRST_PASS_READY_FOR_HUMAN_REVIEW`. Ray/assistant must inspect both what was captured and what the supporter actually sees, using screenshots or equivalent real-page inspection where practical. Explicit Ray approval is required. Codex cannot auto-approve this gate.
+
+### Phase 4 — bulk country research
+
+Begin only after explicit human approval has been recorded. Apply universal quality and country-context significance throughout the pyramid.
+
+### Phase 5 — residual reconciliation
+
+Resolve or explicitly accept identity, venue, coordinate and inventory gaps.
+
+### Phase 6 — country-wide survivor/completeness audit
+
+Review all published content in assembled-page context.
+
+### Phase 7 — country closeout
+
+Record coverage, deliberate absences, exceptions and durable evidence.
 
 ## Research and self-adjudication
 
@@ -24,7 +53,7 @@ The default bounded task is:
 
 `research -> self-adjudicate -> candidate -> rollback-only proof -> publish -> acceptance -> closure`
 
-Human review is an exception gate. Do not split established work into separate research, extraction, review, and publication tasks merely as ceremony.
+After the mandatory first-pass gate, human review returns to being an exception gate for established judgments. Do not split later work into ceremonial review tasks.
 
 ## Country closure
 
@@ -37,9 +66,9 @@ Run a post-country retrospective only when material failure or drift occurred.
 
 ## Permanent controls
 
-- Scale changes batch size, never the editorial threshold.
+- Quality is universal; significance is contextual. Pyramid level changes the comparison context, never evidence or usefulness standards.
 - Existing content is never grandfathered into closure.
 - Evidence, row presence, HTTP serving, and idempotence are technical gates, not usefulness judgments.
-- A new country cannot start bulk publication until the five-relationship calibration is approved.
+- A new country cannot start bulk research or publication until country-context calibration, deliberate DECIDE calibration, representative-page research and explicit first-pass human product/editorial approval are recorded.
+- Practical content cannot stand in for deliberate CLUB, SUPPORTERS or DECIDE investigation.
 - Logical dry-run is never a substitute for rollback-only real SQL proof.
-
