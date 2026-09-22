@@ -13,6 +13,7 @@ from sqlalchemy import create_engine, text
 from database_target import ExpectedDatabaseTarget, verify_database_target
 from provider_identity_guard import validate_provider_relationship_contract, verify_provider_relationship
 import know_btm_remediation as remediation
+from editorial_contract import EditorialContractError, inspect_page, validate_review_metadata
 
 REL_TYPES = {"HOME", "TEMPORARY_HOME", "GROUND_SHARE"}
 REL_STATUSES = {"CURRENT", "HISTORICAL", "DRAFT"}
@@ -20,9 +21,9 @@ MODULES = {"CLUB", "SUPPORTERS", "MATCHDAY", "DONT_MISS", "GOOD_TO_KNOW"}
 SPOT_CLASSES = {"SUPPORTER_SPOT", "CLUB_MATCHDAY_VENUE", "SUPPORTER_AREA"}
 SOURCE_TYPES = {"OFFICIAL", "SUPPORTER_ORGANISATION", "LOCAL_MEDIA", "ACADEMIC", "BOOK", "INTERVIEW", "REDDIT", "FAN_FORUM", "MATCHGOER_SUPPORTER_SUBMISSION", "MATCHGOER_CORROBORATION", "EDITORIAL_RESEARCH", "OTHER"}
 BTM_SOURCE_TYPES = SOURCE_TYPES - {"ACADEMIC", "BOOK", "INTERVIEW"}
-COUNT_KEYS = ("club_venues", "know_facts", "know_fact_evidence", "pre_match_spots", "pre_match_spot_evidence")
+COUNT_KEYS = ("club_venues", "know_facts", "know_fact_evidence", "pre_match_spots", "pre_match_spot_evidence", "venue_guide_facts")
 UNRELATED = {"fixtures": 0, "venues": 0, "coordinates": 0, "provider_refs": 0, "aliases": 0, "deletes": 0}
-TARGET_TABLES = ("teams", "venues", "club_venues", "know_facts", "know_fact_evidence", "pre_match_spots", "pre_match_spot_evidence")
+TARGET_TABLES = ("teams", "venues", "club_venues", "know_facts", "know_fact_evidence", "pre_match_spots", "pre_match_spot_evidence", "venue_guide_facts")
 TARGET_COLUMNS = (("teams", "team_id"), ("club_venues", "team_id"), ("know_facts", "editorial_key"), ("pre_match_spots", "club_venue_id"))
 
 
@@ -53,14 +54,15 @@ def _unique(rows, key, label):
 
 
 def validate_candidate(c: dict) -> None:
-    if c.get("schema_version") != 1 or c.get("mode") != "PUBLICATION_CANDIDATE_NO_WRITE":
+    if c.get("schema_version") != 2 or c.get("mode") != "PUBLICATION_CANDIDATE_NO_WRITE":
         raise PublicationError("unsupported combined publication contract")
-    required = ("relationships", "know_facts", "know_fact_evidence", "pre_match_spots", "pre_match_spot_evidence", "reviewed_btm_omissions", "secondary_withholds")
+    required = ("relationships", "know_facts", "know_fact_evidence", "pre_match_spots", "pre_match_spot_evidence", "ticket_actions", "reviewed_btm_omissions", "secondary_withholds")
     if any(not isinstance(c.get(key), list) for key in required):
         raise PublicationError("candidate list structure is invalid")
     _unique(c["relationships"], "relationship_key", "relationship key")
     _unique(c["know_facts"], "editorial_key", "editorial key")
     _unique(c["pre_match_spots"], "spot_key", "spot key")
+    _unique(c["ticket_actions"], "action_key", "ticket action key")
     relationships = {r["relationship_key"] for r in c["relationships"]}
     facts = {r["editorial_key"] for r in c["know_facts"]}
     spots = {r["spot_key"] for r in c["pre_match_spots"]}
@@ -85,6 +87,24 @@ def validate_candidate(c: dict) -> None:
             raise PublicationError("invalid KNOW lifecycle metadata")
         if not str(r.get("content", "")).strip() or not r.get("approved_at") or not str(r.get("approved_by", "")).strip():
             raise PublicationError("incomplete approved KNOW fact")
+        owners = [name for name in ("team_id", "club_venue_id", "venue_id", "fixture_id") if r.get(name) is not None]
+        if len(owners) != 1:
+            raise PublicationError("KNOW fact requires exactly one canonical subject")
+        if r["module"] in {"CLUB", "SUPPORTERS"} and owners != ["team_id"]:
+            raise PublicationError("CLUB/SUPPORTERS facts require team_id ownership")
+        if r["module"] == "MATCHDAY" and owners != ["club_venue_id"]:
+            raise PublicationError("MATCHDAY facts require club_venue_id ownership")
+        relationship = next(x for x in c["relationships"] if x["relationship_key"] == r["relationship_key"])
+        if owners == ["team_id"] and r["team_id"] != relationship["team_id"]:
+            raise PublicationError("KNOW team ownership contradicts relationship")
+        if owners == ["club_venue_id"] and r["club_venue_id"] != "RELATIONSHIP":
+            raise PublicationError("new relationship-owned KNOW facts must use RELATIONSHIP placeholder")
+        try:
+            validate_review_metadata(r.get("editorial_review", {}))
+        except EditorialContractError as exc:
+            raise PublicationError(f"invalid KNOW editorial review: {exc}") from exc
+        if any(r["editorial_review"][key] for key in ("ui_duplicate", "know_duplicate", "btm_duplicate", "decide_duplicate")):
+            raise PublicationError("publication-blocking KNOW duplicate")
     for r in c["know_fact_evidence"]:
         if r.get("fact_editorial_key") not in facts:
             raise PublicationError("KNOW evidence references missing fact")
@@ -101,6 +121,12 @@ def validate_candidate(c: dict) -> None:
             raise PublicationError("invalid BTM lifecycle metadata")
         if not r.get("approved_at") or not str(r.get("approved_by", "")).strip():
             raise PublicationError("BTM approval is required")
+        try:
+            validate_review_metadata(r.get("editorial_review", {}))
+        except EditorialContractError as exc:
+            raise PublicationError(f"invalid BTM editorial review: {exc}") from exc
+        if any(r["editorial_review"][key] for key in ("ui_duplicate", "know_duplicate", "btm_duplicate", "decide_duplicate")):
+            raise PublicationError("publication-blocking BTM duplicate")
     for r in c["pre_match_spot_evidence"]:
         if r.get("spot_key") not in spots:
             raise PublicationError("BTM evidence references missing spot")
@@ -109,8 +135,27 @@ def validate_candidate(c: dict) -> None:
     for r in c["reviewed_btm_omissions"]:
         if r.get("relationship_key") not in relationships or r.get("status") != "OMISSION_REVIEWED":
             raise PublicationError("invalid reviewed BTM omission")
+    for r in c["ticket_actions"]:
+        if r.get("relationship_key") not in relationships or r.get("section") != "tickets_entry":
+            raise PublicationError("invalid ticket action ownership/section")
+        if r.get("source_type") != "official" or r.get("status") != "current" or r.get("confidence") not in {"high", "medium"}:
+            raise PublicationError("ticket action requires current official evidence")
+        if not str(r.get("topic", "")).strip() or not str(r.get("content", "")).strip():
+            raise PublicationError("ticket action requires topic/content")
+        url = str(r.get("source_url", ""))
+        if not url.startswith("https://"):
+            raise PublicationError("ticket action requires an HTTPS official destination")
+        try:
+            validate_review_metadata(r.get("editorial_review", {}))
+        except EditorialContractError as exc:
+            raise PublicationError(f"invalid ticket editorial review: {exc}") from exc
+        if any(r["editorial_review"][key] for key in ("ui_duplicate", "know_duplicate", "btm_duplicate", "decide_duplicate")):
+            raise PublicationError("publication-blocking ticket duplicate")
+    page = inspect_page(c["know_facts"], [r.get("supporting_line", "") for r in c["pre_match_spots"]])
+    if page["result"] != "PASS":
+        raise PublicationError(f"editorial page contract failed: {page['failures']}")
     allowed = c.get("allowed_mutations", {})
-    actual = {"club_venues": len(c["relationships"]), "know_facts": len(c["know_facts"]), "know_fact_evidence": len(c["know_fact_evidence"]), "pre_match_spots": len(c["pre_match_spots"]), "pre_match_spot_evidence": len(c["pre_match_spot_evidence"])}
+    actual = {"club_venues": len(c["relationships"]), "know_facts": len(c["know_facts"]), "know_fact_evidence": len(c["know_fact_evidence"]), "pre_match_spots": len(c["pre_match_spots"]), "pre_match_spot_evidence": len(c["pre_match_spot_evidence"]), "venue_guide_facts": len(c["ticket_actions"])}
     if any(int(allowed.get(k, -1)) != v for k, v in actual.items()) or any(int(allowed.get(k, -1)) != 0 for k in UNRELATED):
         raise PublicationError("allowed mutation boundary does not match candidate")
 
@@ -125,18 +170,25 @@ def _same(actual, expected, fields):
 
 
 REL_FIELDS = ("team_id", "venue_id", "relationship_type", "status", "valid_from", "valid_until")
-FACT_FIELDS = ("editorial_key", "club_venue_id", "module", "headline", "content", "display_order", "publication_status", "confidence", "claim_sensitivity", "reviewed_at", "review_after", "expires_at", "approved_at", "approved_by")
+FACT_FIELDS = ("editorial_key", "team_id", "club_venue_id", "venue_id", "fixture_id", "module", "headline", "content", "display_order", "publication_status", "confidence", "claim_sensitivity", "reviewed_at", "review_after", "expires_at", "approved_at", "approved_by")
 KNOW_EVIDENCE_FIELDS = ("source_type", "source_title", "source_url", "source_date", "evidence_note", "disposition", "review_status", "contributor_user_id")
 SPOT_FIELDS = ("club_venue_id", "display_name", "classification", "audience", "supporting_line", "maps_destination", "location_context", "confidence", "status", "business_status", "reviewed_at", "review_after", "display_order", "approved_at", "approved_by")
 BTM_EVIDENCE_FIELDS = ("source_type", "source_url", "source_date", "disposition", "evidence_note", "contributor_user_id", "review_status")
+GUIDE_FIELDS = ("club_venue_id", "section", "topic", "content", "source_type", "source_label", "source_url", "reviewed_at", "confidence", "status", "review_after", "expires_at", "display_order")
 
 
 def _expected_fact(row, cv_id):
-    return {**row, "club_venue_id": cv_id, "reviewed_at": _date(row.get("reviewed_at")), "review_after": _date(row.get("review_after")), "expires_at": _date(row.get("expires_at")), "approved_at": _datetime(row.get("approved_at"))}
+    result = {**row, "reviewed_at": _date(row.get("reviewed_at")), "review_after": _date(row.get("review_after")), "expires_at": _date(row.get("expires_at")), "approved_at": _datetime(row.get("approved_at"))}
+    if result.get("club_venue_id") == "RELATIONSHIP": result["club_venue_id"] = cv_id
+    return result
 
 
 def _expected_spot(row, cv_id):
     return {**row, "club_venue_id": cv_id, "reviewed_at": _date(row.get("reviewed_at")), "review_after": _date(row.get("review_after")), "approved_at": _datetime(row.get("approved_at"))}
+
+
+def _expected_guide(row, cv_id):
+    return {**row, "club_venue_id": cv_id, "reviewed_at": _date(row.get("reviewed_at")), "review_after": _date(row.get("review_after")), "expires_at": _date(row.get("expires_at"))}
 
 
 def preflight(connection, c: dict) -> dict:
@@ -192,6 +244,16 @@ def preflight(connection, c: dict) -> dict:
         if any(_same(x, expected, BTM_EVIDENCE_FIELDS) for x in rows): counts["pre_match_spot_evidence"]["no_op"] += 1
         elif rows: raise PublicationError(f"conflicting BTM evidence: {r['spot_key']}")
         else: counts["pre_match_spot_evidence"]["insert"] += 1
+    for r in c["ticket_actions"]:
+        cv_id = ids["relationships"][r["relationship_key"]]
+        if cv_id is None: counts["venue_guide_facts"]["insert"] += 1; continue
+        rows = connection.execute(text("SELECT * FROM venue_guide_facts WHERE club_venue_id=:id AND section='tickets_entry' AND topic=:topic"), {"id": cv_id, "topic": r["topic"]}).mappings().all()
+        exact = [x for x in rows if _same(x, _expected_guide(r, cv_id), GUIDE_FIELDS)]
+        if exact:
+            if len(exact) != 1: raise PublicationError("ambiguous identical ticket action")
+            counts["venue_guide_facts"]["no_op"] += 1
+        elif rows: raise PublicationError(f"conflicting ticket action: {r['action_key']}")
+        else: counts["venue_guide_facts"]["insert"] += 1
     return {"operations": counts, "ids": ids, "reviewed_omissions": {"artifact_only": len(c["reviewed_btm_omissions"]), "persistent_operations": 0}, "blocked": blocked, "conflicts": conflicts, "unrelated_mutations": dict(UNRELATED)}
 
 
@@ -204,7 +266,7 @@ def _insert(connection, c, plan):
     for r in c["know_facts"]:
         if r["editorial_key"] in ids["facts"]: continue
         x = _expected_fact(r, ids["relationships"][r["relationship_key"]])
-        ids["facts"][r["editorial_key"]] = connection.execute(text("""INSERT INTO know_facts(editorial_key,club_venue_id,module,headline,content,display_order,publication_status,confidence,claim_sensitivity,reviewed_at,review_after,expires_at,approved_at,approved_by) VALUES(:editorial_key,:club_venue_id,:module,:headline,:content,:display_order,:publication_status,:confidence,:claim_sensitivity,:reviewed_at,:review_after,:expires_at,:approved_at,:approved_by) RETURNING know_fact_id"""), x).scalar_one(); done.append("know_facts")
+        ids["facts"][r["editorial_key"]] = connection.execute(text("""INSERT INTO know_facts(editorial_key,team_id,club_venue_id,venue_id,fixture_id,module,headline,content,display_order,publication_status,confidence,claim_sensitivity,reviewed_at,review_after,expires_at,approved_at,approved_by) VALUES(:editorial_key,:team_id,:club_venue_id,:venue_id,:fixture_id,:module,:headline,:content,:display_order,:publication_status,:confidence,:claim_sensitivity,:reviewed_at,:review_after,:expires_at,:approved_at,:approved_by) RETURNING know_fact_id"""), x).scalar_one(); done.append("know_facts")
     for r in c["know_fact_evidence"]:
         connection.execute(text("""INSERT INTO know_fact_evidence(know_fact_id,source_type,source_title,source_url,source_date,evidence_note,disposition,review_status,contributor_user_id) VALUES(:know_fact_id,:source_type,:source_title,:source_url,:source_date,:evidence_note,:disposition,:review_status,:contributor_user_id) ON CONFLICT (know_fact_id,source_title,source_url) DO NOTHING"""), {**r, "know_fact_id": ids["facts"][r["fact_editorial_key"]], "source_date": _date(r.get("source_date"))}); done.append("know_fact_evidence")
     for r in c["pre_match_spots"]:
@@ -213,6 +275,12 @@ def _insert(connection, c, plan):
         ids["spots"][r["spot_key"]] = connection.execute(text("""INSERT INTO pre_match_spots(club_venue_id,display_name,classification,audience,supporting_line,maps_destination,location_context,confidence,status,business_status,reviewed_at,review_after,display_order,approved_at,approved_by) VALUES(:club_venue_id,:display_name,:classification,:audience,:supporting_line,:maps_destination,:location_context,:confidence,:status,:business_status,:reviewed_at,:review_after,:display_order,:approved_at,:approved_by) RETURNING pre_match_spot_id"""), x).scalar_one(); done.append("pre_match_spots")
     for r in c["pre_match_spot_evidence"]:
         connection.execute(text("""INSERT INTO pre_match_spot_evidence(pre_match_spot_id,source_type,source_url,source_date,disposition,evidence_note,contributor_user_id,review_status) VALUES(:pre_match_spot_id,:source_type,:source_url,:source_date,:disposition,:evidence_note,:contributor_user_id,:review_status)"""), {**r, "pre_match_spot_id": ids["spots"][r["spot_key"]], "source_date": _date(r.get("source_date"))}); done.append("pre_match_spot_evidence")
+    for r in c["ticket_actions"]:
+        cv_id = ids["relationships"][r["relationship_key"]]
+        existing = connection.execute(text("SELECT fact_id FROM venue_guide_facts WHERE club_venue_id=:id AND section='tickets_entry' AND topic=:topic"), {"id": cv_id, "topic": r["topic"]}).scalar_one_or_none()
+        if existing is not None: continue
+        x = _expected_guide(r, cv_id)
+        connection.execute(text("""INSERT INTO venue_guide_facts(club_venue_id,section,topic,content,source_type,source_label,source_url,reviewed_at,confidence,status,review_after,expires_at,display_order) VALUES(:club_venue_id,:section,:topic,:content,:source_type,:source_label,:source_url,:reviewed_at,:confidence,:status,:review_after,:expires_at,:display_order)"""), x); done.append("venue_guide_facts")
     return done
 
 

@@ -9,16 +9,20 @@ from unittest.mock import patch
 import apply_know_btm_publication as publisher
 
 
+def review():
+    return {"value_route": "PRACTICAL", "why_matchgoer_cares": "It gives a concrete action.", "disappearance_loss": "The supporter loses a concrete action.", "ui_duplicate": False, "know_duplicate": False, "btm_duplicate": False, "decide_duplicate": False, "editorial_standard_version": "2026-09-22"}
+
+
 def candidate():
     return {
-        "schema_version": 1, "mode": "PUBLICATION_CANDIDATE_NO_WRITE",
+        "schema_version": 2, "mode": "PUBLICATION_CANDIDATE_NO_WRITE",
         "relationships": [{"relationship_key": "club-ground", "team_id": 1, "team_name": "Club", "venue_id": 10, "venue_name": "Ground", "relationship_type": "HOME", "status": "CURRENT"}],
-        "know_facts": [{"editorial_key": "fact", "relationship_key": "club-ground", "module": "MATCHDAY", "headline": "Tickets", "content": "Use the official route.", "display_order": 1, "publication_status": "PUBLISHED", "confidence": "HIGH", "claim_sensitivity": "STANDARD", "durability": "SEASONAL", "reviewed_at": "2026-09-18", "review_after": "2027-03-18", "expires_at": None, "approved_at": "2026-09-18T00:00:00+00:00", "approved_by": "Editor"}],
+        "know_facts": [{"editorial_key": "fact", "relationship_key": "club-ground", "team_id": None, "club_venue_id": "RELATIONSHIP", "venue_id": None, "fixture_id": None, "module": "MATCHDAY", "headline": "Arrival", "content": "Enter through the north turnstile beside the station.", "display_order": 1, "publication_status": "PUBLISHED", "confidence": "HIGH", "claim_sensitivity": "STANDARD", "durability": "SEASONAL", "reviewed_at": "2026-09-18", "review_after": "2027-03-18", "expires_at": None, "approved_at": "2026-09-18T00:00:00+00:00", "approved_by": "Editor", "editorial_review": review()}],
         "know_fact_evidence": [{"fact_editorial_key": "fact", "source_type": "OFFICIAL", "source_title": "Club", "source_url": "https://example.test", "source_date": "2026-09-18", "evidence_note": "Official evidence.", "disposition": "SUPPORTS", "review_status": "ACCEPTED", "contributor_user_id": None}],
-        "pre_match_spots": [{"spot_key": "spot", "relationship_key": "club-ground", "display_name": "Club lot", "classification": "CLUB_MATCHDAY_VENUE", "audience": "HOME", "supporting_line": "Open before kickoff.", "maps_destination": None, "location_context": "At the ground", "confidence": "HIGH", "status": "CURRENT", "business_status": "NOT_APPLICABLE", "durability": "SEASONAL", "reviewed_at": "2026-09-18", "review_after": "2027-03-18", "display_order": 1, "approved_at": "2026-09-18T00:00:00+00:00", "approved_by": "Editor"}],
+        "pre_match_spots": [{"spot_key": "spot", "relationship_key": "club-ground", "display_name": "Club lot", "classification": "CLUB_MATCHDAY_VENUE", "audience": "HOME", "supporting_line": "Open before kickoff.", "maps_destination": None, "location_context": "At the ground", "confidence": "HIGH", "status": "CURRENT", "business_status": "NOT_APPLICABLE", "durability": "SEASONAL", "reviewed_at": "2026-09-18", "review_after": "2027-03-18", "display_order": 1, "approved_at": "2026-09-18T00:00:00+00:00", "approved_by": "Editor", "editorial_review": review()}],
         "pre_match_spot_evidence": [{"spot_key": "spot", "source_type": "OFFICIAL", "source_url": "https://example.test", "source_date": "2026-09-18", "disposition": "SUPPORTS", "evidence_note": "Official evidence.", "contributor_user_id": None, "review_status": "ACCEPTED"}],
-        "reviewed_btm_omissions": [], "secondary_withholds": [],
-        "allowed_mutations": {"club_venues": 1, "know_facts": 1, "know_fact_evidence": 1, "pre_match_spots": 1, "pre_match_spot_evidence": 1, "fixtures": 0, "venues": 0, "coordinates": 0, "provider_refs": 0, "aliases": 0, "deletes": 0},
+        "ticket_actions": [], "reviewed_btm_omissions": [], "secondary_withholds": [],
+        "allowed_mutations": {"club_venues": 1, "know_facts": 1, "know_fact_evidence": 1, "pre_match_spots": 1, "pre_match_spot_evidence": 1, "venue_guide_facts": 0, "fixtures": 0, "venues": 0, "coordinates": 0, "provider_refs": 0, "aliases": 0, "deletes": 0},
     }
 
 
@@ -57,7 +61,7 @@ class ContractTests(unittest.TestCase):
     def test_20_hash_match(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "candidate.json"; p.write_text(json.dumps(candidate()), encoding="utf-8"); sha = hashlib.sha256(p.read_bytes()).hexdigest()
-            loaded, actual = publisher.load_candidate(p, sha); self.assertEqual(loaded["schema_version"], 1); self.assertEqual(actual, sha.upper())
+            loaded, actual = publisher.load_candidate(p, sha); self.assertEqual(loaded["schema_version"], 2); self.assertEqual(actual, sha.upper())
     def test_21_write_confirmation_guard(self):
         with self.assertRaisesRegex(publisher.PublicationError, "confirm-write"):
             publisher.execute("postgresql://unused", candidate(), "A" * 64, "write")
@@ -126,6 +130,29 @@ class ContractTests(unittest.TestCase):
         with patch.object(publisher,"create_engine",return_value=Engine()):
             result=publisher.execute("unused",candidate(),"A"*64,"rollback-only")
         self.assertEqual(result["status"],"FAIL"); self.assertIn("target",result["exception_message"])
+
+    def test_31_club_preserves_team_owner(self):
+        c=candidate(); f=c["know_facts"][0]; f.update(module="CLUB",team_id=1,club_venue_id=None)
+        publisher.validate_candidate(c); self.assertEqual(publisher._expected_fact(f,99)["team_id"],1)
+    def test_32_supporters_preserves_team_owner(self):
+        c=candidate(); f=c["know_facts"][0]; f.update(module="SUPPORTERS",team_id=1,club_venue_id=None)
+        publisher.validate_candidate(c); self.assertEqual(publisher._expected_fact(f,99)["team_id"],1)
+    def test_33_matchday_preserves_relationship_owner(self):
+        c=candidate(); publisher.validate_candidate(c); self.assertEqual(publisher._expected_fact(c["know_facts"][0],99)["club_venue_id"],99)
+    def test_34_invalid_module_owner_fails(self):
+        self.assert_invalid(lambda c:c["know_facts"][0].update(module="CLUB"))
+    def test_35_multiple_owners_fail(self):
+        self.assert_invalid(lambda c:c["know_facts"][0].update(team_id=1))
+    def test_36_missing_editorial_review_fails(self):
+        self.assert_invalid(lambda c:c["know_facts"][0].pop("editorial_review"))
+    def test_37_duplicate_flag_fails(self):
+        self.assert_invalid(lambda c:c["know_facts"][0]["editorial_review"].update(ui_duplicate=True))
+    def test_38_valid_ticket_action(self):
+        c=candidate(); c["ticket_actions"]=[{"action_key":"tickets","relationship_key":"club-ground","section":"tickets_entry","topic":"official_ticket_portal","content":"Buy match tickets online.","source_type":"official","source_label":"Club tickets","source_url":"https://example.test/tickets","reviewed_at":"2026-09-18","confidence":"high","status":"current","review_after":"2027-03-18","expires_at":None,"display_order":1,"editorial_review":review()}]; c["allowed_mutations"]["venue_guide_facts"]=1; publisher.validate_candidate(c)
+        self.assertEqual(publisher._expected_guide(c["ticket_actions"][0],99)["source_url"],"https://example.test/tickets")
+    def test_39_invalid_ticket_url_fails(self):
+        c=candidate(); c["ticket_actions"]=[{"action_key":"tickets","relationship_key":"club-ground","section":"tickets_entry","topic":"official_ticket_portal","content":"Buy match tickets online.","source_type":"official","source_label":"Club tickets","source_url":"http://example.test/tickets","reviewed_at":"2026-09-18","confidence":"high","status":"current","review_after":"2027-03-18","expires_at":None,"display_order":1,"editorial_review":review()}]; c["allowed_mutations"]["venue_guide_facts"]=1
+        with self.assertRaises(publisher.PublicationError): publisher.validate_candidate(c)
 
 
 if __name__ == "__main__": unittest.main()
