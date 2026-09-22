@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "editorial_standard_version": "2026-09-22",
+  "purpose": "Calibration cases; not reusable supporter copy or publication candidates.",
+  "cases": [
+    {"id":"england-luton-origin","country":"England","summary":"Luton public-meeting origin","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Distinctive formation context changes understanding of the club."},
+    {"id":"england-leicester-filbert","country":"England","summary":"Leicester and Filbert Street continuity","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Connects the present matchday to meaningful former-ground history."},
+    {"id":"usa-metrostars-red-bulls","country":"USA","summary":"MetroStars to Red Bulls identity","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Explains meaningful identity continuity."},
+    {"id":"usa-save-the-crew","country":"USA","summary":"Save The Crew","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Supporter action materially shaped the club's survival."},
+    {"id":"usa-nordecke","country":"USA","summary":"Nordecke supporter culture","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Named place and evidenced supporter practice prepare a visitor for the experience."},
+    {"id":"usa-victory-log","country":"USA","summary":"Portland Victory Log ritual","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Distinctive match ritual tells a supporter what they will see and why it matters."},
+    {"id":"practical-named-route","country":"Benchmark","summary":"Named station and walking route","expected":"PASS","value_route":"PRACTICAL","reason":"Lets the supporter act and avoids a likely journey error."},
+    {"id":"btm-named-destination","country":"Benchmark","summary":"Named recurring supporter destination with map location","expected":"PASS","value_route":"PRACTICAL","reason":"Provides a real place and audience context before the match."},
+    {"id":"fail-ticket-route","country":"USA","summary":"Use the official ticket route","expected":"FAIL","value_route":"PRACTICAL","reason":"Routes elsewhere without providing a method, rule, or restriction."},
+    {"id":"fail-az","country":"USA","summary":"Consult the A-to-Z guide","expected":"FAIL","value_route":"PRACTICAL","reason":"Delegates the work and contains no supporter-useful guidance."},
+    {"id":"fail-confirm","country":"USA","summary":"Confirm venue and kickoff before travel","expected":"FAIL","value_route":"PRACTICAL","reason":"Generic caution presented as arrival information."},
+    {"id":"fail-home","country":"USA","summary":"Venue is the club's canonical home","expected":"FAIL","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Repeats relationship metadata without adding meaning."},
+    {"id":"fail-vague-transit","country":"USA","summary":"Public transport options are available","expected":"FAIL","value_route":"PRACTICAL","reason":"No named route, stop, walk, or caveat."},
+    {"id":"fail-generic-mission","country":"USA","summary":"Generic community mission","expected":"FAIL","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Interchangeable mission language provides no distinctive experience."},
+    {"id":"fail-duplicate-parking","country":"USA","summary":"Parking instruction duplicated on one page","expected":"FAIL","value_route":"PRACTICAL","reason":"Consumes attention without adding information."}
+  ]
+}
