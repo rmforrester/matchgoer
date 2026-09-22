@@ -4,9 +4,23 @@ Version: `2026-09-22`
 
 > **EDITORIAL USEFULNESS IS THE PUBLICATION CRITERION.** Architecture, evidence, reconciliation and publication safety support that criterion; they never substitute for it.
 >
-> **ENGLAND IS THE CALIBRATION BENCHMARK. SCALE CHANGES BATCHING, NEVER THE STANDARD. ABSENCE IS BETTER THAN FILLER.**
+> **EDITORIAL QUALITY IS UNIVERSAL. SIGNIFICANCE IS CONTEXTUAL. ABSENCE IS BETTER THAN FILLER.**
 
 This is the single authoritative editorial contract for KNOW, Before the Match (BTM), and DECIDE in every country.
+
+## Universal quality, contextual significance
+
+Every country, competition and level uses the same quality bar: supporter usefulness, evidence quality, the disappearance test, no filler, no invented certainty, canonical identity safety, whole-page review, duplication control and publication safety.
+
+Significance must be judged in the context relevant to the claim:
+
+`COUNTRY -> FOOTBALL CULTURE / PYRAMID -> REGION (where relevant) -> COMPETITION / LEVEL (where relevant) -> CLUB / GROUND / SUPPORTER EXPERIENCE`
+
+England, the Premier League, major European clubs, global fame, stadium capacity and raw attendance are not universal thresholds. A regional rivalry, lower-level ground, supporter culture or setting may be significant in its proper football context. Scale changes the context of significance; it never lowers the quality bar.
+
+Context is not automatic qualification. Every local derby is not significant, every old ground is not classic, and relative distinction alone is insufficient. Ask: **Does this genuinely stand out in the appropriate football context, and would knowing it materially help a matchgoer choose or understand the experience?** `FOOTBALL_LANDMARK` makes a broader historical or cultural claim and requires evidence and significance appropriate to that stronger category.
+
+CLUB and SUPPORTERS KNOW normally require meaningful understanding of that club or experience, not comparative exceptionalism. Research why the club exists, its present identity, supporter-created/saved/reformed history, cultural roots, supporter influence, meaningful traditions, relevant ground continuity and distinctive behaviour. Chronology alone remains insufficient.
 
 ## Publication test
 
@@ -51,6 +65,8 @@ A BTM spot must be a named, recurring, evidenced physical destination or area wi
 ### DECIDE
 
 DECIDE is selective. A rivalry, classic ground, landmark, unique setting, or exceptional support signal must genuinely influence a supporter's choice. It is not a second home for ordinary history or generic praise.
+
+Before bulk work in a country, deliberately research and adjudicate its potential `SIGNIFICANT_RIVALRY`, `CLASSIC_GROUND`, `FOOTBALL_LANDMARK`, `UNIQUE_SETTING`, and `EXCEPTIONAL_SUPPORT` landscape. Zero is valid only after deliberate assessment; absence of research is not a zero result.
 
 ## Evidence and identity
 
@@ -103,6 +119,8 @@ Each proposed or surviving published fact must carry this artifact-level review 
 
 These fields belong in frozen candidate artifacts and validation receipts. They are publisher-required for future-country workflows, but are not database-persisted: adding columns would not improve the supporter product and would create unnecessary schema. Historical candidates remain reproducible under their original contracts; they do not authorize new publication.
 
+Country calibration version, contextual DECIDE rationale and first-pass approval belong in the country programme artifact and validation receipt rather than every fact row. This keeps the context auditable without duplicating programme state across content or changing the hosted schema.
+
 ## Automated and human gates
 
 **Automated fail:** missing/invalid review metadata, known generic ticket/check/confirm/home-ground patterns, exact KNOW duplicates, deterministic exact KNOW/BTM duplication, module/subject incompatibility, or missing standard version.
@@ -111,7 +129,16 @@ These fields belong in frozen candidate artifacts and validation receipts. They 
 
 **Human/LLM judgment:** usefulness, distinctiveness, evidence sufficiency, semantic duplication, supporter relevance, and whether DECIDE changes choice. Automation cannot approve prose by itself.
 
+## Mandatory first-pass human product/editorial gate
+
+Every new country must complete, in order: country-context calibration; deliberate DECIDE-landscape calibration; a representative approximately five-relationship calibration; then a human review of both captured research and actual rendered/served pages. The sample should expose methodological failure through an appropriate mix of high-profile, ordinary professional, lower-level, supporter-culture and sparse cases, adjusted to the country's structure.
+
+The review covers fixture/header, DECIDE, KNOW, BTM, tickets, directions, ground information and existing containers. It asks whether the strongest value is visible and correctly placed, whether CLUB/SUPPORTERS culture was under-researched, whether practical content dominates, whether actions work, whether content is duplicated or buried, and whether intentional sparsity looks coherent. Rendered screenshots or equivalent real-page inspection should be used where practical.
+
+Codex may record `FIRST_PASS_READY_FOR_HUMAN_REVIEW`; it must never record human approval itself. Bulk research and publication require explicit Ray approval after that review. Database success, HTTP 200 responses and product serving do not establish that the editorial mix is right.
+
+If the first pass fails, identify and correct the general research method, country calibration, DECIDE calibration, adjudication, ownership, tooling, serving/UI or evidence-acquisition cause, then rerun the representative pass. Do not patch only the examples.
+
 ## Publication safety
 
 The required sequence is: canonical target fingerprint; frozen candidate and SHA-256; expected-before binding; identity reconciliation; module/subject validation; logical dry-run; **rollback-only real SQL proof**; verified post-rollback restoration; fresh backup; atomic write; read-only reconciliation when outcome is uncertain; serving acceptance; idempotence. A logical dry-run alone never authorizes mutation.
-

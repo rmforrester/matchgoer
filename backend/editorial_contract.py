@@ -12,6 +12,8 @@ from collections import Counter
 
 STANDARD_VERSION = "2026-09-22"
 VALUE_ROUTES = {"DECISION", "UNDERSTANDING_EXPERIENCE", "PRACTICAL"}
+CONTEXT_LEVELS = {"COUNTRY", "PYRAMID", "REGION", "COMPETITION_LEVEL", "CLUB_GROUND_SUPPORTERS"}
+FIRST_PASS_READY = "FIRST_PASS_READY_FOR_HUMAN_REVIEW"
 REQUIRED_REVIEW_FIELDS = {
     "value_route",
     "why_matchgoer_cares",
@@ -51,6 +53,58 @@ FLAG_PATTERNS = {
 
 class EditorialContractError(ValueError):
     """Raised when a deterministic editorial gate fails."""
+
+
+def validate_contextual_significance(context: dict) -> None:
+    """Validate audit metadata for a contextual DECIDE adjudication.
+
+    This validates that contextual reasoning happened; it never decides that a
+    candidate is significant.
+    """
+    required = {"country", "context_level", "context_rationale", "supporter_value", "relative_distinction_only"}
+    missing = sorted(required - set(context))
+    if missing:
+        raise EditorialContractError(f"missing significance context fields: {', '.join(missing)}")
+    if context["context_level"] not in CONTEXT_LEVELS:
+        raise EditorialContractError("invalid significance context level")
+    for field in ("country", "context_rationale", "supporter_value"):
+        if not isinstance(context[field], str) or not context[field].strip():
+            raise EditorialContractError(f"{field} must be substantive")
+    if not isinstance(context["relative_distinction_only"], bool):
+        raise EditorialContractError("relative_distinction_only must be boolean")
+    if context["relative_distinction_only"]:
+        raise EditorialContractError("relative significance alone cannot qualify content")
+
+
+def validate_first_pass_capture(capture: dict) -> None:
+    """Require deliberate research coverage; published outcomes may remain zero."""
+    for area in ("club", "supporters", "matchday", "btm", "decide", "tickets", "directions"):
+        item = capture.get(area)
+        if not isinstance(item, dict) or item.get("assessed") is not True:
+            raise EditorialContractError(f"first pass did not deliberately assess {area}")
+        if item.get("outcome") not in {"PUBLISH", "DELIBERATE_ZERO", "NOT_APPLICABLE"}:
+            raise EditorialContractError(f"first-pass {area} outcome is invalid")
+
+
+def validate_bulk_country_gate(gate: dict) -> None:
+    """Fail closed unless the mandatory human product/editorial gate passed."""
+    if gate.get("country_context_calibrated") is not True:
+        raise EditorialContractError("country context calibration is incomplete")
+    if gate.get("decide_landscape_calibrated") is not True:
+        raise EditorialContractError("DECIDE landscape calibration is incomplete")
+    if gate.get("representative_first_pass_status") != FIRST_PASS_READY:
+        raise EditorialContractError("representative first pass is not ready for human review")
+    validate_first_pass_capture(gate.get("capture_review", {}))
+    if gate.get("rendered_page_reviewed") is not True:
+        raise EditorialContractError("actual rendered/served pages were not reviewed")
+    approval = gate.get("human_approval")
+    if not isinstance(approval, dict) or approval.get("approved") is not True:
+        raise EditorialContractError("explicit human first-pass approval is required")
+    reviewer = str(approval.get("reviewed_by") or "").strip()
+    if reviewer.lower() not in {"ray", "ray/assistant"}:
+        raise EditorialContractError("first-pass approval must be recorded from Ray")
+    if not str(approval.get("approved_at") or "").strip():
+        raise EditorialContractError("human first-pass approval timestamp is required")
 
 
 def normalize_text(value: str) -> str:
@@ -108,4 +162,3 @@ def inspect_page(facts: list[dict], btm_lines: list[str] | None = None) -> dict:
             failures.append({"index": index, "code": "exact_know_duplicate"})
 
     return {"result": "FAIL" if failures else "PASS", "failures": failures, "flags": flags}
-

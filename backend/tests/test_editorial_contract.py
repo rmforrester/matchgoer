@@ -2,7 +2,15 @@ import unittest
 import json
 from pathlib import Path
 
-from editorial_contract import STANDARD_VERSION, inspect_page, inspect_text
+from editorial_contract import (
+    FIRST_PASS_READY,
+    STANDARD_VERSION,
+    EditorialContractError,
+    inspect_page,
+    inspect_text,
+    validate_bulk_country_gate,
+    validate_contextual_significance,
+)
 
 
 def review(**overrides):
@@ -21,6 +29,10 @@ def review(**overrides):
 
 
 class EditorialContractTests(unittest.TestCase):
+    def first_pass_gate(self):
+        capture = {area: {"assessed": True, "outcome": "DELIBERATE_ZERO"} for area in ("club", "supporters", "matchday", "btm", "decide", "tickets", "directions")}
+        return {"country_context_calibrated": True, "decide_landscape_calibrated": True, "representative_first_pass_status": FIRST_PASS_READY, "capture_review": capture, "rendered_page_reviewed": True, "human_approval": {"approved": True, "reviewed_by": "Ray", "approved_at": "2026-09-22T00:00:00Z"}}
+
     def test_specific_practical_fact_passes(self):
         page = [{"headline": "Arrival", "content": "Take PATH to Harrison; the stadium is a short signed walk from the station.", "editorial_review": review()}]
         self.assertEqual(inspect_page(page)["result"], "PASS")
@@ -60,6 +72,39 @@ class EditorialContractTests(unittest.TestCase):
         fact = {"headline": "History", "content": "A distinctive story.", "editorial_review": review(value_route="TRIVIA")}
         self.assertEqual(inspect_page([fact])["result"], "FAIL")
 
+    def test_contextual_lower_level_significance_is_permitted(self):
+        validate_contextual_significance({"country":"Scotland","context_level":"REGION","context_rationale":"A rivalry with sustained regional meaning at this pyramid level.","supporter_value":"It materially changes how a visitor understands and chooses the fixture.","relative_distinction_only":False})
+
+    def test_england_or_global_scale_is_not_required(self):
+        validate_contextual_significance({"country":"Scotland","context_level":"COMPETITION_LEVEL","context_rationale":"The ground is a distinctive surviving example within this level of Scottish football.","supporter_value":"Its character materially changes the visit.","relative_distinction_only":False})
+
+    def test_relative_significance_alone_fails(self):
+        with self.assertRaises(EditorialContractError):
+            validate_contextual_significance({"country":"Scotland","context_level":"REGION","context_rationale":"Largest locally.","supporter_value":"Locally larger.","relative_distinction_only":True})
+
+    def test_bulk_gate_requires_deliberate_decide_assessment(self):
+        gate=self.first_pass_gate(); gate["capture_review"]["decide"]["assessed"]=False
+        with self.assertRaises(EditorialContractError): validate_bulk_country_gate(gate)
+
+    def test_bulk_gate_cannot_auto_approve(self):
+        gate=self.first_pass_gate(); gate["human_approval"]={"approved":True,"reviewed_by":"Codex","approved_at":"2026-09-22T00:00:00Z"}
+        with self.assertRaises(EditorialContractError): validate_bulk_country_gate(gate)
+
+    def test_bulk_gate_requires_explicit_human_approval(self):
+        gate=self.first_pass_gate(); gate["human_approval"]["approved"]=False
+        with self.assertRaises(EditorialContractError): validate_bulk_country_gate(gate)
+
+    def test_sparse_representative_pages_can_pass(self):
+        validate_bulk_country_gate(self.first_pass_gate())
+
+    def test_practical_content_does_not_replace_club_research(self):
+        gate=self.first_pass_gate(); gate["capture_review"]["club"]={"assessed":False,"outcome":"DELIBERATE_ZERO"}; gate["capture_review"]["matchday"]={"assessed":True,"outcome":"PUBLISH"}
+        with self.assertRaises(EditorialContractError): validate_bulk_country_gate(gate)
+
+    def test_rendered_page_review_is_required(self):
+        gate=self.first_pass_gate(); gate["rendered_page_reviewed"]=False
+        with self.assertRaises(EditorialContractError): validate_bulk_country_gate(gate)
+
     def test_regression_benchmark_is_complete_and_typed(self):
         path = Path(__file__).parents[2] / "docs" / "editorial-regression-benchmark.json"
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -67,6 +112,8 @@ class EditorialContractTests(unittest.TestCase):
         self.assertGreaterEqual(len(data["cases"]), 15)
         self.assertEqual({case["expected"] for case in data["cases"]}, {"PASS", "FAIL"})
         self.assertTrue(all(case["value_route"] in {"DECISION", "UNDERSTANDING_EXPERIENCE", "PRACTICAL"} for case in data["cases"]))
+        required={"fail-filler-quota","pass-contextual-lower-level-rivalry","fail-relative-only","fail-decide-neglect","fail-practical-dominance","fail-database-pass-product-fail"}
+        self.assertTrue(required.issubset({case["id"] for case in data["cases"]}))
 
 
 if __name__ == "__main__":
