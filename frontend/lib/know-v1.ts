@@ -11,6 +11,27 @@ export type FixtureKnow = {
   club: KnowFact[]; supporters: KnowFact[]; matchday: KnowFact[]; dont_miss: KnowFact[];
   before_match: KnowBeforeMatchSpot[]; good_to_know: KnowFact[];
 };
+export type FixtureKnowHighlights = {
+  primaryIdentity: KnowFact | null;
+  primaryIdentityModule: "CLUB" | "SUPPORTERS" | null;
+  primaryMatchday: KnowFact | null;
+  secondaryClub: KnowFact[];
+  secondarySupporters: KnowFact[];
+  secondaryMatchday: KnowFact[];
+};
+
 export function hasKnowContent(know: FixtureKnow | null) {
   return Boolean(know && (know.club.length || know.supporters.length || know.matchday.length || know.dont_miss.length || know.before_match.length || know.good_to_know.length));
+}
+
+export function selectFixtureKnowHighlights(know: FixtureKnow): FixtureKnowHighlights {
+  const hasClubIdentity = know.club.length > 0;
+  return {
+    primaryIdentity: hasClubIdentity ? know.club[0] : know.supporters[0] ?? null,
+    primaryIdentityModule: hasClubIdentity ? "CLUB" : know.supporters.length > 0 ? "SUPPORTERS" : null,
+    primaryMatchday: know.matchday[0] ?? null,
+    secondaryClub: hasClubIdentity ? know.club.slice(1) : know.club,
+    secondarySupporters: hasClubIdentity ? know.supporters : know.supporters.slice(1),
+    secondaryMatchday: know.matchday.slice(1),
+  };
 }
