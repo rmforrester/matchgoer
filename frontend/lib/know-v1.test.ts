@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { hasKnowContent, type FixtureKnow } from "./know-v1.ts";
+import { hasKnowContent, selectFixtureKnowHighlights, type FixtureKnow } from "./know-v1.ts";
 
 const empty: FixtureKnow = { fixture_id: 1, team_id: 2, venue_id: 3, club_venue_id: 4, club: [], supporters: [], matchday: [], dont_miss: [], before_match: [], good_to_know: [] };
 const renderer = readFileSync(new URL("../app/components/FixtureKnow.tsx", import.meta.url), "utf8");
@@ -23,15 +23,43 @@ test("BTM-only rendering is supported with supporter-facing copy and conditional
   assert.doesNotMatch(venueGuide, /Ticket information not yet confirmed/);
 });
 
-test("fixture guidance prioritizes essentials, then BTM, then optional context", () => {
+test("fixture guidance shows one identity and one practical highlight before BTM and optional context", () => {
+  const identity = renderer.indexOf("Who you&apos;re watching");
   const essentials = renderer.indexOf("Matchday essentials");
   const beforeMatch = renderer.indexOf("Before the match");
   const dontMiss = renderer.indexOf("Don&apos;t miss");
   const more = renderer.indexOf("More about this matchday");
-  assert.ok(essentials >= 0 && essentials < beforeMatch && beforeMatch < dontMiss && dontMiss < more);
+  assert.ok(identity >= 0 && identity < essentials && essentials < beforeMatch && beforeMatch < dontMiss && dontMiss < more);
+  assert.match(renderer, /highlights\.primaryIdentity/);
+  assert.match(renderer, /highlights\.primaryMatchday/);
   assert.match(renderer, /<details className=/);
+  assert.match(renderer, /More matchday essentials/);
   assert.match(renderer, /Useful to know/);
-  assert.doesNotMatch(renderer, /Know the club|The matchday|Good to know/);
+});
+
+test("highlight selection is deterministic and leaves secondary facts collapsed", () => {
+  const fact = (id: number): FixtureKnow["club"][number] => ({ know_fact_id: id, headline: null, content: `Fact ${id}`, provenance: [] });
+  const selected = selectFixtureKnowHighlights({
+    ...empty,
+    club: [fact(1), fact(2)],
+    supporters: [fact(3)],
+    matchday: [fact(4), fact(5)],
+  });
+  assert.equal(selected.primaryIdentity?.know_fact_id, 1);
+  assert.equal(selected.primaryIdentityModule, "CLUB");
+  assert.deepEqual(selected.secondaryClub.map((item) => item.know_fact_id), [2]);
+  assert.deepEqual(selected.secondarySupporters.map((item) => item.know_fact_id), [3]);
+  assert.equal(selected.primaryMatchday?.know_fact_id, 4);
+  assert.deepEqual(selected.secondaryMatchday.map((item) => item.know_fact_id), [5]);
+});
+
+test("supporter identity is promoted only when no club identity exists and sparse pages stay empty", () => {
+  const supporter = { know_fact_id: 6, headline: null, content: "Supporter identity", provenance: [] };
+  const selected = selectFixtureKnowHighlights({ ...empty, supporters: [supporter] });
+  assert.equal(selected.primaryIdentity?.know_fact_id, 6);
+  assert.equal(selected.primaryIdentityModule, "SUPPORTERS");
+  assert.equal(selectFixtureKnowHighlights(empty).primaryIdentity, null);
+  assert.equal(hasKnowContent(empty), false);
 });
 
 test("published provenance remains in the API type but does not dominate the fixture UI", () => {
