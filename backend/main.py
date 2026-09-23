@@ -75,6 +75,7 @@ from schemas import (
     AccountConversionHandoffResponse,
     FixtureKnowResponse,
 )
+from fixture_tickets import resolve_fixture_ticket_action
 
 from fastapi import Cookie, Depends, FastAPI, Header, Response, HTTPException, Query
 from venue_guides import build_venue_guide
@@ -2581,6 +2582,18 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             root["replies"] = replies.get(root["post_id"], [])
         recommend_percentage = round((float(rating[1]) / rating[2]) * 100, 1) if rating[2] else None
         decision = fixture_decision_payload(db, fixture)
+        relationships = (
+            db.query(ClubVenue)
+            .filter(ClubVenue.team_id == fixture.home_team_id, ClubVenue.venue_id == fixture.venue_id)
+            .all()
+        ) if fixture.home_team_id is not None and fixture.venue_id is not None else []
+        relationship_ids = [item.club_venue_id for item in relationships]
+        ticket_facts = (
+            db.query(VenueGuideFact)
+            .filter(VenueGuideFact.club_venue_id.in_(relationship_ids))
+            .all()
+        ) if relationship_ids else []
+        ticket_action = resolve_fixture_ticket_action(fixture, relationships, ticket_facts)
         db.add(SocialEvent(user_id=user_id, fixture_id=fixture_id, event_type="fixture_view"))
         db.add(SocialEvent(user_id=user_id, fixture_id=fixture_id, event_type="board_view"))
         db.commit()
@@ -2597,6 +2610,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             },
             "terrace_rating": round(float(rating[0]), 1) if rating[0] is not None else None,
             "recommend_percentage": recommend_percentage,
+            "ticket_action": ticket_action,
             **decision,
             "interested": interested, "open_to_meet": open_to_meet,
             "open_to_meet_count": open_count, "profile": ({"username": profile.username, "display_name": profile.display_name, "supported_club": profile.supported_club} if profile else None),

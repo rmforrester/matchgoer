@@ -1,20 +1,20 @@
-import { hasKnowContent, selectFixtureKnowHighlights, type FixtureKnow as FixtureKnowData, type KnowFact } from "../../lib/know-v1";
+import { hasKnowContent, selectFixtureKnowHighlights, showPrimaryIdentityHeadline, type FixtureKnow as FixtureKnowData, type KnowFact } from "../../lib/know-v1";
 
-function FactList({ facts, compact = false }: { facts: KnowFact[]; compact?: boolean }) {
+function FactList({ facts, compact = false, showHeadlines = true }: { facts: KnowFact[]; compact?: boolean; showHeadlines?: boolean }) {
   return <div className={compact ? "mt-3 divide-y divide-[var(--tt-rule)] border-y border-[var(--tt-rule)]" : "mt-3 space-y-4"}>{facts.map((fact) => <article key={fact.know_fact_id} className={compact ? "py-3" : undefined}>
-    {fact.headline && <h4 className="text-sm font-extrabold uppercase tracking-[0.06em]">{fact.headline}</h4>}
-    <p className={fact.headline ? "mt-1 text-[0.95rem] leading-6 sm:text-base sm:leading-7" : "text-[0.95rem] leading-6 sm:text-base sm:leading-7"}>{fact.content}</p>
+    {showHeadlines && fact.headline && <h4 className="text-sm font-extrabold uppercase tracking-[0.06em]">{fact.headline}</h4>}
+    <p className={showHeadlines && fact.headline ? "mt-1 text-[0.95rem] leading-6 sm:text-base sm:leading-7" : "text-[0.95rem] leading-6 sm:text-base sm:leading-7"}>{fact.content}</p>
   </article>)}</div>;
 }
 
-export default function FixtureKnow({ know }: { know: FixtureKnowData | null }) {
+export default function FixtureKnow({ know, compactTop = false }: { know: FixtureKnowData | null; compactTop?: boolean }) {
   if (!hasKnowContent(know) || !know) return null;
   const highlights = selectFixtureKnowHighlights(know);
   const hasSecondary = Boolean(highlights.secondaryMatchday.length || know.good_to_know.length || highlights.secondaryClub.length || highlights.secondarySupporters.length);
-  return <section className="tt-section-rule mt-10 pt-4" aria-labelledby="matchday-guide-heading">
+  return <section className={`tt-section-rule ${compactTop ? "mt-8" : "mt-10"} pt-4`} aria-labelledby="matchday-guide-heading">
     <p className="tt-kicker">Plan your matchday</p><h2 id="matchday-guide-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">Matchday guide</h2>
     {highlights.primaryIdentity && <section className="mt-6 max-w-3xl border-l-[6px] border-[var(--tt-gold)] pl-4" aria-labelledby="identity-heading">
-      <p className="tt-kicker">Club &amp; supporters</p><h3 id="identity-heading" className="tt-display mt-1 text-3xl leading-none">Who you&apos;re watching</h3><FactList facts={[highlights.primaryIdentity]} />
+      <p className="tt-kicker">Club &amp; supporters</p><h3 id="identity-heading" className="tt-display mt-1 text-3xl leading-none">Who you&apos;re watching</h3><FactList facts={[highlights.primaryIdentity]} showHeadlines={showPrimaryIdentityHeadline(know)} />
     </section>}
     {highlights.primaryMatchday && <section className="mt-8 max-w-3xl" aria-labelledby="matchday-essentials-heading"><h3 id="matchday-essentials-heading" className="tt-display text-3xl leading-none">Matchday essentials</h3><FactList facts={[highlights.primaryMatchday]} compact /></section>}
     {know.before_match.length > 0 && <section className="mt-8" aria-labelledby="before-kickoff-heading">

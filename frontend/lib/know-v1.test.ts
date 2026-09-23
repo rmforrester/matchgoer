@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { hasKnowContent, selectFixtureKnowHighlights, type FixtureKnow } from "./know-v1.ts";
+import { hasKnowContent, selectFixtureKnowHighlights, showPrimaryIdentityHeadline, type FixtureKnow } from "./know-v1.ts";
 
 const empty: FixtureKnow = { fixture_id: 1, team_id: 2, venue_id: 3, club_venue_id: 4, club: [], supporters: [], matchday: [], dont_miss: [], before_match: [], good_to_know: [] };
 const renderer = readFileSync(new URL("../app/components/FixtureKnow.tsx", import.meta.url), "utf8");
@@ -68,17 +68,40 @@ test("published provenance remains in the API type but does not dominate the fix
 
 test("WHY THIS MATCH stays before KNOW and Ground Essentials stays secondary", () => {
   const why = fixturePage.indexOf("Why this match");
+  const tickets = fixturePage.indexOf("Buy tickets →");
   const know = fixturePage.indexOf("<FixtureKnow know={know}");
   const ground = fixturePage.indexOf("Ground essentials");
-  assert.ok(why >= 0 && know > why && ground > know);
+  assert.ok(why >= 0 && tickets > why && know > tickets && ground > know);
   assert.match(fixturePage, /decisionReasons\[0\]\.explanation/);
   assert.doesNotMatch(fixturePage, /Before the match · \{venueGuide\.before_match\.length\}/);
   assert.doesNotMatch(fixturePage, /Terrace roll call/i);
   assert.match(fixturePage, /Ask other supporters about the match, pubs, travel or the ground\./);
 });
 
+test("fixture ticket action uses compact separation without changing no-action KNOW spacing", () => {
+  assert.match(fixturePage, /data\.ticket_action && <section className="tt-section-rule mt-6 pt-3"/);
+  assert.match(fixturePage, /<FixtureKnow know=\{know\} compactTop=\{Boolean\(data\.ticket_action\)\}/);
+  assert.match(renderer, /compactTop \? "mt-8" : "mt-10"/);
+});
+
 test("venue guide presents useful sections without redundant wrappers", () => {
   assert.doesNotMatch(venueGuide, /Know before you go/);
   assert.doesNotMatch(venueGuide, />The essentials</);
   assert.match(venueGuide, /Where home supporters gather before the game\./);
+  assert.doesNotMatch(venueGuide, />Buy tickets →<\/a>/);
+  assert.match(venueGuide, /supporterFacingFactContent\(fact\)/);
+});
+
+test("single identity facts omit the redundant sub-label", () => {
+  const fact = { know_fact_id: 1, headline: "Club identity", content: "Identity", provenance: [] };
+  assert.equal(showPrimaryIdentityHeadline({ ...empty, club: [fact] }), false);
+  assert.equal(showPrimaryIdentityHeadline({ ...empty, supporters: [fact] }), false);
+});
+
+test("mixed and multiple identity facts retain sub-labels", () => {
+  const first = { know_fact_id: 1, headline: "Club identity", content: "Identity", provenance: [] };
+  const second = { ...first, know_fact_id: 2, headline: "Supporter culture" };
+  assert.equal(showPrimaryIdentityHeadline({ ...empty, club: [first], supporters: [second] }), true);
+  assert.equal(showPrimaryIdentityHeadline({ ...empty, club: [first, second] }), true);
+  assert.equal(showPrimaryIdentityHeadline({ ...empty, supporters: [first, second] }), true);
 });

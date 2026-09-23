@@ -135,6 +135,8 @@ Every new country must complete, in order: country-context calibration; delibera
 
 The review covers fixture/header, DECIDE, KNOW, BTM, tickets, directions, ground information and existing containers. It asks whether the strongest value is visible and correctly placed, whether CLUB/SUPPORTERS culture was under-researched, whether practical content dominates, whether actions work, whether content is duplicated or buried, and whether intentional sparsity looks coherent. Rendered screenshots or equivalent real-page inspection should be used where practical.
 
+Ticket purchase is a fixture-level action. A fixture may show one primary **Buy tickets** action only when a sole current, in-date, official HTTPS ticket fact belongs to the exact current home-team/venue relationship for that fixture. Ambiguous ownership, missing relationships, stale or retired facts, unofficial sources, and unmatched or neutral venues fail closed with no action. Explore the Ground owns non-obvious ticket and entry guidance, but does not repeat the primary purchase CTA. This rule applies across countries, and every future-country rendered first-pass review must exercise both eligible and deliberately absent fixture actions.
+
 Codex may record `FIRST_PASS_READY_FOR_HUMAN_REVIEW`; it must never record human approval itself. Bulk research and publication require explicit Ray approval after that review. Database success, HTTP 200 responses and product serving do not establish that the editorial mix is right.
 
 If the first pass fails, identify and correct the general research method, country calibration, DECIDE calibration, adjudication, ownership, tooling, serving/UI or evidence-acquisition cause, then rerun the representative pass. Do not patch only the examples.

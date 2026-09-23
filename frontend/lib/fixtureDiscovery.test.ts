@@ -340,7 +340,7 @@ test("mobile Discover exposes no visible native date inputs", () => {
 test("Discover landing keeps the two current-location jobs distinct and removes redundant instruction", () => {
   assert.match(discoverPageSource, /Find football near me this weekend/);
   assert.match(discoverPageSource, /Use my location/);
-  assert.match(discoverPageSource, /\n\s+Where\?\n/);
+  assert.match(discoverPageSource, /\r?\n\s+Where\?\r?\n/);
   assert.doesNotMatch(discoverPageSource, /Start here|or search a place|Where do you want to go\?/i);
 });
 
