@@ -10,6 +10,9 @@ from editorial_contract import (
     inspect_text,
     validate_bulk_country_gate,
     validate_contextual_significance,
+    validate_language_strength,
+    validate_ticket_copy_ownership,
+    validate_voice_collection,
 )
 
 
@@ -31,7 +34,7 @@ def review(**overrides):
 class EditorialContractTests(unittest.TestCase):
     def first_pass_gate(self):
         capture = {area: {"assessed": True, "outcome": "DELIBERATE_ZERO"} for area in ("club", "supporters", "matchday", "btm", "decide", "tickets", "directions")}
-        return {"country_context_calibrated": True, "decide_landscape_calibrated": True, "representative_first_pass_status": FIRST_PASS_READY, "capture_review": capture, "rendered_page_reviewed": True, "human_approval": {"approved": True, "reviewed_by": "Ray", "approved_at": "2026-09-22T00:00:00Z"}}
+        return {"country_context_calibrated": True, "decide_landscape_calibrated": True, "representative_first_pass_status": FIRST_PASS_READY, "capture_review": capture, "tone_review": {"actual_supporter_copy_reviewed": True, "rendered_hierarchy_reviewed": True, "language_strength_levels": ["A", "B", "C"], "level_c_d_reviewed": True}, "rendered_page_reviewed": True, "human_approval": {"approved": True, "reviewed_by": "Ray", "approved_at": "2026-09-22T00:00:00Z"}}
 
     def test_specific_practical_fact_passes(self):
         page = [{"headline": "Arrival", "content": "Take PATH to Harrison; the stadium is a short signed walk from the station.", "editorial_review": review()}]
@@ -105,6 +108,32 @@ class EditorialContractTests(unittest.TestCase):
         gate=self.first_pass_gate(); gate["rendered_page_reviewed"]=False
         with self.assertRaises(EditorialContractError): validate_bulk_country_gate(gate)
 
+    def test_supporter_copy_rejects_internal_rubric_language(self):
+        self.assertIn("editorial_rubric_leakage", inspect_text("It plainly changes fixture choice.")["fails"])
+
+    def test_unsupported_colour_is_flagged_for_evidence_review(self):
+        self.assertIn("unsupported_colour_requires_evidence", inspect_text("Expect an electric atmosphere.")["flags"])
+
+    def test_level_d_requires_explicit_ray_approval(self):
+        with self.assertRaises(EditorialContractError): validate_language_strength("D")
+        validate_language_strength("D", {"approved": True, "reviewed_by": "Ray", "approved_at": "2026-09-23T00:00:00Z"})
+
+    def test_ticket_cta_owns_ordinary_purchase_route(self):
+        with self.assertRaises(EditorialContractError):
+            validate_ticket_copy_ownership({"fixture_buy_tickets_cta_present": True, "non_obvious_exception": False, "ordinary_purchase_instruction_retained": True})
+        validate_ticket_copy_ownership({"fixture_buy_tickets_cta_present": True, "non_obvious_exception": True, "ordinary_purchase_instruction_retained": False})
+
+    def test_repeated_voice_template_fails(self):
+        with self.assertRaises(EditorialContractError):
+            validate_voice_collection([{"copy": "Head to A."}, {"copy": "Head to B."}, {"copy": "Head to C."}])
+
+    def test_varied_voice_collection_passes(self):
+        validate_voice_collection([{"copy": "Head to A."}, {"copy": "B opens before kick-off."}, {"copy": "C is beside the ground."}])
+
+    def test_bulk_gate_requires_tone_review(self):
+        gate=self.first_pass_gate(); gate["tone_review"]["actual_supporter_copy_reviewed"]=False
+        with self.assertRaises(EditorialContractError): validate_bulk_country_gate(gate)
+
     def test_regression_benchmark_is_complete_and_typed(self):
         path = Path(__file__).parents[2] / "docs" / "editorial-regression-benchmark.json"
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -112,7 +141,7 @@ class EditorialContractTests(unittest.TestCase):
         self.assertGreaterEqual(len(data["cases"]), 15)
         self.assertEqual({case["expected"] for case in data["cases"]}, {"PASS", "FAIL"})
         self.assertTrue(all(case["value_route"] in {"DECISION", "UNDERSTANDING_EXPERIENCE", "PRACTICAL"} for case in data["cases"]))
-        required={"fail-filler-quota","pass-contextual-lower-level-rivalry","fail-relative-only","fail-decide-neglect","fail-practical-dominance","fail-database-pass-product-fail"}
+        required={"fail-filler-quota","pass-contextual-lower-level-rivalry","fail-relative-only","fail-decide-neglect","fail-practical-dominance","fail-database-pass-product-fail","pass-tone-celtic-rangers-level-d","pass-tone-somerset-level-c","pass-tone-queens-park-club","pass-tone-clydebank-supporters","pass-tone-celtic-matchday","pass-tone-inverness-ticket-exception","pass-tone-troon-btm","pass-tone-restrained-btm","fail-tone-rubric-leakage","fail-tone-formula","fail-ticket-cta-duplication"}
         self.assertTrue(required.issubset({case["id"] for case in data["cases"]}))
 
 

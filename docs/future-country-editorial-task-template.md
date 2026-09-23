@@ -5,8 +5,8 @@
 3. Complete and version the mandatory COUNTRY CONTEXT CALIBRATION. Judge significance through country -> football culture/pyramid -> region -> competition/level -> club/ground/supporter experience. Never use England or global scale as the threshold.
 4. Complete the DECIDE LANDSCAPE CALIBRATION for all five canonical categories. Record researched candidates and adjudicated zeroes.
 5. Reconcile identity/venue ownership and fail unresolved relationships closed.
-6. Run an approximately five-relationship representative calibration across relevant levels/types. Research complete assembled experiences, including CLUB, SUPPORTERS, MATCHDAY, BTM, practical actions and relevant DECIDE. Do not use quotas or minimum fact counts.
-7. Inspect actual rendered beta pages or equivalent real-page output. Record capture review and display review, including intentional sparse cases.
+6. Run an approximately five-relationship representative calibration across relevant levels/types. Research complete assembled experiences, including CLUB, SUPPORTERS, MATCHDAY, BTM, practical actions and relevant DECIDE. Draft in the canonical knowledgeable-matchgoer voice and assign A–D language strength. Do not use quotas or minimum fact counts.
+7. Inspect actual rendered beta pages or equivalent real-page output. Record content-selection review and tone review: actual copy, hierarchy, strength level, all Level C/D recommendations and intentional sparse cases. Level D requires explicit Ray approval.
 8. Set status to `FIRST_PASS_READY_FOR_HUMAN_REVIEW` and STOP. Codex must not approve this gate.
 9. Require explicit Ray approval before any bulk country research or publication.
 10. After approval, for every proposed/surviving fact record value route, why-care, disappearance loss, four duplication booleans, and editorial-standard version.
