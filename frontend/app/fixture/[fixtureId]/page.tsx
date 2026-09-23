@@ -29,6 +29,7 @@ type SocialFixture = {
   fixture: { fixture_id: number; fixture_date: string; home_team: string; home_team_id: number | null; away_team: string; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
   terrace_rating: number | null; recommend_percentage: number | null;
   decision_reasons: DecisionReason[]; highlight_eligible: boolean;
+  ticket_action: { label: string; url: string; source_label: string } | null;
   interested: boolean; open_to_meet: boolean; open_to_meet_count: number;
   profile: { username: string | null; display_name: string; supported_club: string | null } | null;
   own_review: { review_id: number; fixture_id: number | null; state: "blank" | "partial" | "completed"; completed: boolean } | null;
@@ -230,7 +231,11 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       </div>
     </section>}
 
-    <FixtureKnow know={know} />
+    {data.ticket_action && <section className="tt-section-rule mt-6 pt-3" aria-label="Tickets">
+      <a href={data.ticket_action.url} target="_blank" rel="noreferrer" className="tt-action inline-flex min-h-12 items-center justify-center px-6 text-sm" aria-label={`Buy tickets from ${data.ticket_action.source_label}`}>Buy tickets →</a>
+    </section>}
+
+    <FixtureKnow know={know} compactTop={Boolean(data.ticket_action)} />
 
     {data.fixture.venue_id && <section className="tt-section-rule mt-10 pt-4" aria-labelledby="ground-heading">
       <p className="tt-kicker">Ground essentials</p>

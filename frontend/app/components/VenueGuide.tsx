@@ -1,4 +1,4 @@
-import { primaryGuideSections, secondaryGuideSections, supporterFacingFactContent, supporterFacingFactTopic, ticketPresentation, type VenueGuide as VenueGuideData, type VenueGuideFact } from "../../lib/venue-guide";
+import { primaryGuideSections, secondaryGuideSections, supporterFacingFactContent, supporterFacingFactTopic, type VenueGuide as VenueGuideData, type VenueGuideFact } from "../../lib/venue-guide";
 
 type Props = { guide: VenueGuideData };
 
@@ -11,17 +11,14 @@ const freshnessLabel = {
 export default function VenueGuide({ guide }: Props) {
   const sections = primaryGuideSections(guide);
   const secondarySections = secondaryGuideSections(guide);
-  const ticket = ticketPresentation(guide);
   if (guide.sections.length === 0 && guide.before_match.length === 0) return null;
-  const factRow = (fact: VenueGuideFact, sectionKey: string) => {
+  const factRow = (fact: VenueGuideFact) => {
     const stale = freshnessLabel[fact.freshness];
-    const isTicketLink = sectionKey === "tickets_entry" && fact.provenance.source_url === ticket.url;
     return <article key={fact.topic} className="border-b border-[var(--tt-rule)] py-4">
       <h4 className="text-xs font-extrabold uppercase tracking-[0.08em]">{supporterFacingFactTopic(fact)}</h4>
       <p className="mt-2 leading-7">{supporterFacingFactContent(fact)}</p>
-      {isTicketLink && <a href={fact.provenance.source_url!} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center bg-[var(--brand-interactive)] px-4 text-xs font-extrabold uppercase tracking-[0.08em] text-white">Buy tickets →</a>}
       <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">
-        {fact.provenance.source_url && !isTicketLink ? <a href={fact.provenance.source_url} target="_blank" rel="noreferrer" className="text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">{fact.provenance.label}</a> : fact.provenance.label}
+        {fact.provenance.source_url ? <a href={fact.provenance.source_url} target="_blank" rel="noreferrer" className="text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">{fact.provenance.label}</a> : fact.provenance.label}
         {stale ? <span className="ml-2 text-amber-800"> · {stale}</span> : null}
       </p>
     </article>;
@@ -45,7 +42,7 @@ export default function VenueGuide({ guide }: Props) {
           <section key={section.key} aria-labelledby={`guide-${section.key}`}>
             <h3 id={`guide-${section.key}`} className="tt-display text-3xl leading-none">{section.label}</h3>
             <div className="mt-3 border-t-2 border-[var(--tt-ink)]">
-              {section.facts.map((fact) => factRow(fact, section.key))}
+              {section.facts.map(factRow)}
             </div>
           </section>
         ))}
@@ -55,7 +52,7 @@ export default function VenueGuide({ guide }: Props) {
         <div className="mt-4 grid gap-7 md:grid-cols-2">
           {secondarySections.map((section) => <section key={section.key} aria-labelledby={`guide-more-${section.key}`}>
             <h3 id={`guide-more-${section.key}`} className="tt-display text-2xl leading-none">{section.label}</h3>
-            <div className="mt-2">{section.facts.map((fact) => factRow(fact, section.key))}</div>
+            <div className="mt-2">{section.facts.map(factRow)}</div>
           </section>)}
         </div>
       </details>}

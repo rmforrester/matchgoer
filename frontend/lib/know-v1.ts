@@ -35,3 +35,7 @@ export function selectFixtureKnowHighlights(know: FixtureKnow): FixtureKnowHighl
     secondaryMatchday: know.matchday.slice(1),
   };
 }
+
+export function showPrimaryIdentityHeadline(know: FixtureKnow) {
+  return know.club.length + know.supporters.length > 1;
+}

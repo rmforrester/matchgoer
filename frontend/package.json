@@ -15,7 +15,8 @@
     "test:fixture-type": "node --experimental-strip-types --test lib/fixtureType.test.ts",
     "test:marker-signal": "node --experimental-strip-types --test lib/markerSignal.test.ts",
     "test:competition-grouping": "node --experimental-strip-types --test lib/competitionGrouping.test.ts",
-    "test:matchdays": "node --experimental-strip-types --test lib/matchdays.test.ts"
+    "test:matchdays": "node --experimental-strip-types --test lib/matchdays.test.ts",
+    "test:know-v1": "node --experimental-strip-types --test lib/know-v1.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
