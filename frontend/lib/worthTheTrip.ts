@@ -103,14 +103,14 @@ export function buildWorthTheTripRecommendations(
       title: "🏠 Closest game",
       fixture: closest,
       metric: closest ? `${closest.distance_miles.toFixed(1)} mi away` : null,
-      emptyMessage: "No qualifying fixtures nearby",
+      emptyMessage: "Nothing nearby fits this list yet",
       showOverallRating: true,
     },
     {
       title: "💎 Hidden gem",
       fixture: hiddenGem,
       metric: hiddenGem ? `🎟️ ${hiddenGem.away_day_score?.toFixed(1)} Terrace Rating` : null,
-      emptyMessage: "No hidden gem available yet",
+      emptyMessage: "No hidden gem nearby yet",
     },
   ];
 }
