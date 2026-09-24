@@ -1,11 +1,11 @@
 # Future country editorial task template
 
-1. Load `docs/editorial-standard.md` and `docs/know-btm-decide-country-runbook.md`; report both SHA-256 values.
+1. Load `docs/editorial-standard.md`, `docs/editorial-gold-standard.json` and `docs/know-btm-decide-country-runbook.md`; report all three SHA-256 values. Explicitly apply the Matchgoer/Copa90 test, six-question filter, contextual-significance doctrine, research-depth standard, source standard, no-quota rule and sparse-success rule.
 2. Freeze `[country]`, `[competitions]`, and `[season]`. Do not expand scope implicitly.
 3. Complete and version the mandatory COUNTRY CONTEXT CALIBRATION. Judge significance through country -> football culture/pyramid -> region -> competition/level -> club/ground/supporter experience. Never use England or global scale as the threshold.
 4. Complete the DECIDE LANDSCAPE CALIBRATION for all five canonical categories. Record researched candidates and adjudicated zeroes.
 5. Reconcile identity/venue ownership and fail unresolved relationships closed.
-6. Run an approximately five-relationship representative calibration across relevant levels/types. Research complete assembled experiences, including CLUB, SUPPORTERS, MATCHDAY, BTM, practical actions and relevant DECIDE. Draft in the canonical knowledgeable-matchgoer voice and assign A–D language strength. Do not use quotas or minimum fact counts.
+6. Run an approximately five-relationship representative calibration across relevant levels/types. Research complete assembled experiences, including CLUB, SUPPORTERS, MATCHDAY, BTM, practical actions and relevant DECIDE. For CLUB, keep digging beyond the first obvious fact to find the most revealing supported story. Draft in the canonical knowledgeable-matchgoer voice and assign A–D language strength. Do not use quotas or minimum fact counts; record `CORRECTLY_SPARSE` as a successful researched outcome where appropriate.
 7. Inspect actual rendered beta pages or equivalent real-page output. Record content-selection review and tone review: actual copy, hierarchy, strength level, all Level C/D recommendations and intentional sparse cases. Level D requires explicit Ray approval.
 8. Set status to `FIRST_PASS_READY_FOR_HUMAN_REVIEW` and STOP. Codex must not approve this gate.
 9. Require explicit Ray approval before any bulk country research or publication.
@@ -13,6 +13,10 @@
 11. Self-adjudicate under the canonical standard. Omit filler. Validate deterministic gates, evidence, identity, ownership, candidate hash and expected-before state.
 12. Prove exact writes with logical dry-run and rollback-only real SQL; back up immediately before an authorized atomic write. Reconcile, test serving and prove idempotence.
 13. Complete residual reconciliation, then the country-wide survivor/completeness audit, then closeout.
+
+## Substantive-research runtime decision
+
+For an explicitly authorized substantive editorial research programme, completeness, depth and quality take precedence over the normal two-hour ceiling. Use durable checkpoints, but do not stop solely because two hours elapsed. This research-only decision never authorizes publication, hosted mutation, deployment, destructive action or any protected operation.
 
 ## Hard gate
 
