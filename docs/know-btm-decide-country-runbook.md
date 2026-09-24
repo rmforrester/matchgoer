@@ -2,6 +2,8 @@
 
 This runbook implements [the editorial standard](editorial-standard.md). Its SHA must be recorded before each country starts.
 
+Every newly researched or drafted supporter-facing row uses the current canonical voice from its first candidate. Do not publish new copy in the legacy formal/editorial voice with the expectation that a later cleanup will repair it.
+
 ## Permanent country workflow
 
 ### Phase 0 — country context calibration
@@ -16,12 +18,12 @@ Deliberately inventory and adjudicate potential `SIGNIFICANT_RIVALRY`, `CLASSIC_
 
 1. Freeze the approved competition/population scope and reconcile team, venue, provider and club-venue identity. Fail unresolved items closed.
 2. Select an approximately five-relationship representative sample spanning relevant levels and types. Normally include a major/high-profile club, ordinary professional club, lower-level club, strong supporter-culture case and sparse-information case; adapt when the country structure requires it.
-3. Research complete supporter experiences: CLUB, SUPPORTERS, MATCHDAY, BTM, practical actions and relevant DECIDE. Do not use quotas. Sparse output may pass.
+3. Research complete supporter experiences: CLUB, SUPPORTERS, MATCHDAY, BTM, practical actions and relevant DECIDE. Draft in the canonical knowledgeable-matchgoer voice and assign language strength A–D. Do not use quotas. Sparse output may pass.
 4. Compare assembled pages with `docs/editorial-regression-benchmark.json`.
 
 ### Phase 3 — mandatory human first-pass review
 
-Stop at `FIRST_PASS_READY_FOR_HUMAN_REVIEW`. Ray/assistant must inspect both what was captured and what the supporter actually sees, using screenshots or equivalent real-page inspection where practical. Explicit Ray approval is required. Codex cannot auto-approve this gate.
+Stop at `FIRST_PASS_READY_FOR_HUMAN_REVIEW`. Ray/assistant must inspect both content selection and tone of voice: actual supporter-facing copy, rendered hierarchy, language-strength levels and every Level C/D recommendation. Use screenshots or equivalent real-page inspection where practical. Explicit Ray approval is required. Codex cannot auto-approve this gate, and Level D always requires explicit human approval.
 
 ### Phase 4 — bulk country research
 
@@ -72,3 +74,6 @@ Run a post-country retrospective only when material failure or drift occurred.
 - A new country cannot start bulk research or publication until country-context calibration, deliberate DECIDE calibration, representative-page research and explicit first-pass human product/editorial approval are recorded.
 - Practical content cannot stand in for deliberate CLUB, SUPPORTERS or DECIDE investigation.
 - Logical dry-run is never a substitute for rollback-only real SQL proof.
+- Supporter copy uses football language, never internal editorial/rubric language or unsupported atmosphere.
+- Fixture Buy Tickets owns the ordinary purchase route; MATCHDAY retains only non-obvious purchase, receipt and entry guidance.
+- Tone must vary naturally rather than applying a repeated module template.

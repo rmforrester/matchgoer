@@ -74,7 +74,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     api.get("/session").then((response) => {
       setIsAnonymous(response.data.anonymous !== false);
       return load();
-    }).catch(() => setError("Unable to load this fixture."));
+    }).catch(() => setError("We couldn't load this match. Try again."));
   }, [load]);
 
   useEffect(() => {
@@ -112,7 +112,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         clearPendingWhosGoing();
         router.replace(`/fixture/${fixtureId}`);
       })
-      .catch((requestError) => setError(requestMessage(requestError, "Your account is ready, but we couldn't enable Who's Going?. Try the button again.")))
+      .catch((requestError) => setError(requestMessage(requestError, "Your account is ready, but we couldn't enable Who's Going. Try the button again.")))
       ;
   }, [data, fixtureId, isAnonymous, load, pendingSearchParams, router]);
 
@@ -126,7 +126,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         if (isAnonymous) setAccountPrompt("interested");
       }
       await load();
-    } catch { setError("Unable to update Interested."); }
+    } catch { setError("We couldn't update Interested. Try again."); }
     finally { setSaving(false); }
   };
 
@@ -138,7 +138,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     try {
       const response = await api.put(`/fixtures/${fixtureId}/open-to-meet`, { open_to_meet: !data.open_to_meet });
       setData((current) => current ? { ...current, interested: response.data.interested, open_to_meet: response.data.open_to_meet, open_to_meet_count: response.data.open_to_meet_count } : current);
-    } catch (requestError) { setError(requestMessage(requestError, "Unable to update Who's Going?.")); }
+    } catch (requestError) { setError(requestMessage(requestError, "We couldn't update Who's Going. Try again.")); }
     finally { setSaving(false); }
   };
 
@@ -149,7 +149,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     try {
       await api.post(`/fixtures/${fixtureId}/board/posts`, { body: trimmed, parent_post_id: replyingTo });
       setBody(""); setReplyingTo(null); await load();
-    } catch (requestError: unknown) { setError(requestMessage(requestError, "Unable to post.")); }
+    } catch (requestError: unknown) { setError(requestMessage(requestError, "We couldn't post that. Try again.")); }
     finally { setSaving(false); }
   };
 
@@ -169,7 +169,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const deletePost = async (postId: number) => { await api.delete(`/board/posts/${postId}`); await load(); };
   const reportPost = async (postId: number) => {
     try { await api.post(`/board/posts/${postId}/reports`, { reason: reportReason }); setReporting(null); }
-    catch (requestError: unknown) { setError(requestMessage(requestError, "Unable to report this post.")); }
+    catch (requestError: unknown) { setError(requestMessage(requestError, "We couldn't report that post. Try again.")); }
   };
 
   if (!data) return <main className="mx-auto w-full max-w-5xl p-4 sm:p-6"><p className="tt-kicker">01 / Match</p><p className="mt-3 font-semibold" role={error ? "alert" : undefined}>{error || "Loading fixture…"}</p></main>;
@@ -246,7 +246,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       {(data.terrace_rating !== null || data.recommend_percentage !== null) && <details className="mt-4 text-xs text-[var(--tt-muted)]"><summary className="cursor-pointer font-bold uppercase tracking-[0.08em]">Community ground ratings</summary><div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div></details>}
     </section>}
 
-    {statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It will not be treated as an upcoming plan or attendance opportunity.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : !finishedForSocial ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
+    {statusGroup === "cancelled" ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading"><p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · Match update</p><h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">This match is cancelled</h2><p className="mt-3 max-w-2xl text-[var(--tt-muted)]">It won&apos;t appear as an upcoming plan or attendance option.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="tt-action tt-action-secondary mt-4 px-5">Remove from Interested</button>}</section> : !finishedForSocial ? <section className="tt-section-rule mt-8 pt-4" aria-labelledby="matchday-heading">
       <div>
         <p className="tt-kicker">{hasDecisionReasons ? "04" : "03"} / Social · {statusGroup === "postponed" ? "Match update" : "Your matchday"}</p>
         <h2 id="matchday-heading" className="tt-display mt-1 text-4xl leading-none sm:text-5xl">{statusGroup === "postponed" ? "Match postponed" : "Make it yours"}</h2>

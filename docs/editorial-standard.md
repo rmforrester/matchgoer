@@ -1,12 +1,33 @@
 # Matchgoer editorial standard
 
-Version: `2026-09-22`
+Version: `2026-09-23`
 
 > **EDITORIAL USEFULNESS IS THE PUBLICATION CRITERION.** Architecture, evidence, reconciliation and publication safety support that criterion; they never substitute for it.
 >
 > **EDITORIAL QUALITY IS UNIVERSAL. SIGNIFICANCE IS CONTEXTUAL. ABSENCE IS BETTER THAN FILLER.**
 
 This is the single authoritative editorial contract for KNOW, Before the Match (BTM), and DECIDE in every country.
+
+## Governing supporter-facing voice
+
+**Write like a knowledgeable matchgoer helping someone choose and enjoy a game.** Tell them what matters, why it matters, and what another matchgoer would want to know before going. The voice is personal, confident, concise, natural, knowledgeable, specific and useful; warm without being gushy, enthusiastic when earned, and understated otherwise. The supporter should feel that someone who knows football is helping them have a better day out.
+
+Personal does not mean mechanically inserting “you”, “your”, “head to”, “don't miss” or “worth seeing”. Active storytelling, natural football language, concise explanation and a justified recommendation can make copy personal without second person.
+
+Prefer football language over editorial or rubric language. Internal concepts such as fixture-selection effect, contextual significance, peer normalisation, supporter salience, material travelling support, thresholds, category fit, approval criteria, the disappearance test, relative distinction and the editorial standard belong in research metadata, never supporter-facing prose. Where evidence warrants it, use natural language such as “proper derby”, “worth the trip”, “one to seek out”, “local bragging rights” or “this is the one”.
+
+Personal language never permits invented colour. Do not claim an electric atmosphere, incredible fans, a hostile ground, a bouncing terrace, an unforgettable night, legendary support or a passionate fanbase unless accepted evidence supports the exact claim and editorial judgment warrants displaying it. Rivalry, attendance, club size, history and capacity do not establish atmosphere by themselves.
+
+### Language strength
+
+- **A — DIRECT FACTUAL:** short, unembellished operational guidance: entry, parking, transport, accessibility, ticket exceptions and restrictions.
+- **B — PERSONAL GUIDANCE:** the normal Matchgoer voice for club identity, supporter context, ordinary BTM, moderate DECIDE reasons and useful recommendations.
+- **C — STRONG RECOMMENDATION:** evidence-backed language for a demonstrably distinctive rivalry, ground, setting, supporter destination or matchgoing experience in its proper football context.
+- **D — RARE EMPHATIC:** reserved for genuinely exceptional cases. Every Level D treatment requires explicit human approval; research and publication automation may never promote copy to Level D independently.
+
+Strong language is available throughout the pyramid when earned in the appropriate country, pyramid, region, competition and club/supporter context. Fame and absolute crowd size are not prerequisites.
+
+Vary sentence structure. Do not turn DECIDE into repeated “If you like X…” sentences, every BTM entry into “Head to…”, or CLUB into “X is more than…”. This is a voice, not a template.
 
 ## Universal quality, contextual significance
 
@@ -62,11 +83,23 @@ Existing content is not grandfathered. Every country closes with a survivor swee
 
 A BTM spot must be a named, recurring, evidenced physical destination or area with useful audience/location context. Do not convert a vague area, temporary event, or unsupported recommendation into a spot. If none is established, publish none.
 
+BTM answers where supporters actually go or what they do. A named, recurring supporter destination may justify “Head to…” or similarly direct guidance. A nearby directory listing does not.
+
 ### DECIDE
 
 DECIDE is selective. A rivalry, classic ground, landmark, unique setting, or exceptional support signal must genuinely influence a supporter's choice. It is not a second home for ordinary history or generic praise.
 
 Before bulk work in a country, deliberately research and adjudicate its potential `SIGNIFICANT_RIVALRY`, `CLASSIC_GROUND`, `FOOTBALL_LANDMARK`, `UNIQUE_SETTING`, and `EXCEPTIONAL_SUPPORT` landscape. Zero is valid only after deliberate assessment; absence of research is not a zero result.
+
+DECIDE answers why a supporter should choose this match or ground. It may be the product's most confident module, but must explain the football experience rather than expose the approval process.
+
+### CLUB, SUPPORTERS and MATCHDAY voice
+
+CLUB answers who the supporter is watching. Prefer the one active, concise story that makes the club make sense: origins, community identity, supporter-created or rescued history, meaningful continuity. Avoid museum-label chronology, trophy lists, institutional clutter and “historic club” filler.
+
+SUPPORTERS puts supporters in the active role through evidenced ownership, rescue, stewardship, traditions and supporter-created practices. “Passionate supporters” is never a substitute for evidence.
+
+MATCHDAY is restrained: direct verbs, short sentences and second person only where it improves actionability. The fixture-level **Buy tickets** action owns where and how to buy the ordinary ticket. MATCHDAY owns non-obvious rules about buying, receiving or using it. Remove redundant ordinary-purchase prose when the CTA exists; retain useful exceptions.
 
 ## Evidence and identity
 
@@ -113,7 +146,7 @@ Each proposed or surviving published fact must carry this artifact-level review 
   "know_duplicate": false,
   "btm_duplicate": false,
   "decide_duplicate": false,
-  "editorial_standard_version": "2026-09-22"
+  "editorial_standard_version": "2026-09-23"
 }
 ```
 
@@ -133,7 +166,7 @@ Country calibration version, contextual DECIDE rationale and first-pass approval
 
 Every new country must complete, in order: country-context calibration; deliberate DECIDE-landscape calibration; a representative approximately five-relationship calibration; then a human review of both captured research and actual rendered/served pages. The sample should expose methodological failure through an appropriate mix of high-profile, ordinary professional, lower-level, supporter-culture and sparse cases, adjusted to the country's structure.
 
-The review covers fixture/header, DECIDE, KNOW, BTM, tickets, directions, ground information and existing containers. It asks whether the strongest value is visible and correctly placed, whether CLUB/SUPPORTERS culture was under-researched, whether practical content dominates, whether actions work, whether content is duplicated or buried, and whether intentional sparsity looks coherent. Rendered screenshots or equivalent real-page inspection should be used where practical.
+The review covers fixture/header, DECIDE, KNOW, BTM, tickets, directions, ground information and existing containers. It asks whether the strongest value is visible and correctly placed, whether CLUB/SUPPORTERS culture was under-researched, whether practical content dominates, whether actions work, whether content is duplicated or buried, and whether intentional sparsity looks coherent. It must inspect actual supporter-facing copy, rendered hierarchy and assigned language-strength levels, with special attention to every Level C/D recommendation. Rendered screenshots or equivalent real-page inspection should be used where practical.
 
 Ticket purchase is a fixture-level action. A fixture may show one primary **Buy tickets** action only when a sole current, in-date, official HTTPS ticket fact belongs to the exact current home-team/venue relationship for that fixture. Ambiguous ownership, missing relationships, stale or retired facts, unofficial sources, and unmatched or neutral venues fail closed with no action. Explore the Ground owns non-obvious ticket and entry guidance, but does not repeat the primary purchase CTA. This rule applies across countries, and every future-country rendered first-pass review must exercise both eligible and deliberately absent fixture actions.
 

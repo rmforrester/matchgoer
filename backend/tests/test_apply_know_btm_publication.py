@@ -7,10 +7,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import apply_know_btm_publication as publisher
+from editorial_contract import STANDARD_VERSION
 
 
 def review():
-    return {"value_route": "PRACTICAL", "why_matchgoer_cares": "It gives a concrete action.", "disappearance_loss": "The supporter loses a concrete action.", "ui_duplicate": False, "know_duplicate": False, "btm_duplicate": False, "decide_duplicate": False, "editorial_standard_version": "2026-09-22"}
+    return {"value_route": "PRACTICAL", "why_matchgoer_cares": "It gives a concrete action.", "disappearance_loss": "The supporter loses a concrete action.", "ui_duplicate": False, "know_duplicate": False, "btm_duplicate": False, "decide_duplicate": False, "editorial_standard_version": STANDARD_VERSION}
 
 
 def candidate():

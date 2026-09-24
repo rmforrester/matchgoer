@@ -10,10 +10,11 @@ import re
 from collections import Counter
 
 
-STANDARD_VERSION = "2026-09-22"
+STANDARD_VERSION = "2026-09-23"
 VALUE_ROUTES = {"DECISION", "UNDERSTANDING_EXPERIENCE", "PRACTICAL"}
 CONTEXT_LEVELS = {"COUNTRY", "PYRAMID", "REGION", "COMPETITION_LEVEL", "CLUB_GROUND_SUPPORTERS"}
 FIRST_PASS_READY = "FIRST_PASS_READY_FOR_HUMAN_REVIEW"
+LANGUAGE_STRENGTH_LEVELS = {"A", "B", "C", "D"}
 REQUIRED_REVIEW_FIELDS = {
     "value_route",
     "why_matchgoer_cares",
@@ -26,6 +27,14 @@ REQUIRED_REVIEW_FIELDS = {
 }
 
 FAIL_PATTERNS = {
+    "editorial_rubric_leakage": re.compile(
+        r"\b(changes? fixture choice|affects? fixture selection|materially affects? selection|"
+        r"contextual(?:ly)? significant|peer[- ]normalised|supporter salience|"
+        r"material travelling support|passes? the threshold|evidence beyond age alone|"
+        r"qualifies because|category[- ]fit|approval criteria|disappearance test|"
+        r"relative distinction|editorial standard|evidence threshold)\b",
+        re.I,
+    ),
     "generic_ticket_routing": re.compile(
         r"\b(use|visit|consult|check) (the )?(official )?(ticket|tickets|ticketing)"
         r"|\bofficial (ticket|ticketing) (page|site|website|route|directory)\b",
@@ -44,6 +53,11 @@ FAIL_PATTERNS = {
 }
 
 FLAG_PATTERNS = {
+    "unsupported_colour_requires_evidence": re.compile(
+        r"\b(electric atmosphere|incredible fans?|hostile ground|bouncing terrace|"
+        r"unforgettable night|legendary support|passionate fanbase)\b",
+        re.I,
+    ),
     "generic_community_mission": re.compile(r"\bcommunity[- ]focused|serves the community|community mission\b", re.I),
     "generic_development_claim": re.compile(r"\bdevelopment (programme|program|pathway)|developing players\b", re.I),
     "generic_supporter_group": re.compile(r"\bsupporters? (group|club).{0,30}(supports?|backs?|follows?)\b", re.I),
@@ -86,6 +100,60 @@ def validate_first_pass_capture(capture: dict) -> None:
             raise EditorialContractError(f"first-pass {area} outcome is invalid")
 
 
+def validate_tone_review(review: dict) -> None:
+    """Validate mechanical tone-review metadata without judging prose quality."""
+    if review.get("actual_supporter_copy_reviewed") is not True:
+        raise EditorialContractError("first pass did not review actual supporter-facing copy")
+    if review.get("rendered_hierarchy_reviewed") is not True:
+        raise EditorialContractError("first pass did not review rendered hierarchy")
+    levels = review.get("language_strength_levels")
+    if not isinstance(levels, list) or not levels:
+        raise EditorialContractError("first pass must record language-strength levels")
+    if any(level not in LANGUAGE_STRENGTH_LEVELS for level in levels):
+        raise EditorialContractError("invalid language-strength level")
+    if review.get("level_c_d_reviewed") is not True:
+        raise EditorialContractError("Level C/D recommendations require explicit first-pass review")
+
+
+def validate_language_strength(level: str, human_approval: dict | None = None) -> None:
+    if level not in LANGUAGE_STRENGTH_LEVELS:
+        raise EditorialContractError("invalid language-strength level")
+    if level == "D":
+        approval = human_approval or {}
+        if approval.get("approved") is not True or str(approval.get("reviewed_by") or "").strip().lower() not in {"ray", "ray/assistant"}:
+            raise EditorialContractError("Level D requires explicit human approval from Ray")
+        if not str(approval.get("approved_at") or "").strip():
+            raise EditorialContractError("Level D approval timestamp is required")
+
+
+def validate_ticket_copy_ownership(copy: dict) -> None:
+    """Prevent MATCHDAY prose from duplicating an eligible fixture Buy Tickets CTA."""
+    if not isinstance(copy.get("fixture_buy_tickets_cta_present"), bool):
+        raise EditorialContractError("ticket-copy review must record fixture CTA presence")
+    if not isinstance(copy.get("non_obvious_exception"), bool):
+        raise EditorialContractError("ticket-copy review must record whether an exception exists")
+    if copy["fixture_buy_tickets_cta_present"] and copy.get("ordinary_purchase_instruction_retained") is True:
+        raise EditorialContractError("ordinary ticket-purchase prose duplicates the fixture CTA")
+
+
+def validate_voice_collection(items: list[dict]) -> None:
+    """Reject obvious bulk-template repetition; human review still judges naturalness."""
+    openings = {
+        "if_you_like": re.compile(r"^if you (like|love|want)\b", re.I),
+        "head_to": re.compile(r"^head to\b", re.I),
+        "more_than": re.compile(r"^.+?\bis more than\b", re.I),
+    }
+    counts = Counter()
+    for item in items:
+        value = str(item.get("copy") or "").strip()
+        for name, pattern in openings.items():
+            if pattern.search(value):
+                counts[name] += 1
+    repeated = sorted(name for name, count in counts.items() if count >= 3)
+    if repeated:
+        raise EditorialContractError(f"formulaic copy pattern repeated: {', '.join(repeated)}")
+
+
 def validate_bulk_country_gate(gate: dict) -> None:
     """Fail closed unless the mandatory human product/editorial gate passed."""
     if gate.get("country_context_calibrated") is not True:
@@ -95,6 +163,7 @@ def validate_bulk_country_gate(gate: dict) -> None:
     if gate.get("representative_first_pass_status") != FIRST_PASS_READY:
         raise EditorialContractError("representative first pass is not ready for human review")
     validate_first_pass_capture(gate.get("capture_review", {}))
+    validate_tone_review(gate.get("tone_review", {}))
     if gate.get("rendered_page_reviewed") is not True:
         raise EditorialContractError("actual rendered/served pages were not reviewed")
     approval = gate.get("human_approval")

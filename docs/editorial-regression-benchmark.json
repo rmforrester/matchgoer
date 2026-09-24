@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "editorial_standard_version": "2026-09-22",
+  "editorial_standard_version": "2026-09-23",
   "purpose": "Calibration cases; not reusable supporter copy or publication candidates.",
   "cases": [
     {"id":"england-luton-origin","country":"England","summary":"Luton public-meeting origin","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Distinctive formation context changes understanding of the club."},
@@ -25,6 +25,17 @@
     {"id":"fail-decide-neglect","country":"Benchmark","summary":"Zero DECIDE returned without deliberate research of all five categories","expected":"FAIL","value_route":"DECISION","reason":"Zero is valid only after the country's DECIDE landscape has been deliberately investigated and adjudicated."},
     {"id":"fail-practical-dominance","country":"Benchmark","summary":"Useful arrival and ticket information published while CLUB and SUPPORTERS were never investigated","expected":"FAIL","value_route":"PRACTICAL","reason":"Practical value cannot substitute for deliberate research into meaningful club identity and supporter culture."},
     {"id":"fail-database-pass-product-fail","country":"Benchmark","summary":"Strong facts exist and endpoints return 200 but rendered pages bury or omit them","expected":"FAIL","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Data presence and HTTP success do not prove that the supporter-facing product presents the strongest value."},
-    {"id":"pass-intentional-sparse-page","country":"Benchmark","summary":"Representative page remains sparse after all modules and contextual candidates are deliberately assessed","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"A deliberate evidence-based zero preserves the universal no-filler standard."}
+    {"id":"pass-intentional-sparse-page","country":"Benchmark","summary":"Representative page remains sparse after all modules and contextual candidates are deliberately assessed","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"A deliberate evidence-based zero preserves the universal no-filler standard."},
+    {"id":"pass-tone-celtic-rangers-level-d","country":"Scotland","summary":"Celtic–Rangers natural Level D direction with explicit Ray approval","expected":"PASS","value_route":"DECISION","reason":"Exceptional recommendation strength is evidence-safe and human approved."},
+    {"id":"pass-tone-somerset-level-c","country":"Scotland","summary":"Somerset Park concrete traditional-ground recommendation","expected":"PASS","value_route":"DECISION","reason":"Specific surviving features earn a strong recommendation in Scottish lower-league context."},
+    {"id":"pass-tone-queens-park-club","country":"Scotland","summary":"Queen's Park active club-identity story","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Natural football language connects three evidenced achievements without added claims."},
+    {"id":"pass-tone-clydebank-supporters","country":"Scotland","summary":"Clydebank supporters rebuilt the club","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Supporters are active agents in an evidenced rescue story."},
+    {"id":"pass-tone-celtic-matchday","country":"Scotland","summary":"Direct Celtic digital-ticket entry instruction","expected":"PASS","value_route":"PRACTICAL","reason":"Short direct sentences improve actionability without colour."},
+    {"id":"pass-tone-inverness-ticket-exception","country":"Scotland","summary":"Inverness under-16 and disabled-carer purchase exception","expected":"PASS","value_route":"PRACTICAL","reason":"The fixture CTA owns ordinary purchase while MATCHDAY preserves the non-obvious exception."},
+    {"id":"pass-tone-troon-btm","country":"Scotland","summary":"Direct recommendation for Troon's evidenced recurring supporter destination","expected":"PASS","value_route":"PRACTICAL","reason":"A named recurring destination can support natural recommendation language."},
+    {"id":"pass-tone-restrained-btm","country":"Scotland","summary":"Restrained factual BTM listing without recommendation language","expected":"PASS","value_route":"PRACTICAL","reason":"Directory-grade evidence does not justify a stronger recommendation."},
+    {"id":"fail-tone-rubric-leakage","country":"Benchmark","summary":"Supporter copy says a fixture passes the evidence threshold","expected":"FAIL","value_route":"DECISION","reason":"Internal approval machinery must not appear in supporter-facing prose."},
+    {"id":"fail-tone-formula","country":"Benchmark","summary":"Every BTM row mechanically begins Head to","expected":"FAIL","value_route":"PRACTICAL","reason":"The canonical voice is not a repeated template."},
+    {"id":"fail-ticket-cta-duplication","country":"Benchmark","summary":"MATCHDAY repeats ordinary online purchase route beside eligible Buy Tickets CTA","expected":"FAIL","value_route":"PRACTICAL","reason":"The fixture CTA owns ordinary purchase instructions; MATCHDAY owns non-obvious exceptions."}
   ]
 }

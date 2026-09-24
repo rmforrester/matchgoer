@@ -42,7 +42,7 @@ export default function InterestedTab() {
   const loadMatchdays = useCallback(() => api.get("/session").then(() => Promise.all([api.get("/interested"), api.get("/my-grounds")])).then(([interestedResponse, groundsResponse]) => {
     const grounds = groundsResponse.data as MyGround[]; setFixtures(interestedResponse.data as InterestedFixture[]);
     setAttendedFixtures(grounds.flatMap((ground) => ground.attended_fixtures.map((fixture) => ({ ...fixture, venue_id: ground.venue_id, venue_name: ground.venue_name, venue_city: ground.venue_city }))).sort((a, b) => new Date(b.fixture_date).getTime() - new Date(a.fixture_date).getTime()));
-  }).catch((requestError) => { console.error("My Matchdays loading error:", requestError); setError(apiErrorMessage(requestError, "Unable to establish your Matchgoer session.")); }).finally(() => setLoading(false)), []);
+  }).catch((requestError) => { console.error("My Matchdays loading error:", requestError); setError(apiErrorMessage(requestError, "We couldn't load your Matchgoer session. Try signing in again.")); }).finally(() => setLoading(false)), []);
 
   useEffect(() => { void loadMatchdays(); }, [loadMatchdays]);
   useEffect(() => { const clock = window.setInterval(() => setMatchdayNow(new Date()), 60_000); return () => window.clearInterval(clock); }, []);
@@ -54,7 +54,7 @@ export default function InterestedTab() {
     if (updatingFixtureIds.includes(fixture.fixture_id)) return;
     setUpdatingFixtureIds((current) => [...current, fixture.fixture_id]); setFixtures((current) => current.filter((item) => item.fixture_id !== fixture.fixture_id)); setError("");
     try { if (attended && !attendedFixtureIds.has(fixture.fixture_id)) await api.post(`/fixtures/${fixture.fixture_id}/attendance`); await api.delete(`/fixtures/${fixture.fixture_id}/interested`); if (attended) setAttendanceResolution(fixture); await loadMatchdays(); }
-    catch (requestError) { setError(apiErrorMessage(requestError, "Unable to resolve this match.")); await loadMatchdays(); }
+    catch (requestError) { setError(apiErrorMessage(requestError, "We couldn't update this matchday. Try again.")); await loadMatchdays(); }
     finally { setUpdatingFixtureIds((current) => current.filter((id) => id !== fixture.fixture_id)); }
   };
 
