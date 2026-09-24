@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fixtureGuideActions, googleMapsDirectionsUrl, guideSummary, officialTicketUrl, primaryGuideSections, secondaryGuideSections, supporterFacingFactContent, supporterFacingFactTopic, ticketPresentation, type VenueGuide } from "./venue-guide.ts";
+import { fixtureGuideActions, googleMapsDirectionsUrl, guideSummary, isExceptionalTicketGuidance, officialTicketUrl, primaryGuideSections, secondaryGuideSections, shouldShowTicketFact, supporterFacingFactContent, supporterFacingFactTopic, ticketPresentation, type VenueGuide, type VenueGuideFact } from "./venue-guide.ts";
 
 const guide = (freshness: "current" | "needs_review" | "expired"): VenueGuide => ({
   venue_id: 22950,
@@ -77,7 +77,7 @@ test("practical guide keeps answers primary and moves supporting facts deeper", 
   };
 
   assert.deepEqual(primaryGuideSections(hutnikGuide).map((section) => [section.key, section.facts.map((fact) => fact.topic)]), [
-    ["tickets_entry", ["Buy online", "Matchday ticket offices"]],
+    ["tickets_entry", ["Matchday ticket offices"]],
     ["at_ground", ["Accessible entrance"]],
   ]);
   assert.deepEqual(secondaryGuideSections(hutnikGuide).map((section) => [section.key, section.facts.map((fact) => fact.topic)]), [
@@ -97,7 +97,61 @@ test("practical guide keeps answers primary and moves supporting facts deeper", 
   assert.equal(directions.searchParams.has("origin"), false);
   assert.equal(primaryGuideSections(hutnikGuide).some((section) => section.key === "before_match"), false);
   assert.equal(primaryGuideSections(hutnikGuide)[0].facts[0].provenance.label, "Official");
-  assert.equal(supporterFacingFactContent(primaryGuideSections(hutnikGuide)[0].facts[1]), "Tickets are normally available at the stadium ticket offices from one hour before kick-off. Check the fixture announcement for exceptions.");
+  assert.equal(supporterFacingFactContent(primaryGuideSections(hutnikGuide)[0].facts[0]), "Tickets are normally available at the stadium ticket offices from one hour before kick-off. Check the fixture announcement for exceptions.");
+});
+
+test("routine ticket prose is hidden while its canonical fixture action survives", () => {
+  const routine = guide("current");
+  routine.sections[0] = {
+    key: "tickets_entry",
+    label: "Tickets & entry",
+    facts: [
+      { topic: "Tickets", content: "Club match tickets.", freshness: "current", provenance: { label: "Official", source_url: "https://tickets.example.com", last_checked: "2026-09-24" } },
+      { topic: "official_ticket_portal", content: "Buy from the official portal.", freshness: "current", provenance: { label: "Official", source_url: "https://tickets.example.com", last_checked: "2026-09-24" } },
+      { topic: "entry", content: "Use the turnstile on the ticket.", freshness: "current", provenance: { label: "Official", source_url: "https://entry.example.com", last_checked: "2026-09-24" } },
+    ],
+  };
+  assert.deepEqual(primaryGuideSections(routine)[0].facts.map((fact) => fact.topic), ["entry"]);
+  assert.equal(officialTicketUrl(routine), "https://tickets.example.com");
+  assert.equal(fixtureGuideActions(routine, 1, null)[0].label, "Tickets");
+});
+
+test("broad ticket topics retain non-obvious purchase and entry exceptions", () => {
+  const examples = [
+    "Cash-only sales are available at the gate.",
+    "There are no ticket sales at the turnstiles.",
+    "Collect tickets from the ticket office.",
+    "Home tickets are allocated to members by ballot.",
+    "Concession tickets must be bought from the office.",
+    "Under-16 tickets must be bought with an adult ticket.",
+    "Disabled supporters and carers use the accessible ticket process.",
+    "Screenshots of digital tickets are not accepted.",
+    "Away tickets are restricted to the visiting allocation.",
+    "Pay-on-entry is limited to designated Popside turnstiles.",
+    "A separate transport ticket must be generated online.",
+  ];
+  for (const content of examples) {
+    const fact: VenueGuideFact = { topic: "tickets", content, freshness: "current", provenance: { label: "Official", source_url: "https://tickets.example.com", last_checked: "2026-09-24" } };
+    assert.equal(isExceptionalTicketGuidance(fact), true, content);
+    assert.equal(shouldShowTicketFact(fact), true, content);
+  }
+  const routine: VenueGuideFact = { topic: "tickets", content: "Use the official website to buy match tickets.", freshness: "current", provenance: { label: "Official", source_url: "https://tickets.example.com", last_checked: "2026-09-24" } };
+  assert.equal(isExceptionalTicketGuidance(routine), false);
+  assert.equal(shouldShowTicketFact(routine), false);
+});
+
+test("all currently serving broad-topic exceptions survive the presentation filter", () => {
+  const currentExceptions = [
+    ["general_purchase_process", "Home general admission is primarily member-based and high-demand fixtures may use ballots; check the official fixture sale and Ticket Exchange."],
+    ["official_ticket_portal", "Men's home-match tickets are generally sold through membership sales and ballots."],
+    ["general_purchase_process", "Buy an e-ticket in advance or use the Plainmoor ticket office. Pay-on-entry by card is limited to designated Popside turnstiles."],
+    ["tickets", "Men's Bundesliga home day tickets are generally allocated to members by ballot; use Union's official ticket shop and resale route."],
+    ["tickets", "Use HSV's official ticket shop. A separate free HVV KombiTicket must be generated online for public transport."],
+  ];
+  for (const [topic, content] of currentExceptions) {
+    const fact: VenueGuideFact = { topic, content, freshness: "current", provenance: { label: "Official", source_url: "https://tickets.example.com", last_checked: "2026-09-24" } };
+    assert.equal(shouldShowTicketFact(fact), true, `${topic}: ${content}`);
+  }
 });
 
 test("ticket action requires a current official source", () => {
