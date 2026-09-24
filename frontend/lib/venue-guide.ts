@@ -30,6 +30,37 @@ export type VenueGuide = {
 
 const hiddenGuideTopics = new Set(["safety instructions"]);
 const secondaryAtGroundTopics = new Set(["food and drink", "deposit"]);
+const routineTicketPresentationTopics = new Set([
+  "buy online",
+  "general_purchase_process",
+  "official_ticket_portal",
+  "tickets",
+]);
+const exceptionalTicketGuidancePatterns = [
+  /\b(?:cash(?:[- ]only)?|pay at (?:the )?gate|cash turnstile)\b/i,
+  /\b(?:no|not|without)\b.{0,35}\b(?:turnstiles?|gate|stadium)\b.{0,25}\b(?:sale|sales|buy|purchase|ticket)\b/i,
+  /\b(?:no|not|without)\b.{0,35}\b(?:sale|sales|buy|purchase|ticket)\b.{0,25}\b(?:turnstiles?|gate|stadium)\b/i,
+  /\b(?:cannot|can't|do not)\b.{0,30}\b(?:buy|purchase)\b.{0,30}\b(?:turnstiles?|gate|stadium)\b/i,
+  /\bcollect(?:ion|ed|ing)?\b|\bwill call\b/i,
+  /\b(?:member-based|membership (?:is )?(?:required|sales)|through membership sales|allocated to members|members[- ]only)\b/i,
+  /\bballot\b/i,
+  /\bconcession(?:ary|s)?\b/i,
+  /\b(?:under|u)[- ]?1[68]\b|\bchild(?:ren)?\b.{0,30}\b(?:ticket|purchase|adult)\b/i,
+  /\b(?:disabled|disability|wheelchair|carer|companion|accessible ticket)\b/i,
+  /\b(?:screenshots?|screen shots?|digital tickets?|mobile tickets?|wallet|activation|activate|must be generated)\b/i,
+  /\baway (?:ticket|allocation|supporter|fan)s?\b/i,
+  /\b(?:specific|designated|named)\b.{0,30}\b(?:zone|entrance|gate|turnstiles?)\b/i,
+  /\b(?:entrance|gate|turnstile) [A-Z0-9]\b/i,
+];
+
+export function isExceptionalTicketGuidance(fact: VenueGuideFact) {
+  return exceptionalTicketGuidancePatterns.some((pattern) => pattern.test(fact.content));
+}
+
+export function shouldShowTicketFact(fact: VenueGuideFact) {
+  const topic = fact.topic.trim().toLocaleLowerCase();
+  return !routineTicketPresentationTopics.has(topic) || isExceptionalTicketGuidance(fact);
+}
 
 const publishableFacts = (section: VenueGuideSection) => section.facts.filter((fact) =>
   fact.freshness !== "expired" && !hiddenGuideTopics.has(fact.topic.trim().toLocaleLowerCase())
@@ -46,7 +77,8 @@ export function primaryGuideSections(guide: VenueGuide) {
     .map((section) => ({
       ...section,
       facts: publishableFacts(section).filter((fact) =>
-        section.key !== "at_ground" || !secondaryAtGroundTopics.has(fact.topic.trim().toLocaleLowerCase())
+        (section.key !== "tickets_entry" || shouldShowTicketFact(fact))
+        && (section.key !== "at_ground" || !secondaryAtGroundTopics.has(fact.topic.trim().toLocaleLowerCase()))
       ),
     }))
     .filter((section) => section.facts.length > 0);
