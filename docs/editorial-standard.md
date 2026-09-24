@@ -1,12 +1,26 @@
 # Matchgoer editorial standard
 
-Version: `2026-09-23`
+Version: `2026-09-24`
 
 > **EDITORIAL USEFULNESS IS THE PUBLICATION CRITERION.** Architecture, evidence, reconciliation and publication safety support that criterion; they never substitute for it.
 >
 > **EDITORIAL QUALITY IS UNIVERSAL. SIGNIFICANCE IS CONTEXTUAL. ABSENCE IS BETTER THAN FILLER.**
+>
+> **DRAMA IS NOT REQUIRED. DISCOVERY IS. FIND THE MOST REVEALING STORY, NOT THE MOST DRAMATIC STORY.**
 
 This is the single authoritative editorial contract for KNOW, Before the Match (BTM), and DECIDE in every country.
+
+The human-approved normative teaching corpus is [`editorial-gold-standard.json`](editorial-gold-standard.json). Future research must learn its editorial instinct without cloning its wording. The corpus does not authorize a rewrite, retirement, category change or publication of any historical row.
+
+## Matchgoer / Copa90 test
+
+**If you were making a short film about going to this match for the first time, what would you tell the viewer so they understood why this club, crowd, ground or fixture was worth their attention?**
+
+This is an editorial instinct, not an instruction to imitate an individual’s writing style:
+
+`CURIOUS FOOTBALL TRAVELLER + LOCAL CONTEXT + HUMAN STORY + MATCHGOER RELEVANCE`
+
+Do not over-index on collapse, bankruptcy, rescue, relocation, tragedy or famous events. Those can be excellent when they explain identity, but modest discoveries can be equally valuable: the meaning of a name, an unexpected origin, a distinctive local role, a peculiar ground story, an unusual tradition, surprising continuity or an overlooked community connection. Select the story that best increases understanding.
 
 ## Governing supporter-facing voice
 
@@ -58,6 +72,19 @@ Every candidate must answer:
 
 If neither answer is specific, omit the item. There is no category-completeness target and no minimum fact count. A sparse page is valid.
 
+### Six-question editorial filter
+
+For every candidate CLUB, SUPPORTERS or DECIDE fact, ask:
+
+1. Would a reasonably curious football traveller probably already know this? If yes, look for the deeper angle.
+2. Does it explain something rather than merely state something?
+3. Does it help me understand the club, people, place or fixture?
+4. Could it plausibly increase my interest in attending or make attending more meaningful?
+5. Would removing it make the Matchgoer page meaningfully less useful or interesting?
+6. Could this copy be pasted onto twenty other clubs after changing the names? If yes, reject it as generic.
+
+Research coverage and publication coverage are different: `100% RESEARCH COVERAGE != 100% PUBLICATION COVERAGE`. Every in-scope relationship must be deliberately assessed across applicable modules. `PUBLISH` and `CORRECTLY_SPARSE` are both successful completed outcomes. Never create content to improve a coverage percentage.
+
 ## Required review
 
 Review the assembled supporter page, not isolated rows. Check:
@@ -93,9 +120,17 @@ Before bulk work in a country, deliberately research and adjudicate its potentia
 
 DECIDE answers why a supporter should choose this match or ground. It may be the product's most confident module, but must explain the football experience rather than expose the approval process.
 
+- **SIGNIFICANT_RIVALRY:** explain the particular geography, identity, history, repeated stakes or supporter consequence that makes the fixture different from an ordinary match. Proximity and a rivalry label are insufficient.
+- **CLASSIC_GROUND:** show which retained fabric, viewing form, enclosure or continuity still changes the visit. Age, fame and capacity alone are insufficient.
+- **FOOTBALL_LANDMARK:** establish importance beyond the home club through institutional history, innovation, defining events, national memory or football development. Treat sensitive history responsibly.
+- **UNIQUE_SETTING:** show how landscape or urban form materially shapes attending. Picturesqueness, nearby pubs or a city-centre location alone are insufficient.
+- **EXCEPTIONAL_SUPPORT:** require a defined peer group, meaningful period, sustained distinction and claim-specific evidence. One crowd, ownership alone, raw attendance without context and “passionate support” do not qualify. The Gold Standard contains zero England/Scotland examples; do not manufacture one.
+
 ### CLUB, SUPPORTERS and MATCHDAY voice
 
 CLUB answers who the supporter is watching. Prefer the one active, concise story that makes the club make sense: origins, community identity, supporter-created or rescued history, meaningful continuity. Avoid museum-label chronology, trophy lists, institutional clutter and “historic club” filler.
+
+Finding the first obvious historical fact does not complete CLUB research. A founding date begins the investigation. Where evidence permits, keep asking why and by whom the club was formed; what was happening locally; why it has that name; which community, institution or industry produced it; what later shaped its present identity; what local supporters identify with; and whether the most revealing story lies elsewhere. Deeper research exists to find the strongest qualifying story, not to force publication.
 
 SUPPORTERS puts supporters in the active role through evidenced ownership, rescue, stewardship, traditions and supporter-created practices. “Passionate supporters” is never a substitute for evidence.
 
@@ -104,6 +139,10 @@ MATCHDAY is restrained: direct verbs, short sentences and second person only whe
 ## Evidence and identity
 
 Evidence is necessary but not sufficient. Evidence proves a claim; it does not prove the claim deserves screen space. Cohort evidence can establish scope but cannot manufacture local detail. Facts must retain canonical subject ownership and pass identity reconciliation. Identity or venue ambiguity blocks publication while leaving editorial research status explicit.
+
+Research does not stop at the first usable source. Continue until the meaningful story is sufficiently understood for a confident editorial decision, or reasonable research establishes that no qualifying story exists. Actively test whether another source changes the interpretation, but stop when further work no longer materially changes editorial understanding.
+
+Prefer, as appropriate, official club, federation and league sources; supporter trusts and authoritative supporter bodies; accountable local journalism; authoritative historical sources; primary venue information; robust attendance datasets; and strong subject-specific sources. Every source must support the actual sentence. Club marketing alone is not independent proof of comparative distinction, and comparative claims require comparative evidence.
 
 ## Examples
 
@@ -146,7 +185,7 @@ Each proposed or surviving published fact must carry this artifact-level review 
   "know_duplicate": false,
   "btm_duplicate": false,
   "decide_duplicate": false,
-  "editorial_standard_version": "2026-09-23"
+  "editorial_standard_version": "2026-09-24"
 }
 ```
 

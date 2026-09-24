@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "editorial_standard_version": "2026-09-23",
+  "editorial_standard_version": "2026-09-24",
   "purpose": "Calibration cases; not reusable supporter copy or publication candidates.",
   "cases": [
     {"id":"england-luton-origin","country":"England","summary":"Luton public-meeting origin","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"Distinctive formation context changes understanding of the club."},
@@ -36,6 +36,10 @@
     {"id":"pass-tone-restrained-btm","country":"Scotland","summary":"Restrained factual BTM listing without recommendation language","expected":"PASS","value_route":"PRACTICAL","reason":"Directory-grade evidence does not justify a stronger recommendation."},
     {"id":"fail-tone-rubric-leakage","country":"Benchmark","summary":"Supporter copy says a fixture passes the evidence threshold","expected":"FAIL","value_route":"DECISION","reason":"Internal approval machinery must not appear in supporter-facing prose."},
     {"id":"fail-tone-formula","country":"Benchmark","summary":"Every BTM row mechanically begins Head to","expected":"FAIL","value_route":"PRACTICAL","reason":"The canonical voice is not a repeated template."},
-    {"id":"fail-ticket-cta-duplication","country":"Benchmark","summary":"MATCHDAY repeats ordinary online purchase route beside eligible Buy Tickets CTA","expected":"FAIL","value_route":"PRACTICAL","reason":"The fixture CTA owns ordinary purchase instructions; MATCHDAY owns non-obvious exceptions."}
+    {"id":"fail-ticket-cta-duplication","country":"Benchmark","summary":"MATCHDAY repeats ordinary online purchase route beside eligible Buy Tickets CTA","expected":"FAIL","value_route":"PRACTICAL","reason":"The fixture CTA owns ordinary purchase instructions; MATCHDAY owns non-obvious exceptions."},
+    {"id":"pass-gold-bromley-trajectory","country":"England","summary":"Bromley's 132-year journey into its first Football League chapter","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"A major change in present trajectory can reveal the club without collapse, rescue or existential drama."},
+    {"id":"pass-gold-forres-name-discovery","country":"Scotland","summary":"Forres Mechanics name means the local tradespeople who formed the club","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"A modest surprising discovery explains name, origin and local identity without requiring national importance."},
+    {"id":"fail-first-obvious-fact-stop","country":"Benchmark","summary":"Research stops after finding a founding date despite available origin context","expected":"FAIL","value_route":"UNDERSTANDING_EXPERIENCE","reason":"The first obvious historical fact begins CLUB investigation; it does not automatically complete it."},
+    {"id":"pass-correctly-sparse-complete-research","country":"Benchmark","summary":"Every applicable module is deliberately researched and no qualifying story exists","expected":"PASS","value_route":"UNDERSTANDING_EXPERIENCE","reason":"One hundred percent research coverage does not require one hundred percent publication coverage."}
   ]
 }

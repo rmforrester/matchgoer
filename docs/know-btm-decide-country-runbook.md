@@ -1,6 +1,8 @@
 # KNOW / BTM / DECIDE country runbook
 
-This runbook implements [the editorial standard](editorial-standard.md). Its SHA must be recorded before each country starts.
+This runbook implements [the editorial standard](editorial-standard.md) and the human-approved [Gold Standard teaching corpus](editorial-gold-standard.json). Their SHA-256 values must be recorded before each country starts.
+
+Every future programme must explicitly load and apply the Matchgoer/Copa90 test, Gold Standard corpus, six-question filter, contextual-significance doctrine, research-depth and source standards, no-quota rule and sparse-success rule. The corpus teaches judgment; it is not reusable copy.
 
 Every newly researched or drafted supporter-facing row uses the current canonical voice from its first candidate. Do not publish new copy in the legacy formal/editorial voice with the expectation that a later cleanup will repair it.
 
@@ -28,6 +30,8 @@ Stop at `FIRST_PASS_READY_FOR_HUMAN_REVIEW`. Ray/assistant must inspect both con
 ### Phase 4 — bulk country research
 
 Begin only after explicit human approval has been recorded. Apply universal quality and country-context significance throughout the pyramid.
+
+Assess every in-scope club/relationship deliberately across applicable modules. Finding one usable source or obvious historical fact does not complete research. Keep digging for the most revealing supported story, while accepting `CORRECTLY_SPARSE` when reasonable research finds none.
 
 ### Phase 5 — residual reconciliation
 
@@ -77,3 +81,9 @@ Run a post-country retrospective only when material failure or drift occurred.
 - Supporter copy uses football language, never internal editorial/rubric language or unsupported atmosphere.
 - Fixture Buy Tickets owns the ordinary purchase route; MATCHDAY retains only non-obvious purchase, receipt and entry guidance.
 - Tone must vary naturally rather than applying a repeated module template.
+- Drama is not required; discovery is. Find the most revealing story, not the most dramatic story.
+- One hundred percent research coverage never implies one hundred percent publication coverage. `PUBLISH` and `CORRECTLY_SPARSE` are both successful outcomes.
+
+## Substantive-research runtime
+
+Ray has removed the normal two-hour ceiling for future **explicitly authorized substantive editorial research programmes**. Such research may run as long as completeness, depth and quality require, with durable checkpoints for resilience. This does not authorize publication, database or hosted mutation, destructive action, deployment or any other protected operation; those retain their normal gates.

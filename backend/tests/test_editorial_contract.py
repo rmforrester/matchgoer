@@ -141,8 +141,34 @@ class EditorialContractTests(unittest.TestCase):
         self.assertGreaterEqual(len(data["cases"]), 15)
         self.assertEqual({case["expected"] for case in data["cases"]}, {"PASS", "FAIL"})
         self.assertTrue(all(case["value_route"] in {"DECISION", "UNDERSTANDING_EXPERIENCE", "PRACTICAL"} for case in data["cases"]))
-        required={"fail-filler-quota","pass-contextual-lower-level-rivalry","fail-relative-only","fail-decide-neglect","fail-practical-dominance","fail-database-pass-product-fail","pass-tone-celtic-rangers-level-d","pass-tone-somerset-level-c","pass-tone-queens-park-club","pass-tone-clydebank-supporters","pass-tone-celtic-matchday","pass-tone-inverness-ticket-exception","pass-tone-troon-btm","pass-tone-restrained-btm","fail-tone-rubric-leakage","fail-tone-formula","fail-ticket-cta-duplication"}
+        required={"fail-filler-quota","pass-contextual-lower-level-rivalry","fail-relative-only","fail-decide-neglect","fail-practical-dominance","fail-database-pass-product-fail","pass-tone-celtic-rangers-level-d","pass-tone-somerset-level-c","pass-tone-queens-park-club","pass-tone-clydebank-supporters","pass-tone-celtic-matchday","pass-tone-inverness-ticket-exception","pass-tone-troon-btm","pass-tone-restrained-btm","fail-tone-rubric-leakage","fail-tone-formula","fail-ticket-cta-duplication","pass-gold-bromley-trajectory","pass-gold-forres-name-discovery","fail-first-obvious-fact-stop","pass-correctly-sparse-complete-research"}
         self.assertTrue(required.issubset({case["id"] for case in data["cases"]}))
+
+    def test_gold_standard_corpus_is_human_approved_and_complete(self):
+        path = Path(__file__).parents[2] / "docs" / "editorial-gold-standard.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(data["standard_version"], STANDARD_VERSION)
+        self.assertEqual(data["status"], "HUMAN_APPROVED_NORMATIVE_FUTURE_RESEARCH_CALIBRATION")
+        self.assertEqual(data["counts"], {"GOLD_STANDARD":16,"ACCEPTABLE":4,"DO_NOT_EMULATE":6,"SPARSE_GOLD_STANDARD":4,"total":30})
+        self.assertEqual(len(data["examples"]), 26)
+        self.assertEqual(len(data["sparse_examples"]), 4)
+        classes = {item["corpus_id"]: item["classification"] for item in data["examples"]}
+        self.assertEqual(classes["KNOW-162"], "GOLD_STANDARD")
+        self.assertEqual(classes["KNOW-1447"], "GOLD_STANDARD")
+        self.assertEqual(classes["DECIDE-6"], "DO_NOT_EMULATE")
+        self.assertEqual(classes["DECIDE-74"], "DO_NOT_EMULATE")
+        self.assertTrue(all(item["exact_current_serving_copy"] for item in data["examples"]))
+
+    def test_future_country_template_loads_gold_standard_and_process_rules(self):
+        path = Path(__file__).parents[2] / "docs" / "future-country-editorial-task-template.md"
+        content = path.read_text(encoding="utf-8")
+        for required in (
+            "docs/editorial-gold-standard.json", "Matchgoer/Copa90 test", "six-question filter",
+            "contextual-significance doctrine", "research-depth standard", "source standard",
+            "no-quota rule", "sparse-success rule", "CORRECTLY_SPARSE", "Level D",
+            "FIRST_PASS_READY_FOR_HUMAN_REVIEW",
+        ):
+            self.assertIn(required, content)
 
 
 if __name__ == "__main__":

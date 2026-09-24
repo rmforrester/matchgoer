@@ -1,0 +1,765 @@
+{
+  "schema_version": 1,
+  "standard_version": "2026-09-24",
+  "status": "HUMAN_APPROVED_NORMATIVE_FUTURE_RESEARCH_CALIBRATION",
+  "purpose": "Normative teaching corpus for future research method. It is not a publication candidate or an instruction to rewrite historical content.",
+  "principles": [
+    "DRAMA IS NOT REQUIRED. DISCOVERY IS.",
+    "FIND THE MOST REVEALING STORY, NOT THE MOST DRAMATIC STORY.",
+    "EDITORIAL QUALITY IS UNIVERSAL. SIGNIFICANCE IS CONTEXTUAL.",
+    "100% RESEARCH COVERAGE DOES NOT MEAN 100% PUBLICATION COVERAGE."
+  ],
+  "counts": {
+    "GOLD_STANDARD": 16,
+    "ACCEPTABLE": 4,
+    "DO_NOT_EMULATE": 6,
+    "SPARSE_GOLD_STANDARD": 4,
+    "total": 30
+  },
+  "examples": [
+    {
+      "corpus_id": "DECIDE-569",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "FA Cup",
+        "League Cup",
+        "Premiership"
+      ],
+      "subject": "Hibernian v Heart Of Midlothian",
+      "module_or_category": "SIGNIFICANT_RIVALRY",
+      "exact_current_serving_copy": "Edinburgh's derby dates to 1875 and still divides the city. An all-Edinburgh Scottish Cup final gives an already fierce rivalry national weight too.",
+      "why_it_belongs": "The reason combines longevity, city geography and nationally consequential meetings without relying on hype.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "contextual",
+          "category-fit",
+          "supporter-significant",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "For rivalries, establish duration, social or geographic structure, repeated stakes and supporter meaning.",
+      "lesson": "A rivalry label needs a reason that distinguishes this pairing from an ordinary local fixture."
+    },
+    {
+      "corpus_id": "DECIDE-579",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [],
+      "subject": "Cappielow Park",
+      "module_or_category": "CLASSIC_GROUND",
+      "exact_current_serving_copy": "For the full Cappielow experience, the covered Cowshed and Sinclair Street terrace are the places to know. This is a traditional ground you can still experience, not just admire for its age.",
+      "why_it_belongs": "Cappielow’s retained Cowshed and terracing describe a present experience, not architectural age in isolation.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "experiential",
+          "category-fit",
+          "place-sensitive",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Research which historic structures and viewing forms still shape a visit today.",
+      "lesson": "Classic-ground reasons should tell the supporter what survives and why it changes the feel of attendance."
+    },
+    {
+      "corpus_id": "DECIDE-580",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [],
+      "subject": "Hampden Park",
+      "module_or_category": "FOOTBALL_LANDMARK",
+      "exact_current_serving_copy": "Hampden is more than Scotland's national stadium. Its three-ground story connects the first purpose-built international ground with the Scottish Cup, record crowds and major finals.",
+      "why_it_belongs": "Hampden’s layered site history, international role, record crowds and final-hosting function justify national landmark status.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "nationally significant",
+          "category-fit",
+          "multi-source",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Test landmark candidates against institutional history, major events, innovation and national memory.",
+      "lesson": "A landmark reason must demonstrate importance to football beyond ordinary stadium fame."
+    },
+    {
+      "corpus_id": "DECIDE-581",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [],
+      "subject": "Gayfield Park",
+      "module_or_category": "UNIQUE_SETTING",
+      "exact_current_serving_copy": "Gayfield sits right on the North Sea, where the wind—and sometimes the spray—can become part of the match itself.",
+      "why_it_belongs": "The North Sea edge is a physical condition supporters can see and feel, with wind and spray affecting the visit.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "experiential",
+          "category-fit",
+          "distinctive",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "For unique settings, verify a durable relationship between the ground and its landscape rather than using tourism language.",
+      "lesson": "Setting qualifies when place materially shapes the experience of attending."
+    },
+    {
+      "corpus_id": "KNOW-1208",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "Challenge Cup",
+        "FA Cup",
+        "League Cup",
+        "League One"
+      ],
+      "subject": "Peterhead",
+      "module_or_category": "MATCHDAY",
+      "exact_current_serving_copy": "Peterhead does not take cash at the turnstiles. Buy online or from the stadium ticket office; the on-site social club and coffee shop open before the match.",
+      "why_it_belongs": "The no-cash-turnstile rule changes what a visiting supporter must do before arrival.",
+      "editorial_tests": {
+        "passes": [
+          "actionable",
+          "non-obvious",
+          "time-sensitive",
+          "well evidenced",
+          "concise"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Prioritise official ticket instructions that can prevent a supporter being delayed or refused entry.",
+      "lesson": "MATCHDAY copy should change behaviour; routine purchase prose does not belong here."
+    },
+    {
+      "corpus_id": "KNOW-139",
+      "classification": "GOLD_STANDARD",
+      "country": "England",
+      "level_or_competition_context": [
+        "Championship",
+        "League Cup"
+      ],
+      "subject": "Charlton",
+      "module_or_category": "SUPPORTERS",
+      "exact_current_serving_copy": "After Charlton were forced away from The Valley, supporters took their campaign all the way to local elections, forming the Valley Party in 1990. The club finally returned home in 1992 — which helps explain why The Valley means rather more here than simply being a stadium.",
+      "why_it_belongs": "The Valley Party is a distinctive example of supporters entering local elections to restore their club’s home.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "surprising",
+          "supporter-led",
+          "locally consequential",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Search beyond chants and attendance for organised political, legal and community action.",
+      "lesson": "Exceptional supporter facts explain what supporters did, why it mattered and what changed."
+    },
+    {
+      "corpus_id": "KNOW-1409",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "FA Cup",
+        "League Cup",
+        "Premiership"
+      ],
+      "subject": "Celtic",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "Brother Walfrid founded Celtic to help people in need in Glasgow's East End. The name was chosen to bridge the city's Scottish and Irish communities, and that purpose still shapes the club's foundation.",
+      "why_it_belongs": "The charitable purpose behind Celtic’s foundation is connected to the communities whose identity still shapes the club.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "locally rooted",
+          "identity-forming",
+          "supporter-significant",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Read founding documents and club histories for social purpose, community and migration context.",
+      "lesson": "Founding history should explain enduring meaning, not provide a date alone."
+    },
+    {
+      "corpus_id": "KNOW-1424",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "Challenge Cup",
+        "FA Cup",
+        "Football League - Lowland League"
+      ],
+      "subject": "Cowdenbeath",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "Cowdenbeath's club grew from a mining village: teams associated with two local coal companies combined in 1882, making the Blue Brazil's roots inseparable from the town's pit communities.",
+      "why_it_belongs": "The merger of two coal-company teams gives a concise explanation of Cowdenbeath’s mining-town identity.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "locally rooted",
+          "level-sensitive",
+          "identity-forming",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "At lower levels, investigate employers, industries, villages and predecessor teams rather than searching only for famous achievements.",
+      "lesson": "A modest club can have a strong story when it reveals the football geography of its place."
+    },
+    {
+      "corpus_id": "KNOW-1447",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "FA Cup",
+        "Football League - Highland League"
+      ],
+      "subject": "Forres Mechanics",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "Forres Mechanics was formed by local tradesmen in 1884. 'Mechanics' means those craftsmen—not engines—which explains one of Scottish football's more easily misunderstood names.",
+      "why_it_belongs": "The meaning of 'Mechanics' explains the club's name and origin, connects it to local tradespeople and corrects an intuitive misunderstanding with one memorable detail.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "locally rooted",
+          "surprising",
+          "level-sensitive"
+        ],
+        "fails_or_limits": [
+          "modest consequence beyond name meaning"
+        ]
+      },
+      "research_instinct_to_teach": "At Highland and other regional clubs, investigate names that encode occupations, districts or institutions.",
+      "lesson": "Editorial significance does not require drama or national importance; a modest discovery can materially change understanding."
+    },
+    {
+      "corpus_id": "KNOW-1474",
+      "classification": "GOLD_STANDARD",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "Challenge Cup",
+        "FA Cup",
+        "Football League - Lowland League"
+      ],
+      "subject": "Clydebank",
+      "module_or_category": "SUPPORTERS",
+      "exact_current_serving_copy": "When Clydebank's shares were transferred to Airdrie United in 2002, supporters rebuilt the club themselves. Their trust has held majority ownership ever since.",
+      "why_it_belongs": "It distinguishes the loss of the former club from the supporter-led creation and ownership of the present Clydebank identity.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "identity-safe",
+          "supporter-led",
+          "level-sensitive",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "When a name survives a relocation or asset transfer, resolve the entities before writing the supporter story.",
+      "lesson": "Canonical identity and editorial meaning must reinforce each other."
+    },
+    {
+      "corpus_id": "KNOW-155",
+      "classification": "GOLD_STANDARD",
+      "country": "England",
+      "level_or_competition_context": [
+        "Championship",
+        "League Cup",
+        "Premier League"
+      ],
+      "subject": "West Ham",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "West Ham began as Thames Ironworks FC, the works team of a major east London shipbuilder. That industrial origin still lives in the club's two familiar nicknames — the Hammers and the Irons — and in the crossed hammers on the badge.",
+      "why_it_belongs": "Industrial origin is tied to enduring symbols rather than left as detached founding chronology.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "locally rooted",
+          "identity-forming",
+          "well evidenced",
+          "economically worded"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Trace names, badges and nicknames back to the workplaces and communities that produced them.",
+      "lesson": "Origins matter when the old identity remains legible in the modern club."
+    },
+    {
+      "corpus_id": "KNOW-162",
+      "classification": "GOLD_STANDARD",
+      "country": "England",
+      "level_or_competition_context": [
+        "EFL Trophy",
+        "League Cup",
+        "League One"
+      ],
+      "subject": "Bromley",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "Bromley were founded in 1892 but did not play a Football League match until 2024. When Hayes Lane finally hosted EFL football, it ended a 132-year journey through the non-league pyramid — useful context for just how new this chapter of the club's history is.",
+      "why_it_belongs": "Bromley's 132-year journey before its first Football League match explains the present club: attending now means seeing a historically new chapter after more than a century outside the EFL.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "level-sensitive",
+          "useful",
+          "well evidenced"
+        ],
+        "fails_or_limits": [
+          "less distinctive than the strongest identity stories"
+        ]
+      },
+      "research_instinct_to_teach": "Look for the decisive stages and supporter consequences behind a long climb, not the endpoint alone.",
+      "lesson": "A major change in a club's present trajectory can be Gold Standard without collapse, rescue or existential drama."
+    },
+    {
+      "corpus_id": "KNOW-194",
+      "classification": "GOLD_STANDARD",
+      "country": "England",
+      "level_or_competition_context": [
+        "EFL Trophy",
+        "League Cup",
+        "League Two"
+      ],
+      "subject": "Newport County",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "After the old Newport County collapsed, supporters rebuilt the club in 1989 — but were forced to play home games across the English border in Moreton-in-Marsh. The Exiles nickname grew from that period before County eventually fought their way home to Newport.",
+      "why_it_belongs": "It explains collapse, supporter reconstruction, exile and the meaning of a nickname in one coherent identity story.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "surprising",
+          "supporter-significant",
+          "place-aware",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Research what supporters preserved after insolvency and where the club had to play while rebuilding.",
+      "lesson": "Recovery stories should show cost, agency and continuity, not merely say a club was reformed."
+    },
+    {
+      "corpus_id": "KNOW-21",
+      "classification": "GOLD_STANDARD",
+      "country": "England",
+      "level_or_competition_context": [
+        "FA Cup",
+        "Non League Div One - Northern West",
+        "Non League Premier - Northern"
+      ],
+      "subject": "Bury",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "Bury were expelled from the EFL in 2019 after financial collapse. Supporters subsequently rebuilt a route back to football, regained Gigg Lane and the club’s name, history and intellectual property, and a supporter-backed merger returned Bury FC to competitive football at Gigg Lane in 2023.",
+      "why_it_belongs": "A compact collapse-and-recovery story with precise dates, ownership consequences and a present-day matchgoing connection through Gigg Lane.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "surprising",
+          "locally rooted",
+          "supporter-significant",
+          "well evidenced",
+          "useful before attending"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Look beyond honours for changes in ownership, survival, ground control and supporter agency.",
+      "lesson": "A club fact earns space when history explains the institution a supporter is about to watch."
+    },
+    {
+      "corpus_id": "KNOW-228",
+      "classification": "GOLD_STANDARD",
+      "country": "England",
+      "level_or_competition_context": [
+        "National League",
+        "National League Cup"
+      ],
+      "subject": "Worthing",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "Former Worthing player George Dowell was paralysed in a car crash, then used part of his compensation to buy his debt-ridden local club in 2015. He cleared its debts and transformed Woodside Road into a community-focused football hub.",
+      "why_it_belongs": "A named owner’s life-changing event, rescue of the club and transformation of the ground form an unusual, human story with visible matchday consequences.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "surprising",
+          "human",
+          "ground-connected",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Investigate who rescued a vulnerable club and whether that intervention changed the place supporters visit.",
+      "lesson": "Personal history is valuable when it materially shaped club and ground."
+    },
+    {
+      "corpus_id": "KNOW-54",
+      "classification": "GOLD_STANDARD",
+      "country": "England",
+      "level_or_competition_context": [
+        "League Cup",
+        "Premier League"
+      ],
+      "subject": "Brighton",
+      "module_or_category": "SUPPORTERS",
+      "exact_current_serving_copy": "Brighton supporters played a direct role in keeping their club alive and bringing it home. The 1990s fight included protests, boycotts and Fans United before the long campaign that eventually led to a permanent home at Falmer.",
+      "why_it_belongs": "It shows concrete supporter action, the conditions that provoked it and the eventual return to a permanent home.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "supporter-led",
+          "consequential",
+          "ground-connected",
+          "well evidenced"
+        ],
+        "fails_or_limits": []
+      },
+      "research_instinct_to_teach": "Research boycotts, protest coalitions, campaigns and the route by which supporters changed a club’s future.",
+      "lesson": "Supporter culture is strongest when expressed through sustained action and consequence."
+    },
+    {
+      "corpus_id": "DECIDE-571",
+      "classification": "ACCEPTABLE",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "Championship",
+        "FA Cup",
+        "League Cup",
+        "Premiership"
+      ],
+      "subject": "Kilmarnock v Ayr Utd",
+      "module_or_category": "SIGNIFICANT_RIVALRY",
+      "exact_current_serving_copy": "This is Ayrshire's derby, shaped by a long competitive history and county bragging rights that still matter to both sets of supporters.",
+      "why_it_belongs": "County identity and a long-running derby establish significance, but the supporter-facing reason is less vivid than the best rivalry examples.",
+      "editorial_tests": {
+        "passes": [
+          "category-fit",
+          "regional context",
+          "history",
+          "well evidenced"
+        ],
+        "fails_or_limits": [
+          "limited concrete matchgoing texture"
+        ]
+      },
+      "research_instinct_to_teach": "For regional rivalries, test repeated competition, local identity, supporter behaviour and meaningful stakes together.",
+      "lesson": "Regional scale is valid; the reason still needs evidence beyond proximity and a rivalry name."
+    },
+    {
+      "corpus_id": "DECIDE-578",
+      "classification": "ACCEPTABLE",
+      "country": "Scotland",
+      "level_or_competition_context": [],
+      "subject": "Somerset Park",
+      "module_or_category": "CLASSIC_GROUND",
+      "exact_current_serving_copy": "If you want the traditional Scottish lower-league ground experience, Somerset Park is one to seek out: an old stand, covered ends, open terracing and the pitch close by.",
+      "why_it_belongs": "The retained stand, terraces and pitch relationship support classic-ground status, though the reason could connect those features more directly to the visit.",
+      "editorial_tests": {
+        "passes": [
+          "category-fit",
+          "specific",
+          "experiential",
+          "well evidenced"
+        ],
+        "fails_or_limits": [
+          "present-day payoff could be sharper"
+        ]
+      },
+      "research_instinct_to_teach": "Verify retained fabric and sightline or enclosure effects instead of relying on construction date.",
+      "lesson": "A sound classic-ground judgment can be acceptable while its explanation remains improvable."
+    },
+    {
+      "corpus_id": "KNOW-146",
+      "classification": "ACCEPTABLE",
+      "country": "England",
+      "level_or_competition_context": [
+        "Championship",
+        "League Cup"
+      ],
+      "subject": "Portsmouth",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "After years of financial turmoil and two spells in administration, Portsmouth supporters helped take control of their club in 2013. The supporter-led takeover made Pompey one of the most prominent community-owned clubs in English football.",
+      "why_it_belongs": "Supporter rescue and later stewardship are meaningful, but the copy is more summary-like than the best action-and-consequence examples.",
+      "editorial_tests": {
+        "passes": [
+          "supporter-significant",
+          "consequential",
+          "well evidenced"
+        ],
+        "fails_or_limits": [
+          "limited supporter-facing texture"
+        ]
+      },
+      "research_instinct_to_teach": "Establish what the trust acquired, protected and handed on, then connect that to what remains visible now.",
+      "lesson": "Correct and useful copy may remain acceptable while leaving room for a sharper present-day payoff."
+    },
+    {
+      "corpus_id": "KNOW-1478",
+      "classification": "ACCEPTABLE",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "Football League - Lowland League"
+      ],
+      "subject": "Largs Thistle",
+      "module_or_category": "MATCHDAY",
+      "exact_current_serving_copy": "Competitive-match admission at Barrfields is paid at the gate in cash; accompanied under-16s enter free with a paying adult.",
+      "why_it_belongs": "Cash admission and free under-16 entry are useful, although the guidance is narrower and more liable to operational change.",
+      "editorial_tests": {
+        "passes": [
+          "actionable",
+          "non-obvious",
+          "level-sensitive"
+        ],
+        "fails_or_limits": [
+          "time-sensitive",
+          "requires vigilant review dating"
+        ]
+      },
+      "research_instinct_to_teach": "Use official, current match information and attach an expiry or review discipline to operational facts.",
+      "lesson": "Useful MATCHDAY details may qualify at any level, but currency is part of quality."
+    },
+    {
+      "corpus_id": "DECIDE-6",
+      "classification": "DO_NOT_EMULATE",
+      "country": "England",
+      "level_or_competition_context": [
+        "Community Shield",
+        "League Cup",
+        "Premier League"
+      ],
+      "subject": "Arsenal v Tottenham",
+      "module_or_category": "SIGNIFICANT_RIVALRY",
+      "exact_current_serving_copy": "A fixture with genuine rivalry context worth knowing before choosing the match.",
+      "why_it_belongs": "The copy is an editorial placeholder: it asserts rivalry context without identifying what makes the pairing significant.",
+      "editorial_tests": {
+        "passes": [
+          "concise"
+        ],
+        "fails_or_limits": [
+          "generic",
+          "unevidenced in the prose",
+          "no distinguishing reason",
+          "research-note voice"
+        ]
+      },
+      "research_instinct_to_teach": "Replace category assertions with the rivalry’s actual history, geography, stakes and supporter meaning.",
+      "lesson": "A label cannot serve as its own justification."
+    },
+    {
+      "corpus_id": "DECIDE-74",
+      "classification": "DO_NOT_EMULATE",
+      "country": "England",
+      "level_or_competition_context": [],
+      "subject": "St. James' Park",
+      "module_or_category": "UNIQUE_SETTING",
+      "exact_current_serving_copy": "A major football ground embedded prominently in central Newcastle.",
+      "why_it_belongs": "Being a major city-centre ground and visitor attraction does not by itself establish a uniquely football-specific setting.",
+      "editorial_tests": {
+        "passes": [
+          "place-aware"
+        ],
+        "fails_or_limits": [
+          "tourism framing",
+          "generic fame",
+          "weak category distinction",
+          "limited experiential proof"
+        ]
+      },
+      "research_instinct_to_teach": "Compare the setting with peers and show how landscape or urban form materially changes attendance.",
+      "lesson": "Famous location is not automatically a unique setting."
+    },
+    {
+      "corpus_id": "KNOW-1170",
+      "classification": "DO_NOT_EMULATE",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "FA Cup",
+        "League Cup",
+        "Premiership"
+      ],
+      "subject": "Kilmarnock",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "Kilmarnock were founded in 1869 and describe themselves as Scotland's oldest professional football club. They have played at the present Rugby Park site since 1899.",
+      "why_it_belongs": "Founding date, an oldest-club claim and time at the ground are stacked as chronology without a distinctive causal story.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "well evidenced"
+        ],
+        "fails_or_limits": [
+          "chronology-led",
+          "generic prestige framing",
+          "weak supporter payoff"
+        ]
+      },
+      "research_instinct_to_teach": "Ask what the longevity changed or preserved, and what a visitor can understand because of it.",
+      "lesson": "Do not emulate date-and-superlative copy when the meaning is left implicit."
+    },
+    {
+      "corpus_id": "KNOW-1226",
+      "classification": "DO_NOT_EMULATE",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "Challenge Cup",
+        "FA Cup",
+        "League Cup",
+        "League Two"
+      ],
+      "subject": "Stirling Albion",
+      "module_or_category": "MATCHDAY",
+      "exact_current_serving_copy": "Stirling Albion accepts cash, card or e-ticket at the home turnstiles. Gates normally open an hour before kick-off.",
+      "why_it_belongs": "It mostly lists ordinary payment methods and gate timing, information better handled by the ticket action unless a genuine exception exists.",
+      "editorial_tests": {
+        "passes": [
+          "actionable",
+          "officially sourced"
+        ],
+        "fails_or_limits": [
+          "routine purchase prose",
+          "low surprise",
+          "duplicates product function"
+        ]
+      },
+      "research_instinct_to_teach": "Separate ordinary buying instructions from exceptional entry constraints that can catch a supporter out.",
+      "lesson": "MATCHDAY space should be reserved for useful exceptions, not a generic checkout summary."
+    },
+    {
+      "corpus_id": "KNOW-138",
+      "classification": "DO_NOT_EMULATE",
+      "country": "England",
+      "level_or_competition_context": [
+        "Championship",
+        "League Cup"
+      ],
+      "subject": "Cardiff",
+      "module_or_category": "CLUB",
+      "exact_current_serving_copy": "Cardiff City remain the only club from outside England to have won the FA Cup. Their 1927 victory over Arsenal took the trophy out of England for the first — and so far only — time.",
+      "why_it_belongs": "A single famous cup achievement is accurate but functions mainly as honours-list trivia and says little about the club a supporter encounters now.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "well evidenced"
+        ],
+        "fails_or_limits": [
+          "thin local identity",
+          "limited matchgoing relevance",
+          "isolated achievement"
+        ]
+      },
+      "research_instinct_to_teach": "Use trophy history only when it explains enduring identity, place, supporter memory or a visible tradition.",
+      "lesson": "Accuracy alone does not make a fact worth publishing."
+    },
+    {
+      "corpus_id": "KNOW-1464",
+      "classification": "DO_NOT_EMULATE",
+      "country": "Scotland",
+      "level_or_competition_context": [
+        "FA Cup",
+        "Football League - Highland League"
+      ],
+      "subject": "Wick Academy",
+      "module_or_category": "SUPPORTERS",
+      "exact_current_serving_copy": "Wick supporters are known as the Scorries. More than 1,000 travelled over the Ord for the club’s first Highland League Cup final in 2015, turning the ground at Inverness into a sea of black and white.",
+      "why_it_belongs": "One unusually large final crowd is an event anecdote, not evidence of sustained exceptional support or a durable supporter identity.",
+      "editorial_tests": {
+        "passes": [
+          "specific",
+          "surprising"
+        ],
+        "fails_or_limits": [
+          "single-event inference",
+          "not sustained",
+          "weak present-day relevance"
+        ]
+      },
+      "research_instinct_to_teach": "For support claims, seek multi-season behaviour, mobilisation, ownership, travel or repeated performance relative to peers.",
+      "lesson": "Do not generalise supporter significance from one attendance spike."
+    }
+  ],
+  "sparse_examples": [
+    {
+      "subject": "Alloa Athletic",
+      "country": "Scotland",
+      "level_context": "SPFL relationship",
+      "classification": "GOLD_STANDARD_SPARSE",
+      "reason": "The completed CLUB/SUPPORTERS review found no additional publishable fact that cleared the universal quality bar; existing non-qualifying material was not converted into filler.",
+      "what_was_resisted": "Founding-date, nickname and generic community copy added only to make the page look fuller.",
+      "source_artifact": "reports/scotland-country-rollout-20260922/scotland-completeness-audit/13-club-supporters-cohort-1-summary.md",
+      "absent_modules": [
+        "CLUB",
+        "SUPPORTERS",
+        "MATCHDAY",
+        "BTM",
+        "DECIDE"
+      ],
+      "useful_content_remaining": "Canonical fixture and Indodrill Stadium identity."
+    },
+    {
+      "subject": "Banks O’ Dee",
+      "country": "Scotland",
+      "level_context": "Highland League relationship",
+      "classification": "GOLD_STANDARD_SPARSE",
+      "reason": "The evidence-led cohort review accepted a lean result at lower level instead of lowering the editorial threshold.",
+      "what_was_resisted": "Treating lower-profile football as permission for generic history or unsupported supporter-colour copy.",
+      "source_artifact": "reports/scotland-country-rollout-20260922/scotland-completeness-audit/13-club-supporters-cohort-1-summary.md",
+      "absent_modules": [
+        "CLUB",
+        "SUPPORTERS",
+        "MATCHDAY",
+        "BTM",
+        "DECIDE"
+      ],
+      "useful_content_remaining": "Canonical fixture and Spain Park identity."
+    },
+    {
+      "subject": "Invergordon",
+      "country": "Scotland",
+      "level_context": "North Caledonian / lower non-league relationship",
+      "classification": "GOLD_STANDARD_SPARSE",
+      "reason": "Research was completed and the relationship remained deliberately sparse because no safe CLUB/SUPPORTERS copy crossed the publication bar.",
+      "what_was_resisted": "Inflating local context into a significance claim without sufficient accepted evidence.",
+      "source_artifact": "reports/scotland-country-rollout-20260922/scotland-completeness-audit/22-club-supporters-cohort-4-summary.md",
+      "absent_modules": [
+        "CLUB",
+        "SUPPORTERS",
+        "MATCHDAY",
+        "BTM",
+        "DECIDE"
+      ],
+      "useful_content_remaining": "Canonical fixture and Invergordon Recreation Grounds identity plus the official ticket-destination action."
+    },
+    {
+      "subject": "Newton Stewart",
+      "country": "Scotland",
+      "level_context": "South of Scotland League relationship",
+      "classification": "GOLD_STANDARD_SPARSE",
+      "reason": "The final rendered review explicitly recorded SPARSE_PASS: the page remained coherent without filler after full review.",
+      "what_was_resisted": "Adding weak material to satisfy a module or page-density expectation.",
+      "source_artifact": "reports/scotland-country-rollout-20260922/scotland-completeness-audit/39-final-rendered-review-ledger.json",
+      "absent_modules": [
+        "CLUB",
+        "SUPPORTERS",
+        "MATCHDAY",
+        "BTM",
+        "DECIDE"
+      ],
+      "useful_content_remaining": "Canonical fixture and Blairmount Park identity; rendered review recorded a coherent sparse page."
+    }
+  ],
+  "legacy_evidence_deficiency": {
+    "DECIDE-6": "No accepted evidence rows in the completed corpus.",
+    "DECIDE-74": "No accepted evidence rows in the completed corpus."
+  },
+  "human_approval": {
+    "approved_by": "Ray",
+    "approved_on": "2026-09-24",
+    "amendments": [
+      "KNOW-162 promoted from ACCEPTABLE to GOLD_STANDARD",
+      "KNOW-1447 promoted from ACCEPTABLE to GOLD_STANDARD"
+    ]
+  }
+}
