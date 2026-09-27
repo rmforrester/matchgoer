@@ -106,12 +106,18 @@ const markerKeyItems: { signal: Exclude<MarkerSignal, "standard">; label: string
 ];
 
 function MarkerKey() {
-  return <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--tt-rule)] px-1 pt-1.5 text-[0.65rem] font-extrabold uppercase tracking-[0.06em] text-[var(--tt-muted)]" aria-label="Map key">
-    {markerKeyItems.map(({ signal, label }) => <span key={signal} className="inline-flex items-center gap-1 whitespace-nowrap">
-      <span className="inline-flex h-5 w-4 items-center justify-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: markerKeyIconHtml(signal) }} />
-      {label}
-    </span>)}
-  </div>;
+  return <details className="mg-content-rule mt-2 text-[0.68rem] text-[var(--tt-muted)]">
+    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-extrabold uppercase tracking-[0.1em] marker:content-none">
+      <span>Why these matches?</span><span aria-hidden="true">＋</span>
+    </summary>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pb-2" aria-label="Map key">
+      <span className="inline-flex items-center gap-2"><span className="h-3 w-3 bg-[var(--brand-interactive)]" aria-hidden="true" />Fixture</span>
+      {markerKeyItems.map(({ signal, label }) => <span key={signal} className="inline-flex items-center gap-1 whitespace-nowrap">
+        <span className="inline-flex h-5 w-4 items-center justify-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: markerKeyIconHtml(signal) }} />
+        {label}
+      </span>)}
+    </div>
+  </details>;
 }
 
 function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureDismiss, showDistance, compactMobile }: FixtureVenueMarkerProps) {

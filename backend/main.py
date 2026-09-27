@@ -664,8 +664,20 @@ def get_nearby(
                 "home_team":
                     fixture.home_team,
 
+                "home_team_id":
+                    fixture.home_team_id,
+
+                "home_team_badge_url":
+                    badge_proxy_path(fixture.home_team_id),
+
                 "away_team":
                     fixture.away_team,
+
+                "away_team_id":
+                    fixture.away_team_id,
+
+                "away_team_badge_url":
+                    badge_proxy_path(fixture.away_team_id),
 
                 "league_id":
                     fixture.league_id,

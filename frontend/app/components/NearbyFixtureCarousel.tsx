@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 
-import type { Fixture } from "../types/fixture";
+import { apiAssetUrl } from "../../lib/api";
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
+import type { Fixture } from "../types/fixture";
 import FixtureTeams from "./FixtureTeams";
 
 type Props = {
@@ -22,19 +23,19 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
   if (fixtures.length === 0) return null;
 
   return (
-    <section aria-labelledby="nearby-fixtures-heading" className="tt-section-rule mt-3 min-w-0 pt-3">
-      <div className="mb-2 flex items-end justify-between gap-3">
+    <section aria-labelledby="nearby-fixtures-heading" className="mg-editorial-rule mt-6 min-w-0 pt-4 sm:mt-8 sm:pt-5">
+      <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <p className="tt-kicker">03 / Choose a match</p>
-          <h2 id="nearby-fixtures-heading" className="tt-display mt-1 text-3xl leading-none sm:text-4xl">What&apos;s on</h2>
-          <p className="mt-1 text-xs font-bold uppercase tracking-wide text-[var(--tt-muted)]">Earliest kickoff first</p>
+          <p className="mg-section-label">03 / Choose a match</p>
+          <h2 id="nearby-fixtures-heading" className="mg-display-section mt-1">What&apos;s on</h2>
+          <p className="mg-meta mt-1 text-xs font-bold uppercase tracking-[0.1em]">Earliest kick-off first</p>
         </div>
-        <span className="shrink-0 bg-[var(--brand-interactive)] px-2 py-1 text-xs font-extrabold uppercase tracking-wider text-[var(--tt-paper)]">
+        <span className="shrink-0 bg-[var(--brand-interactive)] px-2.5 py-1.5 text-xs font-extrabold uppercase tracking-wider text-[var(--tt-paper)]">
           {resultsLimited ? `${fixtures.length} of ${totalMatches}` : totalMatches} {totalMatches === 1 ? "match" : "matches"}
         </span>
       </div>
 
-      <div className="tt-scrollbar flex max-w-full snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-4 [-webkit-overflow-scrolling:touch]" aria-label="Nearby fixtures, scroll horizontally">
+      <div className="grid min-w-0 gap-x-6 md:grid-cols-2 xl:grid-cols-3" aria-label="Nearby fixtures">
         {fixtures.map((fixture) => {
           const kickoff = new Date(fixture.fixture_date);
           const statusGroup = fixtureStatusGroup(fixture.status);
@@ -50,36 +51,42 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
               key={fixture.fixture_id}
               onFocus={() => onFixtureSelect(fixture.fixture_id)}
               onPointerEnter={() => onFixtureSelect(fixture.fixture_id)}
-              className={`group relative flex h-[18.5rem] w-[87%] min-w-[87%] max-w-none snap-start flex-col border-2 bg-[var(--tt-paper)] text-[var(--tt-ink)] transition sm:w-64 sm:min-w-64 sm:max-w-[16rem] ${highlighted ? isSelected ? "-translate-y-0.5 border-[var(--tt-gold)] shadow-[3px_3px_0_var(--tt-gold)]" : "border-[var(--tt-gold)] hover:-translate-y-0.5" : isSelected ? "-translate-y-0.5 border-[var(--brand-interactive)] shadow-[3px_3px_0_var(--brand-interactive)]" : "border-[var(--tt-ink)] hover:-translate-y-0.5 hover:border-[var(--brand-interactive)]"}`}
+              className={`group relative min-w-0 border-t bg-transparent py-4 transition first:border-t-0 md:first:border-t ${highlighted ? "border-[var(--tt-gold)]" : "border-[var(--tt-rule)]"} ${isSelected ? "-translate-y-0.5 bg-[var(--tt-paper)] shadow-[3px_3px_0_var(--tt-rule)]" : ""}`}
             >
-              <Link href={`/fixture/${fixture.fixture_id}`} className="flex min-h-0 flex-1 flex-col overflow-hidden p-3 focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[var(--brand-interactive)]" aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}>
-                {highlighted && fixture.lead_decision_reason && <div className="mb-2 border-l-4 border-[var(--tt-gold)] pl-2">
-                  <p className="text-xs font-extrabold leading-tight">{fixture.lead_decision_reason.emoji} {fixture.lead_decision_reason.label}</p>
-                </div>}
-                <div className="mb-2 flex items-start justify-between gap-3 border-b-2 border-[var(--tt-ink)] pb-2">
-                  <div className="flex items-end gap-2">
-                    <span className="tt-display text-3xl leading-[0.8] text-[var(--brand-interactive)]">{kickoff.toLocaleDateString(undefined, { day: "2-digit" })}</span>
-                    <p className="text-[0.62rem] font-extrabold uppercase leading-tight tracking-[0.12em]">{kickoff.toLocaleDateString(undefined, { weekday: "short" })}<br />{kickoff.toLocaleDateString(undefined, { month: "short" })}</p>
-                  </div>
-                  {hasResult ? <span className="bg-[var(--tt-ink)] px-2 py-1 text-sm font-extrabold text-[var(--tt-paper)]">{fixture.home_goals}–{fixture.away_goals}</span> : statusGroup === "postponed" || statusGroup === "cancelled" ? <span className="bg-[var(--tt-ink)] px-2 py-1 text-[0.62rem] font-extrabold uppercase tracking-wide text-[var(--tt-paper)]">{fixtureStatusLabel(fixture.status)}</span> : <span className="text-sm font-extrabold tabular-nums">{kickoff.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}</span>}
+              <Link href={`/fixture/${fixture.fixture_id}`} className={`block min-w-0 px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)] ${highlighted ? "border-l-[6px] border-[var(--tt-gold)] pl-3" : ""}`} aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}>
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-interactive)]">
+                    {kickoff.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {kickoff.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                  {hasResult ? <span className="bg-[var(--tt-ink)] px-2 py-1 text-sm font-extrabold text-[var(--tt-paper)]">{fixture.home_goals}–{fixture.away_goals}</span> : statusGroup === "postponed" || statusGroup === "cancelled" ? <span className="bg-[var(--tt-ink)] px-2 py-1 text-[0.62rem] font-extrabold uppercase tracking-wide text-[var(--tt-paper)]">{fixtureStatusLabel(fixture.status)}</span> : null}
                 </div>
 
-                <div className="h-[5.15rem] shrink-0 overflow-hidden">
-                  <FixtureTeams homeTeam={fixture.home_team} awayTeam={fixture.away_team} teamClassName="line-clamp-2 text-[1.28rem] leading-[0.92]" separatorClassName="my-0.5 text-[0.62rem]" />
-                </div>
-                <p className="mt-2 line-clamp-2 min-w-0 break-words text-[0.66rem] font-extrabold uppercase leading-tight tracking-[0.1em] text-[var(--brand-interactive)]">{fixture.league_name}</p>
+                <FixtureTeams
+                  homeTeam={fixture.home_team}
+                  awayTeam={fixture.away_team}
+                  homeBadgeSrc={apiAssetUrl(fixture.home_team_badge_url)}
+                  awayBadgeSrc={apiAssetUrl(fixture.away_team_badge_url)}
+                  teamClassName="text-[1.7rem] leading-[0.88] sm:text-[1.9rem]"
+                  separatorClassName="my-1 text-[0.62rem]"
+                  badgeClassName="h-9 w-9 sm:h-10 sm:w-10"
+                />
 
-                <div className="mt-auto border-t border-[var(--tt-rule)] pt-2 text-[0.68rem]">
-                  <p className="line-clamp-2 min-w-0 break-words font-extrabold uppercase leading-tight tracking-[0.08em]">{fixture.venue_name}</p>
-                  <div className="mt-1 flex items-center justify-between gap-2">
-                    <span className="font-bold text-[var(--tt-muted)]">{showMeaningfulDistance ? `${fixture.distance_miles.toFixed(1)} mi away` : ""}</span>
-                    {fixture.away_day_score !== null && <span className="font-extrabold text-[var(--brand-interactive)]">★ {fixture.away_day_score.toFixed(1)}</span>}
-                  </div>
-                  <span className="mt-2 inline-block font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">View match →</span>
+                <div className="mt-3 grid min-w-0 gap-1 text-xs">
+                  <p className="min-w-0 break-words font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)]">{fixture.league_name}</p>
+                  <p className="min-w-0 break-words font-bold">{fixture.venue_name}{showMeaningfulDistance ? ` · ${fixture.distance_miles.toFixed(1)} mi` : ""}</p>
+                </div>
+
+                {highlighted && fixture.lead_decision_reason && <p className="mt-3 inline-flex items-center gap-1 border border-[var(--tt-gold)] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.06em]">
+                  <span aria-hidden="true">{fixture.lead_decision_reason.emoji}</span>{fixture.lead_decision_reason.label}
+                </p>}
+
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--tt-rule)] pt-3">
+                  <span className="font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">View match →</span>
+                  {fixture.away_day_score !== null && <span className="text-xs font-extrabold text-[var(--brand-interactive)]">★ {fixture.away_day_score.toFixed(1)}</span>}
                 </div>
               </Link>
 
-              <button type="button" aria-label={isInterested ? `Remove ${fixture.home_team} versus ${fixture.away_team} from Interested` : `Save ${fixture.home_team} versus ${fixture.away_team} as Interested`} aria-pressed={isInterested} disabled={isUpdating} onClick={() => onToggleInterested(fixture.fixture_id)} className={`flex min-h-11 items-center justify-center border-t border-[var(--tt-ink)] px-3 text-[0.66rem] font-extrabold uppercase tracking-[0.12em] transition disabled:cursor-wait disabled:opacity-60 ${isInterested ? "bg-[var(--brand-interactive)] text-[var(--tt-paper)]" : "bg-[var(--tt-paper)] text-[var(--tt-muted)] hover:bg-[var(--tt-ink)] hover:text-[var(--tt-paper)]"}`}>
+              <button type="button" aria-label={isInterested ? `Remove ${fixture.home_team} versus ${fixture.away_team} from Interested` : `Save ${fixture.home_team} versus ${fixture.away_team} as Interested`} aria-pressed={isInterested} disabled={isUpdating} onClick={() => onToggleInterested(fixture.fixture_id)} className={`mt-2 min-h-11 w-full px-3 text-xs font-extrabold uppercase tracking-[0.1em] transition disabled:cursor-wait disabled:opacity-60 ${isInterested ? "bg-[var(--brand-interactive)] text-[var(--tt-paper)]" : "text-[var(--tt-muted)] underline decoration-2 underline-offset-4 hover:text-[var(--brand-interactive)]"}`}>
                 {isInterested ? "✓ Interested" : "Interested"}
               </button>
             </article>

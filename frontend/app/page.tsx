@@ -710,35 +710,36 @@ const loadVisitedStadiums = () => {
   const usingDefaultDateRange = startDate === defaultDateRange.startDate && endDate === defaultDateRange.endDate;
 
   return (
-    <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-2 sm:px-6 sm:py-8">
+    <main className="mx-auto w-full min-w-0 max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
       <AccountConversionPrompt open={showAccountPrompt} kind="interested" onDismiss={() => setShowAccountPrompt(false)} />
 
-      <header className="mb-2 border-b-2 border-[var(--tt-ink)] pb-2 sm:mb-6 sm:pb-5">
-        <p className="tt-kicker">01 / Match discovery</p>
-        <h1 className="tt-display mt-0.5 text-3xl leading-[0.9] sm:mt-2 sm:text-6xl">Find football worth going to.</h1>
-        <p className="mt-1 max-w-xl text-xs text-[var(--tt-muted)] sm:mt-2 sm:text-base">
+      <header className="mb-5 border-b-2 border-[var(--tt-ink)] pb-5 sm:mb-8 sm:pb-7">
+        <p className="mg-section-label">01 / Match discovery</p>
+        <h1 className="mg-display-page mt-2 max-w-4xl">Find football<br />worth going to.</h1>
+        <p className="mg-body mt-4 max-w-xl text-[var(--tt-muted)]">
           Discover matches wherever you are. Know the matchday before you get there.
         </p>
       </header>
 
-      <section className={editingSearch || !appliedSearch ? "tt-panel mb-4 w-full min-w-0 p-2.5 sm:p-4" : "mb-2 w-full min-w-0 border-y border-[var(--tt-rule)] py-2"} aria-labelledby="search-heading">
+      <section className={editingSearch || !appliedSearch ? "mb-7 w-full min-w-0 sm:mb-9" : "mg-utility-panel mb-5 w-full min-w-0 px-3 py-1 sm:px-4"} aria-labelledby="search-heading">
         {!editingSearch && appliedSearch ? (
           <div className="flex items-center justify-between gap-3">
-            <p className="min-w-0 truncate text-sm font-extrabold" id="search-heading">
+            <p className="min-w-0 break-words py-2 text-sm font-extrabold" id="search-heading">
               {appliedSearch.locationName.split(",")[0]} · {appliedDateSummary} · {appliedSearch.leagueIds.length === 0 ? "All competitions" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "competition" : "competitions"}`}
             </p>
             <button type="button" onClick={() => setEditingSearch(true)} className="min-h-11 shrink-0 px-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Edit</button>
           </div>
         ) : (
-          <form onSubmit={submitDiscovery}>
+          <form onSubmit={submitDiscovery} className="max-w-5xl">
             <h2 className="sr-only" id="search-heading">Search for football</h2>
-            <button type="button" onClick={findFootballThisWeekend} disabled={!discoveryNow || loading || locationLoading} className="tt-action w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14">
+            <button type="button" onClick={findFootballThisWeekend} disabled={!discoveryNow || loading || locationLoading} className="mg-primary-action w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14 sm:max-w-xl">
               {locationLoading ? "Finding your location…" : "Find football near me this weekend"}
             </button>
-            <div className="my-2 flex items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
+            <div className="my-4 flex max-w-xl items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
               <span className="h-px flex-1 bg-[var(--tt-rule)]" />or<span className="h-px flex-1 bg-[var(--tt-rule)]" />
             </div>
-            <div className="grid gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-8">
+            <div className="grid content-start gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
               Where?
               <div>
                 <input
@@ -761,14 +762,15 @@ const loadVisitedStadiums = () => {
               </div>
             </div>
 
-            <div className="mt-1.5 pt-1.5">
+            <div className="pt-1.5 lg:pt-0">
               <p className="mb-1 text-xs font-extrabold uppercase tracking-[0.12em]">When? <span className="ml-1 font-bold normal-case tracking-normal text-[var(--tt-muted)]">{usingDefaultDateRange ? "Next 14 days" : "Custom dates"}</span></p>
               <div className={discoveryNow ? "" : "invisible"} aria-hidden={discoveryNow ? undefined : true}>
                 <DateRangeFields startDate={startDate} setStartDate={setSelectedStartDate} minimumStartDate={today} endDate={endDate} setEndDate={setEndDate} />
               </div>
             </div>
+            </div>
 
-            <details className="mt-2 border-t border-[var(--tt-rule)] pt-1">
+            <details className="mt-4 max-w-5xl border-t border-[var(--tt-rule)] pt-1">
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-xs font-extrabold uppercase tracking-[0.12em] marker:content-none">
                 <span>Filters</span><span aria-hidden="true">＋</span>
               </summary>
@@ -781,7 +783,7 @@ const loadVisitedStadiums = () => {
               </div>
             </details>
 
-            <button type="submit" disabled={!discoveryNow || loading || locationLoading} className="tt-action mt-1.5 w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:mt-2 sm:block sm:w-auto sm:min-w-40">{loading ? "Searching…" : "Search"}</button>
+            <button type="submit" disabled={!discoveryNow || loading || locationLoading} className="mg-primary-action mt-3 w-full px-5 disabled:cursor-not-allowed disabled:opacity-60 sm:block sm:w-auto sm:min-w-40">{loading ? "Searching…" : "Search"}</button>
 
             {locationError && <p role="alert" className="mt-3 border-l-4 border-[var(--brand-interactive)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{locationError}</p>}
             {dateError && <p role="alert" className="mt-3 border-l-4 border-[var(--brand-interactive)] bg-[var(--tt-newsprint)] p-3 text-sm font-semibold normal-case tracking-normal">{dateError}</p>}
@@ -792,9 +794,12 @@ const loadVisitedStadiums = () => {
       {/* Map */}
 
       {appliedSearch && (
-          <section className="mb-5 w-full min-w-0 max-w-full overflow-x-clip" aria-label={`Matches near ${appliedSearch.locationName.split(",")[0]}`}>
-            <p className="tt-kicker mb-1">02 / Map · Geography</p>
-            <div className="border border-[var(--tt-rule)] bg-[var(--tt-paper)] p-1">
+          <section className="mb-7 w-full min-w-0 max-w-full overflow-x-clip" aria-label={`Matches near ${appliedSearch.locationName.split(",")[0]}`}>
+            <div className="mb-3">
+              <p className="mg-section-label">02 / See the area</p>
+              <h2 className="mg-display-section mt-1">Map the matchday</h2>
+            </div>
+            <div className="border-y-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] py-1">
 <FixtureMap
   fixtures={visibleFixtures}
   venues={venues}

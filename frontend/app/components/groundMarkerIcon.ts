@@ -14,7 +14,7 @@ export const markerSignalSvg = (signal: MarkerSignal, stroke: string) => {
 const markerSvg = (visited: boolean, selected: boolean, signal: MarkerSignal) => {
   const presentation = venueMarkerPresentation(visited, selected);
   const goldSignal = signal === "rivalry" || signal === "scenic" || signal === "classic";
-  const markerFill = goldSignal ? "#D6A600" : "#2146D0";
+  const markerFill = goldSignal ? "#D6AA18" : "#174A32";
   const markStroke = goldSignal ? "#171717" : "#FCFAF5";
   return `
   <svg aria-hidden="true" width="${presentation.visibleWidth}" height="${presentation.visibleHeight}" viewBox="0 0 30 36" xmlns="http://www.w3.org/2000/svg">
