@@ -149,7 +149,7 @@ test("mobile fixture overlay stays in a control-safe area and preserves core mat
   assert.match(fixtureMapSource, /fixture\.venue_name/);
   assert.match(fixtureMapSource, /View match/);
   assert.match(fixtureMapSource, /grid-cols-\[minmax\(0,1fr\)_2\.75rem\]/);
-  assert.match(fixtureMapSource, /block min-w-0 break-words text-sm leading-tight/);
+  assert.match(fixtureMapSource, /flex min-w-0 items-start gap-1 break-words text-sm leading-tight/);
   assert.match(fixtureMapSource, /inline-flex min-h-11[^\n]*View match/);
 });
 
