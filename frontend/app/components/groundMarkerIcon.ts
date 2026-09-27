@@ -11,9 +11,9 @@ export const markerSignalSvg = (signal: MarkerSignal, stroke: string) => {
   return "";
 };
 
-const markerSvg = (visited: boolean, selected: boolean, signal: MarkerSignal) => {
+const markerSvg = (visited: boolean, selected: boolean, signal: MarkerSignal, showSignal = false) => {
   const presentation = venueMarkerPresentation(visited, selected);
-  const goldSignal = signal === "rivalry" || signal === "scenic" || signal === "classic";
+  const goldSignal = signal !== "standard";
   const markerFill = goldSignal ? "#D6AA18" : "#174A32";
   const markStroke = goldSignal ? "#171717" : "#FCFAF5";
   return `
@@ -25,7 +25,7 @@ const markerSvg = (visited: boolean, selected: boolean, signal: MarkerSignal) =>
       stroke-width="2"
       stroke-linejoin="miter"
     />
-    ${markerSignalSvg(signal, markStroke)}
+    ${showSignal ? markerSignalSvg(signal, markStroke) : ""}
   </svg>
 `;
 };
@@ -41,7 +41,7 @@ export function createGroundMarkerIcon(visited = false, selected = false, signal
 }
 
 export function markerKeyIconHtml(signal: Exclude<MarkerSignal, "standard">): string {
-  return markerSvg(false, false, signal);
+  return markerSvg(false, false, signal, true);
 }
 
 const attendedGroundMarkerSvg = `

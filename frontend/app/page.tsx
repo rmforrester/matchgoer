@@ -797,7 +797,7 @@ const loadVisitedStadiums = () => {
           <section className="mb-7 w-full min-w-0 max-w-full overflow-x-clip" aria-label={`Matches near ${appliedSearch.locationName.split(",")[0]}`}>
             <div className="mb-3">
               <p className="mg-section-label">02 / See the area</p>
-              <h2 className="mg-display-section mt-1">Map the matchday</h2>
+              <h2 className="mg-display-section mt-1">Football around you</h2>
             </div>
             <div className="border-y-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] py-1">
 <FixtureMap

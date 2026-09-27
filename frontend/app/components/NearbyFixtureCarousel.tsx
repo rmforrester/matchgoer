@@ -76,13 +76,13 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
                   <p className="min-w-0 break-words font-bold">{fixture.venue_name}{showMeaningfulDistance ? ` · ${fixture.distance_miles.toFixed(1)} mi` : ""}</p>
                 </div>
 
-                {highlighted && fixture.lead_decision_reason && <p className="mt-3 inline-flex items-center gap-1 border border-[var(--tt-gold)] px-2 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.06em]">
+                {highlighted && fixture.lead_decision_reason && <p className="mt-3 inline-flex items-center gap-1 border border-[var(--tt-gold)] px-2 py-1 text-[0.64rem] font-bold uppercase tracking-[0.06em]">
                   <span aria-hidden="true">{fixture.lead_decision_reason.emoji}</span>{fixture.lead_decision_reason.label}
                 </p>}
 
                 <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--tt-rule)] pt-3">
                   <span className="font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">View match →</span>
-                  {fixture.away_day_score !== null && <span className="text-xs font-extrabold text-[var(--brand-interactive)]">★ {fixture.away_day_score.toFixed(1)}</span>}
+                  {fixture.away_day_score !== null && <span className="text-[0.68rem] font-extrabold text-[var(--tt-muted)]">Terrace rating {fixture.away_day_score.toFixed(1)}/10</span>}
                 </div>
               </Link>
 
