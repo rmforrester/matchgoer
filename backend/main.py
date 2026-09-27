@@ -47,6 +47,7 @@ from models import (
     SocialEvent,
     DecisionFact,
     KnowFact,
+    Team,
 )
 
 from schemas import (
@@ -76,6 +77,7 @@ from schemas import (
     FixtureKnowResponse,
 )
 from fixture_tickets import resolve_fixture_ticket_action
+from team_badges import badge_proxy_path, provider_badge_id, resolve_badge
 
 from fastapi import Cookie, Depends, FastAPI, Header, Response, HTTPException, Query
 from venue_guides import build_venue_guide
@@ -84,6 +86,30 @@ from venue_guides import build_venue_guide
 app = FastAPI(
     title="Matchgoer API"
 )
+
+
+@app.get("/teams/{canonical_team_id}/badge", include_in_schema=False)
+def get_team_badge(canonical_team_id: int):
+    provider_team_id = provider_badge_id(canonical_team_id)
+    if provider_team_id is None:
+        raise HTTPException(status_code=404, detail="Team badge unavailable")
+    db = SessionLocal()
+    try:
+        if db.query(Team.team_id).filter(Team.team_id == canonical_team_id).first() is None:
+            raise HTTPException(status_code=404, detail="Team badge unavailable")
+    finally:
+        db.close()
+    badge = resolve_badge(provider_team_id)
+    if badge is None:
+        raise HTTPException(status_code=404, detail="Team badge unavailable")
+    headers = {
+        "Cache-Control": "public, max-age=86400, stale-if-error=604800",
+        "ETag": f'"{badge.digest}"',
+        "X-Content-Type-Options": "nosniff",
+    }
+    if badge.stale:
+        headers["Warning"] = '110 - "Response is stale"'
+    return Response(content=badge.content, media_type=badge.media_type, headers=headers)
 
 logger = logging.getLogger(__name__)
 
@@ -2601,7 +2627,9 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             "fixture": {
                 "fixture_id": fixture.fixture_id, "fixture_date": fixture_datetime_utc(fixture.fixture_date),
                 "home_team": fixture.home_team, "home_team_id": fixture.home_team_id,
-                "away_team": fixture.away_team,
+                "home_team_badge_url": badge_proxy_path(fixture.home_team_id),
+                "away_team": fixture.away_team, "away_team_id": fixture.away_team_id,
+                "away_team_badge_url": badge_proxy_path(fixture.away_team_id),
                 "status": fixture.status, "home_goals": fixture.home_goals,
                 "away_goals": fixture.away_goals,
                 "league_name": fixture.league_name, "venue_id": fixture.venue_id,

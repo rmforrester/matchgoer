@@ -4,7 +4,7 @@ import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import api from "../../../lib/api";
+import api, { apiAssetUrl } from "../../../lib/api";
 import { fixtureHasFinishedForSocial, fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
 import AccountConversionPrompt from "../../components/AccountConversionPrompt";
 import FixtureTeams from "../../components/FixtureTeams";
@@ -26,7 +26,7 @@ type DecisionReason = {
 };
 
 type SocialFixture = {
-  fixture: { fixture_id: number; fixture_date: string; home_team: string; home_team_id: number | null; away_team: string; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
+  fixture: { fixture_id: number; fixture_date: string; home_team: string; home_team_id: number | null; home_team_badge_url: string | null; away_team: string; away_team_id: number | null; away_team_badge_url: string | null; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
   terrace_rating: number | null; recommend_percentage: number | null;
   decision_reasons: DecisionReason[]; highlight_eligible: boolean;
   ticket_action: { label: string; url: string; source_label: string } | null;
@@ -203,7 +203,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       <div className="mt-5 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:gap-12">
         <div className="min-w-0">
           <h1 id="fixture-heading" className="sr-only">{data.fixture.home_team} versus {data.fixture.away_team}</h1>
-          <FixtureTeams homeTeam={data.fixture.home_team} awayTeam={data.fixture.away_team} className="max-w-4xl" teamClassName="mg-display-page" separatorClassName="my-2.5 text-sm tracking-[0.2em] sm:my-3 sm:text-base" />
+          <FixtureTeams homeTeam={data.fixture.home_team} awayTeam={data.fixture.away_team} homeBadgeSrc={apiAssetUrl(data.fixture.home_team_badge_url)} awayBadgeSrc={apiAssetUrl(data.fixture.away_team_badge_url)} className="max-w-4xl" teamClassName="mg-display-page" badgeClassName="h-12 w-12 sm:h-[4.5rem] sm:w-[4.5rem]" separatorClassName="my-2.5 text-sm tracking-[0.2em] sm:my-3 sm:text-base" />
           {hasResult && <p className="mg-display-section mt-6 text-[var(--mg-green)]" aria-label={`Final score ${data.fixture.home_goals} to ${data.fixture.away_goals}`}>{data.fixture.home_goals}–{data.fixture.away_goals}</p>}
         </div>
         <dl className="grid grid-cols-2 gap-x-5 gap-y-3 border-t border-[var(--mg-rule)] pt-4 text-sm lg:grid-cols-1 lg:border-l lg:border-t-0 lg:pl-7 lg:pt-0">
