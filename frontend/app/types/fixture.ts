@@ -10,7 +10,11 @@ export type Fixture = {
   fixture_id: number;
   fixture_date: string;
   home_team: string;
+  home_team_id?: number | null;
+  home_team_badge_url?: string | null;
   away_team: string;
+  away_team_id?: number | null;
+  away_team_badge_url?: string | null;
   league_id: number;
   league_name: string;
   fixture_type?: "standard" | "cup" | "international";

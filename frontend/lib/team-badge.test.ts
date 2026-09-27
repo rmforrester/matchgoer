@@ -7,6 +7,7 @@ const root = process.cwd();
 const badgeSource = fs.readFileSync(path.join(root, "app/components/TeamBadge.tsx"), "utf8");
 const teamsSource = fs.readFileSync(path.join(root, "app/components/FixtureTeams.tsx"), "utf8");
 const fixtureSource = fs.readFileSync(path.join(root, "app/fixture/[fixtureId]/page.tsx"), "utf8");
+const discoverResultsSource = fs.readFileSync(path.join(root, "app/components/NearbyFixtureCarousel.tsx"), "utf8");
 
 test("badge collapses cleanly for missing sources and image failures", () => {
   assert.match(badgeSource, /if \(!src \|\| failedSrc === src\) return null/);
@@ -27,9 +28,11 @@ test("fixture team layout remains optional, responsive, and long-name safe", () 
   assert.match(teamsSource, /h-12 w-12 sm:h-16 sm:w-16/);
 });
 
-test("only the fixture hero opts into canonical proxy badge paths", () => {
+test("fixture hero and Discover results opt into canonical proxy badge paths", () => {
   assert.match(fixtureSource, /apiAssetUrl\(data\.fixture\.home_team_badge_url\)/);
   assert.match(fixtureSource, /apiAssetUrl\(data\.fixture\.away_team_badge_url\)/);
   assert.match(fixtureSource, /homeBadgeSrc=/);
   assert.match(fixtureSource, /awayBadgeSrc=/);
+  assert.match(discoverResultsSource, /apiAssetUrl\(fixture\.home_team_badge_url\)/);
+  assert.match(discoverResultsSource, /apiAssetUrl\(fixture\.away_team_badge_url\)/);
 });

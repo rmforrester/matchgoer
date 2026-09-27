@@ -106,12 +106,13 @@ test("grouped marker becomes gold and initially selects the earliest eligible fi
   assert.equal(grouped.fixtures.length, 3, "ordinary fixtures remain navigable in the highlighted group");
 });
 
-test("ordinary fixture group keeps a plain blue marker and existing carousel presentation", () => {
+test("ordinary fixture group keeps a restrained green marker and vertical result presentation", () => {
   const fixtures = [decisionFixture({ fixture_id: 1 }), decisionFixture({ fixture_id: 2 })];
   assert.deepEqual(fixtureGroupDecision(fixtures), { highlighted: false, initialFixtureIndex: 0 });
-  assert.match(groundMarkerSource, /goldSignal \? "#D6A600" : "#2146D0"/);
+  assert.match(groundMarkerSource, /goldSignal \? "#D6AA18" : "#174A32"/);
+  assert.match(groundMarkerSource, /showSignal \? markerSignalSvg\(signal, markStroke\) : ""/);
   assert.match(groundMarkerSource, /return "";/);
-  assert.match(fixtureCarouselSource, /h-\[18\.5rem\]/);
+  assert.match(fixtureCarouselSource, /md:grid-cols-2 xl:grid-cols-3/);
 });
 
 test("Discover map exposes only the winning marker reason while the carousel keeps its compact lead reason", () => {
@@ -123,6 +124,7 @@ test("Discover map exposes only the winning marker reason while the carousel kee
   assert.match(fixtureCarouselSource, /fixture\.lead_decision_reason\.label/);
   assert.doesNotMatch(fixtureCarouselSource, /fixture\.lead_decision_reason\.explanation/);
   assert.doesNotMatch(fixtureCarouselSource, /decision_reasons/);
+  assert.match(fixtureMapSource, /decision\.highlighted \? "classic" : "standard"/);
 });
 
 test("fixture popup keeps required match details, accessible dismiss, and View match action", () => {
@@ -137,7 +139,7 @@ test("fixture popup keeps required match details, accessible dismiss, and View m
 });
 
 test("mobile fixture overlay stays in a control-safe area and preserves core match fields", () => {
-  assert.match(globalStylesSource, /\.tt-map \{ height: clamp\(22rem, 58dvh, 25rem\); \}/);
+  assert.match(globalStylesSource, /\.tt-map \{ height: 17\.5rem; \}/);
   assert.match(globalStylesSource, /\.tt-mobile-fixture-safe-area \{[\s\S]*bottom: 2rem;[\s\S]*top: 5\.75rem;/);
   assert.match(globalStylesSource, /\.tt-mobile-fixture-card \{[\s\S]*max-width: 100%;[\s\S]*min-width: 0;/);
   assert.match(fixtureMapSource, /tt-mobile-fixture-card/);
@@ -364,11 +366,15 @@ test("optional filter labels and selected values share a calm hierarchy", () => 
   assert.match(searchBarSource, /summary className="[^"]*font-medium normal-case tracking-normal text-\[var\(--tt-ink\)\]/);
 });
 
-test("mobile results retain an intentional carousel teaser and wrap long metadata", () => {
-  assert.match(fixtureCarouselSource, /w-\[87%\] min-w-\[87%\] max-w-none/);
-  assert.match(fixtureCarouselSource, /snap-x snap-mandatory/);
-  assert.match(fixtureCarouselSource, /line-clamp-2 min-w-0 break-words[\s\S]*fixture\.league_name/);
-  assert.match(fixtureCarouselSource, /line-clamp-2 min-w-0 break-words[\s\S]*fixture\.venue_name/);
+test("mobile results use a vertical scan and canonical badge proxy paths", () => {
+  assert.doesNotMatch(fixtureCarouselSource, /snap-x|overflow-x-auto|w-\[87%\]/);
+  assert.match(fixtureCarouselSource, /grid min-w-0 gap-x-6 md:grid-cols-2 xl:grid-cols-3/);
+  assert.match(fixtureCarouselSource, /apiAssetUrl\(fixture\.home_team_badge_url\)/);
+  assert.match(fixtureCarouselSource, /apiAssetUrl\(fixture\.away_team_badge_url\)/);
+  assert.match(fixtureCarouselSource, /min-w-0 break-words[\s\S]*fixture\.league_name/);
+  assert.match(fixtureCarouselSource, /min-w-0 break-words[\s\S]*fixture\.venue_name/);
+  assert.match(fixtureCarouselSource, /Ground rating \{fixture\.away_day_score\.toFixed\(1\)\}\/10/);
+  assert.doesNotMatch(fixtureCarouselSource, /Terrace rating/);
 });
 
 test("Discover calendar dates follow the browser timezone across UTC boundaries and DST", () => {

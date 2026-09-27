@@ -26,11 +26,11 @@ import {
   type DiscoveryViewport,
   type FixtureVenueGroup,
 } from "../../lib/fixtureDiscovery";
-import { createGroundMarkerIcon, createUserLocationIcon, markerKeyIconHtml, markerSignalSvg } from "./groundMarkerIcon";
+import { createGroundMarkerIcon, createUserLocationIcon, markerKeyIconHtml } from "./groundMarkerIcon";
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
 import { configuredDiscoverTileLayer } from "../../lib/discoverMapTiles";
 import { fixtureTypeLabel, safeFixtureType, type FixtureType } from "../../lib/fixtureType";
-import { editorialReasonForMarkerSignal, markerSignalForFixture, type MarkerSignal } from "../../lib/markerSignal";
+import { editorialReasonForMarkerSignal, type MarkerSignal } from "../../lib/markerSignal";
 
 type Venue = {
   venue_id: number;
@@ -82,17 +82,10 @@ function FixtureTypeIcon({ type }: { type: FixtureType }) {
   </span>;
 }
 
-function MarkerSignalGlyph({ signal }: { signal: Exclude<MarkerSignal, "standard"> }) {
-  const stroke = signal === "international" || signal === "cup" ? "#FCFAF5" : "#171717";
-  return <svg aria-hidden="true" viewBox="0 0 30 30" className="h-4 w-4 shrink-0" dangerouslySetInnerHTML={{ __html: markerSignalSvg(signal, stroke) }} />;
-}
-
 function MarkerEditorialReason({ fixture }: { fixture: Fixture }) {
-  const signal = markerSignalForFixture(fixture);
-  const reason = editorialReasonForMarkerSignal(fixture);
-  if (!reason || (signal !== "rivalry" && signal !== "scenic" && signal !== "classic")) return null;
+  const reason = fixture.lead_decision_reason ?? editorialReasonForMarkerSignal(fixture);
+  if (!reason) return null;
   return <div className="tt-fixture-popup-optional mb-2 flex items-start gap-1.5 border-l-4 border-[var(--tt-gold)] pl-2.5">
-    <MarkerSignalGlyph signal={signal} />
     <strong className="line-clamp-2 break-words text-sm leading-tight">{reason.label}</strong>
   </div>;
 }
@@ -106,12 +99,18 @@ const markerKeyItems: { signal: Exclude<MarkerSignal, "standard">; label: string
 ];
 
 function MarkerKey() {
-  return <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--tt-rule)] px-1 pt-1.5 text-[0.65rem] font-extrabold uppercase tracking-[0.06em] text-[var(--tt-muted)]" aria-label="Map key">
-    {markerKeyItems.map(({ signal, label }) => <span key={signal} className="inline-flex items-center gap-1 whitespace-nowrap">
-      <span className="inline-flex h-5 w-4 items-center justify-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: markerKeyIconHtml(signal) }} />
-      {label}
-    </span>)}
-  </div>;
+  return <details className="mg-content-rule mt-2 text-[0.68rem] text-[var(--tt-muted)]">
+    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-extrabold uppercase tracking-[0.1em] marker:content-none">
+      <span>Why these matches?</span><span aria-hidden="true">＋</span>
+    </summary>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pb-2" aria-label="Map key">
+      <span className="inline-flex items-center gap-2"><span className="h-3 w-3 bg-[var(--brand-interactive)]" aria-hidden="true" />Fixture</span>
+      {markerKeyItems.map(({ signal, label }) => <span key={signal} className="inline-flex items-center gap-1 whitespace-nowrap">
+        <span className="inline-flex h-5 w-4 items-center justify-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: markerKeyIconHtml(signal) }} />
+        {label}
+      </span>)}
+    </div>
+  </details>;
 }
 
 function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureDismiss, showDistance, compactMobile }: FixtureVenueMarkerProps) {
@@ -120,7 +119,6 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
   const [fixtureIndex, setFixtureIndex] = useState(decision.initialFixtureIndex);
   const fixture = group.fixtures[fixtureIndex];
   const fixtureType = safeFixtureType(fixture.fixture_type);
-  const markerSignal = markerSignalForFixture(fixture);
   const fixtureCount = group.fixtures.length;
   const card = compactFixtureCard(fixture);
   const move = (offset: number) => setFixtureIndex((current) => {
@@ -131,7 +129,7 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
   const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
   const statusGroup = fixtureStatusGroup(fixture.status);
 
-  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icons[markerSignal]} title={markerLabel} alt={markerLabel} eventHandlers={{ click: () => {
+  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icons[decision.highlighted ? "classic" : "standard"]} title={markerLabel} alt={markerLabel} eventHandlers={{ click: () => {
     if (compactMobile) {
       setFixtureIndex(decision.initialFixtureIndex);
       onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id);
@@ -175,8 +173,7 @@ function MobileFixtureCard({
   const fixtureIndex = group.fixtures.findIndex((candidate) => candidate.fixture_id === fixture.fixture_id);
   const statusGroup = fixtureStatusGroup(fixture.status);
   const fixtureType = safeFixtureType(fixture.fixture_type);
-  const markerSignal = markerSignalForFixture(fixture);
-  const editorialReason = editorialReasonForMarkerSignal(fixture);
+  const editorialReason = fixture.lead_decision_reason ?? editorialReasonForMarkerSignal(fixture);
   const move = (offset: number) => {
     const next = (fixtureIndex + offset + group.fixtures.length) % group.fixtures.length;
     onFixtureSelect(group.fixtures[next].fixture_id);
@@ -185,7 +182,7 @@ function MobileFixtureCard({
   return <article className="tt-mobile-fixture-card" aria-label="Selected fixture">
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.75rem] gap-3">
       <div className="min-w-0">
-        {editorialReason && (markerSignal === "rivalry" || markerSignal === "scenic" || markerSignal === "classic") && <MarkerEditorialReason fixture={fixture} />}
+        {editorialReason && <MarkerEditorialReason fixture={fixture} />}
         <strong className="block min-w-0 break-words text-base leading-snug">{fixture.home_team} v {fixture.away_team}</strong>
         <span className="mt-1.5 block text-sm font-bold leading-snug">
           {statusGroup === "postponed" || statusGroup === "cancelled"

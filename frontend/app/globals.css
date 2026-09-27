@@ -188,7 +188,7 @@ body {
   input.tt-control,
   select.tt-control,
   textarea.tt-control { font-size: 1rem; }
-  .tt-map { height: clamp(22rem, 58dvh, 25rem); }
+  .tt-map { height: 17.5rem; }
   .tt-fixture-popup .leaflet-popup-content { margin: 0.45rem; min-width: min(12rem, calc(100vw - 5rem)); }
   .tt-fixture-popup .tt-fixture-popup-optional { display: none; }
   .tt-mobile-fixture-safe-area {
