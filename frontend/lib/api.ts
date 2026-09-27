@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getSupabaseBrowserClient } from "./supabase.ts";
 
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   const configuredUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/$/, "");
   if (configuredUrl) return configuredUrl;
 
@@ -11,6 +11,8 @@ const getApiBaseUrl = () => {
 
   return "http://localhost:8000";
 };
+
+export const apiAssetUrl = (path?: string | null) => path ? `${getApiBaseUrl()}${path.startsWith("/") ? path : `/${path}`}` : null;
 
 const api = axios.create({
   baseURL: getApiBaseUrl(),
