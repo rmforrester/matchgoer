@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { hasKnowContent, selectFixtureKnowHighlights, showPrimaryIdentityHeadline, type FixtureKnow } from "./know-v1.ts";
+import { fixtureKnowDescriptor, hasKnowContent, selectFixtureKnowHighlights, showPrimaryIdentityHeadline, type FixtureKnow } from "./know-v1.ts";
 
 const empty: FixtureKnow = { fixture_id: 1, team_id: 2, venue_id: 3, club_venue_id: 4, club: [], supporters: [], matchday: [], dont_miss: [], before_match: [], good_to_know: [] };
 const renderer = readFileSync(new URL("../app/components/FixtureKnow.tsx", import.meta.url), "utf8");
@@ -71,16 +71,17 @@ test("WHY THIS MATCH stays before KNOW and the ground stays secondary", () => {
   const tickets = fixturePage.indexOf("Buy tickets");
   const know = fixturePage.indexOf("<FixtureKnow know={know}");
   const ground = fixturePage.indexOf("06 / The ground");
-  assert.ok(why >= 0 && tickets > why && know > tickets && ground > know);
+  assert.ok(tickets >= 0 && why > tickets && know > why && ground > know);
   assert.match(fixturePage, /decisionReasons\[0\]\.explanation/);
   assert.doesNotMatch(fixturePage, /Terrace roll call/i);
   assert.match(fixturePage, /Ask other supporters about the match, pubs, travel or the ground\./);
 });
 
 test("fixture ticket action remains ahead of KNOW in the refreshed hierarchy", () => {
-  assert.match(fixturePage, /data\.ticket_action && <section className="mg-content-rule mt-6 pt-4"/);
+  assert.match(fixturePage, /data\.ticket_action && <section className="mt-5 sm:mt-6"/);
   assert.match(fixturePage, /<FixtureKnow know=\{know\} teamName=\{data\.fixture\.home_team\}/);
-  assert.match(fixturePage, /mg-primary-action min-h-12/);
+  assert.match(fixturePage, /mg-primary-action mx-auto min-h-12 w-full/);
+  assert.match(fixturePage, />BUY TICKETS →<\/a>/);
 });
 
 test("venue guide presents useful sections without redundant wrappers", () => {
@@ -103,4 +104,12 @@ test("mixed and multiple identity facts retain sub-labels", () => {
   assert.equal(showPrimaryIdentityHeadline({ ...empty, club: [first], supporters: [second] }), true);
   assert.equal(showPrimaryIdentityHeadline({ ...empty, club: [first, second] }), true);
   assert.equal(showPrimaryIdentityHeadline({ ...empty, supporters: [first, second] }), true);
+});
+
+test("KNOW descriptor reflects the identity modules actually rendered", () => {
+  assert.equal(fixtureKnowDescriptor(true, true), "Club & supporters");
+  assert.equal(fixtureKnowDescriptor(true, false), "The club");
+  assert.equal(fixtureKnowDescriptor(false, true), "Supporters");
+  assert.equal(fixtureKnowDescriptor(false, false), null);
+  assert.match(renderer, /fixtureKnowDescriptor\(clubFacts\.length > 0, supporterFacts\.length > 0\)/);
 });

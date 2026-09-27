@@ -183,19 +183,18 @@ function MobileFixtureCard({
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.75rem] gap-3">
       <div className="min-w-0">
         {editorialReason && <MarkerEditorialReason fixture={fixture} />}
-        <strong className="block min-w-0 break-words text-base leading-snug">{fixture.home_team} v {fixture.away_team}</strong>
-        <span className="mt-1.5 block text-sm font-bold leading-snug">
+        <strong className="flex min-w-0 items-start gap-1 break-words text-sm leading-tight"><FixtureTypeIcon type={fixtureType} /><span>{fixture.home_team} v {fixture.away_team}</span></strong>
+        <span className="mt-1 block text-xs font-bold leading-tight">
           {statusGroup === "postponed" || statusGroup === "cancelled"
             ? fixtureStatusLabel(fixture.status)
             : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {new Date(fixture.fixture_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}
         </span>
-        <span className="mt-1 flex min-w-0 items-center gap-1 break-words text-xs font-extrabold uppercase leading-snug tracking-[0.06em] text-[var(--brand-interactive)]"><FixtureTypeIcon type={fixtureType} />{fixture.league_name}</span>
-        <span className="mt-1 block min-w-0 break-words text-sm font-bold leading-snug">{fixture.venue_name}</span>
+        <span className="mt-1 block min-w-0 break-words text-xs font-bold leading-tight">{fixture.venue_name}</span>
       </div>
       <button type="button" onClick={() => onFixtureDismiss(fixture.fixture_id)} aria-label="Dismiss selected fixture" className="grid h-11 w-11 place-items-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-2xl font-bold leading-none">×</button>
     </div>
-    <div className="mt-2 flex min-w-0 items-center justify-between gap-3">
-      <Link href={`/fixture/${fixture.fixture_id}`} className="inline-flex min-h-10 min-w-0 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">View match →</Link>
+    <div className="mt-1.5 flex min-w-0 items-center justify-between gap-3">
+      <Link href={`/fixture/${fixture.fixture_id}`} className="inline-flex min-h-11 min-w-0 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">View match →</Link>
       {group.fixtures.length > 1 && <div className="flex shrink-0 items-center gap-1" aria-label="Fixtures at this stadium">
         <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="grid h-10 w-10 place-items-center text-lg">←</button>
         <span className="text-xs font-bold">{fixtureIndex + 1}/{group.fixtures.length}</span>

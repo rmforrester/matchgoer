@@ -1,0 +1,36 @@
+{
+  "canonical_base": "953e3a2e276d3caf9cdabcc47f7164ddd856eca1",
+  "classification": "FRONTEND_RENDERING_REGRESSION",
+  "root_cause": "The verified ticket action remained in the backend fixture presentation contract and remained conditionally rendered, but Phase 1 placed it after the full WHY THIS MATCH module. On a mobile page with DECIDE content, the action could sit below the initial viewport and appear missing. The candidate restores the approved hierarchy directly after the fixture hero and before WHY THIS MATCH.",
+  "pipeline": {
+    "source_and_verification": "venue_guide_facts owned by the exact canonical club_venue relationship; tickets_entry; official_ticket_portal or buy online; official/current; HTTPS; unexpired and inside review window",
+    "backend": "resolve_fixture_ticket_action returns one exact eligible action and fails closed for zero, multiple, stale, unofficial, insecure or mismatched actions",
+    "fixture_contract": "GET /fixtures/{fixture_id}/social includes ticket_action unchanged",
+    "frontend": "The fixture page renders only data.ticket_action and preserves its exact URL"
+  },
+  "eligible_fixture": {
+    "fixture_id": 1557425,
+    "fixture": "Manchester United v Tottenham",
+    "fixture_date": "2026-10-10T14:00:00+00:00",
+    "canonical_team_id": 33,
+    "canonical_venue_id": 556,
+    "canonical_venue_name": "Old Trafford",
+    "club_venue_id": 1,
+    "topic": "official_ticket_portal",
+    "source_label": "Official",
+    "source_url": "https://www.manutd.com/en/tickets-and-hospitality",
+    "freshness": "current",
+    "last_checked": "2026-08-26",
+    "evidence_method": "Read-only hosted /nearby and venue-guide responses; the social endpoint was deliberately not invoked because it records a fixture_view event. Backend contract presence is established by source inspection and focused resolver tests."
+  },
+  "rendered_candidate": {
+    "placement": "Immediately after the match hero and before WHY THIS MATCH",
+    "label": "BUY TICKETS →",
+    "mobile": "Full width, centered, 48px minimum height",
+    "destination_preserved": true,
+    "conditional_eligibility_preserved": true
+  },
+  "hosted_data_mutated": false,
+  "schema_mutated": false,
+  "editorial_data_mutated": false
+}
