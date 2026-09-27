@@ -39,3 +39,10 @@ export function selectFixtureKnowHighlights(know: FixtureKnow): FixtureKnowHighl
 export function showPrimaryIdentityHeadline(know: FixtureKnow) {
   return know.club.length + know.supporters.length > 1;
 }
+
+export function fixtureKnowDescriptor(hasClub: boolean, hasSupporters: boolean) {
+  if (hasClub && hasSupporters) return "Club & supporters";
+  if (hasClub) return "The club";
+  if (hasSupporters) return "Supporters";
+  return null;
+}

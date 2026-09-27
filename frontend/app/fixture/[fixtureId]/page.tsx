@@ -218,6 +218,10 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     <AccountConversionPrompt open={accountPrompt !== null} kind={accountPrompt ?? "interested"} onDismiss={() => setAccountPrompt(null)} returnTo={accountPrompt === "mate" ? pendingWhosGoingReturnTo(Number(fixtureId)) : undefined} />
     {error && <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
 
+    {data.ticket_action && <section className="mt-5 sm:mt-6" aria-label="Tickets">
+      <a href={data.ticket_action.url} target="_blank" rel="noreferrer" className="mg-primary-action mx-auto min-h-12 w-full px-6 text-sm sm:w-auto sm:min-w-64" aria-label={`Buy tickets from ${data.ticket_action.source_label}`}>BUY TICKETS →</a>
+    </section>}
+
     {hasDecisionReasons && <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="why-this-match-heading">
       <p className="mg-section-label">02 / Why this match</p>
       <div className="mg-editorial-accent mt-3 bg-[var(--mg-paper-light)] px-4 py-5 sm:px-6 sm:py-6 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(16rem,0.65fr)] lg:gap-10">
@@ -231,10 +235,6 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         </ul>}
         <div className="mt-4 flex flex-wrap gap-1.5 lg:col-span-2">{decisionReasons.map((reason) => <span key={`tag-${reason.key}-${reason.label}`} className="mg-reason-stamp bg-[var(--mg-paper)]">{reason.label}</span>)}</div>
       </div>
-    </section>}
-
-    {data.ticket_action && <section className="mg-content-rule mt-6 pt-4" aria-label="Tickets">
-      <a href={data.ticket_action.url} target="_blank" rel="noreferrer" className="mg-primary-action min-h-12 px-6 text-sm" aria-label={`Buy tickets from ${data.ticket_action.source_label}`}>Buy tickets →</a>
     </section>}
 
     <FixtureKnow know={know} teamName={data.fixture.home_team} />

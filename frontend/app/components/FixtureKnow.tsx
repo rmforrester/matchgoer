@@ -1,4 +1,4 @@
-import { hasKnowContent, selectFixtureKnowHighlights, type FixtureKnow as FixtureKnowData, type KnowFact } from "../../lib/know-v1";
+import { fixtureKnowDescriptor, hasKnowContent, selectFixtureKnowHighlights, type FixtureKnow as FixtureKnowData, type KnowFact } from "../../lib/know-v1";
 
 function FactList({ facts, editorialHeadlines = false, showHeadlines = true }: { facts: KnowFact[]; editorialHeadlines?: boolean; showHeadlines?: boolean }) {
   return <div className="mt-3 divide-y divide-[var(--mg-rule)]">{facts.map((fact) => <article key={fact.know_fact_id} className="py-3 first:pt-0 last:pb-0">
@@ -15,6 +15,7 @@ export default function FixtureKnow({ know, teamName }: { know: FixtureKnowData 
   const supporterFacts = [highlights.primaryIdentityModule === "SUPPORTERS" ? highlights.primaryIdentity : null, ...highlights.secondarySupporters].filter((fact): fact is KnowFact => Boolean(fact));
   const hasMatchdayGuide = matchdayFacts.length > 0 || know.dont_miss.length > 0 || know.good_to_know.length > 0;
   const hasBackground = clubFacts.length > 0 || supporterFacts.length > 0;
+  const backgroundDescriptor = fixtureKnowDescriptor(clubFacts.length > 0, supporterFacts.length > 0);
 
   return <>
     {hasMatchdayGuide && <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="matchday-guide-heading">
@@ -51,7 +52,7 @@ export default function FixtureKnow({ know, teamName }: { know: FixtureKnowData 
     {hasBackground && <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="know-heading">
       <p className="mg-section-label">05 / Know</p>
       <h2 id="know-heading" className="mg-display-section mt-2 break-words">{teamName}</h2>
-      <p className="mg-meta mt-2 font-extrabold uppercase tracking-[0.08em]">Club &amp; supporters</p>
+      {backgroundDescriptor && <p className="mg-meta mt-2 font-extrabold uppercase tracking-[0.08em]">{backgroundDescriptor}</p>}
       <div className="mt-5 grid gap-x-12 gap-y-6 lg:grid-cols-2">
         {clubFacts.length > 0 && <section aria-labelledby="about-club-heading"><h3 id="about-club-heading" className="mg-section-label">The club</h3><FactList facts={clubFacts} editorialHeadlines /></section>}
         {supporterFacts.length > 0 && <section aria-labelledby="supporters-heading"><h3 id="supporters-heading" className="mg-section-label">The supporters</h3><FactList facts={supporterFacts} editorialHeadlines /></section>}
