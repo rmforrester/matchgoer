@@ -187,9 +187,9 @@ test("fixture page renders WHY THIS MATCH only when DECIDE reasons exist", () =>
   const match = fixturePageSource.indexOf("01 / Match");
   const why = fixturePageSource.indexOf("02 / Why this match");
   const know = fixturePageSource.indexOf("<FixtureKnow know={know}");
-  const matchday = fixturePageSource.indexOf("Ground essentials");
+  const ground = fixturePageSource.indexOf("06 / The ground");
   const social = fixturePageSource.indexOf("Match Board");
-  assert.ok(match < why && why < know && know < matchday && matchday < social);
+  assert.ok(match < why && why < know && know < ground && ground < social);
   assert.match(fixturePageSource, /\{hasDecisionReasons && <section/);
   assert.match(fixturePageSource, /decisionReasons\[0\]\.explanation/);
   assert.match(fixturePageSource, /decisionReasons\.slice\(1\)/);

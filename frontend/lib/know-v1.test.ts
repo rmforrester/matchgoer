@@ -17,23 +17,23 @@ test("all KNOW modules are independently optional", () => {
 });
 
 test("BTM-only rendering is supported with supporter-facing copy and conditional Directions", () => {
-  assert.match(renderer, /Places supporters go before kickoff\./);
+  assert.match(renderer, /Places supporters go before kick-off\./);
   assert.match(renderer, /spot\.directions_url &&/);
   assert.match(venueGuide, /guide\.sections\.length === 0 && guide\.before_match\.length === 0/);
   assert.doesNotMatch(venueGuide, /Ticket information not yet confirmed/);
 });
 
-test("fixture guidance shows one identity and one practical highlight before BTM and optional context", () => {
-  const identity = renderer.indexOf("Who you&apos;re watching");
-  const essentials = renderer.indexOf("Matchday essentials");
+test("fixture guidance follows matchday, BTM, then club and supporters hierarchy", () => {
+  const essentials = renderer.indexOf("03 / Matchday guide");
   const beforeMatch = renderer.indexOf("Before the match");
-  const dontMiss = renderer.indexOf("Don&apos;t miss");
-  const more = renderer.indexOf("More about this matchday");
-  assert.ok(identity >= 0 && identity < essentials && essentials < beforeMatch && beforeMatch < dontMiss && dontMiss < more);
+  const know = renderer.indexOf("05 / Know");
+  assert.ok(essentials >= 0 && essentials < beforeMatch && beforeMatch < know);
   assert.match(renderer, /highlights\.primaryIdentity/);
   assert.match(renderer, /highlights\.primaryMatchday/);
-  assert.match(renderer, /<details className=/);
-  assert.match(renderer, /More matchday essentials/);
+  assert.match(renderer, /primaryIdentityModule === "CLUB"/);
+  assert.match(renderer, /primaryIdentityModule === "SUPPORTERS"/);
+  assert.match(renderer, /The club/);
+  assert.match(renderer, /The supporters/);
   assert.match(renderer, /Useful to know/);
 });
 
@@ -66,22 +66,21 @@ test("published provenance remains in the API type but does not dominate the fix
   assert.doesNotMatch(renderer, /fact\.provenance|Evidence|Editorial/);
 });
 
-test("WHY THIS MATCH stays before KNOW and Ground Essentials stays secondary", () => {
+test("WHY THIS MATCH stays before KNOW and the ground stays secondary", () => {
   const why = fixturePage.indexOf("Why this match");
-  const tickets = fixturePage.indexOf("Buy tickets →");
+  const tickets = fixturePage.indexOf("Buy tickets");
   const know = fixturePage.indexOf("<FixtureKnow know={know}");
-  const ground = fixturePage.indexOf("Ground essentials");
+  const ground = fixturePage.indexOf("06 / The ground");
   assert.ok(why >= 0 && tickets > why && know > tickets && ground > know);
   assert.match(fixturePage, /decisionReasons\[0\]\.explanation/);
-  assert.doesNotMatch(fixturePage, /Before the match · \{venueGuide\.before_match\.length\}/);
   assert.doesNotMatch(fixturePage, /Terrace roll call/i);
   assert.match(fixturePage, /Ask other supporters about the match, pubs, travel or the ground\./);
 });
 
-test("fixture ticket action uses compact separation without changing no-action KNOW spacing", () => {
-  assert.match(fixturePage, /data\.ticket_action && <section className="tt-section-rule mt-6 pt-3"/);
-  assert.match(fixturePage, /<FixtureKnow know=\{know\} compactTop=\{Boolean\(data\.ticket_action\)\}/);
-  assert.match(renderer, /compactTop \? "mt-8" : "mt-10"/);
+test("fixture ticket action remains ahead of KNOW in the refreshed hierarchy", () => {
+  assert.match(fixturePage, /data\.ticket_action && <section className="mg-content-rule mt-6 pt-4"/);
+  assert.match(fixturePage, /<FixtureKnow know=\{know\} teamName=\{data\.fixture\.home_team\}/);
+  assert.match(fixturePage, /mg-primary-action min-h-12/);
 });
 
 test("venue guide presents useful sections without redundant wrappers", () => {
