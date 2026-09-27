@@ -373,6 +373,8 @@ test("mobile results use a vertical scan and canonical badge proxy paths", () =>
   assert.match(fixtureCarouselSource, /apiAssetUrl\(fixture\.away_team_badge_url\)/);
   assert.match(fixtureCarouselSource, /min-w-0 break-words[\s\S]*fixture\.league_name/);
   assert.match(fixtureCarouselSource, /min-w-0 break-words[\s\S]*fixture\.venue_name/);
+  assert.match(fixtureCarouselSource, /Ground rating \{fixture\.away_day_score\.toFixed\(1\)\}\/10/);
+  assert.doesNotMatch(fixtureCarouselSource, /Terrace rating/);
 });
 
 test("Discover calendar dates follow the browser timezone across UTC boundaries and DST", () => {

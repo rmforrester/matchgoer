@@ -82,7 +82,7 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
 
                 <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--tt-rule)] pt-3">
                   <span className="font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">View match →</span>
-                  {fixture.away_day_score !== null && <span className="text-[0.68rem] font-extrabold text-[var(--tt-muted)]">Terrace rating {fixture.away_day_score.toFixed(1)}/10</span>}
+                  {fixture.away_day_score !== null && <span className="text-[0.68rem] font-extrabold text-[var(--tt-muted)]">Ground rating {fixture.away_day_score.toFixed(1)}/10</span>}
                 </div>
               </Link>
 
