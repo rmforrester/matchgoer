@@ -84,6 +84,12 @@ test("fixture ticket action remains ahead of KNOW in the refreshed hierarchy", (
   assert.match(fixturePage, />BUY TICKETS →<\/a>/);
 });
 
+test("fixture ticket guidance is additive and never creates a fake ticket link", () => {
+  assert.match(fixturePage, /!data\.ticket_action && data\.ticket_guidance/);
+  assert.match(fixturePage, /data\.ticket_guidance\.message/);
+  assert.doesNotMatch(fixturePage, /href=\{data\.ticket_guidance/);
+});
+
 test("venue guide presents useful sections without redundant wrappers", () => {
   assert.doesNotMatch(venueGuide, /Know before you go/);
   assert.doesNotMatch(venueGuide, />The essentials</);

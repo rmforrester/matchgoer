@@ -30,6 +30,7 @@ type SocialFixture = {
   terrace_rating: number | null; recommend_percentage: number | null;
   decision_reasons: DecisionReason[]; highlight_eligible: boolean;
   ticket_action: { label: string; url: string; source_label: string } | null;
+  ticket_guidance: { label: string; message: string; source_label: string } | null;
   interested: boolean; open_to_meet: boolean; open_to_meet_count: number;
   profile: { username: string | null; display_name: string; supported_club: string | null } | null;
   own_review: { review_id: number; fixture_id: number | null; state: "blank" | "partial" | "completed"; completed: boolean } | null;
@@ -220,6 +221,10 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
 
     {data.ticket_action && <section className="mt-5 sm:mt-6" aria-label="Tickets">
       <a href={data.ticket_action.url} target="_blank" rel="noreferrer" className="mg-primary-action mx-auto min-h-12 w-full px-6 text-sm sm:w-auto sm:min-w-64" aria-label={`Buy tickets from ${data.ticket_action.source_label}`}>BUY TICKETS →</a>
+    </section>}
+    {!data.ticket_action && data.ticket_guidance && <section className="mg-utility-panel mt-5 px-4 py-3 sm:mt-6 sm:px-5" aria-label="Tickets">
+      <p className="mg-section-label">{data.ticket_guidance.label}</p>
+      <p className="mt-1 font-semibold text-[var(--mg-ink)]">{data.ticket_guidance.message}</p>
     </section>}
 
     {hasDecisionReasons && <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="why-this-match-heading">

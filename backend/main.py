@@ -48,6 +48,7 @@ from models import (
     DecisionFact,
     KnowFact,
     Team,
+    TicketSource,
 )
 
 from schemas import (
@@ -76,7 +77,7 @@ from schemas import (
     AccountConversionHandoffResponse,
     FixtureKnowResponse,
 )
-from fixture_tickets import resolve_fixture_ticket_action
+from fixture_tickets import resolve_fixture_ticket_action, resolve_fixture_ticket_presentation
 from team_badges import badge_proxy_path, provider_badge_id, resolve_badge
 
 from fastapi import Cookie, Depends, FastAPI, Header, Response, HTTPException, Query
@@ -86,6 +87,12 @@ from venue_guides import build_venue_guide
 app = FastAPI(
     title="Matchgoer API"
 )
+
+
+def ticketing_v2_serving_enabled() -> bool:
+    return os.getenv("TICKETING_V2_SERVING_ENABLED", "false").strip().casefold() in {
+        "1", "true", "yes", "on"
+    }
 
 
 @app.get("/teams/{canonical_team_id}/badge", include_in_schema=False)
@@ -2631,7 +2638,20 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             .filter(VenueGuideFact.club_venue_id.in_(relationship_ids))
             .all()
         ) if relationship_ids else []
-        ticket_action = resolve_fixture_ticket_action(fixture, relationships, ticket_facts)
+        if ticketing_v2_serving_enabled() and relationship_ids:
+            ticket_sources = (
+                db.query(TicketSource)
+                .filter(TicketSource.club_venue_id.in_(relationship_ids))
+                .all()
+            )
+            ticket_presentation = resolve_fixture_ticket_presentation(
+                fixture, relationships, ticket_facts, ticket_sources
+            )
+            ticket_action = ticket_presentation["action"]
+            ticket_guidance = ticket_presentation["guidance"]
+        else:
+            ticket_action = resolve_fixture_ticket_action(fixture, relationships, ticket_facts)
+            ticket_guidance = None
         db.add(SocialEvent(user_id=user_id, fixture_id=fixture_id, event_type="fixture_view"))
         db.add(SocialEvent(user_id=user_id, fixture_id=fixture_id, event_type="board_view"))
         db.commit()
@@ -2651,6 +2671,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             "terrace_rating": round(float(rating[0]), 1) if rating[0] is not None else None,
             "recommend_percentage": recommend_percentage,
             "ticket_action": ticket_action,
+            "ticket_guidance": ticket_guidance,
             **decision,
             "interested": interested, "open_to_meet": open_to_meet,
             "open_to_meet_count": open_count, "profile": ({"username": profile.username, "display_name": profile.display_name, "supported_club": profile.supported_club} if profile else None),
