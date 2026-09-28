@@ -13,6 +13,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     BigInteger,
     Text,
+    JSON,
     text,
 )
 from sqlalchemy.orm import declarative_base, relationship
@@ -476,6 +477,110 @@ class ClubVenue(Base):
     venue = relationship("Venue")
     pre_match_spots = relationship("PreMatchSpot", back_populates="club_venue")
     guide_facts = relationship("VenueGuideFact", back_populates="club_venue")
+
+
+class TicketSource(Base):
+    __tablename__ = "ticket_sources"
+    ticket_source_id = Column(BigInteger, primary_key=True)
+    club_venue_id = Column(BigInteger, ForeignKey("club_venues.club_venue_id", ondelete="RESTRICT"), nullable=False)
+    source_url = Column(Text)
+    source_domain = Column(String(255))
+    source_state = Column(String(60), nullable=False)
+    ticketing_model = Column(String(40), nullable=False)
+    adapter_type = Column(String(40), nullable=False)
+    source_label = Column(String(160))
+    source_role = Column(String(20), nullable=False, default="PRIMARY")
+    priority = Column(Integer, nullable=False, default=100)
+    operational_status = Column(String(20), nullable=False, default="ACTIVE")
+    verified_at = Column(DateTime(timezone=True))
+    last_reviewed_at = Column(DateTime(timezone=True))
+    review_due_at = Column(DateTime(timezone=True))
+    last_attempted_at = Column(DateTime(timezone=True))
+    last_successful_at = Column(DateTime(timezone=True))
+    consecutive_failures = Column(Integer, nullable=False, default=0)
+    last_http_status = Column(Integer)
+    adapter_health = Column(String(20), nullable=False, default="UNKNOWN")
+    stale_after_hours = Column(Integer, nullable=False, default=48)
+    last_failure_reason = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
+class TicketSourceLegacyFact(Base):
+    __tablename__ = "ticket_source_legacy_facts"
+    ticket_source_id = Column(BigInteger, ForeignKey("ticket_sources.ticket_source_id", ondelete="CASCADE"), primary_key=True)
+    legacy_fact_id = Column(BigInteger, ForeignKey("venue_guide_facts.fact_id", ondelete="RESTRICT"), primary_key=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class TicketRefreshRun(Base):
+    __tablename__ = "ticket_refresh_runs"
+    ticket_refresh_run_id = Column(BigInteger, primary_key=True)
+    started_at = Column(DateTime(timezone=True), nullable=False)
+    completed_at = Column(DateTime(timezone=True))
+    run_status = Column(String(20), nullable=False)
+    adapter_version = Column(String(80))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class TicketSourceCheck(Base):
+    __tablename__ = "ticket_source_checks"
+    ticket_source_check_id = Column(BigInteger, primary_key=True)
+    ticket_source_id = Column(BigInteger, ForeignKey("ticket_sources.ticket_source_id", ondelete="RESTRICT"), nullable=False)
+    ticket_refresh_run_id = Column(BigInteger, ForeignKey("ticket_refresh_runs.ticket_refresh_run_id", ondelete="SET NULL"))
+    attempted_at = Column(DateTime(timezone=True), nullable=False)
+    completed_at = Column(DateTime(timezone=True))
+    check_outcome = Column(String(30), nullable=False)
+    http_status = Column(Integer)
+    response_fingerprint = Column(String(128))
+    failure_reason = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class TicketAvailabilityObservation(Base):
+    __tablename__ = "ticket_availability_observations"
+    __table_args__ = (
+        UniqueConstraint("ticket_availability_observation_id", "fixture_id", "ticket_source_id", name="uq_ticket_observation_identity"),
+    )
+    ticket_availability_observation_id = Column(BigInteger, primary_key=True)
+    fixture_id = Column(Integer, ForeignKey("fixtures.fixture_id", ondelete="RESTRICT"))
+    ticket_source_id = Column(BigInteger, ForeignKey("ticket_sources.ticket_source_id", ondelete="RESTRICT"), nullable=False)
+    ticket_refresh_run_id = Column(BigInteger, ForeignKey("ticket_refresh_runs.ticket_refresh_run_id", ondelete="SET NULL"))
+    observed_state = Column(String(50), nullable=False)
+    observed_at = Column(DateTime(timezone=True), nullable=False)
+    valid_until = Column(DateTime(timezone=True))
+    purchase_url = Column(Text)
+    source_listing_id = Column(String(255))
+    source_opponent_label = Column(String(255))
+    source_fixture_at = Column(DateTime(timezone=True))
+    matching_outcome = Column(String(50), nullable=False)
+    matching_evidence = Column(JSON, nullable=False, default=dict)
+    adapter_version = Column(String(80))
+    source_response_fingerprint = Column(String(128))
+    supersedes_observation_id = Column(BigInteger, ForeignKey("ticket_availability_observations.ticket_availability_observation_id", ondelete="RESTRICT"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class FixtureTicketAvailability(Base):
+    __tablename__ = "fixture_ticket_availability"
+    __table_args__ = (
+        UniqueConstraint("fixture_id", "ticket_source_id", name="uq_fixture_ticket_availability_source"),
+        UniqueConstraint("current_observation_id", name="uq_fixture_ticket_availability_observation"),
+        ForeignKeyConstraint(
+            ["current_observation_id", "fixture_id", "ticket_source_id"],
+            ["ticket_availability_observations.ticket_availability_observation_id", "ticket_availability_observations.fixture_id", "ticket_availability_observations.ticket_source_id"],
+            name="fk_fixture_ticket_availability_observation", ondelete="RESTRICT",
+        ),
+    )
+    fixture_ticket_availability_id = Column(BigInteger, primary_key=True)
+    fixture_id = Column(Integer, ForeignKey("fixtures.fixture_id", ondelete="RESTRICT"), nullable=False)
+    ticket_source_id = Column(BigInteger, ForeignKey("ticket_sources.ticket_source_id", ondelete="RESTRICT"), nullable=False)
+    current_observation_id = Column(BigInteger, nullable=False)
+    availability_state = Column(String(50), nullable=False)
+    purchase_url = Column(Text)
+    observed_at = Column(DateTime(timezone=True), nullable=False)
+    valid_until = Column(DateTime(timezone=True))
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 class PreMatchSpot(Base):
