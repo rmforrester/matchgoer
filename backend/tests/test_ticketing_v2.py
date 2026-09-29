@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from ticketing_v2 import AVAILABILITY_STATES, MATCHING_OUTCOMES, SOURCE_STATES, derive_current_state, validate_research_result, validate_state
+from ticketing_v2 import AVAILABILITY_STATES, MATCHING_OUTCOMES, SOURCE_STATES, derive_current_state, validate_publication_destination, validate_research_result, validate_state
 
 
 class TicketingV2StateTests(unittest.TestCase):
@@ -60,6 +60,30 @@ class TicketingResearchContractTests(unittest.TestCase):
     def test_fixture_specific_physical_route_requires_venue(self):
         with self.assertRaises(ValueError): validate_research_result(self.row(route_type="PHYSICAL_MATCHDAY_BOX_OFFICE", actionable_url="", resolution_state="RESOLVED_PHYSICAL", instructions="Gate sales"))
     def test_no_safe_route_is_valid_and_unfilled(self): validate_research_result(self.row(route_type="DIRECT_CLUB_ORDER", actionable_url="", resolution_state="NO_SAFE_ROUTE_FOUND"))
+
+
+class TicketingPublicationDestinationTests(unittest.TestCase):
+    def online(self):
+        return {"source_url":"https://club.test/tickets", "source_label":"Official tickets"}
+
+    def good_probe(self, **changes):
+        probe={"tls_valid":True, "status":200, "final_url":"https://club.test/tickets", "actionable_ticket_destination":True, "irrelevant_redirect":False}
+        probe.update(changes)
+        return probe
+
+    def test_live_actionable_destination_passes(self): validate_publication_destination(self.online(), self.good_probe())
+    def test_bad_tls_fails(self):
+        with self.assertRaisesRegex(ValueError, "TLS"): validate_publication_destination(self.online(), self.good_probe(tls_valid=False))
+    def test_dead_destination_fails(self):
+        with self.assertRaisesRegex(ValueError, "HTTP"): validate_publication_destination(self.online(), self.good_probe(status=404))
+    def test_generic_destination_fails(self):
+        with self.assertRaisesRegex(ValueError, "generic"): validate_publication_destination(self.online(), self.good_probe(actionable_ticket_destination=False))
+    def test_irrelevant_redirect_fails(self):
+        with self.assertRaisesRegex(ValueError, "redirected"): validate_publication_destination(self.online(), self.good_probe(irrelevant_redirect=True))
+    def test_offline_cannot_override_actionable_official_page(self):
+        with self.assertRaisesRegex(ValueError, "supersede"): validate_publication_destination({"source_url":"", "source_label":"Kartencenter", "actionable_official_url":"https://club.test/tickets"}, None)
+    def test_offline_online_label_contradiction_fails(self):
+        with self.assertRaisesRegex(ValueError, "contradicts"): validate_publication_destination({"source_url":"", "source_label":"Club Ticket-Onlineshop"}, None)
 
 
 if __name__ == "__main__": unittest.main()

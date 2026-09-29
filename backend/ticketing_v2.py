@@ -28,6 +28,7 @@ PHYSICAL_ROUTE_TYPES = frozenset({
     "PHYSICAL_CLUB_OFFICE", "PHYSICAL_PRE_SALE_POINT",
     "PHYSICAL_MATCHDAY_BOX_OFFICE", "DIRECT_CLUB_ORDER",
 })
+TICKET_DESTINATION_TERMS = ("ticket", "karten", "billet", "bigliett", "bilet", "eisit")
 
 def validate_state(value, allowed, label):
     if value not in allowed:
@@ -64,6 +65,38 @@ def validate_research_result(row):
             raise ValueError("matchday box-office research requires venue applicability")
     elif state == "NO_SAFE_ROUTE_FOUND" and row.get("actionable_url"):
         raise ValueError("no-safe-route result cannot carry an actionable CTA")
+    return row
+
+
+def validate_publication_destination(row, probe):
+    """Fail closed on the live destination evidence used by publication QA.
+
+    Network probing remains outside this pure validator. The caller supplies a
+    captured probe so tests and protected writes stay deterministic.
+    """
+    url = str(row.get("source_url") or "").strip()
+    if not url:
+        if row.get("actionable_official_url"):
+            raise ValueError("physical guidance cannot supersede an actionable official ticket page")
+        label = str(row.get("source_label") or "").lower()
+        if any(term in label for term in ("online", "ticketshop", "ticket-shop")):
+            raise ValueError("offline source label contradicts its missing actionable URL")
+        return row
+    if not probe:
+        raise ValueError("online publication requires captured live destination evidence")
+    if not probe.get("tls_valid"):
+        raise ValueError("ticket destination TLS validation failed")
+    status = int(probe.get("status") or 0)
+    if status < 200 or status >= 400:
+        raise ValueError("ticket destination did not return a usable HTTP status")
+    final_url = str(probe.get("final_url") or "")
+    parsed = urlparse(final_url)
+    if parsed.scheme != "https" or not parsed.netloc:
+        raise ValueError("ticket destination did not resolve to HTTPS")
+    if probe.get("irrelevant_redirect"):
+        raise ValueError("ticket destination redirected outside the approved ticket route")
+    if not probe.get("actionable_ticket_destination"):
+        raise ValueError("ticket destination is generic or non-actionable")
     return row
 
 def derive_current_state(observations, now: datetime):
