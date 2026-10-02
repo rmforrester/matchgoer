@@ -12,6 +12,9 @@ INTERNAL_PUBLIC_COPY = re.compile(
     r"implementation|reconciliation|dormant|candidate|provenance|ledger|manifest|materiali[sz]ed)\b",
     re.IGNORECASE,
 )
+COORDINATE_DESTINATION = re.compile(
+    r"^\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*,\s*[+-]?(?:\d+(?:\.\d+)?|\.\d+)\s*$"
+)
 
 
 def resolve_club_venue(home_team_id: int | None, venue_id: int | None, relationships: Iterable, *, on_date: date | None = None):
@@ -75,10 +78,22 @@ def public_supporting_line(value: str | None) -> str | None:
     return value
 
 
-def google_maps_search_url(destination: str | None) -> str | None:
-    if destination is None or not destination.strip():
+def google_maps_search_url(
+    destination: str | None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+) -> str | None:
+    """Build named-first Maps search with a durable coordinate fallback."""
+    cleaned = destination.strip() if destination and destination.strip() else None
+    if cleaned and not COORDINATE_DESTINATION.fullmatch(cleaned):
+        target = cleaned
+    elif latitude is not None and longitude is not None:
+        target = f"{latitude},{longitude}"
+    else:
+        target = cleaned
+    if target is None:
         return None
-    return "https://www.google.com/maps/search/?" + urlencode({"api": "1", "query": destination})
+    return "https://www.google.com/maps/search/?" + urlencode({"api": "1", "query": target})
 
 
 def guide_facts_for_relationship(venue_id: int, relationship, facts: Iterable) -> list:

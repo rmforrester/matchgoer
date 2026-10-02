@@ -114,7 +114,11 @@ def compose_fixture_know(fixture, relationship, facts: Iterable, spots: Iterable
             "audience": spot.audience,
             "supporting_line": public_supporting_line(spot.supporting_line),
             "location_context": spot.location_context,
-            "directions_url": google_maps_search_url(spot.maps_destination),
+            "directions_url": google_maps_search_url(
+                spot.maps_destination,
+                getattr(spot, "latitude", None),
+                getattr(spot, "longitude", None),
+            ),
         } for spot in before_match],
         "good_to_know": [_fact_payload(item) for item in grouped["GOOD_TO_KNOW"]],
     }

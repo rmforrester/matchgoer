@@ -43,7 +43,6 @@ export default function FixtureKnow({ know, teamName }: { know: FixtureKnowData 
         <div className="min-w-0">
           <h3 className="mg-display-callout break-words">{spot.display_name}</h3>
           {spot.supporting_line && <p className="mg-body mt-1.5 max-w-2xl">{spot.supporting_line}</p>}
-          {spot.location_context && <p className="mg-meta mt-1.5 font-bold">{spot.location_context}</p>}
         </div>
         {spot.directions_url && <a href={spot.directions_url} target="_blank" rel="noreferrer" className="mg-tertiary-action self-end">Directions →</a>}
       </article>)}</div>

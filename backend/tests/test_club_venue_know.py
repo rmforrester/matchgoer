@@ -72,13 +72,13 @@ class ClubVenueResolutionTests(unittest.TestCase):
     def test_ground_share_is_club_isolated(self):
         a, b = relationship(1, team=10), relationship(2, team=11, relationship_type="GROUND_SHARE")
         self.assertIs(resolve_club_venue(10, 100, [a, b], on_date=TODAY), a)
-        self.assertEqual([x.display_name for x in publishable_spots(a, [spot(owner=1), spot(2, owner=2)])], ["The Club Bar"])
+        self.assertEqual([x.display_name for x in publishable_spots(a, [spot(owner=1), spot(2, owner=2)], today=TODAY)], ["The Club Bar"])
 
     def test_move_does_not_inherit_children_and_history_remains(self):
         old = relationship(1, venue=100, status="HISTORICAL", valid_until=TODAY - timedelta(days=1))
         new = relationship(2, venue=101, valid_from=TODAY)
         self.assertIs(resolve_club_venue(10, 101, [old, new], on_date=TODAY), new)
-        self.assertEqual(publishable_spots(new, [spot(owner=1)]), [])
+        self.assertEqual(publishable_spots(new, [spot(owner=1)], today=TODAY), [])
         self.assertEqual(old.status, "HISTORICAL")
 
     def test_everton_and_worcester_ground_identities_do_not_transfer(self):
@@ -86,8 +86,8 @@ class ClubVenueResolutionTests(unittest.TestCase):
         hill = relationship(2, team=45, venue=22033)
         claines = relationship(3, team=9010, venue=11867, status="HISTORICAL")
         sixways = relationship(4, team=9010, venue=30000)
-        self.assertEqual(publishable_spots(hill, [spot(owner=1)]), [])
-        self.assertEqual(publishable_spots(sixways, [spot(owner=3)]), [])
+        self.assertEqual(publishable_spots(hill, [spot(owner=1)], today=TODAY), [])
+        self.assertEqual(publishable_spots(sixways, [spot(owner=3)], today=TODAY), [])
         self.assertIs(resolve_club_venue(45, 22033, [goodison, hill], on_date=TODAY), hill)
         self.assertIs(resolve_club_venue(9010, 30000, [claines, sixways], on_date=TODAY), sixways)
 
@@ -95,9 +95,9 @@ class ClubVenueResolutionTests(unittest.TestCase):
 class PreMatchPublicationTests(unittest.TestCase):
     def test_one_and_three_render_in_order(self):
         rel = relationship()
-        self.assertEqual(len(publishable_spots(rel, [spot()])), 1)
+        self.assertEqual(len(publishable_spots(rel, [spot()], today=TODAY)), 1)
         items = [spot(3, order=3), spot(1, order=1), spot(2, order=2)]
-        self.assertEqual([x.pre_match_spot_id for x in publishable_spots(rel, items)], [1, 2, 3])
+        self.assertEqual([x.pre_match_spot_id for x in publishable_spots(rel, items, today=TODAY)], [1, 2, 3])
 
     def test_fourth_position_is_ineligible(self):
         self.assertFalse(spot_is_publishable(spot(order=4), today=TODAY))
@@ -140,6 +140,22 @@ class PreMatchPublicationTests(unittest.TestCase):
     def test_missing_destination_suppresses_directions(self):
         self.assertIsNone(google_maps_search_url(None))
         self.assertIsNone(google_maps_search_url("  "))
+
+    def test_named_destination_is_preferred_over_coordinate_fallback(self):
+        url = google_maps_search_url("Ajax Supportershome, Amsterdam", 52.3136381, 4.9430163)
+        self.assertEqual(parse_qs(urlparse(url).query)["query"], ["Ajax Supportershome, Amsterdam"])
+
+    def test_coordinate_string_uses_coordinate_columns_after_backfill(self):
+        url = google_maps_search_url("51.0000, 4.0000", 51.1, 4.2)
+        self.assertEqual(parse_qs(urlparse(url).query)["query"], ["51.1,4.2"])
+
+    def test_coordinates_supply_fallback_without_destination(self):
+        url = google_maps_search_url(None, 51.1, 4.2)
+        self.assertEqual(parse_qs(urlparse(url).query)["query"], ["51.1,4.2"])
+
+    def test_legacy_coordinate_destination_remains_usable_without_backfill(self):
+        url = google_maps_search_url("51.0000, 4.0000")
+        self.assertEqual(parse_qs(urlparse(url).query)["query"], ["51.0000, 4.0000"])
 
     def test_internal_public_copy_fails_closed(self):
         self.assertIsNone(public_supporting_line("Recovered approved pre-match destination."))

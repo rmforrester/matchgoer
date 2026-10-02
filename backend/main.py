@@ -330,7 +330,11 @@ def get_venue_guide(venue_id: int, team_id: int | None = None):
                 "audience": spot.audience,
                 "supporting_line": public_supporting_line(spot.supporting_line),
                 "location_context": spot.location_context,
-                "directions_url": google_maps_search_url(spot.maps_destination),
+                "directions_url": google_maps_search_url(
+                    spot.maps_destination,
+                    getattr(spot, "latitude", None),
+                    getattr(spot, "longitude", None),
+                ),
             } for spot in spots],
         })
         return guide

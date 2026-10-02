@@ -607,6 +607,8 @@ class PreMatchSpot(Base):
     audience = Column(String(10), nullable=False)
     supporting_line = Column(String(255), nullable=True)
     maps_destination = Column(String(300), nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     location_context = Column(String(255), nullable=True)
     confidence = Column(String(10), nullable=False)
     status = Column(String(20), nullable=False, default="DRAFT")
