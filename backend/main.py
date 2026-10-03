@@ -2642,10 +2642,16 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             .filter(VenueGuideFact.club_venue_id.in_(relationship_ids))
             .all()
         ) if relationship_ids else []
-        if ticketing_v2_serving_enabled() and relationship_ids:
+        if ticketing_v2_serving_enabled() and fixture.home_team_id is not None:
+            ticket_source_filter = TicketSource.team_id == fixture.home_team_id
+            if relationship_ids:
+                ticket_source_filter = or_(
+                    ticket_source_filter,
+                    TicketSource.club_venue_id.in_(relationship_ids),
+                )
             ticket_sources = (
                 db.query(TicketSource)
-                .filter(TicketSource.club_venue_id.in_(relationship_ids))
+                .filter(ticket_source_filter)
                 .all()
             )
             ticket_presentation = resolve_fixture_ticket_presentation(

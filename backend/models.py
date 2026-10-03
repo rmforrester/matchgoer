@@ -481,8 +481,26 @@ class ClubVenue(Base):
 
 class TicketSource(Base):
     __tablename__ = "ticket_sources"
+    __table_args__ = (
+        CheckConstraint(
+            "num_nonnulls(team_id, club_venue_id) = 1",
+            name="ck_ticket_sources_exactly_one_owner",
+        ),
+        Index(
+            "uq_ticket_sources_team_url", "team_id", "source_url", unique=True,
+            postgresql_where=text("team_id IS NOT NULL AND source_url IS NOT NULL"),
+        ),
+        Index(
+            "uq_ticket_sources_team_active_primary", "team_id", unique=True,
+            postgresql_where=text(
+                "team_id IS NOT NULL AND source_role = 'PRIMARY' AND operational_status = 'ACTIVE'"
+            ),
+        ),
+        Index("ix_ticket_sources_team", "team_id"),
+    )
     ticket_source_id = Column(BigInteger, primary_key=True)
-    club_venue_id = Column(BigInteger, ForeignKey("club_venues.club_venue_id", ondelete="RESTRICT"), nullable=False)
+    club_venue_id = Column(BigInteger, ForeignKey("club_venues.club_venue_id", ondelete="RESTRICT"), nullable=True)
+    team_id = Column(Integer, ForeignKey("teams.team_id", ondelete="RESTRICT"), nullable=True)
     source_url = Column(Text)
     source_domain = Column(String(255))
     source_state = Column(String(60), nullable=False)

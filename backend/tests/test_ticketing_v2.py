@@ -38,6 +38,19 @@ class TicketingV2StateTests(unittest.TestCase):
         self.assertNotIn("UNRESEARCHED", SOURCE_STATES)
         self.assertIn("DROP TABLE IF EXISTS ticket_sources",rollback)
 
+    def test_team_owner_migration_is_additive_and_exactly_one_owner(self):
+        migration=(Path(__file__).parents[1]/"migrations"/"20261003_ticket_sources_team_owner.sql").read_text()
+        rollback=(Path(__file__).parents[1]/"migrations"/"20261003_ticket_sources_team_owner_rollback.sql").read_text()
+        for token in (
+            "ADD COLUMN team_id", "REFERENCES teams(team_id)",
+            "ALTER COLUMN club_venue_id DROP NOT NULL",
+            "num_nonnulls(team_id, club_venue_id) = 1",
+            "uq_ticket_sources_team_active_primary",
+        ):
+            self.assertIn(token,migration)
+        self.assertNotIn("UPDATE TICKET_SOURCES",migration.upper())
+        self.assertIn("cannot roll back team-owned ticket sources",rollback)
+
 
 class TicketingResearchContractTests(unittest.TestCase):
     def row(self, **changes):

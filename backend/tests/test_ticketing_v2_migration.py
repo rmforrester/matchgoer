@@ -18,6 +18,7 @@ class TicketingV2MigrationTests(unittest.TestCase):
 
     def test_forward_constraints_rollback_reapply(self):
         self.exec_file("20260927_ticketing_v2_t1.sql")
+        self.exec_file("20261003_ticket_sources_team_owner.sql")
         with self.engine.begin() as c:
             c.execute(text("insert into venues(venue_id,name) values (990001,'T1 Ground')"))
             c.execute(text("insert into teams(team_id,name) values (990001,'T1 Club')"))
@@ -32,6 +33,15 @@ class TicketingV2MigrationTests(unittest.TestCase):
                 with c.begin_nested(): c.execute(text("insert into ticket_sources(club_venue_id,source_state,ticketing_model,adapter_type) values (990001,'INVALID','UNKNOWN','OTHER')"))
             with self.assertRaises(Exception):
                 with c.begin_nested(): c.execute(text("insert into ticket_sources(club_venue_id,source_url,source_domain,source_state,ticketing_model,adapter_type) values (990001,'https://example.test/tickets','example.test','VERIFIED_DIRECT_PURCHASE_SOURCE','ONLINE_DIRECT','STATIC_OFFICIAL_HTML')"))
+            team_sid=c.execute(text("insert into ticket_sources(team_id,source_url,source_domain,source_state,ticketing_model,adapter_type) values (990001,'https://example.test/team-tickets','example.test','VERIFIED_DIRECT_PURCHASE_SOURCE','ONLINE_DIRECT','STATIC_OFFICIAL_HTML') returning ticket_source_id")).scalar_one()
+            with self.assertRaises(Exception):
+                with c.begin_nested(): c.execute(text("insert into ticket_sources(team_id,club_venue_id,source_state,ticketing_model,adapter_type) values (990001,990001,'NO_SAFE_TICKET_SOURCE','NONE','OTHER')"))
+            with self.assertRaises(Exception):
+                with c.begin_nested(): c.execute(text("insert into ticket_sources(source_state,ticketing_model,adapter_type) values ('NO_SAFE_TICKET_SOURCE','NONE','OTHER')"))
+            with self.assertRaises(Exception):
+                with c.begin_nested(): c.execute(text("insert into ticket_sources(team_id,source_url,source_domain,source_state,ticketing_model,adapter_type) values (990001,'https://example.test/other','example.test','VERIFIED_DIRECT_PURCHASE_SOURCE','ONLINE_DIRECT','STATIC_OFFICIAL_HTML')"))
+            c.execute(text("delete from ticket_sources where ticket_source_id=:s"),{"s":team_sid})
+        self.exec_file("20261003_ticket_sources_team_owner_rollback.sql")
         self.exec_file("20260927_ticketing_v2_t1_rollback.sql")
         self.exec_file("20260927_ticketing_v2_t1.sql")
         self.exec_file("20260927_ticketing_v2_t1_rollback.sql")

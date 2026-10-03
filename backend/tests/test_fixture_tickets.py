@@ -19,8 +19,11 @@ def fact(identifier=100, **changes):
     values.update(changes); return NS(**values)
 
 def source(identifier=100, **changes):
-    values = {"club_venue_id": identifier, "source_role": "PRIMARY", "operational_status": "ACTIVE", "source_state": "VERIFIED_OFFICIAL_TICKET_NAVIGATION_SOURCE", "ticketing_model": "ONLINE_NAVIGATION", "source_url": "https://tickets.example.test/home", "source_label": "Official ticket hub"}
+    values = {"club_venue_id": identifier, "team_id": None, "source_role": "PRIMARY", "operational_status": "ACTIVE", "source_state": "VERIFIED_OFFICIAL_TICKET_NAVIGATION_SOURCE", "ticketing_model": "ONLINE_NAVIGATION", "source_url": "https://tickets.example.test/home", "source_label": "Official ticket hub"}
     values.update(changes); return NS(**values)
+
+def team_source(team_id=1, **changes):
+    return source(identifier=None, team_id=team_id, **changes)
 
 class FixtureTicketTests(unittest.TestCase):
     def test_valid_exact_home_relationship_is_eligible(self):
@@ -78,6 +81,58 @@ class FixtureTicketTests(unittest.TestCase):
     def test_v2_source_cannot_leak_to_other_relationship(self):
         result = resolve_fixture_ticket_presentation(fixture(), [relationship()], [], [source(identifier=101)])
         self.assertEqual(result["serving"], "LEGACY")
+        self.assertIsNone(result["action"])
+
+    def test_team_source_serves_without_club_venue(self):
+        result = resolve_fixture_ticket_presentation(fixture(), [], [], [team_source()])
+        self.assertEqual(result["serving"], "V2")
+        self.assertEqual(result["action"]["url"], "https://tickets.example.test/home")
+
+    def test_team_source_serves_when_relationship_has_no_ticket_source(self):
+        result = resolve_fixture_ticket_presentation(fixture(), [relationship()], [], [team_source()])
+        self.assertEqual(result["serving"], "V2")
+        self.assertIsNotNone(result["action"])
+
+    def test_relationship_source_wins_over_team_source(self):
+        result = resolve_fixture_ticket_presentation(
+            fixture(), [relationship()], [],
+            [source(source_url="https://relationship.test/tickets"), team_source(source_url="https://team.test/tickets")],
+        )
+        self.assertEqual(result["action"]["url"], "https://relationship.test/tickets")
+
+    def test_unsafe_relationship_source_blocks_team_fallback(self):
+        result = resolve_fixture_ticket_presentation(
+            fixture(), [relationship()], [],
+            [source(source_state="SOURCE_NEEDS_REVIEW"), team_source()],
+        )
+        self.assertEqual(result["serving"], "V2_FAIL_CLOSED")
+        self.assertIsNone(result["action"])
+
+    def test_multiple_active_primary_team_sources_fail_closed(self):
+        result = resolve_fixture_ticket_presentation(fixture(), [], [], [team_source(), team_source()])
+        self.assertEqual(result["serving"], "V2_FAIL_CLOSED")
+        self.assertIsNone(result["action"])
+
+    def test_away_team_source_does_not_serve_home_fixture(self):
+        result = resolve_fixture_ticket_presentation(fixture(), [], [], [team_source(team_id=2)])
+        self.assertEqual(result["serving"], "LEGACY")
+        self.assertIsNone(result["action"])
+
+    def test_historical_or_date_invalid_relationship_does_not_shadow_team_source(self):
+        old = relationship(status="HISTORICAL")
+        expired = relationship(identifier=101, valid_until=TODAY - timedelta(days=1))
+        result = resolve_fixture_ticket_presentation(
+            fixture(), [old, expired], [], [source(), source(identifier=101), team_source()]
+        )
+        self.assertEqual(result["serving"], "V2")
+        self.assertEqual(result["action"]["url"], "https://tickets.example.test/home")
+
+    def test_ambiguous_current_relationship_sources_block_team_fallback(self):
+        result = resolve_fixture_ticket_presentation(
+            fixture(), [relationship(100), relationship(101)], [],
+            [source(100), team_source()],
+        )
+        self.assertEqual(result["serving"], "V2_FAIL_CLOSED")
         self.assertIsNone(result["action"])
 
 if __name__ == "__main__": unittest.main()
