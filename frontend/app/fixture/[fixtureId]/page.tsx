@@ -241,13 +241,13 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
 
     <FixtureKnow know={know} teamName={data.fixture.home_team} />
 
-    {data.fixture.venue_id && <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="ground-heading">
+    {data.fixture.venue_id && <section className="mg-editorial-rule mt-5 pt-3" aria-labelledby="ground-heading">
       <p className="mg-section-label">05 / The ground</p>
-      <div className="mt-3 grid gap-4 border-b border-[var(--mg-rule)] pb-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div className="min-w-0"><h2 id="ground-heading" className="text-xl font-extrabold break-words">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mg-meta mt-1 font-bold">{data.fixture.venue_city}</p>}</div>
+      <div className="mt-2 grid gap-1 border-b border-[var(--mg-rule)] pb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="min-w-0"><h2 id="ground-heading" className="tt-display text-[clamp(1.25rem,2.5vw,1.65rem)] font-extrabold uppercase leading-[1.1] break-words">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mt-1 text-xs leading-5 text-[var(--tt-muted)]">{data.fixture.venue_city}</p>}</div>
         <Link href={`/venue/${data.fixture.venue_id}${data.fixture.home_team_id ? `?teamId=${data.fixture.home_team_id}` : ""}`} className="mg-tertiary-action inline-flex items-center">Explore the ground →</Link>
       </div>
-      {(data.terrace_rating !== null || data.recommend_percentage !== null) && <details className="mt-4 text-xs text-[var(--tt-muted)]"><summary className="cursor-pointer font-bold uppercase tracking-[0.08em]">Community ground ratings</summary><div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div></details>}
+      {(data.terrace_rating !== null || data.recommend_percentage !== null) && <details className="mt-2 text-xs text-[var(--tt-muted)]"><summary className="cursor-pointer font-bold uppercase tracking-[0.08em]">Community ground ratings</summary><div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div></details>}
     </section>}
 
     {statusGroup === "cancelled" ? <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="matchday-heading"><p className="mg-section-label">06 / Your matchday</p><h2 id="matchday-heading" className="mg-display-section mt-2">This match is cancelled</h2><p className="mg-body mt-3 max-w-2xl text-[var(--mg-muted)]">It won&apos;t appear as an upcoming plan or attendance option.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="mg-secondary-action mt-4 px-5">Remove from My Matchdays</button>}</section> : !finishedForSocial ? <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="matchday-heading">

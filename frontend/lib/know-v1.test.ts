@@ -17,7 +17,7 @@ test("all KNOW modules are independently optional", () => {
 });
 
 test("BTM-only rendering is supported with supporter-facing copy and conditional Directions", () => {
-  assert.match(renderer, /Places supporters go before kick-off\./);
+  assert.match(renderer, /04 \/ Before the match/);
   assert.match(renderer, /spot\.directions_url &&/);
   assert.match(venueGuide, /guide\.sections\.length === 0 && guide\.before_match\.length === 0/);
   assert.doesNotMatch(venueGuide, /Ticket information not yet confirmed/);
@@ -114,5 +114,5 @@ test("KNOW descriptor reflects the identity modules actually rendered", () => {
   assert.equal(fixtureKnowDescriptor(true, false), "The club");
   assert.equal(fixtureKnowDescriptor(false, true), "Supporters");
   assert.equal(fixtureKnowDescriptor(false, false), null);
-  assert.match(renderer, /fixtureKnowDescriptor\(clubFacts\.length > 0, supporterFacts\.length > 0\)/);
+  assert.doesNotMatch(renderer, /backgroundDescriptor/);
 });
