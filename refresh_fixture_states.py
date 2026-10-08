@@ -338,6 +338,9 @@ def main() -> int:
                 with engine.begin() as connection:
                     # Serialize fixture writers until final readback and COMMIT.
                     if connection.dialect.name == "postgresql":
+                        connection.exec_driver_sql("SET LOCAL lock_timeout = '10s'")
+                        connection.exec_driver_sql("SET LOCAL statement_timeout = '120s'")
+                        connection.exec_driver_sql("SET LOCAL idle_in_transaction_session_timeout = '120s'")
                         connection.exec_driver_sql("LOCK TABLE fixtures IN SHARE ROW EXCLUSIVE MODE")
                     preimage = fixture_snapshot(connection, fixtures)
                     for candidate in candidates:

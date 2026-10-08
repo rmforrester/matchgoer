@@ -21,7 +21,9 @@ class PrecommitPostgresTests(unittest.TestCase):
    c.exec_driver_sql('CREATE TABLE venue_provider_refs (venue_id INTEGER, provider TEXT, provider_venue_id INTEGER, valid_to TEXT)');c.exec_driver_sql('CREATE TABLE venue_names (venue_id INTEGER, name TEXT, valid_to TEXT)')
    for i in [100,101,102,*r.REVIEW_HOLDS]:c.execute(text("INSERT INTO fixtures VALUES (:id,'2026-09-01 19:45:00+00','NS',NULL,NULL,39,2026,:home,2,'Home','Away',3,'England','preserve')"),dict(id=i,home=i))
   self.fake=Mock();self.fake.failures=[];self.fake.requests_made=1;self.fake.fixtures_by_ids.return_value=[provider(home_team_id=100),provider(fixture_id=101,home_team_id=999),*[provider(fixture_id=i,home_team_id=i) for i in r.REVIEW_HOLDS]]
-  self.before=self.state();self.commits=0
+  self.before=self.state();self.commits=0;self.database_errors=[]
+  @event.listens_for(self.e,'handle_error')
+  def failed(context):self.database_errors.append(getattr(context.original_exception,'pgcode',None))
   @event.listens_for(self.e,'commit')
   def committed(c):self.commits+=1
  def tearDown(self):self.e.dispose()
@@ -78,3 +80,43 @@ class PrecommitPostgresTests(unittest.TestCase):
    self.assertEqual(owner.exec_driver_sql('SELECT count(*) FROM fixtures WHERE fixture_id=999').scalar(),1)
    self.assertEqual(owner.exec_driver_sql('SELECT count(*) FROM fixtures WHERE fixture_id=102').scalar(),0)
    self.assertEqual(owner.exec_driver_sql('SELECT status FROM fixtures WHERE fixture_id=1599987').scalar(),'PST')
+ def assert_timeouts_reset(self):
+  with self.e.connect() as c:
+   for setting in ('lock_timeout','statement_timeout','idle_in_transaction_session_timeout'):
+    self.assertEqual(c.exec_driver_sql('SHOW '+setting).scalar(),'0')
+ def test_timeout_success_exact_settings_and_reset(self):
+  original=r.reconcile_final_state
+  def verify(c,t,b,u):
+   for setting,expected in (('lock_timeout','10s'),('statement_timeout','2min'),('idle_in_transaction_session_timeout','2min')):
+    self.assertEqual(c.exec_driver_sql('SHOW '+setting).scalar(),expected)
+   original(c,t,b,u)
+  with patch.object(r,'reconcile_final_state',side_effect=verify):
+   self.assertIsNone(self.run_writer()['write_error'])
+  self.assertEqual(self.commits,1);self.assert_timeouts_reset()
+ def test_timeout_lock_acquisition_rolls_back(self):
+  import time
+  with self.e.connect() as blocker:
+   transaction=blocker.begin()
+   try:
+    blocker.exec_driver_sql('LOCK TABLE fixtures IN ROW EXCLUSIVE MODE')
+    started=time.monotonic();self.assertIsNotNone(self.run_writer()['write_error'])
+    self.assertGreaterEqual(time.monotonic()-started,9)
+   finally:transaction.rollback()
+  self.assertIn('55P03',self.database_errors)
+  self.assertEqual(self.commits,0);self.assertEqual(self.state(),self.before);self.assert_timeouts_reset()
+ def test_timeout_statement_rolls_back(self):
+  import time
+  started=time.monotonic();self.rollback_case('SELECT pg_sleep(121)')
+  self.assertGreaterEqual(time.monotonic()-started,119);self.assertIn('57014',self.database_errors);self.assert_timeouts_reset()
+ def test_timeout_idle_termination_rolls_back(self):
+  import time
+  original=r.reconcile_final_state
+  def idle(c,t,b,u):
+   time.sleep(121)
+   original(c,t,b,u)
+  with patch.object(r,'reconcile_final_state',side_effect=idle):
+   self.assertIsNotNone(self.run_writer()['write_error'])
+  self.assertEqual(self.commits,0);self.assertEqual(self.state(),self.before);self.assert_timeouts_reset()
+ def test_timeout_failed_reconciliation_settings_reset(self):
+  self.rollback_case("UPDATE fixtures SET status='NS' WHERE fixture_id=100")
+  self.assert_timeouts_reset()
