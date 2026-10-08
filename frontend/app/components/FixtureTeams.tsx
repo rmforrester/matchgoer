@@ -24,13 +24,13 @@ export default function FixtureTeams({
   compact = false,
 }: Props) {
   if (compact) return (
-    <div className={`grid min-w-0 grid-cols-1 gap-1 @min-[360px]:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] @min-[360px]:items-center @min-[360px]:gap-2 ${className}`} aria-label={`${homeTeam} versus ${awayTeam}`}>
-      <div className="flex min-w-0 items-center gap-2 text-left">
+    <div className={`grid min-w-0 justify-items-center gap-1 text-center ${className}`} aria-label={`${homeTeam} versus ${awayTeam}`}>
+      <div className="grid min-w-0 justify-items-center gap-1">
         <TeamBadge src={homeBadgeSrc} className={badgeClassName} />
         <p className={`tt-display min-w-0 break-words ${teamClassName}`}>{homeTeam}</p>
       </div>
       <span className={`justify-self-center font-extrabold text-[var(--brand-interactive)] ${separatorClassName}`} aria-hidden="true">VS</span>
-      <div className="flex min-w-0 items-center justify-self-end gap-2 text-right">
+      <div className="grid min-w-0 justify-items-center gap-1">
         <TeamBadge src={awayBadgeSrc} className={badgeClassName} />
         <p className={`tt-display min-w-0 break-words ${teamClassName}`}>{awayTeam}</p>
       </div>

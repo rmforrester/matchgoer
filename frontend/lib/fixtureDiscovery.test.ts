@@ -369,7 +369,7 @@ test("optional filter labels and selected values share a calm hierarchy", () => 
 
 test("mobile results use a vertical scan and canonical badge proxy paths", () => {
   assert.doesNotMatch(fixtureCarouselSource, /snap-x|overflow-x-auto|w-\[87%\]/);
-  assert.match(fixtureCarouselSource, /grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-3/);
+  assert.match(fixtureCarouselSource, /grid min-w-0 items-start gap-2 md:grid-cols-2 xl:grid-cols-3/);
   assert.match(fixtureCarouselSource, /apiAssetUrl\(fixture\.home_team_badge_url\)/);
   assert.match(fixtureCarouselSource, /apiAssetUrl\(fixture\.away_team_badge_url\)/);
   assert.match(fixtureCarouselSource, /min-w-0 break-words[\s\S]*fixture\.league_name/);
