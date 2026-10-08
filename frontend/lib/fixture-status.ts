@@ -25,6 +25,12 @@ export function fixtureStatusLabel(status: string | null | undefined): string {
   return "Scheduled";
 }
 
+export function fixtureKickoffConfirmed(status: string | null | undefined, timestamp: string): boolean {
+  return Boolean(timestamp && status && status.toUpperCase() !== "TBD"
+    && !["postponed", "cancelled"].includes(fixtureStatusGroup(status))
+    && Number.isFinite(new Date(timestamp).getTime()));
+}
+
 export function fixtureHasFinishedForSocial(status: string | null | undefined, boardClosed: boolean): boolean {
   const group = fixtureStatusGroup(status);
   return group === "finished" || (boardClosed && group !== "cancelled");

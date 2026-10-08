@@ -32,7 +32,7 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
           {resultsLimited ? `${fixtures.length} of ${totalMatches}` : totalMatches} {totalMatches === 1 ? "match" : "matches"}
         </span>
         </div>
-        <p className="mg-meta mt-1 text-xs font-bold uppercase tracking-[0.1em]">Earliest kick-off first</p>
+        <p className="mt-1 text-[11px] leading-4 text-[var(--mg-muted)]">Earliest kick-off first · Times shown in your timezone</p>
       </div>
 
       <div className="grid min-w-0 items-start gap-2 md:grid-cols-2 xl:grid-cols-3" aria-label="Nearby fixtures">

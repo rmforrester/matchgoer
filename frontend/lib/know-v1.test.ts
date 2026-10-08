@@ -23,11 +23,11 @@ test("BTM-only rendering is supported with supporter-facing copy and conditional
   assert.doesNotMatch(venueGuide, /Ticket information not yet confirmed/);
 });
 
-test("fixture guidance follows matchday, BTM, then club and supporters hierarchy", () => {
+test("club and supporter context stays in Matchday Guide before pre-match places", () => {
   const essentials = renderer.indexOf("03 / Matchday guide");
   const beforeMatch = renderer.indexOf("Before the match");
-  const know = renderer.indexOf("05 / Know");
-  assert.ok(essentials >= 0 && essentials < beforeMatch && beforeMatch < know);
+  const know = renderer.indexOf("{hasBackground && <section");
+  assert.ok(essentials >= 0 && essentials < know && know < beforeMatch);
   assert.match(renderer, /highlights\.primaryIdentity/);
   assert.match(renderer, /highlights\.primaryMatchday/);
   assert.match(renderer, /primaryIdentityModule === "CLUB"/);
@@ -70,7 +70,7 @@ test("WHY THIS MATCH stays before KNOW and the ground stays secondary", () => {
   const why = fixturePage.indexOf("Why this match");
   const tickets = fixturePage.indexOf("<FixtureOfficialActions");
   const know = fixturePage.indexOf("<FixtureKnow know={know}");
-  const ground = fixturePage.indexOf("06 / The ground");
+  const ground = fixturePage.indexOf("05 / The ground");
   assert.ok(tickets >= 0 && why > tickets && know > why && ground > know);
   assert.match(fixturePage, /decisionReasons\[0\]\.explanation/);
   assert.doesNotMatch(fixturePage, /Terrace roll call/i);
@@ -83,8 +83,7 @@ test("fixture ticket action remains ahead of KNOW in the refreshed hierarchy", (
 });
 
 test("fixture ticket guidance is additive and never creates a fake ticket link", () => {
-  assert.match(fixturePage, /!data\.ticket_action && data\.ticket_guidance/);
-  assert.match(fixturePage, /data\.ticket_guidance\.message/);
+  assert.match(fixturePage, /ticketGuidance=\{data\.ticket_guidance\}/);
   assert.doesNotMatch(fixturePage, /href=\{data\.ticket_guidance/);
 });
 

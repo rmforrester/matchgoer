@@ -5,7 +5,7 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import api, { apiAssetUrl } from "../../../lib/api";
-import { fixtureHasFinishedForSocial, fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
+import { fixtureHasFinishedForSocial, fixtureKickoffConfirmed, fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
 import AccountConversionPrompt from "../../components/AccountConversionPrompt";
 import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
@@ -179,6 +179,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   if (!data) return <main className="mx-auto w-full max-w-5xl p-4 sm:p-6"><p className="tt-kicker">01 / Match</p><p className="mt-3 font-semibold" role={error ? "alert" : undefined}>{error || "Loading fixture…"}</p></main>;
   const kickoff = new Date(data.fixture.fixture_date);
   const statusGroup = fixtureStatusGroup(data.fixture.status);
+  const confirmedKickoff = fixtureKickoffConfirmed(data.fixture.status, data.fixture.fixture_date);
   const decisionReasons = data.decision_reasons ?? [];
   const hasDecisionReasons = decisionReasons.length > 0;
   const completed = statusGroup === "finished";
@@ -201,20 +202,20 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     </article>
   );
 
-  return <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
-    <section aria-labelledby="fixture-heading" className="border-b-2 border-[var(--mg-ink)] pb-6 sm:pb-8">
+  return <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+    <section aria-labelledby="fixture-heading" className="border border-[var(--mg-ink)] bg-[var(--mg-paper-light)] p-3 sm:p-5">
       <p className="mg-section-label">01 / Match · {data.fixture.league_name}</p>
-      <div className="mt-5 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end lg:gap-12">
+      <div className="mt-3 grid min-w-0 gap-4">
         <div className="min-w-0">
           <h1 id="fixture-heading" className="sr-only">{data.fixture.home_team} versus {data.fixture.away_team}</h1>
-          <FixtureTeams homeTeam={data.fixture.home_team} awayTeam={data.fixture.away_team} homeBadgeSrc={apiAssetUrl(data.fixture.home_team_badge_url)} awayBadgeSrc={apiAssetUrl(data.fixture.away_team_badge_url)} className="max-w-4xl" teamClassName="mg-display-page" badgeClassName="h-12 w-12 sm:h-[4.5rem] sm:w-[4.5rem]" separatorClassName="my-2.5 text-sm tracking-[0.2em] sm:my-3 sm:text-base" />
+          <FixtureTeams homeTeam={data.fixture.home_team} awayTeam={data.fixture.away_team} homeBadgeSrc={apiAssetUrl(data.fixture.home_team_badge_url)} awayBadgeSrc={apiAssetUrl(data.fixture.away_team_badge_url)} compact className="w-full" teamClassName="text-[clamp(1.5rem,4vw,2.75rem)] leading-[1.05]" badgeClassName="h-12 w-12" separatorClassName="text-xs tracking-[0.12em]" />
           {hasResult && <p className="mg-display-section mt-6 text-[var(--mg-green)]" aria-label={`Final score ${data.fixture.home_goals} to ${data.fixture.away_goals}`}>{data.fixture.home_goals}–{data.fixture.away_goals}</p>}
         </div>
-        <dl className="grid grid-cols-2 gap-x-5 gap-y-3 border-t border-[var(--mg-rule)] pt-4 text-sm lg:grid-cols-1 lg:border-l lg:border-t-0 lg:pl-7 lg:pt-0">
-          <div><dt className="mg-meta font-bold">Date</dt><dd className="mt-0.5 font-bold">{kickoff.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</dd></div>
-          <div><dt className="mg-meta font-bold">Kick-off</dt><dd className="mt-0.5 font-bold">{kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</dd><dd className="mg-meta text-xs">Your current timezone</dd></div>
-          {statusGroup !== "upcoming" && !completed && <div><dt className="mg-meta font-bold">Status</dt><dd className="mt-0.5 font-bold">{fixtureStatusLabel(data.fixture.status)}</dd></div>}
-          <div className="col-span-2 lg:col-span-1"><dt className="mg-meta font-bold">Ground</dt><dd className="mt-0.5 min-w-0 break-words font-bold">{data.fixture.venue_name || "Ground to be confirmed"}{data.fixture.venue_city ? ` · ${data.fixture.venue_city}` : ""}</dd></div>
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[var(--mg-rule)] pt-3 text-sm">
+          <div><dt className="mg-meta font-bold">Date</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? kickoff.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "To be confirmed"}</dd></div>
+          <div><dt className="mg-meta font-bold">Your timezone</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZoneName: "short" }) : "Kick-off to be confirmed"}</dd></div>
+          {((statusGroup !== "upcoming" && !completed) || !confirmedKickoff) && <div><dt className="mg-meta font-bold">Status</dt><dd className="mt-0.5 font-bold">{!confirmedKickoff && statusGroup === "upcoming" ? "Kick-off to be confirmed" : fixtureStatusLabel(data.fixture.status)}</dd></div>}
+          <div className="col-span-2"><dt className="mg-meta font-bold">Ground</dt><dd className="mt-0.5 min-w-0 break-words font-bold">{data.fixture.venue_name || "Ground to be confirmed"}{data.fixture.venue_city ? ` · ${data.fixture.venue_city}` : ""}</dd></div>
         </dl>
       </div>
     </section>
@@ -222,45 +223,40 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     <AccountConversionPrompt open={accountPrompt !== null} kind={accountPrompt ?? "interested"} onDismiss={() => setAccountPrompt(null)} returnTo={accountPrompt === "mate" ? pendingWhosGoingReturnTo(Number(fixtureId)) : undefined} />
     {error && <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
 
-    <FixtureOfficialActions ticketAction={data.ticket_action} channels={data.official_channels} teamName={data.fixture.home_team} />
-    {!data.ticket_action && data.ticket_guidance && <section className="mg-utility-panel mt-5 px-4 py-3 sm:mt-6 sm:px-5" aria-label="Tickets">
-      <p className="mg-section-label">{data.ticket_guidance.label}</p>
-      <p className="mt-1 font-semibold text-[var(--mg-ink)]">{data.ticket_guidance.message}</p>
-    </section>}
+    <FixtureOfficialActions ticketAction={data.ticket_action} channels={data.official_channels} teamName={data.fixture.home_team} ticketGuidance={data.ticket_guidance} />
 
-    {hasDecisionReasons && <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="why-this-match-heading">
+    {hasDecisionReasons && <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="why-this-match-heading">
       <p className="mg-section-label">02 / Why this match</p>
-      <div className="mg-editorial-accent mt-3 bg-[var(--mg-paper-light)] px-4 py-5 sm:px-6 sm:py-6 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(16rem,0.65fr)] lg:gap-10">
+      <div className="mg-editorial-accent mt-3 bg-[var(--mg-paper-light)] px-4 py-4 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(16rem,0.65fr)] lg:gap-10">
         <div>
-          <p className="mg-display-callout text-[var(--mg-green)]">Worth going for</p>
-          <h2 id="why-this-match-heading" className="mg-display-section mt-2">{decisionReasons[0].label}</h2>
+          <h2 id="why-this-match-heading" className="mg-display-section text-[var(--mg-green)]">{decisionReasons[0].label}</h2>
           <p className="mg-body mt-3 max-w-3xl">{decisionReasons[0].explanation}</p>
         </div>
-        {decisionReasons.length > 1 && <ul className="mt-4 divide-y divide-[var(--mg-rule)] border-t border-[var(--mg-rule)] lg:mt-0 lg:border-l lg:border-t-0 lg:pl-7">
+        {decisionReasons.length > 1 && <div><p className="mg-section-label mt-3 lg:mt-0">Also worth knowing</p><ul className="mt-4 divide-y divide-[var(--mg-rule)] border-t border-[var(--mg-rule)] lg:mt-0 lg:border-l lg:border-t-0 lg:pl-7">
           {decisionReasons.slice(1).map((reason) => <li key={`${reason.key}-${reason.label}`} className="py-3 first:pt-0"><strong className="block text-sm font-extrabold">{reason.label}</strong><span className="mg-body mt-1 block text-[var(--mg-muted)]">{reason.explanation}</span></li>)}
-        </ul>}
+        </ul></div>}
         <div className="mt-4 flex flex-wrap gap-1.5 lg:col-span-2">{decisionReasons.map((reason) => <span key={`tag-${reason.key}-${reason.label}`} className="mg-reason-stamp bg-[var(--mg-paper)]">{reason.label}</span>)}</div>
       </div>
     </section>}
 
     <FixtureKnow know={know} teamName={data.fixture.home_team} />
 
-    {data.fixture.venue_id && <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="ground-heading">
-      <p className="mg-section-label">06 / The ground</p>
+    {data.fixture.venue_id && <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="ground-heading">
+      <p className="mg-section-label">05 / The ground</p>
       <div className="mt-3 grid gap-4 border-b border-[var(--mg-rule)] pb-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div className="min-w-0"><h2 id="ground-heading" className="mg-display-section break-words">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mg-meta mt-3 font-bold">{data.fixture.venue_city}</p>}</div>
+        <div className="min-w-0"><h2 id="ground-heading" className="text-xl font-extrabold break-words">{data.fixture.venue_name || "The ground"}</h2>{data.fixture.venue_city && <p className="mg-meta mt-1 font-bold">{data.fixture.venue_city}</p>}</div>
         <Link href={`/venue/${data.fixture.venue_id}${data.fixture.home_team_id ? `?teamId=${data.fixture.home_team_id}` : ""}`} className="mg-tertiary-action inline-flex items-center">Explore the ground →</Link>
       </div>
       {(data.terrace_rating !== null || data.recommend_percentage !== null) && <details className="mt-4 text-xs text-[var(--tt-muted)]"><summary className="cursor-pointer font-bold uppercase tracking-[0.08em]">Community ground ratings</summary><div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div></details>}
     </section>}
 
-    {statusGroup === "cancelled" ? <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="matchday-heading"><p className="mg-section-label">07 / Social · Match update</p><h2 id="matchday-heading" className="mg-display-section mt-2">This match is cancelled</h2><p className="mg-body mt-3 max-w-2xl text-[var(--mg-muted)]">It won&apos;t appear as an upcoming plan or attendance option.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="mg-secondary-action mt-4 px-5">Remove from Interested</button>}</section> : !finishedForSocial ? <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="matchday-heading">
+    {statusGroup === "cancelled" ? <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="matchday-heading"><p className="mg-section-label">06 / Your matchday</p><h2 id="matchday-heading" className="mg-display-section mt-2">This match is cancelled</h2><p className="mg-body mt-3 max-w-2xl text-[var(--mg-muted)]">It won&apos;t appear as an upcoming plan or attendance option.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="mg-secondary-action mt-4 px-5">Remove from My Matchdays</button>}</section> : !finishedForSocial ? <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="matchday-heading">
       <div>
-        <p className="mg-section-label">07 / Social · {statusGroup === "postponed" ? "Match update" : "Your matchday"}</p>
-        <h2 id="matchday-heading" className="mg-display-section mt-2">{statusGroup === "postponed" ? "Match postponed" : "Make it yours"}</h2>
+        <p className="mg-section-label">06 / Your matchday</p>
+        <h2 id="matchday-heading" className="mg-display-section mt-2">{statusGroup === "postponed" ? "Match postponed" : "Your matchday"}</h2>
         {statusGroup === "postponed" && <p className="mt-3 text-[var(--tt-muted)]">Keep this on your radar while a new kickoff is confirmed.</p>}
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`${data.interested ? "mg-primary-action" : "mg-secondary-action"} px-5 py-3 text-left`}>{data.interested ? "✓ Interested" : "Interested"}</button>
+          <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`${data.interested ? "mg-primary-action" : "mg-secondary-action"} px-5 py-3 text-left`}>{data.interested ? "✓ Added to My Matchdays" : "Save match"}</button>
           <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`${data.open_to_meet ? "mg-primary-action" : "mg-secondary-action"} px-5 py-3 text-left`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Open to meeting supporters"}</button>
         </div>
         {data.open_to_meet_count > 0 && <p className="mt-3 text-xs font-bold text-[var(--tt-muted)]">{data.open_to_meet_count} {data.open_to_meet_count === 1 ? "supporter is" : "supporters are"} open to meeting.</p>}
@@ -268,8 +264,8 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       </div>
     </section> : null}
 
-    <section className="mg-editorial-rule mt-9 pt-3 sm:mt-10 sm:pt-4" aria-labelledby="board-heading">
-      <p className="mg-section-label">08 / Social · Supporter correspondence</p>
+    <section className="mt-5 border-t border-[var(--mg-rule)] pt-3" aria-labelledby="board-heading">
+      {finishedForSocial && <p className="mg-section-label">06 / Your matchday</p>}
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3"><h2 id="board-heading" className="mg-display-section">Match Board</h2>{data.posts.length > 0 && <span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--mg-muted)]">{data.posts.length} {data.posts.length === 1 ? "thread" : "threads"}</span>}</div>
       {data.board_closed ? <div className="mg-utility-panel mt-5 p-4 sm:p-5"><p className="mg-display-callout">The board is closed</p><p className="mt-2 text-[var(--mg-muted)]">{statusGroup === "cancelled" ? "This match was cancelled." : "This match has finished."}</p></div> : <div className="mg-utility-panel mt-5 p-4 sm:p-5">{data.posts.length === 0 && <p className="mb-4 max-w-2xl leading-7 text-[var(--mg-muted)]">Ask other supporters about the match, pubs, travel or the ground.</p>}<label htmlFor="match-board-message" className="mg-section-label">{replyingTo ? "Your reply" : "Post to the board"}</label><textarea id="match-board-message" ref={composerRef} value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={4} placeholder={replyingTo ? "Write a reply" : "Ask about travel, pubs, tickets or the ground…"} className="tt-control mt-2 w-full min-w-0 resize-y p-3"/><div className="mt-3 grid gap-3 sm:flex sm:items-center sm:justify-between"><span className="text-xs font-semibold text-[var(--mg-muted)]">{body.length} / 500</span><button type="button" disabled={saving || !body.trim()} onClick={submitPost} className="mg-primary-action w-full px-5 sm:w-auto">{replyingTo ? "Post reply" : "Post to board"}</button></div></div>}
       {data.posts.length > 0 && <div className="mt-6">{data.posts.map((post) => renderPost(post))}</div>}

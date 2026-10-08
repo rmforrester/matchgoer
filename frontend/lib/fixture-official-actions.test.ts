@@ -40,11 +40,18 @@ for (const [name, props, expected] of cases) test(name, () => {
   if (expected.length) { assert.match(html, /min-h-12 w-full/); assert.match(html, /rel="noopener noreferrer"/); assert.match(html, /opens in a new tab/); }
   if (name === "approved HTTP unchanged") assert.match(html, /href="http:\/\/biljetter.hbk.se\/"/);
 });
-test("fixture has one action panel, preserves protected guidance and no standalone CTA", () => {
+test("fixture has one action panel with protected guidance preceding digital links", () => {
   const page = readFileSync(new URL("../app/fixture/[fixtureId]/page.tsx", import.meta.url), "utf8");
   assert.equal((page.match(/<FixtureOfficialActions /g) ?? []).length, 1);
   assert.match(page, /channels=\{data\.official_channels\}/);
-  assert.match(page, /!data\.ticket_action && data\.ticket_guidance/);
-  assert.match(page, /data\.ticket_guidance\.message/);
+  assert.match(page, /ticketGuidance=\{data\.ticket_guidance\}/);
   assert.doesNotMatch(page, /href=\{data\.ticket_action\.url\}|officialChannelLinks|href=\{data\.ticket_guidance/);
+});
+
+test("protected admission text stays exact, ahead of digital links, without a fake ticket URL", () => {
+  const html = render({ ticketGuidance: { label: "Admission", message: "Cash only at the gate.", source_label: "Club" }, channels: digital });
+  assert.ok(html.indexOf("Cash only at the gate.") < html.indexOf("Club website"));
+  assert.equal((html.match(/<a /g) ?? []).length, 2);
+  assert.doesNotMatch(html, /Buy tickets|Ticket info/);
+  assert.equal(render({ ticketGuidance: { label: "Admission", message: "Cash only at the gate.", source_label: "Club" } }).includes("<a "), false);
 });
