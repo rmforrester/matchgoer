@@ -229,6 +229,36 @@ def validate_plan(candidates: list[Any], manifest: list[dict[str, Any]], updates
     return {"passed": not problems, "problems": problems, "frozen_candidate_count": len(ids), "planned_update_count": len(updates), "idempotent": not problems}
 
 
+def fixture_snapshot(connection, fixtures):
+    """Capture every column so excluded rows and editorial fields are protected."""
+    rows = list(connection.execute(select(fixtures)).mappings())
+    snapshot = {row["fixture_id"]: dict(row) for row in rows}
+    for row in snapshot.values():
+        if row["fixture_date"] is not None:
+            row["fixture_date"] = utc_datetime(row["fixture_date"])
+    if len(snapshot) != len(rows):
+        raise RuntimeError("Duplicate fixture IDs during reconciliation")
+    return snapshot
+
+
+def reconcile_final_state(connection, fixtures, before, updates):
+    after = fixture_snapshot(connection, fixtures)
+    if set(after) != set(before):
+        raise RuntimeError("Fixture insertion or deletion during reconciliation")
+    changed = set()
+    for fixture_id, original in before.items():
+        expected = dict(original)
+        expected.update(updates.get(fixture_id, {}))
+        if after[fixture_id] != expected:
+            raise RuntimeError(f"Unexpected final fixture state for {fixture_id}")
+        if after[fixture_id] != original:
+            changed.add(fixture_id)
+    intended = {fixture_id for fixture_id, values in updates.items()
+                if any(before[fixture_id][field] != value for field, value in values.items())}
+    if changed != intended or set(updates) & set(REVIEW_HOLDS):
+        raise RuntimeError("Updated fixture IDs differ from approved plan")
+
+
 def main() -> int:
     args = parser().parse_args()
     expanded = expanded_refresh_enabled()
@@ -306,6 +336,15 @@ def main() -> int:
         try:
                 by_id = {row.fixture_id: row for row in candidates}
                 with engine.begin() as connection:
+                    # Serialize fixture writers until final readback and COMMIT.
+                    if connection.dialect.name == "postgresql":
+                        connection.exec_driver_sql("LOCK TABLE fixtures IN SHARE ROW EXCLUSIVE MODE")
+                    preimage = fixture_snapshot(connection, fixtures)
+                    for candidate in candidates:
+                        current = preimage.get(candidate.fixture_id)
+                        if current is None or any(current[field] != (utc_datetime(value) if field == "fixture_date" else value)
+                                                  for field, value in candidate._mapping.items()):
+                            raise RuntimeError(f"Fixture preimage changed for {candidate.fixture_id}")
                     for fixture_id, values in updates.items():
                         if fixture_id in REVIEW_HOLDS:
                             raise RuntimeError(f"Held fixture {fixture_id} cannot be written")
@@ -318,6 +357,7 @@ def main() -> int:
                                      fixtures.c.away_goals.is_(None) if before.away_goals is None else fixtures.c.away_goals == before.away_goals)
                         if connection.execute(update(fixtures).where(guard).values(**values)).rowcount != 1:
                             raise RuntimeError(f"Concurrent fixture change detected for {fixture_id}; transaction rolled back")
+                    reconcile_final_state(connection, fixtures, preimage, updates)
         except Exception as error:
             write_error = type(error).__name__
             args.write = False
