@@ -68,7 +68,7 @@ test("published provenance remains in the API type but does not dominate the fix
 
 test("WHY THIS MATCH stays before KNOW and the ground stays secondary", () => {
   const why = fixturePage.indexOf("Why this match");
-  const tickets = fixturePage.indexOf("Buy tickets");
+  const tickets = fixturePage.indexOf("<FixtureOfficialActions");
   const know = fixturePage.indexOf("<FixtureKnow know={know}");
   const ground = fixturePage.indexOf("06 / The ground");
   assert.ok(tickets >= 0 && why > tickets && know > why && ground > know);
@@ -78,10 +78,8 @@ test("WHY THIS MATCH stays before KNOW and the ground stays secondary", () => {
 });
 
 test("fixture ticket action remains ahead of KNOW in the refreshed hierarchy", () => {
-  assert.match(fixturePage, /data\.ticket_action && <section className="mt-5 sm:mt-6"/);
+  assert.match(fixturePage, /<FixtureOfficialActions ticketAction=\{data\.ticket_action\}/);
   assert.match(fixturePage, /<FixtureKnow know=\{know\} teamName=\{data\.fixture\.home_team\}/);
-  assert.match(fixturePage, /mg-primary-action mx-auto min-h-12 w-full/);
-  assert.match(fixturePage, />BUY TICKETS →<\/a>/);
 });
 
 test("fixture ticket guidance is additive and never creates a fake ticket link", () => {

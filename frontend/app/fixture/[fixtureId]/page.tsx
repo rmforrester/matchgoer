@@ -13,6 +13,8 @@ import { hasPendingAuthAction, parsePendingWhosGoingAction, pendingWhosGoingRetu
 import { applyPendingWhosGoing, clearPendingWhosGoing, loadPendingWhosGoing } from "@/lib/account-conversion-checkpoint";
 import FixtureKnow from "../../components/FixtureKnow";
 import { type FixtureKnow as FixtureKnowData } from "../../../lib/know-v1";
+import FixtureOfficialActions from "../../components/FixtureOfficialActions";
+import type { OfficialChannels } from "../../../lib/official-channels";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -30,6 +32,7 @@ type SocialFixture = {
   terrace_rating: number | null; recommend_percentage: number | null;
   decision_reasons: DecisionReason[]; highlight_eligible: boolean;
   ticket_action: { label: string; url: string; source_label: string } | null;
+  official_channels?: OfficialChannels | null;
   ticket_guidance: { label: string; message: string; source_label: string } | null;
   interested: boolean; open_to_meet: boolean; open_to_meet_count: number;
   profile: { username: string | null; display_name: string; supported_club: string | null } | null;
@@ -219,9 +222,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
     <AccountConversionPrompt open={accountPrompt !== null} kind={accountPrompt ?? "interested"} onDismiss={() => setAccountPrompt(null)} returnTo={accountPrompt === "mate" ? pendingWhosGoingReturnTo(Number(fixtureId)) : undefined} />
     {error && <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
 
-    {data.ticket_action && <section className="mt-5 sm:mt-6" aria-label="Tickets">
-      <a href={data.ticket_action.url} target="_blank" rel="noreferrer" className="mg-primary-action mx-auto min-h-12 w-full px-6 text-sm sm:w-auto sm:min-w-64" aria-label={`Buy tickets from ${data.ticket_action.source_label}`}>BUY TICKETS →</a>
-    </section>}
+    <FixtureOfficialActions ticketAction={data.ticket_action} channels={data.official_channels} teamName={data.fixture.home_team} />
     {!data.ticket_action && data.ticket_guidance && <section className="mg-utility-panel mt-5 px-4 py-3 sm:mt-6 sm:px-5" aria-label="Tickets">
       <p className="mg-section-label">{data.ticket_guidance.label}</p>
       <p className="mt-1 font-semibold text-[var(--mg-ink)]">{data.ticket_guidance.message}</p>

@@ -26,6 +26,7 @@ from location_safety import has_usable_coordinates
 from club_venue_know import google_maps_search_url, guide_facts_for_relationship, public_supporting_line, publishable_spots, resolve_club_venue, resolve_unique_home_club
 from decision import applicable_decision_payload, fixture_decision_leads, fixture_decision_payload
 from know_v1 import compose_fixture_know
+from official_channels import official_channels
 
 from models import (
     Fixture,
@@ -2631,6 +2632,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             root["replies"] = replies.get(root["post_id"], [])
         recommend_percentage = round((float(rating[1]) / rating[2]) * 100, 1) if rating[2] else None
         decision = fixture_decision_payload(db, fixture)
+        home_club = db.query(Team).filter(Team.team_id == fixture.home_team_id).first() if fixture.home_team_id is not None else None
         relationships = (
             db.query(ClubVenue)
             .filter(ClubVenue.team_id == fixture.home_team_id, ClubVenue.venue_id == fixture.venue_id)
@@ -2681,6 +2683,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             "terrace_rating": round(float(rating[0]), 1) if rating[0] is not None else None,
             "recommend_percentage": recommend_percentage,
             "ticket_action": ticket_action,
+            "official_channels": official_channels(home_club),
             "ticket_guidance": ticket_guidance,
             **decision,
             "interested": interested, "open_to_meet": open_to_meet,

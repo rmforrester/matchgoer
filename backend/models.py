@@ -395,6 +395,8 @@ class Team(Base):
 
     team_id = Column(Integer, primary_key=True)
     team_name = Column(String)
+    official_homepage_url = Column(Text, nullable=True)
+    official_instagram_url = Column(Text, nullable=True)
     venue_id = Column(Integer, ForeignKey("venues.venue_id"))
     active = Column(Boolean)
 

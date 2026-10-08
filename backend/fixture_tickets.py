@@ -2,6 +2,7 @@ from datetime import date
 from urllib.parse import urlparse
 
 from club_venue_know import resolve_club_venue
+from official_channels import INFORMATION_STATE, ticket_destination_allowed
 
 ELIGIBLE_TOPICS = {"official_ticket_portal", "buy online"}
 V2_ONLINE_SOURCE_STATES = {
@@ -42,7 +43,7 @@ def _resolve_v2_sources(scoped):
     source = active_primary[0]
     if (source.source_state in V2_ONLINE_SOURCE_STATES
             and source.ticketing_model in {"ONLINE_DIRECT", "ONLINE_NAVIGATION", "FIXTURE_SPECIFIC"}
-            and _is_https_url(source.source_url)):
+            and ticket_destination_allowed(source)):
         return {
             "action": {
                 "label": "Buy tickets",
@@ -51,6 +52,14 @@ def _resolve_v2_sources(scoped):
             },
             "guidance": None,
             "serving": "V2",
+        }
+    if (source.source_state == INFORMATION_STATE
+            and source.ticketing_model == "OFFICIAL_INFORMATION"
+            and ticket_destination_allowed(source)):
+        return {
+            "action": {"label": "Ticket info", "url": source.source_url,
+                       "source_label": source.source_label or "Official"},
+            "guidance": None, "serving": "V2",
         }
     if (source.source_state in V2_PHYSICAL_SOURCE_STATES
             and source.ticketing_model in {"PAY_AT_GATE", "OFFLINE"}
