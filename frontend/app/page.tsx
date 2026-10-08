@@ -228,11 +228,14 @@ const loadVisitedStadiums = () => {
       });
   };
 
+  const [saveError, setSaveError] = useState("");
+
   const toggleInterested = (fixtureId: number) => {
     if (updatingInterestedFixtureIds.includes(fixtureId)) {
       return;
     }
 
+    setSaveError("");
     const isInterested = interestedFixtureIds.includes(fixtureId);
     setUpdatingInterestedFixtureIds((current) => [...current, fixtureId]);
 
@@ -241,7 +244,8 @@ const loadVisitedStadiums = () => {
       : api.post(`/fixtures/${fixtureId}/interested`);
 
     request
-      .then(() => {
+      .then((response) => {
+        if (response.data?.error) throw new Error("Save failed");
         if (isInterested) {
           setInterestedFixtures((current) => current.filter((fixture) => fixture.fixture_id !== fixtureId));
         } else {
@@ -258,6 +262,7 @@ const loadVisitedStadiums = () => {
       })
       .catch((error) => {
         console.error("Interested update error:", error);
+        setSaveError("Could not update My Matchdays. Please try again.");
       })
       .finally(() => {
         setUpdatingInterestedFixtureIds((current) =>
@@ -713,21 +718,21 @@ const loadVisitedStadiums = () => {
     <main className="mx-auto w-full min-w-0 max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
       <AccountConversionPrompt open={showAccountPrompt} kind="interested" onDismiss={() => setShowAccountPrompt(false)} />
 
-      <header className="mb-5 border-b-2 border-[var(--tt-ink)] pb-5 sm:mb-8 sm:pb-7">
+      <header className="mb-3 border-b-2 border-[var(--tt-ink)] pb-3 sm:mb-5 sm:pb-4">
         <p className="mg-section-label">01 / Match discovery</p>
-        <h1 className="mg-display-page mt-2 max-w-4xl">Find football<br />worth going to.</h1>
-        <p className="mg-body mt-4 max-w-xl text-[var(--tt-muted)]">
-          Discover matches wherever you are. Know the matchday before you get there.
+        <h1 className="mg-display-page mt-1 max-w-4xl !text-4xl sm:!text-6xl">Find your next matchday.</h1>
+        <p className="mg-body mt-2 max-w-xl !text-sm text-[var(--tt-muted)]">
+          Discover football worth going to, wherever you are.
         </p>
       </header>
 
-      <section className={editingSearch || !appliedSearch ? "mb-7 w-full min-w-0 sm:mb-9" : "mg-utility-panel mb-5 w-full min-w-0 px-3 py-1 sm:px-4"} aria-labelledby="search-heading">
+      <section className={editingSearch || !appliedSearch ? "mb-4 w-full min-w-0 sm:mb-6" : "mg-utility-panel mb-5 w-full min-w-0 px-3 py-1 sm:px-4"} aria-labelledby="search-heading">
         {!editingSearch && appliedSearch ? (
           <div className="flex items-center justify-between gap-3">
             <p className="min-w-0 break-words py-2 text-sm font-extrabold" id="search-heading">
               {appliedSearch.locationName.split(",")[0]} · {appliedDateSummary} · {appliedSearch.leagueIds.length === 0 ? "All competitions" : `${appliedSearch.leagueIds.length} ${appliedSearch.leagueIds.length === 1 ? "competition" : "competitions"}`}
             </p>
-            <button type="button" onClick={() => setEditingSearch(true)} className="min-h-11 shrink-0 px-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Edit</button>
+            <button type="button" onClick={() => setEditingSearch(true)} className="min-h-11 shrink-0 px-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Change search</button>
           </div>
         ) : (
           <form onSubmit={submitDiscovery} className="max-w-5xl">
@@ -735,10 +740,10 @@ const loadVisitedStadiums = () => {
             <button type="button" onClick={findFootballThisWeekend} disabled={!discoveryNow || loading || locationLoading} className="mg-primary-action w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14 sm:max-w-xl">
               {locationLoading ? "Finding your location…" : "Find football near me this weekend"}
             </button>
-            <div className="my-4 flex max-w-xl items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
+            <div className="my-2 flex max-w-xl items-center gap-3 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--tt-muted)]" aria-hidden="true">
               <span className="h-px flex-1 bg-[var(--tt-rule)]" />or<span className="h-px flex-1 bg-[var(--tt-rule)]" />
             </div>
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-8">
+            <div className="grid gap-2 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-8">
             <div className="grid content-start gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
               Where?
               <div>
@@ -770,7 +775,7 @@ const loadVisitedStadiums = () => {
             </div>
             </div>
 
-            <details className="mt-4 max-w-5xl border-t border-[var(--tt-rule)] pt-1">
+            <details className="mt-2 max-w-5xl border-t border-[var(--tt-rule)] pt-1">
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-xs font-extrabold uppercase tracking-[0.12em] marker:content-none">
                 <span>Filters</span><span aria-hidden="true">＋</span>
               </summary>
@@ -821,6 +826,7 @@ const loadVisitedStadiums = () => {
   showDistance={appliedSearch.mode !== "viewport"}
 />
             </div>
+            {saveError && <p role="alert" className="mt-3 text-sm font-bold text-[var(--brand-interactive)]">{saveError}</p>}
             <NearbyFixtureCarousel
               fixtures={visibleFixtures}
               showDistance={appliedSearch.mode !== "viewport"}
