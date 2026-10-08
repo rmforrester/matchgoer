@@ -35,7 +35,7 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
         </span>
       </div>
 
-      <div className="grid min-w-0 gap-x-6 md:grid-cols-2 xl:grid-cols-3" aria-label="Nearby fixtures">
+      <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-3" aria-label="Nearby fixtures">
         {fixtures.map((fixture) => {
           const kickoff = new Date(fixture.fixture_date);
           const statusGroup = fixtureStatusGroup(fixture.status);
@@ -51,10 +51,10 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
               key={fixture.fixture_id}
               onFocus={() => onFixtureSelect(fixture.fixture_id)}
               onPointerEnter={() => onFixtureSelect(fixture.fixture_id)}
-              className={`group relative min-w-0 border-t bg-transparent py-4 transition first:border-t-0 md:first:border-t ${highlighted ? "border-[var(--tt-gold)]" : "border-[var(--tt-rule)]"} ${isSelected ? "-translate-y-0.5 bg-[var(--tt-paper)] shadow-[3px_3px_0_var(--tt-rule)]" : ""}`}
+              className={`@container group relative flex min-w-0 flex-col border bg-[var(--tt-paper)] p-3 ${isSelected ? "border-[var(--brand-interactive)]" : "border-[var(--tt-ink)]"}`}
             >
-              <Link href={`/fixture/${fixture.fixture_id}`} className={`block min-w-0 px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)] ${highlighted ? "border-l-[6px] border-[var(--tt-gold)] pl-3" : ""}`} aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}>
-                <div className="mb-3 flex items-start justify-between gap-3">
+              <Link href={`/fixture/${fixture.fixture_id}`} className="block min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]" aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}>
+                <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                   <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-interactive)]">
                     {kickoff.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {kickoff.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
                   </p>
@@ -63,32 +63,30 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
                 </div>
 
                 <FixtureTeams
-                  staggered
+                  compact
                   homeTeam={fixture.home_team}
                   awayTeam={fixture.away_team}
                   homeBadgeSrc={apiAssetUrl(fixture.home_team_badge_url)}
                   awayBadgeSrc={apiAssetUrl(fixture.away_team_badge_url)}
-                  teamClassName="text-[1.4rem] leading-[1.05] sm:text-[1.6rem]"
+                  teamClassName="text-[clamp(1.125rem,5cqw,1.375rem)] leading-[1.05]"
                   separatorClassName="text-[0.65rem]"
-                  badgeClassName="h-12 w-12 sm:h-14 sm:w-14"
+                  badgeClassName="h-12 w-12"
                 />
 
-                <div className="mt-3 grid min-w-0 gap-1 text-xs">
+                <div className="mt-2 grid min-w-0 gap-1 text-xs">
                   <p className="min-w-0 break-words font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)]">{fixture.league_name}</p>
                   <p className="min-w-0 break-words font-bold">{fixture.venue_name || fixture.venue_city || "Ground not available"}</p>
                 </div>
 
-                {highlighted && fixture.lead_decision_reason && <p className="mt-3 inline-flex items-center gap-1 border border-[var(--tt-gold)] px-2 py-1 text-[0.64rem] font-bold uppercase tracking-[0.06em]">
+                {highlighted && fixture.lead_decision_reason && <p className="mt-2 inline-flex items-center gap-1 border border-[var(--tt-gold)] px-2 py-1 text-[0.64rem] font-bold uppercase tracking-[0.06em]">
                   <span aria-hidden="true">{fixture.lead_decision_reason.emoji}</span>{fixture.lead_decision_reason.label}
                 </p>}
 
-                <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--tt-rule)] pt-3">
-                  <span className="font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">View match →</span>
-                  {fixture.away_day_score !== null && <span className="text-[0.68rem] font-extrabold text-[var(--tt-muted)]">Ground rating {fixture.away_day_score.toFixed(1)}/10</span>}
-                </div>
+                {fixture.away_day_score !== null && <p className="mt-1 text-[0.68rem] font-extrabold text-[var(--tt-muted)]">Ground rating {fixture.away_day_score.toFixed(1)}/10</p>}
               </Link>
-
-              <button type="button" aria-label={isInterested ? `Remove ${fixture.home_team} versus ${fixture.away_team} from My Matchdays` : `Save ${fixture.home_team} versus ${fixture.away_team} to My Matchdays`} aria-pressed={isInterested} disabled={isUpdating} onClick={() => onToggleInterested(fixture.fixture_id)} className={`mt-2 min-h-11 w-full px-3 text-xs font-extrabold uppercase tracking-[0.1em] transition disabled:cursor-wait disabled:opacity-60 ${isInterested ? "bg-[var(--tt-newsprint)] text-[var(--brand-interactive)]" : "text-[var(--tt-muted)] underline decoration-2 underline-offset-4 hover:text-[var(--brand-interactive)]"}`}>
+              <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 border-t border-[var(--tt-rule)] pt-1">
+              <Link href={`/fixture/${fixture.fixture_id}`} className="inline-flex min-h-11 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">View match →</Link>
+              <button type="button" aria-label={isInterested ? `Remove ${fixture.home_team} versus ${fixture.away_team} from My Matchdays` : `Save ${fixture.home_team} versus ${fixture.away_team} to My Matchdays`} aria-pressed={isInterested} disabled={isUpdating} onClick={() => onToggleInterested(fixture.fixture_id)} className={`min-h-11 max-w-full px-1 text-xs font-extrabold uppercase tracking-[0.04em] transition disabled:cursor-wait disabled:opacity-60 ${isInterested ? "text-[var(--brand-interactive)]" : "text-[var(--tt-muted)] underline decoration-2 underline-offset-4 hover:text-[var(--brand-interactive)]"}`}>
                 <span className="inline-flex items-center justify-center gap-2">
                   <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     {isInterested ? <path d="m5 12 4 4L19 6" /> : <path d="M6 3h12v18l-6-4-6 4z" />}
@@ -96,6 +94,7 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
                   {isInterested ? "Added to My Matchdays" : "Save match"}
                 </span>
               </button>
+              </div>
             </article>
           );
         })}
