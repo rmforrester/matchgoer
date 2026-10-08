@@ -2,14 +2,20 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useSyncExternalStore } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./AuthProvider";
+
+const subscribeToHydration = () => () => {};
+const clientHydrationSnapshot = () => true;
+const serverHydrationSnapshot = () => false;
 
 export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { authenticated, loading, profile, signOut } = useAuth();
+  const hydrated = useSyncExternalStore(subscribeToHydration, clientHydrationSnapshot, serverHydrationSnapshot);
   const linkClass = (active: boolean) =>
     `border-b-2 py-1 transition ${active ? "border-[var(--brand-interactive)] text-[var(--brand-interactive)]" : "border-transparent hover:border-[var(--brand-interactive)] hover:text-[var(--brand-interactive)]"}`;
   const myFootballTab = searchParams.get("tab");
@@ -38,10 +44,10 @@ export default function Navigation() {
         </nav>
 
         <div className="flex w-auto items-center justify-end gap-3 text-[0.6rem] font-extrabold uppercase tracking-[0.04em] sm:border-l sm:pl-3 sm:text-[0.65rem] sm:tracking-[0.08em]">
-          {!loading && authenticated ? <>
+          {hydrated && !loading && authenticated ? <>
             <span className="max-w-32 truncate text-[var(--brand-interactive)]">{profile?.username ? `@${profile.username}` : profile?.display_name || "Account"}</span>
             <button type="button" className="min-h-11 underline decoration-2 underline-offset-4" onClick={() => void signOut().then(() => router.push("/"))}>Log out</button>
-          </> : !loading ? <>
+          </> : hydrated && !loading ? <>
             <Link href="/signup" className="min-h-11 content-center text-[var(--brand-interactive)]">Create account</Link>
             <Link href="/signin" className="min-h-11 content-center underline decoration-2 underline-offset-4">Sign in</Link>
           </> : <span className="min-h-11 content-center text-[var(--tt-muted)]">Account</span>}
