@@ -1,0 +1,89 @@
+{
+  "description": "Temporary exact-fixture holds. No date expiry; remove only after explicit reviewed continuity decision.",
+  "holds": [
+    {
+      "fixture_id": 1599987,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1599987",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1599990,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1599990",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1599991,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1599991",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1599992,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1599992",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1599995,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1599995",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1599998,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1599998",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1600000,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1600000",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1600001,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1600001",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1600002,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1600002",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1600003,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1600003",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1600004,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1600004",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1600006,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1600006",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1600007,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1600007",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    },
+    {
+      "fixture_id": 1600008,
+      "reason": "Significant date shift with changed competition-round label; fixture continuity not established",
+      "evidence": "reports/daily-fixture-refresh-timestamp-validation-20261008/timestamp-change-ledger.csv#fixture-1600008",
+      "review_status": "PENDING_MANUAL_REVIEW"
+    }
+  ]
+}

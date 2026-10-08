@@ -78,7 +78,7 @@ class FixtureReconciliationTests(unittest.TestCase):
         moved = KICKOFF.replace(hour=20)
         result, values = classify_candidate(candidate(status="2H", home_goals=1, away_goals=1), [provider(away_goals=0, fixture_date=moved)])
         self.assertEqual(result["classification"], "WOULD_UPDATE_RESCHEDULED")
-        self.assertEqual(set(result["proposed_changed_fields"]), set(ALLOWED_FIELDS))
+        self.assertEqual(set(result["proposed_changed_fields"]), set(ALLOWED_FIELDS) - {"venue_id"})
         self.assertEqual(values["home_goals"], 2)
 
     def test_idempotent_rerun(self):

@@ -35,9 +35,10 @@ class ApiFootballClient:
         if delay > 0:
             time.sleep(delay)
         LOGGER.info("API-Football request: %s %s", endpoint, params)
+        self.requests_made += 1
+        self.last_request_at = time.monotonic()
         try:
             response = self.session.get(f"{BASE_URL}{endpoint}", params=params, timeout=self.timeout)
-            self.requests_made += 1
             self.last_request_at = time.monotonic()
             response.raise_for_status()
             payload = response.json()
@@ -45,6 +46,10 @@ class ApiFootballClient:
             message = f"{endpoint} {params}: {error}"
             self.failures.append(message)
             raise RuntimeError(message) from error
+        if not isinstance(payload, dict) or not isinstance(payload.get("response", []), list):
+            message = f"{endpoint}: malformed provider response"
+            self.failures.append(message)
+            raise RuntimeError(message)
         if payload.get("errors"):
             message = f"{endpoint} {params}: {payload['errors']}"
             self.failures.append(message)
