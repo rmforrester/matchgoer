@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 import type { GroundReview, MyGround } from "../types/grounds";
 import MatchdayTips from "./MatchdayTips";
-import { groundTimeframes, groundsInTimeframe, type GroundTimeframe } from "../../lib/my-grounds";
+import { footballPassport, groundTimeframes, groundsInTimeframe, type GroundTimeframe } from "../../lib/my-grounds";
 
 const PersonalGroundMap = dynamic(() => import("./PersonalGroundMap"), { ssr: false });
 
@@ -150,7 +150,8 @@ export default function VisitedTab() {
   const overall = enteredScores.length ? (enteredScores.reduce((sum, score) => sum + score, 0) / enteredScores.length).toFixed(1) : "—";
   const visibleGrounds = useMemo(() => groundsInTimeframe(grounds, timeframe), [grounds, timeframe]);
   const cityCount = new Set(visibleGrounds.flatMap((ground) => ground.venue_city ? [ground.venue_city.trim().toLocaleLowerCase()] : [])).size;
-  const countryCount = new Set(visibleGrounds.flatMap((ground) => ground.venue_country ? [ground.venue_country.trim().toLocaleLowerCase()] : [])).size;
+  const passport = useMemo(() => footballPassport(visibleGrounds), [visibleGrounds]);
+  const countryCount = passport.length;
   const matchdayCount = visibleGrounds.reduce((total, ground) => total + ground.visit_count, 0);
   const unplottableCount = visibleGrounds.filter((ground) => ground.latitude === null || ground.longitude === null).length;
 
@@ -187,6 +188,17 @@ export default function VisitedTab() {
         </div>)}
       </dl>
       <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--tt-muted)]">{cityCount} cities explored</p>
+    </section>}
+
+    {!loading && passport.length > 0 && <section className="mt-6" aria-labelledby="passport-heading">
+      <h2 id="passport-heading" className="tt-display text-2xl leading-none text-[var(--brand-interactive)] sm:text-3xl">Your football passport</h2>
+      <p className="mt-2 text-xs text-[var(--tt-muted)]">The countries football has taken you to.</p>
+      <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {passport.map((country) => <li key={country.key} className="min-w-0 border border-[var(--tt-rule)] px-3 py-3">
+          <h3 className="tt-display break-words text-2xl leading-none text-[var(--brand-interactive)]">{country.name}</h3>
+          <p className="mt-2 text-xs font-extrabold uppercase tracking-[0.04em]">{country.groundCount} {country.groundCount === 1 ? "ground" : "grounds"} · {country.matchdayCount} {country.matchdayCount === 1 ? "matchday" : "matchdays"}</p>
+        </li>)}
+      </ul>
     </section>}
 
     {!loading && visibleGrounds.length > 0 && <section className="mt-7 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="grounds-list-heading"><h2 id="grounds-list-heading" className="tt-display text-3xl leading-none sm:text-4xl">The grounds you know</h2><div className="mt-4 grid gap-3 sm:grid-cols-2">{visibleGrounds.map((ground) => <article key={ground.venue_id} className={`tt-panel flex min-w-0 flex-col p-4 ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>

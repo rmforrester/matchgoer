@@ -9,6 +9,32 @@ export const groundTimeframes: Array<{ key: GroundTimeframe; label: string }> = 
   { key: "lifetime", label: "Lifetime" },
 ];
 
+export function footballCountry(label: string | null): { key: string; name: string } | null {
+  const name = label?.trim();
+  if (!name || name.toLowerCase() === "world") return null;
+  const key = name.toLowerCase();
+  if (["us", "usa", "united states"].includes(key)) return { key: "united states", name: "United States" };
+  if (["uk", "united kingdom"].includes(key)) return { key: "united kingdom", name: "United Kingdom" };
+  if (["northern-ireland", "northern ireland"].includes(key)) return { key: "northern ireland", name: "Northern Ireland" };
+  return { key, name };
+}
+
+export function footballPassport(grounds: MyGround[]) {
+  const countries = new Map<string, { key: string; name: string; grounds: Set<number>; visits: Set<number> }>();
+  for (const ground of grounds) {
+    const country = footballCountry(ground.venue_country);
+    if (!country || ground.visits.length === 0) continue;
+    const entry = countries.get(country.key) ?? { ...country, grounds: new Set<number>(), visits: new Set<number>() };
+    // Keep an input-order-independent display label when casing differs.
+    if (country.name < entry.name) entry.name = country.name;
+    entry.grounds.add(ground.venue_id);
+    for (const visit of ground.visits) entry.visits.add(visit.visit_id);
+    countries.set(country.key, entry);
+  }
+  return [...countries.values()].map(({ key, name, grounds, visits }) => ({ key, name, groundCount: grounds.size, matchdayCount: visits.size }))
+    .sort((a, b) => b.matchdayCount - a.matchdayCount || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+}
+
 const cutoffFor = (timeframe: GroundTimeframe, now: Date) => {
   if (timeframe === "lifetime") return null;
   const cutoff = new Date(now);

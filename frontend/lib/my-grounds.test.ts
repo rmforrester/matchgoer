@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { groundsInTimeframe } from "./my-grounds.ts";
+import { footballCountry, footballPassport, groundsInTimeframe } from "./my-grounds.ts";
 import type { MyGround } from "../app/types/grounds.ts";
 import { readFileSync } from "node:fs";
 
@@ -12,6 +12,42 @@ const ground = (visits: MyGround["visits"]): MyGround => ({
   visit_count: visits.length, first_visit_date: null, latest_visit_date: null,
   has_undated_visit: visits.some((visit) => visit.visit_date === null), attended_fixtures: [], review: null,
   community_terrace_rating: null, community_review_count: 0, community_recommend_percentage: null,
+});
+
+test("country identities normalize approved aliases without inferring football nations", () => {
+  for (const label of ["US", " USA ", "United States"]) assert.deepEqual(footballCountry(label), { key: "united states", name: "United States" });
+  for (const label of ["UK", "United Kingdom"]) assert.deepEqual(footballCountry(label), { key: "united kingdom", name: "United Kingdom" });
+  for (const label of [null, "", "  ", "WORLD"]) assert.equal(footballCountry(label), null);
+  assert.equal(footballCountry("Northern-Ireland")?.name, "Northern Ireland");
+  assert.equal(new Set(["England", "Scotland", "Wales", "Northern Ireland", "UK"].map(label => footballCountry(label)?.key)).size, 5);
+  assert.deepEqual(footballCountry("Ambiguous Region"), { key: "ambiguous region", name: "Ambiguous Region" });
+});
+
+test("Passport counts unique canonical grounds and recorded visits, preserves input and sorts ties", () => {
+  const make = (id: number, country: string | null, count: number) => ({ ...ground(Array.from({ length: count }, (_, i) => ({ visit_id: id * 10 + i, visit_date: null, fixture_id: null }))), venue_id: id, venue_country: country });
+  const first = make(1, "US", 2);
+  const records = [first, first, make(2, "USA", 1), make(3, "England", 3), make(4, "World", 4), make(5, null, 1), make(6, "Long ambiguous country label", 1)];
+  const before = structuredClone(records);
+  assert.deepEqual(footballPassport(records), [
+    { key: "england", name: "England", groundCount: 1, matchdayCount: 3 },
+    { key: "united states", name: "United States", groundCount: 2, matchdayCount: 3 },
+    { key: "long ambiguous country label", name: "Long ambiguous country label", groundCount: 1, matchdayCount: 1 },
+  ]);
+  assert.deepEqual(records, before);
+  assert.deepEqual(footballPassport([]), []);
+  assert.deepEqual(footballPassport([make(4, "World", 1), make(5, null, 1)]), []);
+});
+
+test("Passport uses the same filtered history including unlinked and lifetime undated visits", () => {
+  const records = [ground([{ visit_id: 1, visit_date: null, fixture_id: null }, { visit_id: 2, visit_date: "2026-10-01", fixture_id: null }])];
+  const now = new Date("2026-10-09T12:00:00Z");
+  for (const period of ["30d", "3m", "1y", "lifetime"] as const) {
+    const filtered = groundsInTimeframe(records, period, now);
+    assert.equal(footballPassport(filtered)[0].matchdayCount, period === "lifetime" ? 2 : 1);
+  }
+  assert.match(visitedTab, /const countryCount = passport\.length/);
+  assert.ok(visitedTab.indexOf('aria-labelledby="footprint-heading"') < visitedTab.indexOf('aria-labelledby="passport-heading"'));
+  assert.ok(visitedTab.indexOf('aria-labelledby="passport-heading"') < visitedTab.indexOf('aria-labelledby="grounds-list-heading"'));
 });
 
 test("lifetime retains dated and date-not-remembered visits", () => {
