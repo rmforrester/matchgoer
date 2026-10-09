@@ -38,3 +38,12 @@ export function partitionMatchdays<T extends SavedMatch>(saved: T[], attendedIds
     .sort((a, b) => new Date(a.fixture_date).getTime() - new Date(b.fixture_date).getTime());
   return { going: remaining.filter((fixture) => fixture.going), interested: remaining.filter((fixture) => !fixture.going), awaiting };
 }
+
+/** Display-only; omitted timeZone preserves the browser's current timezone. */
+export function formatMatchdayKickoff(value: string, timeZone?: string) {
+  const instant = new Date(value);
+  return {
+    date: new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone }).format(instant).replace(",", ""),
+    time: new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone }).format(instant),
+  };
+}

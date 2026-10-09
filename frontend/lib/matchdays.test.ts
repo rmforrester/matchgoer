@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { previewItems, trustworthyScore, canConfirmAttendance, partitionMatchdays } from "./matchdays.ts";
+import { previewItems, trustworthyScore, canConfirmAttendance, partitionMatchdays, formatMatchdayKickoff } from "./matchdays.ts";
 
 const matchdaysPage = readFileSync(new URL("../app/components/InterestedTab.tsx", import.meta.url), "utf8");
 const navigation = readFileSync(new URL("../app/components/Navigation.tsx", import.meta.url), "utf8");
@@ -52,4 +52,18 @@ test("confirmation preserves saves, decline alone deletes and old backend hides 
   assert.match(matchdaysPage, /if \(!attended\) await api\.delete/);
   assert.match(matchdaysPage, /typeof fixture\.going === "boolean"/);
   assert.match(matchdaysPage, /View match/);
+});
+
+test("My Matchdays formats noon, midnight and evening in twelve-hour local time", () => {
+  assert.deepEqual(formatMatchdayKickoff("2026-10-10T12:30:00Z", "UTC"), { date: "Sat 10 Oct", time: "12:30 PM" });
+  assert.equal(formatMatchdayKickoff("2026-10-10T00:00:00Z", "UTC").time, "12:00 AM");
+  assert.equal(formatMatchdayKickoff("2026-10-10T19:00:00Z", "UTC").time, "7:00 PM");
+  assert.equal(formatMatchdayKickoff("2026-10-10T14:45:00Z", "UTC").time, "2:45 PM");
+});
+test("My Matchdays keeps the same instant across timezones and daylight-saving changes", () => {
+  assert.equal(formatMatchdayKickoff("2026-10-10T12:30:00Z", "America/New_York").time, "8:30 AM");
+  assert.equal(formatMatchdayKickoff("2026-11-01T05:30:00Z", "America/New_York").time, "1:30 AM");
+  assert.equal(formatMatchdayKickoff("2026-11-01T06:30:00Z", "America/New_York").time, "1:30 AM");
+  assert.equal(formatMatchdayKickoff("2026-03-08T06:30:00Z", "America/New_York").time, "1:30 AM");
+  assert.equal(formatMatchdayKickoff("2026-03-08T07:30:00Z", "America/New_York").time, "3:30 AM");
 });
