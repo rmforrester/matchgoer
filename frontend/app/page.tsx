@@ -14,6 +14,8 @@ import { apiErrorMessage } from "../lib/api-error";
 import dynamic from "next/dynamic";
 
 import SearchBar from "./components/SearchBar";
+import LocationAutocomplete from "./components/LocationAutocomplete";
+import type { LocationSuggestion } from "../lib/location-autocomplete";
 import { DateRangeFields, type LeagueGroup } from "./components/SearchBar";
 import NearbyFixtureCarousel from "./components/NearbyFixtureCarousel";
 import DiscoverShortlist from "./components/DiscoverShortlist";
@@ -391,8 +393,8 @@ const loadVisitedStadiums = () => {
     setEditingSearch(false);
   }, []);
 
-  const submitDiscovery = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submitDiscovery = async (event?: FormEvent<HTMLFormElement>, selected?: LocationSuggestion) => {
+    event?.preventDefault();
     if (loading) return;
 
     const requestVersion = discoveryRequestVersion.current + 1;
@@ -410,7 +412,7 @@ const loadVisitedStadiums = () => {
       return;
     }
 
-    const query = locationQuery.trim();
+    const query = selected?.label ?? locationQuery.trim();
     if (!query) {
       setLocationError("Enter a city or location to search.");
       return;
@@ -425,11 +427,11 @@ const loadVisitedStadiums = () => {
     setDateError("");
     setDiscoveryError("");
     setLocationError("");
-    let resolvingLocation = !draftCoordinates;
+    let resolvingLocation = !selected && !draftCoordinates;
     let awaitingViewport = false;
 
     try {
-      let origin = draftCoordinates;
+      let origin = selected ? { latitude: selected.latitude, longitude: selected.longitude } : draftCoordinates;
       let locationName = query;
 
       if (!origin) {
@@ -747,19 +749,20 @@ const loadVisitedStadiums = () => {
             <div className="grid content-start gap-1 text-xs font-extrabold uppercase tracking-[0.12em]">
               Where?
               <div>
-                <input
-                  id="location-search"
-                  type="search"
+                <LocationAutocomplete
                   value={locationQuery}
-                  onChange={(event) => {
-                    setLocationQuery(event.target.value);
+                  disabled={loading || locationLoading}
+                  onChange={(value) => {
+                    setLocationQuery(value);
                     setDraftCoordinates(null);
                     setManualLocationSelected(false);
                     setUserLocation((current) => applyUserLocationEvent(current, { type: "manual-location" }));
                   }}
-                  placeholder="Search a city or location"
-                  aria-label="Where"
-                  className="tt-control w-full min-w-0 px-4 py-2 normal-case tracking-normal"
+                  onSelect={(location) => {
+                    setLocationQuery(location.label);
+                    setDraftCoordinates({ latitude: location.latitude, longitude: location.longitude });
+                    void submitDiscovery(undefined, location);
+                  }}
                 />
                 <button type="button" onClick={() => resolveCurrentLocation(undefined, true)} disabled={locationLoading || loading} className="mt-1 min-h-11 px-1 text-left text-xs font-extrabold normal-case tracking-normal text-[var(--brand-interactive)] underline decoration-2 underline-offset-4 disabled:opacity-60">
                   {locationLoading ? "Finding your location…" : manualLocationSelected ? "Using your location ✓" : "Use my location"}
