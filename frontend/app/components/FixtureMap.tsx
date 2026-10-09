@@ -1,5 +1,7 @@
 "use client";
 
+import { formatKickoffTime, formatFixtureDistance } from "../../lib/fixture-format";
+
 import {
   MapContainer,
   TileLayer,
@@ -59,6 +61,7 @@ type Props = {
   onFixtureSelect: (fixtureId: number) => void;
   onFixtureDismiss: (fixtureId: number) => void;
   showDistance: boolean;
+  distanceOrigin?: string;
 };
 
 export type MapSearchArea = DiscoveryViewport;
@@ -70,6 +73,7 @@ type FixtureVenueMarkerProps = {
   onFixtureSelect: (fixtureId: number) => void;
   onFixtureDismiss: (fixtureId: number) => void;
   showDistance: boolean;
+  distanceOrigin?: string;
   compactMobile: boolean;
 };
 
@@ -113,7 +117,7 @@ function MarkerKey() {
   </details>;
 }
 
-function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureDismiss, showDistance, compactMobile }: FixtureVenueMarkerProps) {
+function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureDismiss, showDistance, distanceOrigin, compactMobile }: FixtureVenueMarkerProps) {
   const map = useMap();
   const decision = fixtureGroupDecision(group.fixtures);
   const [fixtureIndex, setFixtureIndex] = useState(decision.initialFixtureIndex);
@@ -143,11 +147,11 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
       <span className="mt-2 block text-xs font-bold">
       {statusGroup === "postponed" || statusGroup === "cancelled"
         ? fixtureStatusLabel(fixture.status)
-        : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {new Date(fixture.fixture_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}
+        : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {formatKickoffTime(new Date(fixture.fixture_date))}</>}
       </span>
       <span className="mt-1 flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)]"><FixtureTypeIcon type={fixtureType} />{fixture.league_name}</span>
       <span className="mt-1 block min-w-0 break-words text-xs font-bold">{fixture.venue_name}</span>
-      {showDistance && Number.isFinite(fixture.distance_miles) && <span className="tt-fixture-popup-optional mt-1 block text-xs text-[var(--tt-muted)]">{fixture.distance_miles.toFixed(1)} mi away</span>}
+      {showDistance && Number.isFinite(fixture.distance_miles) && <span className="tt-fixture-popup-optional mt-1 block text-xs text-[var(--tt-muted)]">{formatFixtureDistance(fixture.distance_miles, distanceOrigin)}</span>}
       </div>
       {fixtureCount > 1 && <div className="mt-3 flex items-center justify-between gap-3" aria-label="Fixtures at this stadium">
         <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="min-h-11 px-2 text-lg">←</button>
@@ -187,7 +191,7 @@ function MobileFixtureCard({
         <span className="mt-1 block text-xs font-bold leading-tight">
           {statusGroup === "postponed" || statusGroup === "cancelled"
             ? fixtureStatusLabel(fixture.status)
-            : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {new Date(fixture.fixture_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}
+            : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {formatKickoffTime(new Date(fixture.fixture_date))}</>}
         </span>
         <span className="mt-1 block min-w-0 break-words text-xs font-bold leading-tight">{fixture.venue_name}</span>
       </div>
@@ -286,6 +290,7 @@ export default function FixtureMap({
   onFixtureSelect,
   onFixtureDismiss,
   showDistance,
+  distanceOrigin,
 }: Props) {
   const fixtureGroups = useMemo(() => groupFixturesByVenue(fixtures), [fixtures]);
   const tileLayer = useMemo(() => configuredDiscoverTileLayer(), []);
@@ -473,7 +478,7 @@ export default function FixtureMap({
             fixtureIcons[`${markerSignal}-${visited}-${selected}`],
           ]),
         ) as Record<MarkerSignal, L.DivIcon>;
-        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icons={icons} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} showDistance={showDistance} compactMobile={compactMobile} />;
+        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icons={icons} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} showDistance={showDistance} distanceOrigin={distanceOrigin} compactMobile={compactMobile} />;
       })}
 
     </MapContainer>

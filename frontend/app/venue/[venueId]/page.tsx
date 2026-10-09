@@ -1,5 +1,7 @@
 "use client";
 
+import { formatKickoffTime } from "../../../lib/fixture-format";
+
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -333,7 +335,7 @@ api
       <section className="tt-panel mt-4 p-4 sm:p-5" aria-labelledby="visit-heading">
         <p className="tt-kicker">Your visit</p>
         <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">You&apos;ve been here</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">{myGround.latest_visit_date ? `Last visit · ${new Date(`${myGround.latest_visit_date}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Date not remembered"}</p></div>
+          <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">You&apos;ve been here</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">{myGround.latest_visit_date ? `Last visit · ${new Date(`${myGround.latest_visit_date}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Date not recorded"}</p></div>
           <button type="button" onClick={openReview} className="tt-action px-5">{reviewState === "completed" ? "Edit my review" : reviewState === "partial" ? "Continue review" : "Rate this ground"}</button>
         </div>
       </section>
@@ -374,7 +376,7 @@ api
             <Link href={`/fixture/${fixture.fixture_id}`} className="min-w-0 flex-1 p-4 hover:text-[var(--brand-interactive)] sm:p-5" aria-label={`${fixture.home_team} versus ${fixture.away_team}`}>
               <p className="tt-kicker">{fixture.league_name}</p>
               <FixtureTeams homeTeam={fixture.home_team} awayTeam={fixture.away_team} className="mt-3" teamClassName="text-[1.65rem] leading-[0.9]" separatorClassName="my-1 text-[0.65rem] tracking-[0.16em]" />
-              <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.08em]">{statusGroup === "postponed" || statusGroup === "cancelled" ? fixtureStatusLabel(fixture.status) : <>{fixtureDate.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {fixtureDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</>}</p>
+              <p className="mt-4 text-xs font-extrabold uppercase tracking-[0.08em]">{statusGroup === "postponed" || statusGroup === "cancelled" ? fixtureStatusLabel(fixture.status) : <>{fixtureDate.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {formatKickoffTime(fixtureDate)}</>}</p>
               {fixture.interested_count > 0 && <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">{fixture.interested_count} interested</p>}
             </Link>
             <button

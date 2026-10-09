@@ -1,5 +1,7 @@
 "use client";
 
+import { formatKickoffTime } from "../../../lib/fixture-format";
+
 import Link from "next/link";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -213,7 +215,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         </div>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[var(--mg-rule)] pt-3 text-sm">
           <div><dt className="mg-meta font-bold">Date</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? kickoff.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "To be confirmed"}</dd></div>
-          <div><dt className="mg-meta font-bold">Your timezone</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZoneName: "short" }) : "Kick-off to be confirmed"}</dd></div>
+          <div><dt className="mg-meta font-bold">Your timezone</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? formatKickoffTime(kickoff, { timeZoneName: "short" }) : "Kick-off to be confirmed"}</dd></div>
           {((statusGroup !== "upcoming" && !completed) || !confirmedKickoff) && <div><dt className="mg-meta font-bold">Status</dt><dd className="mt-0.5 font-bold">{!confirmedKickoff && statusGroup === "upcoming" ? "Kick-off to be confirmed" : fixtureStatusLabel(data.fixture.status)}</dd></div>}
           <div className="col-span-2"><dt className="mg-meta font-bold">Ground</dt><dd className="mt-0.5 min-w-0 break-words font-bold">{data.fixture.venue_name || "Ground to be confirmed"}{data.fixture.venue_city ? ` · ${data.fixture.venue_city}` : ""}</dd></div>
         </dl>

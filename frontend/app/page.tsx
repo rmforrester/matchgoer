@@ -827,12 +827,14 @@ const loadVisitedStadiums = () => {
   onFixtureSelect={setSelectedFixtureId}
   onFixtureDismiss={(fixtureId) => setSelectedFixtureId((current) => current === fixtureId ? null : current)}
   showDistance={appliedSearch.mode !== "viewport"}
+  distanceOrigin={appliedSearch.locationName}
 />
             </div>
             {saveError && <p role="alert" className="mt-3 text-sm font-bold text-[var(--brand-interactive)]">{saveError}</p>}
             <NearbyFixtureCarousel
               fixtures={visibleFixtures}
               showDistance={appliedSearch.mode !== "viewport"}
+  distanceOrigin={appliedSearch.locationName}
               totalMatches={appliedSearch.totalMatches}
               resultsLimited={appliedSearch.resultsLimited}
               interestedFixtureIds={interestedFixtureIds}

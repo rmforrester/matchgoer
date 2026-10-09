@@ -1,5 +1,7 @@
 "use client";
 
+import { formatKickoffTime } from "../../lib/fixture-format";
+
 import Link from "next/link";
 
 import type { InterestedFixture } from "../types/interested";
@@ -20,7 +22,7 @@ export default function DiscoverShortlist({ fixtures, updatingFixtureIds, onRemo
         const updating = updatingFixtureIds.includes(fixture.fixture_id);
         return <article key={fixture.fixture_id} className="tt-panel min-w-0 p-4">
           <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)]">
-            {kickoff.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            {kickoff.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {formatKickoffTime(kickoff)}
           </p>
           <p className="mt-2 line-clamp-2 text-lg font-extrabold leading-tight">{fixture.home_team} <span className="text-[var(--tt-muted)]">v</span> {fixture.away_team}</p>
           <p className="mt-2 truncate text-xs font-bold uppercase tracking-[0.06em]">{fixture.venue_name ?? "Ground to be confirmed"}{fixture.venue_city ? ` · ${fixture.venue_city}` : ""}</p>

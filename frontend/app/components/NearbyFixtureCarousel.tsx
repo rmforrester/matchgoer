@@ -1,5 +1,7 @@
 "use client";
 
+import { formatKickoffTime, formatFixtureDistance } from "../../lib/fixture-format";
+
 import Link from "next/link";
 
 import { apiAssetUrl } from "../../lib/api";
@@ -10,6 +12,7 @@ import FixtureTeams from "./FixtureTeams";
 type Props = {
   fixtures: Fixture[];
   showDistance: boolean;
+  distanceOrigin?: string;
   totalMatches: number;
   resultsLimited: boolean;
   interestedFixtureIds: number[];
@@ -19,7 +22,7 @@ type Props = {
   onToggleInterested: (fixtureId: number) => void;
 };
 
-export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMatches, resultsLimited, interestedFixtureIds, updatingFixtureIds, selectedFixtureId, onFixtureSelect, onToggleInterested }: Props) {
+export default function NearbyFixtureCarousel({ fixtures, showDistance, distanceOrigin, totalMatches, resultsLimited, interestedFixtureIds, updatingFixtureIds, selectedFixtureId, onFixtureSelect, onToggleInterested }: Props) {
   if (fixtures.length === 0) return null;
 
   return (
@@ -57,10 +60,10 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, totalMat
               <Link href={`/fixture/${fixture.fixture_id}`} className="block min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]" aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}>
                 <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                   <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-interactive)]">
-                    {kickoff.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {kickoff.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                    {kickoff.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {formatKickoffTime(kickoff)}
                   </p>
                   {hasResult ? <span className="bg-[var(--tt-ink)] px-2 py-1 text-sm font-extrabold text-[var(--tt-paper)]">{fixture.home_goals}–{fixture.away_goals}</span> : statusGroup === "postponed" || statusGroup === "cancelled" ? <span className="bg-[var(--tt-ink)] px-2 py-1 text-[0.62rem] font-extrabold uppercase tracking-wide text-[var(--tt-paper)]">{fixtureStatusLabel(fixture.status)}</span> : null}
-                  {showMeaningfulDistance && <span className="shrink-0 text-xs font-bold text-[var(--tt-muted)]">{fixture.distance_miles.toFixed(1)} mi</span>}
+                  {showMeaningfulDistance && <span className="min-w-0 break-words text-xs font-bold text-[var(--tt-muted)]">{formatFixtureDistance(fixture.distance_miles, distanceOrigin)}</span>}
                 </div>
 
                 <FixtureTeams

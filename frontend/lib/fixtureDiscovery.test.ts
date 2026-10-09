@@ -131,7 +131,7 @@ test("fixture popup keeps required match details, accessible dismiss, and View m
   assert.match(fixtureMapSource, /block min-w-0 break-words leading-tight/);
   assert.match(fixtureMapSource, /fixture\.league_name/);
   assert.match(fixtureMapSource, /fixture\.venue_name/);
-  assert.match(fixtureMapSource, /fixture\.distance_miles\.toFixed\(1\)/);
+  assert.match(fixtureMapSource, /formatFixtureDistance\(fixture\.distance_miles, distanceOrigin\)/);
   assert.match(fixtureMapSource, /aria-label="Dismiss selected fixture"/);
   assert.match(fixtureMapSource, /min-h-11 min-w-11/);
   assert.match(fixtureMapSource, /View match/);
@@ -275,7 +275,7 @@ test("visits can attach, change, or remove an optional fixture without another m
   assert.match(groundsSource, /Attach match/);
   assert.match(groundsSource, /Change match/);
   assert.match(groundsSource, /Remove link/);
-  assert.match(groundsSource, /visit\.visit_date \? knownDate\(visit\.visit_date\) : "Date not remembered"/);
+  assert.match(groundsSource, /visit\.visit_date \? knownDate\(visit\.visit_date\) : "Date not recorded"/);
   assert.match(groundsSource, /fixture\.home_team} v \{fixture\.away_team/);
   assert.match(groundsSource, /fixture\.league_name/);
 });

@@ -13,7 +13,7 @@ type AttendedMatch = AttendedFixture & { venue_id: number; venue_name: string; v
 type CardFixture = Pick<InterestedFixture, "fixture_id" | "fixture_date" | "home_team" | "away_team" | "home_team_badge_url" | "away_team_badge_url"> & Partial<Pick<AttendedFixture, "league_name" | "status" | "home_goals" | "away_goals">>;
 
 const displayDate = (value: string, includeTime = false) => new Date(value).toLocaleDateString(undefined, includeTime
-  ? { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }
+  ? { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true }
   : { day: "numeric", month: "short", year: "numeric" });
 
 function MatchdayCard({ fixture, venueName, venueCity, state, footer }: { fixture: CardFixture; venueName: string | null; venueCity: string | null; state: "upcoming" | "answer" | "attended"; footer: ReactNode }) {
@@ -79,7 +79,7 @@ export default function InterestedTab() {
 
   const resolveCompletedFixture = async (fixture: InterestedFixture, attended: boolean) => {
     if (updatingFixtureIds.includes(fixture.fixture_id)) return;
-    setUpdatingFixtureIds((current) => [...current, fixture.fixture_id]); setFixtures((current) => current.filter((item) => item.fixture_id !== fixture.fixture_id)); setError("");
+    setAttendanceResolution(null); setUpdatingFixtureIds((current) => [...current, fixture.fixture_id]); setFixtures((current) => current.filter((item) => item.fixture_id !== fixture.fixture_id)); setError("");
     try { if (attended && !attendedFixtureIds.has(fixture.fixture_id)) await api.post(`/fixtures/${fixture.fixture_id}/attendance`); if (!attended) await api.delete(`/fixtures/${fixture.fixture_id}/interested`); if (attended) setAttendanceResolution(fixture); await loadMatchdays(); }
     catch (requestError) { setError(apiErrorMessage(requestError, "We couldn't update this matchday. Try again.")); await loadMatchdays(); }
     finally { setUpdatingFixtureIds((current) => current.filter((id) => id !== fixture.fixture_id)); }
@@ -102,7 +102,12 @@ export default function InterestedTab() {
 
   return <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10">
     <header className="border-b-[3px] border-[var(--tt-ink)] pb-4"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My Matchdays</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">The occasions you&apos;re looking forward to and the matches you remember.</p><p className="mt-1 text-xs text-[var(--tt-muted)]">Times shown in your current timezone.</p></header>
-    {loading && <p className="mt-8 font-semibold text-[var(--tt-muted)]">Loading your matchdays…</p>}{error && <p role="alert" className="mt-6 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}{attendanceResolution && <p role="status" className="mt-5 border-l-4 border-[var(--brand-interactive)] px-3 py-2 font-bold">✓ You were there · {attendanceResolution.home_team} v {attendanceResolution.away_team}</p>}
+    {loading && <p className="mt-8 font-semibold text-[var(--tt-muted)]">Loading your matchdays…</p>}{error && <p role="alert" className="mt-6 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}{attendanceResolution && <section role="status" className="mt-5 border border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-4">
+      <h2 className="tt-display text-2xl leading-none text-[var(--brand-interactive)]">✓ Matchday recorded</h2>
+      <p className="mt-2 break-words font-bold">{attendanceResolution.home_team} vs {attendanceResolution.away_team}</p>
+      <p className="mt-1 text-sm text-[var(--tt-muted)]">Added to your football history.</p>
+      <Link href="/my-stadiums" className="mt-3 inline-flex min-h-11 items-center text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline underline-offset-4">View my football world →</Link>
+    </section>}
     {goingFeedback && <p role="status" className="mt-4 text-sm font-semibold text-[var(--brand-interactive)]">{goingFeedback}</p>}
     {empty && <section className="tt-panel mt-7 border-l-[8px] border-l-[var(--brand-interactive)] p-6"><p className="tt-kicker">Your matchday history starts here</p><p className="mt-2 max-w-xl text-sm leading-6 text-[var(--tt-muted)]">Shortlist a fixture, then come back after the match to remember the occasion.</p><Link href="/" className="tt-action mt-5 inline-flex items-center justify-center px-5">Find a match →</Link></section>}
     {!loading && upcomingFixtures.length > 0 && <section className="tt-section-rule mt-7 pt-3" aria-labelledby="up-next-heading"><h2 id="up-next-heading" className="tt-display text-3xl leading-none sm:text-4xl">Going</h2><p className="mt-1 text-base text-[var(--tt-muted)]">Your upcoming matchdays.</p><div className="mt-4 grid gap-4 md:grid-cols-2">{previewItems(upcomingFixtures, UPCOMING_PREVIEW_LIMIT, showAllUpcoming).map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="upcoming" footer={planFooter(fixture)} />)}</div><ExpandButton expanded={showAllUpcoming} hiddenCount={upcomingFixtures.length - UPCOMING_PREVIEW_LIMIT} onClick={() => setShowAllUpcoming((value) => !value)} label="View all" /></section>}

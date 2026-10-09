@@ -1,3 +1,5 @@
+import { formatKickoffTime } from "./fixture-format.ts";
+
 export const UPCOMING_PREVIEW_LIMIT = 3;
 export const ANSWER_PREVIEW_LIMIT = 2;
 export const PAST_PREVIEW_LIMIT = 6;
@@ -44,6 +46,6 @@ export function formatMatchdayKickoff(value: string, timeZone?: string) {
   const instant = new Date(value);
   return {
     date: new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone }).format(instant).replace(",", ""),
-    time: new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone }).format(instant),
+    time: formatKickoffTime(instant, { timeZone }),
   };
 }
