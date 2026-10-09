@@ -250,7 +250,7 @@ test("My Grounds filters one coherent visit view and keeps cards supporter-facin
   assert.match(groundsSource, /groundTimeframes/);
   assert.match(groundsSource, /groundsInTimeframe\(grounds, timeframe\)/);
   assert.match(groundsSource, /PersonalGroundMap grounds=\{visibleGrounds\}/);
-  assert.match(groundsSource, /Last visit/);
+  assert.match(groundsSource, /Last recorded visit/);
   assert.doesNotMatch(groundsSource, />Visits</);
   assert.doesNotMatch(groundsSource, />My rating</);
   assert.doesNotMatch(groundsSource, />Terrace rating</);

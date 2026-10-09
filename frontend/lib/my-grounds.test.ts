@@ -40,3 +40,27 @@ test("My Grounds keeps one contextual add flow and compact card actions", () => 
   assert.doesNotMatch(visitedTab, />Add a visit<\/button>/);
   assert.match(visitedTab, /View ground →/);
 });
+
+test("all periods preserve visit identity, repeat visits and chronological metadata without mutating history", () => {
+  const item = ground([
+    { visit_id: 1, visit_date: "2025-01-01", fixture_id: null },
+    { visit_id: 2, visit_date: "2026-03-01", fixture_id: null },
+    { visit_id: 3, visit_date: "2026-08-01", fixture_id: null },
+    { visit_id: 4, visit_date: "2026-10-01", fixture_id: 99 },
+    { visit_id: 5, visit_date: null, fixture_id: null },
+  ]);
+  item.attended_fixtures = [{ fixture_id: 99, fixture_date: "2026-10-01T15:00:00Z", home_team: "Home", away_team: "Away", league_name: "League", status: "FT", home_goals: 1, away_goals: 0 }];
+  const original = structuredClone(item);
+  const now = new Date("2026-10-09T12:00:00Z");
+  for (const [period, ids] of [["30d", [4]], ["3m", [3, 4]], ["1y", [2, 3, 4]], ["lifetime", [1, 2, 3, 4, 5]]] as const) {
+    const result = groundsInTimeframe([item], period, now);
+    assert.equal(result.length, 1);
+    assert.equal(result[0].venue_id, item.venue_id);
+    assert.deepEqual(result[0].visits.map(visit => visit.visit_id), ids);
+    assert.equal(result[0].visit_count, ids.length);
+    assert.equal(result[0].latest_visit_date, "2026-10-01");
+    assert.equal(result[0].has_undated_visit, period === "lifetime");
+    assert.deepEqual(result[0].attended_fixtures.map(fixture => fixture.fixture_id), [99]);
+  }
+  assert.deepEqual(item, original);
+});
