@@ -262,14 +262,16 @@ def _merge_into_existing_account(
     fixture_ids = [row.fixture_id for row in source_interests]
     target_fixture_ids = set()
     if fixture_ids:
-        target_fixture_ids = {
-            row.fixture_id for row in db.query(InterestedFixture).filter(
+        target_interests = {
+            row.fixture_id: row for row in db.query(InterestedFixture).filter(
                 InterestedFixture.user_id == target_user.user_id,
                 InterestedFixture.fixture_id.in_(fixture_ids),
             ).with_for_update().all()
         }
+        target_fixture_ids = set(target_interests)
     for interest in source_interests:
         if interest.fixture_id in target_fixture_ids:
+            target_interests[interest.fixture_id].going = bool(target_interests[interest.fixture_id].going or interest.going)
             db.delete(interest)
         else:
             interest.user_id = target_user.user_id

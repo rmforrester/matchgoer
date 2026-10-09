@@ -932,6 +932,7 @@ class AccountConversionHandoff(Base):
 
 class InterestedFixture(Base):
     __tablename__ = "interested_fixtures"
+    going = Column(Boolean, nullable=False, default=False, server_default=text("false"))
 
     interested_id = Column(
         Integer,

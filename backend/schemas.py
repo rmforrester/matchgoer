@@ -1,5 +1,10 @@
 from datetime import date, datetime
 from pydantic import BaseModel, Field
+from pydantic import StrictBool
+
+
+class GoingUpdate(BaseModel):
+    going: StrictBool
 
 class VenueResponse(BaseModel):
 
@@ -327,6 +332,8 @@ class MyGroundFixtureSummary(BaseModel):
     home_team: str
     away_team: str
     league_name: str
+    home_team_badge_url: str | None = None
+    away_team_badge_url: str | None = None
 
 
 class MyGroundVisitSummary(BaseModel):

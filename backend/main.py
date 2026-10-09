@@ -53,6 +53,7 @@ from models import (
 )
 
 from schemas import (
+    GoingUpdate,
     FixtureResponse,
     FixtureWithVenueResponse,
     VenueResponse,
@@ -1849,7 +1850,7 @@ def remove_fixture_interested(
                 InterestedFixture.fixture_id ==
                 fixture_id
             )
-            .first()
+            .with_for_update().first()
         )
 
         if not interested:
@@ -1858,6 +1859,14 @@ def remove_fixture_interested(
                 status_code=404,
                 detail="Fixture is not marked as interested"
             )
+
+        # Legacy clients delete the save after confirming attendance. Keep that
+        # save and its social preference; Went is determined by the visit.
+        if db.query(VenueVisit.visit_id).filter(
+            VenueVisit.user_id == identity.user_id,
+            VenueVisit.fixture_id == fixture_id,
+        ).first() is not None:
+            return {"fixture_id": fixture_id, "interested": True, "attendance_preserved": True}
 
         # -----------------------------------------------------
         # Remove Interested record
@@ -1964,6 +1973,9 @@ def get_interested_fixtures(
 
         results.append({
 
+            "going": bool(item.going),
+            "home_team_badge_url": badge_proxy_path(fixture.home_team_id),
+            "away_team_badge_url": badge_proxy_path(fixture.away_team_id),
             "interested_id":
                 item.interested_id,
 
@@ -2008,6 +2020,30 @@ def get_interested_fixtures(
     db.close()
 
     return results
+
+
+@app.put("/fixtures/{fixture_id}/going")
+def update_going(fixture_id: int, data: GoingUpdate, identity: ResolvedIdentity = Depends(required_current_identity)):
+    db = SessionLocal()
+    try:
+        saved = db.query(InterestedFixture).filter(
+            InterestedFixture.user_id == identity.user_id,
+            InterestedFixture.fixture_id == fixture_id,
+        ).with_for_update().first()
+        if saved is None:
+            raise HTTPException(status_code=404, detail="Save this fixture before changing your intention")
+        if db.query(VenueVisit.visit_id).filter(
+            VenueVisit.user_id == identity.user_id, VenueVisit.fixture_id == fixture_id,
+        ).first() is not None:
+            raise HTTPException(status_code=409, detail="Attendance is already confirmed")
+        saved.going = data.going
+        db.commit()
+        return {"fixture_id": fixture_id, "interested": True, "going": saved.going}
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 @app.get(
@@ -2217,6 +2253,11 @@ def record_fixture_attendance(
             raise HTTPException(status_code=404, detail="Fixture not found")
         if fixture.venue_id is None:
             raise HTTPException(status_code=409, detail="Fixture is not linked to a canonical venue")
+        # Serialize intention/removal with explicit attendance for an existing save.
+        db.query(InterestedFixture).filter(
+            InterestedFixture.user_id == user_id,
+            InterestedFixture.fixture_id == fixture_id,
+        ).with_for_update().first()
         visit = _ensure_venue_visit(
             db,
             user_id=user_id,
@@ -2451,6 +2492,8 @@ def get_my_grounds(
                         "home_team": visit.fixture.home_team,
                         "away_team": visit.fixture.away_team,
                         "league_name": visit.fixture.league_name,
+                        "home_team_badge_url": badge_proxy_path(visit.fixture.home_team_id),
+                        "away_team_badge_url": badge_proxy_path(visit.fixture.away_team_id),
                     }
                     for visit in venue_visits if visit.fixture is not None
                 ],
