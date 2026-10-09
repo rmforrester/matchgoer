@@ -70,7 +70,7 @@ export default function InterestedTab() {
       const response = await api.put(`/fixtures/${fixture.fixture_id}/going`, { going });
       if (response.data.going !== going) throw new Error("Intention was not confirmed");
       setFixtures((current) => current.map((item) => item.fixture_id === fixture.fixture_id ? { ...item, going } : item));
-      if (going) setGoingFeedback("Added to your upcoming matchdays.");
+      setGoingFeedback(going ? "Moved to Going." : "Moved to Interested.");
       await loadMatchdays();
     }
     catch (requestError) { setError(apiErrorMessage(requestError, "We couldn't update your plan. Try again.")); }
@@ -90,14 +90,13 @@ export default function InterestedTab() {
 
   const planFooter = (fixture: InterestedFixture) => {
     const pending = updatingFixtureIds.includes(fixture.fixture_id);
-    return <div>
-      <div className="grid grid-cols-2 gap-2">
+    return <div className="grid grid-cols-2 gap-2">
         {linkFooter(fixture.fixture_id)}
-        {typeof fixture.going === "boolean" && (fixture.going
-          ? <span aria-label="Going: saved intention" className="inline-flex min-h-11 items-center justify-center border border-[var(--tt-gold)] bg-[color-mix(in_srgb,var(--tt-gold)_12%,var(--tt-paper))] px-2 text-xs font-extrabold uppercase text-[var(--tt-ink)]"><span aria-hidden="true" className="mr-1">✓</span> Going</span>
-          : <button type="button" disabled={pending} onClick={() => void toggleGoing(fixture)} className="tt-action tt-action-secondary min-w-0 px-2 text-center disabled:opacity-60">{pending ? "Saving..." : "I'm Going"}</button>)}
-      </div>
-      {fixture.going && <button type="button" disabled={pending} onClick={() => void toggleGoing(fixture)} className="mt-1 min-h-11 text-xs font-bold text-[var(--tt-muted)] underline underline-offset-4 disabled:opacity-60">{pending ? "Saving..." : "Back to Interested"}</button>}
+        {typeof fixture.going === "boolean" && <button type="button" aria-pressed={fixture.going} disabled={pending} onClick={() => void toggleGoing(fixture)} className={`min-w-0 cursor-pointer whitespace-nowrap px-2 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)] disabled:cursor-wait disabled:opacity-60 ${fixture.going
+          ? "inline-flex min-h-11 items-center justify-center border-2 border-[color-mix(in_srgb,var(--tt-gold)_70%,var(--tt-ink))] bg-[color-mix(in_srgb,var(--tt-gold)_20%,var(--tt-paper))] text-xs font-extrabold uppercase text-[var(--tt-ink)]"
+          : "tt-action tt-action-secondary"}`}>
+          {pending ? "Saving..." : fixture.going ? <><span aria-hidden="true" className="mr-1">✓</span> Going</> : "I'm Going"}
+        </button>}
     </div>;
   };
 
