@@ -46,7 +46,8 @@ export function markerKeyIconHtml(signal: Exclude<MarkerSignal, "standard">): st
 
 const attendedGroundMarkerSvg = `
   <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="7" cy="7" r="6" fill="#2146D0" stroke="#171717" stroke-width="1.5" />
+    <circle cx="7" cy="7" r="6" fill="var(--brand-interactive)" stroke="var(--tt-ink)" stroke-width="1.5" />
+    <circle cx="7" cy="7" r="2.75" fill="var(--tt-paper)" />
   </svg>
 `;
 

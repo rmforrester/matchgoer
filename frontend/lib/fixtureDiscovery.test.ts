@@ -250,7 +250,7 @@ test("My Grounds filters one coherent visit view and keeps cards supporter-facin
   assert.match(groundsSource, /groundTimeframes/);
   assert.match(groundsSource, /groundsInTimeframe\(grounds, timeframe\)/);
   assert.match(groundsSource, /PersonalGroundMap grounds=\{visibleGrounds\}/);
-  assert.match(groundsSource, /Last recorded visit/);
+  assert.match(groundsSource, /Last visited/);
   assert.doesNotMatch(groundsSource, />Visits</);
   assert.doesNotMatch(groundsSource, />My rating</);
   assert.doesNotMatch(groundsSource, />Terrace rating</);
@@ -262,7 +262,8 @@ test("My Grounds keeps Add a ground secondary and visited dots light but tappabl
   assert.match(groundsSource, /aria-controls="add-ground"/);
   assert.match(groundsSource, /"\+ Add a ground"/);
   assert.match(groundMarkerSource, /width="14" height="14" viewBox="0 0 14 14"/);
-  assert.match(groundMarkerSource, /r="6" fill="#2146D0" stroke="#171717" stroke-width="1\.5"/);
+  assert.match(groundMarkerSource, /r="2\.75" fill="var\(--tt-paper\)"/);
+  assert.match(groundMarkerSource, /r="6" fill="var\(--brand-interactive\)" stroke="var\(--tt-ink\)" stroke-width="1\.5"/);
   assert.match(groundMarkerSource, /iconSize: \[VENUE_MARKER_DESIGN\.hitSize, VENUE_MARKER_DESIGN\.hitSize\]/);
   assert.equal(VENUE_MARKER_DESIGN.hitSize, 44);
   assert.match(globalStylesSource, /\.tt-attended-ground-marker__visual \{ display: grid; height: 44px; place-items: center; width: 44px; \}/);

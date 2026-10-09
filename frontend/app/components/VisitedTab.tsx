@@ -179,7 +179,7 @@ export default function VisitedTab() {
 
     {!loading && grounds.length > 0 && <section className="mt-5 border-y border-[var(--tt-rule)] py-4" aria-labelledby="footprint-heading">
       <h2 id="footprint-heading" className="tt-display text-2xl leading-none text-[var(--brand-interactive)] sm:text-3xl">Your football footprint</h2>
-      <p className="mt-2 text-xs text-[var(--tt-muted)]">Recorded history · {groundTimeframes.find((option) => option.key === timeframe)?.label}</p>
+      <p className="mt-2 text-xs text-[var(--tt-muted)]">Every ground has a story.</p>
       <dl className="mt-4 grid grid-cols-3 divide-x divide-[var(--tt-rule)]">
         {[[visibleGrounds.length, "Grounds"], [countryCount, "Countries"], [matchdayCount, "Matchdays"]].map(([value, label]) => <div key={label} className="flex min-w-0 flex-col px-1 first:pl-0 sm:px-3">
           <dt className="mt-1 text-[0.65rem] font-extrabold uppercase tracking-[0.04em] sm:text-xs">{label}</dt>
@@ -191,8 +191,8 @@ export default function VisitedTab() {
 
     {!loading && visibleGrounds.length > 0 && <section className="mt-7 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="grounds-list-heading"><h2 id="grounds-list-heading" className="tt-display text-3xl leading-none sm:text-4xl">The grounds you know</h2><div className="mt-4 grid gap-3 sm:grid-cols-2">{visibleGrounds.map((ground) => <article key={ground.venue_id} className={`tt-panel flex min-w-0 flex-col p-4 ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>
       <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
-      <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"} recorded</p>
-      <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last recorded visit · ${knownDate(ground.latest_visit_date)}` : "Date not remembered"}</p>
+      <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
+      <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not remembered"}</p>
       {reviewingId === ground.venue_id && renderReviewPanel(ground)}
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
