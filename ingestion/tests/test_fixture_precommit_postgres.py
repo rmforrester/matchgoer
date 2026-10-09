@@ -35,11 +35,11 @@ class PrecommitPostgresTests(unittest.TestCase):
    if sql:c.exec_driver_sql(sql)
    original(c,t,b,u)
   with tempfile.TemporaryDirectory() as d,patch.object(r,'create_engine',return_value=self.e),patch.object(r,'ApiFootballClient',return_value=self.fake),patch.dict(os.environ,{'DATABASE_URL':'local-only','API_FOOTBALL_KEY':'mock','ENABLE_EXPANDED_FIXTURE_REFRESH':'TRUE'}),patch.object(r,'reconcile_final_state',side_effect=reconcile),patch('sys.argv',['refresh','--nightly','--as-of','2026-09-02','--write','--confirm-write','--report',str(Path(d)/'receipt.json')]),contextlib.redirect_stdout(io.StringIO()):
-   r.main();return json.loads((Path(d)/'receipt.json').read_text())
+   exit_code=r.main();report=json.loads((Path(d)/'receipt.json').read_text());self.assertEqual(exit_code,report['exit_code']);return report
  def rollback_case(self,sql):
-  self.assertIsNotNone(self.run_writer(sql)['write_error']);self.assertEqual(self.commits,0);self.assertEqual(self.state(),self.before)
+  report=self.run_writer(sql);self.assertIsNotNone(report['write_error']);self.assertFalse(report['execution_success']);self.assertFalse(report['commit_confirmed']);self.assertEqual(report['exit_code'],1);self.assertEqual(self.commits,0);self.assertEqual(self.state(),self.before)
  def test_A_success_one_commit(self):
-  self.assertIsNone(self.run_writer()['write_error']);self.assertEqual(self.commits,1);after=self.state();self.assertEqual([b[0] for b,a in zip(self.before,after) if b!=a],[100]);self.assertEqual(next(x for x in after if x[0]==100)[2:5],('FT',2,1))
+  report=self.run_writer();self.assertIsNone(report['write_error']);self.assertTrue(report['execution_success']);self.assertTrue(report['commit_confirmed']);self.assertFalse(report['complete']);self.assertEqual(report['exit_code'],0);self.assertEqual(self.commits,1);after=self.state();self.assertEqual([b[0] for b,a in zip(self.before,after) if b!=a],[100]);self.assertEqual(next(x for x in after if x[0]==100)[2:5],('FT',2,1))
  def test_B_intended_differs(self):self.rollback_case("UPDATE fixtures SET status='NS' WHERE fixture_id=100")
  def test_C_french_hold(self):self.rollback_case('UPDATE fixtures SET home_goals=8 WHERE fixture_id=1599987')
  def test_D_identity_hold(self):self.rollback_case('UPDATE fixtures SET home_team_id=8 WHERE fixture_id=101')
@@ -51,6 +51,13 @@ class PrecommitPostgresTests(unittest.TestCase):
  def test_G_database_error(self):self.rollback_case('SELECT 1/0')
  def test_H_idempotence(self):
   self.run_writer();after=self.state();receipt=self.run_writer();self.assertEqual(receipt['proposed_fixture_rows_changed'],0);self.assertEqual(after,self.state())
+ def test_commit_failure_is_not_success(self):
+  def fail_commit(connection):raise RuntimeError('synthetic commit failure')
+  event.listen(self.e,'commit',fail_commit)
+  try:
+   report=self.run_writer();self.assertFalse(report['commit_confirmed']);self.assertFalse(report['execution_success']);self.assertEqual(report['exit_code'],1);self.assertIsNotNone(report['write_error'])
+  finally:event.remove(self.e,'commit',fail_commit)
+  self.assertEqual(self.state(),self.before)
  def test_editorial(self):self.rollback_case("UPDATE fixtures SET editorial='wrong' WHERE fixture_id=102")
  def test_delete(self):self.rollback_case('DELETE FROM fixtures WHERE fixture_id=102')
  def test_insert(self):self.rollback_case('INSERT INTO fixtures (fixture_id) VALUES (999)')

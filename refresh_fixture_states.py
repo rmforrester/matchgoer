@@ -259,6 +259,21 @@ def reconcile_final_state(connection, fixtures, before, updates):
         raise RuntimeError("Updated fixture IDs differ from approved plan")
 
 
+def execution_outcome(*, write_requested, commit_confirmed, expanded, incomplete,
+                      write_error, provider_failures, validation, manifest):
+    """Coverage warnings are distinct from a confirmed, safe write outcome."""
+    safe = not write_error and not provider_failures and validation["passed"]
+    if not write_requested:
+        # Preserve the existing dry-run exit policy.
+        success = safe and not (expanded and incomplete)
+    else:
+        unexpected = any(row["classification"] not in CLASSIFICATIONS or
+                         row["classification"] in {"PROVIDER_DUPLICATE", "PROVIDER_MALFORMED"}
+                         for row in manifest)
+        success = safe and commit_confirmed and not unexpected
+    return bool(success), 0 if success else 1
+
+
 def main() -> int:
     args = parser().parse_args()
     expanded = expanded_refresh_enabled()
@@ -328,6 +343,8 @@ def main() -> int:
         validation["passed"] = False
         validation["problems"].append("Request ceiling exceeded; no provider calls made")
     incomplete = any(row["venue_mapping"] not in {"MATCHED", "MISSING", "DISABLED"} for row in manifest if "venue_mapping" in row) or any(row["classification"] in {"PROVIDER_MISSING", "PROVIDER_DUPLICATE", "IDENTITY_MISMATCH", "PROVIDER_MALFORMED", "TERMINAL_CONFLICT_REVIEW", "MANUAL_REVIEW_HOLD"} for row in manifest)
+    write_requested = args.write
+    commit_confirmed = False
     if args.write:
         if client.failures or not validation["passed"]:
             args.write = False  # Emit a failure receipt; never write an unsafe plan
@@ -361,12 +378,25 @@ def main() -> int:
                         if connection.execute(update(fixtures).where(guard).values(**values)).rowcount != 1:
                             raise RuntimeError(f"Concurrent fixture change detected for {fixture_id}; transaction rolled back")
                     reconcile_final_state(connection, fixtures, preimage, updates)
+                # Set only after engine.begin().__exit__ returns from COMMIT.
+                commit_confirmed = True
         except Exception as error:
             write_error = type(error).__name__
             args.write = False
     counts = Counter(row["classification"] for row in manifest)
     field_counts = Counter(field for row in manifest if row["fixture_id"] in updates for field in row["proposed_changed_fields"])
+    execution_success, exit_code = execution_outcome(
+        write_requested=write_requested, commit_confirmed=commit_confirmed,
+        expanded=expanded, incomplete=incomplete, write_error=write_error,
+        provider_failures=client.failures, validation=validation, manifest=manifest)
     report = {
+        "execution_success": execution_success, "commit_confirmed": commit_confirmed,
+        "exit_code": exit_code,
+        "execution_outcome": ("FIXTURE REFRESH COMMITTED" if execution_success and commit_confirmed
+                              else "FIXTURE REFRESH FAILED — COMMIT CONFIRMED; REVIEW REQUIRED" if commit_confirmed
+                              else "FIXTURE REFRESH FAILED — NO SUCCESSFUL COMMIT CONFIRMED" if write_requested
+                              else "DRY RUN PASSED" if execution_success else "DRY RUN INCOMPLETE OR FAILED"),
+        "coverage_outcome": "COVERAGE INCOMPLETE — EXCLUSIONS RECORDED" if incomplete else "COVERAGE COMPLETE",
         "generated_at": datetime.now(timezone.utc).isoformat(), "mode": "write" if args.write else "dry-run", "policy": "nightly",
         "expanded_refresh_enabled": expanded, "write_error": write_error, "complete": not incomplete and not client.failures and not write_error and validation["passed"], "window_start": start.isoformat(), "window_end_exclusive": end.isoformat(), "lookahead_days": args.lookahead_days if expanded else 0, "max_requests": args.max_requests,
         "as_of": cutoff_day.isoformat(), "lookback_days": args.lookback_days, "country": args.country,
@@ -380,7 +410,7 @@ def main() -> int:
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key != "manifest"}, indent=2))
-    return 1 if (expanded and incomplete) or write_error or client.failures or not validation["passed"] else 0
+    return exit_code
 
 
 if __name__ == "__main__":

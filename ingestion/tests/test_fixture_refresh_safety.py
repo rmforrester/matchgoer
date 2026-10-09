@@ -100,7 +100,7 @@ class RefreshSafetyTests(unittest.TestCase):
             with patch.dict(refresh.REVIEW_HOLDS,{100:dict(fixture_id=100,reason='test continuity hold',evidence='isolated test',review_status='PENDING_MANUAL_REVIEW')}):
                 with engine.connect() as c:before_held=c.execute(text('SELECT * FROM fixtures')).all()
                 for hold_args in (args, [x for x in args if x not in ('--write','--confirm-write')]):
-                    with patch('sys.argv',hold_args):self.assertEqual(refresh.main(),1)
+                    with patch('sys.argv',hold_args):self.assertEqual(refresh.main(),0 if '--write' in hold_args else 1)
                     receipt=json.loads((Path(d)/'receipt.json').read_text())
                     self.assertEqual(receipt['classification_counts']['MANUAL_REVIEW_HOLD'],1)
                     self.assertEqual(receipt['proposed_fixture_rows_changed'],0)
@@ -116,7 +116,7 @@ class RefreshSafetyTests(unittest.TestCase):
             with engine.begin() as c:
                 c.execute(text("UPDATE fixtures SET status='NS', home_goals=NULL, away_goals=NULL"))
             fake.fixtures_by_ids.return_value=[]
-            with patch('sys.argv',args):self.assertEqual(refresh.main(),1)
+            with patch('sys.argv',args):self.assertEqual(refresh.main(),0)
             receipt=json.loads((Path(d)/'receipt.json').read_text());self.assertFalse(receipt['complete']);self.assertEqual(receipt['classification_counts']['PROVIDER_MISSING'],1)
             fake.failures=['API timeout'];fake.fixtures_by_ids.side_effect=RuntimeError('API timeout')
             with patch('sys.argv',args):self.assertEqual(refresh.main(),1)
