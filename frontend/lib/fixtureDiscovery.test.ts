@@ -219,10 +219,10 @@ test("Discover shortlist contains only future interested fixtures and stays comp
 });
 
 test("My Matchdays separates upcoming, confirmation, and attended history", () => {
-  assert.match(matchdaysSource, /fixture\.kickoff_passed/);
+  assert.match(matchdaysSource, /partitionMatchdays/);
   assert.match(matchdaysSource, /fixture\.fixture_date/);
   assert.match(matchdaysSource, /setInterval\(\(\) => setMatchdayNow\(new Date\(\)\), 60_000\)/);
-  assert.match(matchdaysSource, /Up Next/);
+  assert.match(matchdaysSource, /Going/);
   assert.match(matchdaysSource, /Did You Go\?/);
   assert.match(matchdaysSource, /Yes, I was there/);
   assert.match(matchdaysSource, /Didn&apos;t go/);
@@ -231,7 +231,7 @@ test("My Matchdays separates upcoming, confirmation, and attended history", () =
   assert.match(matchdaysSource, /api\.post\(`\/fixtures\/\$\{fixture\.fixture_id\}\/attendance`\)/);
   assert.match(matchdaysSource, /api\.delete\(`\/fixtures\/\$\{fixture\.fixture_id\}\/interested`\)/);
   assert.match(matchdaysSource, /api\.get\("\/my-grounds"\)/);
-  assert.match(matchdaysSource, /Past Matchdays/);
+  assert.match(matchdaysSource, /Went/);
   assert.match(matchdaysSource, /UPCOMING_PREVIEW_LIMIT/);
   assert.match(matchdaysSource, /ANSWER_PREVIEW_LIMIT/);
   assert.match(matchdaysSource, /PAST_PREVIEW_LIMIT/);
@@ -240,7 +240,7 @@ test("My Matchdays separates upcoming, confirmation, and attended history", () =
 
 test("My Matchdays uses one empty state and does not preserve non-attendance history", () => {
   assert.match(matchdaysSource, /Your matchday history starts here/);
-  assert.match(matchdaysSource, /upcomingFixtures\.length === 0 && unresolvedFixtures\.length === 0 && attendedFixtures\.length === 0/);
+  assert.match(matchdaysSource, /upcomingFixtures\.length === 0 && interestedFixtures\.length === 0 && unresolvedFixtures\.length === 0 && attendedFixtures\.length === 0/);
   assert.equal((matchdaysSource.match(/Your matchday history starts here/g) ?? []).length, 1);
   assert.doesNotMatch(matchdaysSource, /No upcoming plans|No past plans|No attended matches/);
   assert.doesNotMatch(matchdaysSource, /didn.?t attend.*history/i);

@@ -1,4 +1,7 @@
 export type InterestedFixture = {
+  going?: boolean;
+  home_team_badge_url?: string | null;
+  away_team_badge_url?: string | null;
   interested_id: number;
   fixture_id: number;
   fixture_date: string;

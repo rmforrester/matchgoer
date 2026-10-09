@@ -13,6 +13,8 @@ export type GroundReview = {
 };
 
 export type AttendedFixture = {
+  home_team_badge_url?: string | null;
+  away_team_badge_url?: string | null;
   fixture_id: number;
   fixture_date: string;
   home_team: string;
