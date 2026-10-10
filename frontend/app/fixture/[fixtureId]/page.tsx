@@ -17,6 +17,8 @@ import FixtureKnow from "../../components/FixtureKnow";
 import { type FixtureKnow as FixtureKnowData } from "../../../lib/know-v1";
 import FixtureOfficialActions from "../../components/FixtureOfficialActions";
 import type { OfficialChannels } from "../../../lib/official-channels";
+import { trackEvent } from "../../../lib/analytics";
+import AnalyticsExposure from "../../components/AnalyticsExposure";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -84,6 +86,13 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   }, [load]);
 
   useEffect(() => {
+    const recordView = () => { if (data) trackEvent("fixture_view", { surface: "fixture" }, "loaded"); };
+    recordView();
+    window.addEventListener("matchgoer-analytics-ready", recordView);
+    return () => window.removeEventListener("matchgoer-analytics-ready", recordView);
+  }, [data]);
+
+  useEffect(() => {
     if (!data) return;
     api.get<FixtureKnowData>(`/fixtures/${fixtureId}/know`)
       .then((response) => setKnow(response.data))
@@ -129,6 +138,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       if (data.interested) await api.delete(`/fixtures/${fixtureId}/interested`);
       else {
         await api.post(`/fixtures/${fixtureId}/interested`);
+        trackEvent("fixture_saved", { surface: "fixture" });
         if (isAnonymous) setAccountPrompt("interested");
       }
       await load();
@@ -227,7 +237,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
 
     <FixtureOfficialActions ticketAction={data.ticket_action} channels={data.official_channels} teamName={data.fixture.home_team} ticketGuidance={data.ticket_guidance} />
 
-    {hasDecisionReasons && <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="why-this-match-heading">
+    {hasDecisionReasons && <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="why-this-match-heading"><AnalyticsExposure section="decide">
       <p className="mg-section-label">02 / Why this match</p>
       <div className="mg-editorial-accent mt-3 bg-[var(--mg-paper-light)] px-4 py-4 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(16rem,0.65fr)] lg:gap-10">
         <div>
@@ -239,9 +249,9 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         </ul></div>}
         <div className="mt-4 flex flex-wrap gap-1.5 lg:col-span-2">{decisionReasons.map((reason) => <span key={`tag-${reason.key}-${reason.label}`} className="mg-reason-stamp bg-[var(--mg-paper)]">{reason.label}</span>)}</div>
       </div>
-    </section>}
+    </AnalyticsExposure></section>}
 
-    <FixtureKnow know={know} teamName={data.fixture.home_team} />
+    {know && <AnalyticsExposure section="know"><FixtureKnow know={know} teamName={data.fixture.home_team} /></AnalyticsExposure>}
 
     {data.fixture.venue_id && <section className="mg-editorial-rule mt-5 pt-3" aria-labelledby="ground-heading">
       <p className="mg-section-label">05 / The ground</p>

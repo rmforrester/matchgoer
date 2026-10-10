@@ -1,4 +1,7 @@
+"use client";
+
 import { officialChannelLinks, type OfficialChannels } from "../../lib/official-channels";
+import { trackEvent } from "../../lib/analytics";
 
 type TicketAction = { label: string; url: string; source_label: string };
 type Props = { ticketAction?: TicketAction | null; channels?: OfficialChannels | null; teamName: string; ticketGuidance?: { label: string; message: string; source_label: string } | null };
@@ -22,6 +25,7 @@ export default function FixtureOfficialActions({ ticketAction, channels, teamNam
   return <nav aria-label={`${teamName} official actions`} className="mt-3 grid grid-cols-2 gap-2">
     {!ticketAction && ticketGuidance && <div className="mg-utility-panel col-span-2 px-4 py-3 sm:px-5"><p className="mg-section-label">{ticketGuidance.label}</p><p className="mt-1 font-semibold">{ticketGuidance.message}</p></div>}
     {actions.map(action => <a key={action.kind} href={action.url} target="_blank" rel="noopener noreferrer"
+      onClick={() => { if (action.kind === "ticket") trackEvent("ticket_click", { surface: "fixture", ticket_type: action.label === "Buy tickets" ? "online" : action.label === "Ticket info" ? "information" : "unspecified" }); }}
       aria-label={`${action.accessibleLabel} (opens in a new tab)`}
       className={`flex min-h-12 w-full items-center justify-center gap-2 border px-2 py-3 text-xs font-extrabold uppercase transition-colors focus-visible:-outline-offset-4 sm:px-4 ${action.kind === "ticket" ? "col-span-2 border-[var(--mg-green)] bg-[var(--mg-green)] text-[var(--mg-paper-light)] hover:bg-[var(--mg-green-dark)]" : "border-[var(--mg-green)] text-[var(--mg-green)] hover:bg-[var(--mg-paper)]"}`}>
       <ActionIcon kind={action.kind} /><span>{action.label}</span>

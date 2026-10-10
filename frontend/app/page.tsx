@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import api from "../lib/api";
 import { apiErrorMessage } from "../lib/api-error";
+import { trackEvent, resultBucket } from "../lib/analytics";
 import dynamic from "next/dynamic";
 
 import SearchBar from "./components/SearchBar";
@@ -251,6 +252,7 @@ const loadVisitedStadiums = () => {
         if (isInterested) {
           setInterestedFixtures((current) => current.filter((fixture) => fixture.fixture_id !== fixtureId));
         } else {
+          trackEvent("fixture_saved", { surface: "discover" });
           loadInterestedFixtures();
         }
         setInterestedFixtureIds((current) =>
@@ -313,6 +315,7 @@ const loadVisitedStadiums = () => {
         resultsLimited: response.headers["x-results-limited"] === "true",
       };
       setFixtures(response.data);
+      trackEvent("location_search", { search_method: source, result_count_bucket: resultBucket(Number(response.headers["x-total-matches"] ?? response.data.length)) });
       setSelectedFixtureId(null);
       setAppliedSearch(nextSearch);
       setLocationQuery(nextSearch.locationName);

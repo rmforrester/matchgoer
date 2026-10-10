@@ -8,6 +8,7 @@ import { accountRoute, authCallbackRoute, safeReturnTo, userFacingAuthError } fr
 import { anonymousApi } from "@/lib/api";
 import { saveConversionHandoff, savePendingWhosGoingFromReturnTo } from "@/lib/account-conversion-checkpoint";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { registrationStarted } from "@/lib/analytics";
 
 export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?: string }) {
   const returnTo = safeReturnTo(requestedReturnTo);
@@ -45,6 +46,7 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
         return;
       }
       setConfirmationPending(true);
+      if (data.user?.identities?.length) registrationStarted();
     } catch (requestError) {
       setError(userFacingAuthError(requestError, "We couldn't create your account. Try again."));
     } finally { setSaving(false); }

@@ -2,6 +2,7 @@ import axios from "axios";
 import type { Session } from "@supabase/supabase-js";
 
 import api from "./api.ts";
+import { registrationCompleted } from "./analytics.ts";
 
 export type AuthDestination = {
   route: string;
@@ -70,6 +71,7 @@ export async function completeAuthenticatedFlow(
 
   try {
     const claim = await api.post("/account/claim", { handoff_token: handoffToken || null }, { headers: authorization });
+    if (claim.data.claimed === true && claim.data.idempotent === false) registrationCompleted();
     if (!claim.data.profile_complete) {
       return { kind: "onboarding", route: accountRoute("/account/onboarding", returnTo) };
     }

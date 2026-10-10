@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import Navigation from "./components/Navigation";
 import AuthProvider from "./components/AuthProvider";
+import AnalyticsConsent from "./components/AnalyticsConsent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
             <Navigation />
           </Suspense>
           {children}
+          <Suspense fallback={null}><AnalyticsConsent /></Suspense>
         </AuthProvider>
       </body>
     </html>

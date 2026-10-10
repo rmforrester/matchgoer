@@ -5,6 +5,7 @@ import Link from "next/link";
 import { apiErrorMessage } from "../../lib/api-error";
 import api, { apiAssetUrl } from "../../lib/api";
 import FixtureTeams from "./FixtureTeams";
+import { trackEvent } from "../../lib/analytics";
 import { ANSWER_PREVIEW_LIMIT, PAST_PREVIEW_LIMIT, UPCOMING_PREVIEW_LIMIT, previewItems, trustworthyScore, partitionMatchdays, formatMatchdayKickoff } from "../../lib/matchdays";
 import type { InterestedFixture } from "../types/interested";
 import type { AttendedFixture, MyGround } from "../types/grounds";
@@ -69,6 +70,7 @@ export default function InterestedTab() {
       const going = !fixture.going;
       const response = await api.put(`/fixtures/${fixture.fixture_id}/going`, { going });
       if (response.data.going !== going) throw new Error("Intention was not confirmed");
+      trackEvent(going ? "going_selected" : "going_removed", { surface: "matchdays" });
       setFixtures((current) => current.map((item) => item.fixture_id === fixture.fixture_id ? { ...item, going } : item));
       setGoingFeedback(going ? "✓ You're going to this one." : "Back on your Interested list.");
       await loadMatchdays();

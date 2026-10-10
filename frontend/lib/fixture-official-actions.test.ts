@@ -16,7 +16,7 @@ function compile(path: string, dependencies: Record<string, unknown> = {}) {
   return compiled.exports;
 }
 const channels = compile("./official-channels.ts");
-const component = compile("../app/components/FixtureOfficialActions.tsx", { "../../lib/official-channels": channels }) as { default: React.ComponentType<Record<string, unknown>> };
+const component = compile("../app/components/FixtureOfficialActions.tsx", { "../../lib/official-channels": channels, "../../lib/analytics": { trackEvent: () => undefined } }) as { default: React.ComponentType<Record<string, unknown>> };
 const digital = { official_homepage_url: "https://club.test/", official_instagram_url: "https://www.instagram.com/club/" };
 const ticket = { label: "Buy tickets", url: "https://club.test/tickets", source_label: "Club" };
 function render(props: Record<string, unknown>) { return renderToStaticMarkup(React.createElement(component.default, { teamName: "Club", ...props })); }
