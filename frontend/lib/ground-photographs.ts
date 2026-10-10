@@ -1,0 +1,137 @@
+export type GroundPhotograph = { venueId: number; src: string; sourceUrl: string; photographer: string; credit: string; creditUrl: string | null; license: string; licenseUrl: string; captureDate: string; width: number; height: number; alt: string; modificationNote: string; historicalNote: string };
+
+// Reviewed Commons pilot only. Keys are canonical Matchgoer IDs, not provider IDs.
+const photographs: readonly GroundPhotograph[] = [
+  {
+    "venueId": 3535,
+    "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ce/Edgeley_park_2021.jpg/1280px-Edgeley_park_2021.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Edgeley_park_2021.jpg",
+    "photographer": "Ceaton89",
+    "credit": "Ceaton89",
+    "creditUrl": null,
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "captureDate": "2021-11-17",
+    "width": 1000,
+    "height": 750,
+    "alt": "Photograph of Edgeley Park in Stockport",
+    "modificationNote": "Resized for display; not cropped.",
+    "historicalNote": "Photographed 2021-11-17. Appearance may have changed."
+  },
+  {
+    "venueId": 581,
+    "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/Sheffield_united_bramall_lane_stadium.jpg/1280px-Sheffield_united_bramall_lane_stadium.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sheffield_united_bramall_lane_stadium.jpg",
+    "photographer": "Arne Müseler",
+    "credit": "Arne Müseler / www.arne-mueseler.com",
+    "creditUrl": "https://www.arne-mueseler.com/",
+    "license": "CC BY-SA 3.0 de",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+    "captureDate": "2023-08-02",
+    "width": 1000,
+    "height": 749,
+    "alt": "Photograph of Bramall Lane in Sheffield",
+    "modificationNote": "Resized for display; not cropped.",
+    "historicalNote": "Photographed 2023-08-02. Appearance may have changed."
+  },
+  {
+    "venueId": 22820,
+    "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Tele2_Arena_September_2014_09.jpg/1280px-Tele2_Arena_September_2014_09.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tele2_Arena_September_2014_09.jpg",
+    "photographer": "Arild Vågen",
+    "credit": "Arild Vågen",
+    "creditUrl": null,
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "captureDate": "2014-09-18 20:18:06",
+    "width": 1000,
+    "height": 416,
+    "alt": "Photograph of 3Arena in Stockholm",
+    "modificationNote": "Resized for display; not cropped.",
+    "historicalNote": "Photographed 2014-09-18. Appearance may have changed."
+  },
+  {
+    "venueId": 6189,
+    "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Meadowbank_Stadium_Dorking_Wanderers_May_2021.jpg/1280px-Meadowbank_Stadium_Dorking_Wanderers_May_2021.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Meadowbank_Stadium_Dorking_Wanderers_May_2021.jpg",
+    "photographer": "Mertbiol",
+    "credit": "Mertbiol",
+    "creditUrl": null,
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "captureDate": "2021-05-30 19:35:52",
+    "width": 1000,
+    "height": 608,
+    "alt": "Photograph of Meadowbank in Dorking",
+    "modificationNote": "Resized for display; not cropped.",
+    "historicalNote": "Photographed 2021-05-30. Appearance may have changed."
+  },
+  {
+    "venueId": 553,
+    "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d4/Maidenhead_v_Fylde_003.jpg/1280px-Maidenhead_v_Fylde_003.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Maidenhead_v_Fylde_003.jpg",
+    "photographer": "Neil Maskell",
+    "credit": "Neil Maskell",
+    "creditUrl": null,
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "captureDate": "2025-01-18 15:22:01",
+    "width": 1000,
+    "height": 830,
+    "alt": "Photograph of York Road in Maidenhead",
+    "modificationNote": "Resized for display; not cropped.",
+    "historicalNote": "Photographed 2025-01-18. Appearance may have changed."
+  },
+  {
+    "venueId": 556,
+    "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Manchester_United_Panorama_%288051523746%29.jpg/1280px-Manchester_United_Panorama_%288051523746%29.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Manchester_United_Panorama_(8051523746).jpg",
+    "photographer": "Steve Collis from Melbourne, Australia",
+    "credit": "Steve Collis from Melbourne, Australia",
+    "creditUrl": null,
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "captureDate": "Taken on 6 September 2012, 21:44",
+    "width": 1000,
+    "height": 479,
+    "alt": "Photograph of Old Trafford in Manchester",
+    "modificationNote": "Resized for display; not cropped.",
+    "historicalNote": "Photographed 6 September 2012. Appearance may have changed."
+  },
+  {
+    "venueId": 23286,
+    "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/AS_Monaco_vs._OGC_Nice_%282022%29.jpg/1280px-AS_Monaco_vs._OGC_Nice_%282022%29.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:AS_Monaco_vs._OGC_Nice_(2022).jpg",
+    "photographer": "FromMorningToMidnight",
+    "credit": "FromMorningToMidnight",
+    "creditUrl": null,
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "captureDate": "2022-04-20 19:05:05",
+    "width": 1000,
+    "height": 750,
+    "alt": "Photograph of Stade Louis-II in Monaco",
+    "modificationNote": "Resized for display; not cropped.",
+    "historicalNote": "Photographed 2022-04-20. Appearance may have changed."
+  },
+  {
+    "venueId": 1833,
+    "src": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Yankee_Stadium_NYCFC.JPG/1280px-Yankee_Stadium_NYCFC.JPG",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Yankee_Stadium_NYCFC.JPG",
+    "photographer": "Srhansen1985",
+    "credit": "Srhansen1985",
+    "creditUrl": null,
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "captureDate": "2015-03-15",
+    "width": 1000,
+    "height": 337,
+    "alt": "Photograph of Yankee Stadium in New York City",
+    "modificationNote": "Resized for display; not cropped.",
+    "historicalNote": "Photographed 2015-03-15. Appearance may have changed."
+  }
+];
+
+export function groundPhotograph(venueId: number): GroundPhotograph | undefined {
+  return photographs.find((photo) => photo.venueId === venueId);
+}

@@ -1,6 +1,7 @@
 import { googleMapsDirectionsUrl } from "../../lib/venue-guide";
+import GroundPhotograph from "./GroundPhotograph";
 
-type Venue = { name: string; address?: string | null; city: string; country: string; capacity: number | null; latitude?: number | null; longitude?: number | null };
+type Venue = { venue_id: number; name: string; address?: string | null; city: string; country: string; capacity: number | null; latitude?: number | null; longitude?: number | null };
 
 type Props = { venue: Venue; clubName?: string | null };
 
@@ -13,6 +14,7 @@ export default function VenueHeader({ venue, clubName }: Props) {
           <h1 id="venue-heading" className="tt-display break-words text-[clamp(3.2rem,10vw,7rem)] leading-[0.82]">{venue.name}</h1>
           {clubName && <p className="mt-4 text-lg font-extrabold">{clubName}</p>}
           <p className="mt-5 font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">{venue.city}{venue.country ? ` · ${venue.country}` : ""}</p>
+          <GroundPhotograph venueId={venue.venue_id} />
           {venue.address && <p className="mt-2 font-bold">{venue.address}</p>}
           {venue.latitude != null && venue.longitude != null && <a id="directions" className="mt-4 inline-flex min-h-11 items-center bg-[var(--brand-interactive)] px-4 text-xs font-extrabold uppercase tracking-[0.08em] text-white" href={googleMapsDirectionsUrl(venue.latitude, venue.longitude)} target="_blank" rel="noreferrer">Directions →</a>}
           {venue.capacity !== null && venue.capacity > 0 && <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">Capacity · {venue.capacity.toLocaleString()}</p>}
