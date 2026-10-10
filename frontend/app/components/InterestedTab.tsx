@@ -70,7 +70,7 @@ export default function InterestedTab() {
       const response = await api.put(`/fixtures/${fixture.fixture_id}/going`, { going });
       if (response.data.going !== going) throw new Error("Intention was not confirmed");
       setFixtures((current) => current.map((item) => item.fixture_id === fixture.fixture_id ? { ...item, going } : item));
-      setGoingFeedback(going ? "Moved to Going." : "Moved to Interested.");
+      setGoingFeedback(going ? "✓ You're going to this one." : "Back on your Interested list.");
       await loadMatchdays();
     }
     catch (requestError) { setError(apiErrorMessage(requestError, "We couldn't update your plan. Try again.")); }
