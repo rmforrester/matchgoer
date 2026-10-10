@@ -862,7 +862,7 @@ const loadVisitedStadiums = () => {
         <p className="tt-kicker py-4" aria-live="polite">Loading fixtures...</p>
       )}
 
-      <DiscoverShortlist fixtures={shortlistFixtures} updatingFixtureIds={updatingInterestedFixtureIds} onRemove={toggleInterested} />
+      <DiscoverShortlist fixtures={shortlistFixtures} discoveredFixtures={fixtures} updatingFixtureIds={updatingInterestedFixtureIds} onRemove={toggleInterested} />
 
     </main>
   );
