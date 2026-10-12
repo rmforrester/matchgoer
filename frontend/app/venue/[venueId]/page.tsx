@@ -256,7 +256,7 @@ api
   };
 
   const addToVisited = () => {
-    router.push(`/my-football?tab=visited&recordVenue=${Number(venueId)}#add-ground`);
+    router.push(`/my-football?tab=visited&recordVenue=${Number(venueId)}#record-matchday`);
   };
   const upcomingFixtures = venueFixtures
     .filter((fixture) => new Date(fixture.fixture_date) >= new Date())

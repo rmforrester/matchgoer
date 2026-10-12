@@ -4,7 +4,7 @@ import axios from "axios";
 import { apiErrorMessage } from "../../lib/api-error";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 import type { GroundReview, MyGround } from "../types/grounds";
@@ -37,6 +37,7 @@ export default function VisitedTab() {
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<VenueResult[]>([]);
   const [selected, setSelected] = useState<VenueResult | null>(null);
+  const recordHeading = useRef<HTMLHeadingElement>(null);
   const [visitDate, setVisitDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -47,6 +48,14 @@ export default function VisitedTab() {
   const [timeframe, setTimeframe] = useState<GroundTimeframe>("lifetime");
   const [reviewingId, setReviewingId] = useState<number | null>(null);
   const [showAddGround, setShowAddGround] = useState(false);
+  useEffect(() => {
+    if (!selected || loading) return;
+    const frame = window.requestAnimationFrame(() => {
+      recordHeading.current?.focus({ preventScroll: true });
+      recordHeading.current?.closest("section")?.scrollIntoView({ block: "start", behavior: "instant" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [selected, showAddGround, loading]);
   const [collection, setCollection] = useState<{ country: string } | "all" | null>(null);
   const [scores, setScores] = useState({ atmosphere: null as number | null, pubs: null as number | null, travel: null as number | null, facilities: null as number | null, recommend: null as boolean | null });
 
@@ -195,8 +204,8 @@ export default function VisitedTab() {
       {expandedId === ground.venue_id && <ul id={`ground-visits-${ground.venue_id}`} className="mt-4 border-t border-[var(--tt-rule)] pt-3">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-b border-[var(--tt-rule)] py-3 last:border-0"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 font-bold">{fixture.home_team} v {fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}{fixture && <Link href={`/fixture/${fixture.fixture_id}`} className="mt-1 inline-flex min-h-10 items-center text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">View match →</Link>}<button type="button" onClick={() => { setEditingVisitId(visit.visit_id); setPastMatchDate(visit.visit_date ?? ""); setFixtureCandidates([]); }} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{fixture ? "Change match" : "Attach match"}</button>{fixture && <button type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, null)} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--tt-muted)] underline">Remove link</button>}{editingVisitId === visit.visit_id && <div className="mt-2"><div className="flex flex-wrap gap-2"><input type="date" aria-label="Visit date" value={pastMatchDate} onChange={(event) => { setPastMatchDate(event.target.value); setFixtureCandidates([]); }} className="tt-control px-3"/><button type="button" disabled={!pastMatchDate || findingMatches} onClick={() => void findPastMatches(ground.venue_id)} className="tt-action px-3">Find matches</button></div>{fixtureCandidates.map((candidate) => <button key={candidate.fixture_id} type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, candidate.fixture_id)} className="mt-2 block min-h-10 text-left font-bold text-[var(--brand-interactive)] underline">{candidate.home_team} v {candidate.away_team} · {knownDate(candidate.fixture_date.slice(0, 10))}</button>)}</div>}</li>; })}</ul>}
     </article>;
 
-  const recordForm = selected && <section aria-labelledby="record-matchday-heading" className="tt-panel mt-4 p-5">
-    <h3 id="record-matchday-heading" className="tt-display text-3xl">Record matchday</h3>
+  const recordForm = selected && <section id="record-matchday" aria-labelledby="record-matchday-heading" className="tt-panel mt-4 p-5">
+    <h3 ref={recordHeading} tabIndex={-1} id="record-matchday-heading" className="tt-display text-3xl focus-visible:outline-2 focus-visible:outline-offset-2">Record matchday</h3>
     <p className="mt-2 font-bold break-words">{selected.name}</p>{selected.city && <p className="break-words text-[var(--tt-muted)]">{selected.city}</p>}
     <p className="mt-3 text-sm">Record a football match you attended here. Date and match details are optional.</p>
     <label htmlFor="new-visit-date" className="tt-kicker mt-4 block">Match date (optional)</label>
@@ -206,7 +215,7 @@ export default function VisitedTab() {
     <button type="button" disabled={saving} onClick={() => { setSelectedFixtureId(null); setFixtureCandidates([]); setVisitDate(""); setUnknownDetails(true); }} className="mt-3 block min-h-11 text-left font-bold underline">I don&apos;t know / I can&apos;t remember</button>
     {unknownDetails && <p role="status" className="text-sm text-[var(--tt-muted)]">You can record this matchday without a date or match details.</p>}
     <div className="mt-4 flex flex-wrap gap-3">
-      <button type="button" disabled={saving} onClick={() => { setSelected(null); setSelectedFixtureId(null); setFixtureCandidates([]); setVisitDate(""); setUnknownDetails(false); }} className="tt-action tt-action-secondary px-4">Change ground</button>
+      <button type="button" disabled={saving} onClick={() => { setSelected(null); setSelectedFixtureId(null); setFixtureCandidates([]); setVisitDate(""); setUnknownDetails(false); window.requestAnimationFrame(() => document.getElementById("ground-search")?.focus()); }} className="tt-action tt-action-secondary px-4">Change ground</button>
       <button type="button" disabled={saving} onClick={() => {
         if (selectedFixtureId !== null) void recordSelectedFixture(selectedFixtureId);
         else void addVisit(selected.venue_id, visitDate, () => { setSelected(null); setVisitDate(""); setQuery(""); setResults([]); setFixtureCandidates([]); setUnknownDetails(false); });
@@ -216,10 +225,10 @@ export default function VisitedTab() {
 
   return <main className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
     <header className="border-b-2 border-[var(--tt-ink)] pb-3"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My football world</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Football takes you places.</p></header>
+    {!loading && (grounds.length === 0 || showAddGround) && recordForm}
     {!loading && grounds.length > 0 && <button type="button" onClick={() => setShowAddGround((current) => !current)} aria-expanded={showAddGround} aria-controls="add-ground" className="tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">{showAddGround ? "Close add ground" : "+ Add a ground"}</button>}
     {!loading && grounds.length > 0 && showAddGround && <section id="add-ground" className="mt-8 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="add-ground-heading"><h2 id="add-ground-heading" className="tt-display text-3xl leading-none sm:text-4xl">Add a ground</h2>{grounds.length > 0 && <p className="mt-1 text-sm text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>}<div className="mt-4 flex flex-wrap gap-2"><label htmlFor="ground-search" className="sr-only">Search for a ground or city</label><input id="ground-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} placeholder="Search ground or city" className="tt-control min-w-0 flex-1 px-4"/><button type="button" disabled={searching || query.trim().length < 2} onClick={() => void search()} className="tt-action px-5">{searching ? "Searching…" : "Search"}</button></div>
       {!selected && results.length > 0 && <div className="tt-panel mt-4 divide-y divide-[var(--tt-rule)]">{results.map((venue) => <button key={venue.venue_id} type="button" onClick={() => { setSelected(venue); setSelectedFixtureId(null); setFixtureCandidates([]); setUnknownDetails(false); }} className="block min-h-12 w-full px-4 py-3 text-left hover:bg-[var(--tt-paper)]"><strong>{venue.name}</strong>{venue.city && <span className="ml-2 text-[var(--tt-muted)]">{venue.city}</span>}{grounds.some((ground) => ground.venue_id === venue.venue_id) && <span className="ml-2 text-xs font-bold uppercase text-[var(--brand-interactive)]">Already visited</span>}</button>)}</div>}
-      {recordForm}
     </section>}
     {error && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
     {loading && <p className="mt-6 font-semibold">Loading your ground history…</p>}
@@ -264,7 +273,6 @@ export default function VisitedTab() {
 
     {!loading && grounds.length === 0 && <section id="add-ground" className="mt-8 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="add-ground-heading"><h2 id="add-ground-heading" className="tt-display text-3xl leading-none sm:text-4xl">Add a ground</h2>{grounds.length > 0 && <p className="mt-1 text-sm text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>}<div className="mt-4 flex flex-wrap gap-2"><label htmlFor="ground-search" className="sr-only">Search for a ground or city</label><input id="ground-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} placeholder="Search ground or city" className="tt-control min-w-0 flex-1 px-4"/><button type="button" disabled={searching || query.trim().length < 2} onClick={() => void search()} className="tt-action px-5">{searching ? "Searching…" : "Search"}</button></div>
       {!selected && results.length > 0 && <div className="tt-panel mt-4 divide-y divide-[var(--tt-rule)]">{results.map((venue) => <button key={venue.venue_id} type="button" onClick={() => { setSelected(venue); setSelectedFixtureId(null); setFixtureCandidates([]); setUnknownDetails(false); }} className="block min-h-12 w-full px-4 py-3 text-left hover:bg-[var(--tt-paper)]"><strong>{venue.name}</strong>{venue.city && <span className="ml-2 text-[var(--tt-muted)]">{venue.city}</span>}{grounds.some((ground) => ground.venue_id === venue.venue_id) && <span className="ml-2 text-xs font-bold uppercase text-[var(--brand-interactive)]">Already visited</span>}</button>)}</div>}
-      {recordForm}
     </section>}
   </main>;
 }
