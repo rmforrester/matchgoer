@@ -34,24 +34,26 @@ export default function AccountPage() {
   const section = "border-t border-[var(--tt-rule)] py-5 first:border-t-0";
   return <AccountShell kicker="Your Matchgoer" title="My Account" intro="Your account, preferences and a way to get in touch.">
     <section aria-labelledby="your-account" className={section}><h2 id="your-account" className="tt-display text-2xl uppercase text-[var(--brand-interactive)]">Your Account</h2>
-      {logoutError && <p role="alert" className="mt-3 text-sm text-red-800">{logoutError}</p>}
       {issue && <div role="status" className="mt-3 text-sm"><p>{issue === "expired" ? "Your session has ended. Sign in again to continue." : issue === "unlinked" ? "Finish confirming your email and signing in to connect your account." : "Matchgoer is temporarily unavailable. Your saved history has not been discarded."}</p>{issue === "unavailable" && <button className="min-h-11 font-bold underline" type="button" onClick={() => void refreshAccount()}>Try again</button>}</div>}
       {loading ? <p role="status" className="mt-3">Checking your account…</p> : authenticated ? <>
         <p className="mt-3 break-all text-sm"><span className="font-bold">Email</span><br />{email || "Email unavailable"}</p>
         <form onSubmit={save} className="mt-4 grid gap-2"><label className="grid gap-1 text-sm font-bold">Display name<input maxLength={40} autoComplete="nickname" value={name} onChange={e => setName(e.target.value)} className="tt-control w-full min-w-0 px-3 font-normal" /><span className="font-normal text-[var(--tt-muted)]">Optional. Leave blank to keep your current name.</span></label>
           {error && <p role="alert" className="text-sm font-bold text-red-800">{error}</p>}{saved && <p role="status" className="text-sm font-bold text-[var(--brand-interactive)]">{saved}</p>}
           <button disabled={busy} className="tt-action px-4">{busy ? "Saving…" : "Save display name"}</button></form>
-        <details className="mt-4 border-t border-[var(--tt-rule)] pt-2"><summary className="min-h-11 cursor-pointer content-center font-bold">Change password</summary><PasswordUpdateForm /></details>
-        <div className="mt-3"><LogoutButton onSuccess={() => router.replace("/")} /></div>
+        <details className="mt-4 border-t border-[var(--tt-rule)] pt-2"><summary className="min-h-11 cursor-pointer list-none content-center font-bold focus-visible:outline-2 [&::-webkit-details-marker]:hidden">Change password</summary><PasswordUpdateForm /></details>
       </> : !loading && issue !== "unavailable" && <Link href={signinRoute("/account")} className="tt-action mt-3 inline-flex min-h-11 items-center justify-center px-4">Sign in to your account</Link>}
     </section>
     <section aria-labelledby="preferences" className={section}><h2 id="preferences" className="tt-display mb-3 text-2xl uppercase text-[var(--brand-interactive)]">Preferences</h2><AnalyticsPreferences /></section>
-    <section aria-labelledby="privacy-data" className={section}><h2 id="privacy-data" className="tt-display mb-2 text-2xl uppercase text-[var(--brand-interactive)]">Privacy &amp; Data</h2>
+    <section aria-labelledby="privacy-data" className={section}><h2 id="privacy-data" className="tt-display mb-3 text-2xl uppercase text-[var(--brand-interactive)]">Privacy &amp; Data</h2>
       <Link href="/privacy" className="block min-h-11 content-center font-bold underline underline-offset-4">Privacy &amp; cookies</Link>
       <a href="mailto:privacy@matchgoer.com?subject=Matchgoer%20personal%20data%20request" className="block min-h-11 content-center font-bold underline underline-offset-4">Request your personal data</a>
       <a href="mailto:privacy@matchgoer.com?subject=Matchgoer%20account%20deletion%20request" className="block min-h-11 content-center font-bold underline underline-offset-4">Request account deletion</a>
       <p className="mt-2 text-sm text-[var(--tt-muted)]">These open an email request to privacy@matchgoer.com. Nothing is exported or deleted immediately.</p>
     </section>
-    <section aria-labelledby="help-feedback" className={section}><h2 id="help-feedback" className="tt-display mb-2 text-2xl uppercase text-[var(--brand-interactive)]">Help &amp; Feedback</h2><a href="mailto:hello@matchgoer.com?subject=Matchgoer%20feedback%20or%20problem" className="block min-h-11 content-center font-bold underline underline-offset-4">Send feedback or report a problem</a><p className="mt-2 text-sm text-[var(--tt-muted)]">Email hello@matchgoer.com.</p></section>
+    <section aria-labelledby="help-feedback" className={section}><h2 id="help-feedback" className="tt-display mb-3 text-2xl uppercase text-[var(--brand-interactive)]">Help &amp; Feedback</h2><a href="mailto:hello@matchgoer.com?subject=Matchgoer%20feedback%20or%20problem" className="block min-h-11 content-center font-bold underline underline-offset-4">Send feedback or report a problem</a><p className="mt-2 text-sm text-[var(--tt-muted)]">Email hello@matchgoer.com.</p></section>
+    {(authenticated || logoutError) && <div role="region" aria-label="Log out" className={`${section} text-left`}>
+      {authenticated && <LogoutButton className="block min-h-11 w-full text-left font-bold underline underline-offset-4 focus-visible:outline-2" onSuccess={() => router.replace("/")} />}
+      {logoutError && <p role="alert" className="mt-3 text-sm text-red-800">{logoutError}</p>}
+    </div>}
   </AccountShell>;
 }

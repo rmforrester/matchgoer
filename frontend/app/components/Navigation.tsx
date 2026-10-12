@@ -3,9 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "./AuthProvider";
-import LogoutButton from "./LogoutButton";
 
 const subscribeToHydration = () => () => {};
 const clientHydrationSnapshot = () => true;
@@ -13,7 +12,6 @@ const serverHydrationSnapshot = () => false;
 
 export default function Navigation() {
   const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { authenticated, loading, issue, logoutError, profile, email } = useAuth();
   const [accountOpen, setAccountOpen] = useState(false);
@@ -78,7 +76,6 @@ export default function Navigation() {
               <p className="break-all pb-3 text-[var(--tt-muted)]">{email}</p>
               <div className="border-t border-[var(--tt-rule)] pt-1">
                 <Link href="/account" onClick={() => setAccountOpen(false)} aria-current={pathname === "/account" ? "page" : undefined} className="block min-h-11 content-center font-bold underline underline-offset-4 focus-visible:outline-2">My Account</Link>
-                <LogoutButton className="block min-h-11 w-full text-left font-bold underline underline-offset-4 focus-visible:outline-2" onSuccess={() => { setAccountOpen(false); router.push("/"); }} />
               </div>
             </div>}
           </div> : hydrated && !loading && issue === "unavailable" ? <Link href="/account" className="min-h-11 content-center text-[var(--brand-interactive)]">My Account</Link> : hydrated && !loading ? <>
