@@ -45,7 +45,7 @@ export default function Navigation() {
 
         <div className="flex w-auto items-center justify-end gap-3 text-[0.6rem] font-extrabold uppercase tracking-[0.04em] sm:border-l sm:pl-3 sm:text-[0.65rem] sm:tracking-[0.08em]">
           {hydrated && !loading && authenticated ? <>
-            <span className="max-w-32 truncate text-[var(--brand-interactive)]">{profile?.username ? `@${profile.username}` : profile?.display_name || "Account"}</span>
+            <span className="max-w-32 truncate text-[var(--brand-interactive)]">{profile?.display_name || "Account"}</span>
             <button type="button" className="min-h-11 underline decoration-2 underline-offset-4" onClick={() => void signOut().then(() => router.push("/"))}>Log out</button>
           </> : hydrated && !loading ? <>
             <Link href="/signup" className="min-h-11 content-center text-[var(--brand-interactive)]">Create account</Link>

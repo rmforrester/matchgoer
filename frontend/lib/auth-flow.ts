@@ -50,7 +50,7 @@ async function registeredDestination(returnTo: string): Promise<AuthDestination>
     return { kind: "conflict", route: accountRoute("/account/conflict", returnTo) };
   }
   if (!context.data.profile_complete) {
-    return { kind: "onboarding", route: accountRoute("/account/onboarding", returnTo) };
+    await api.patch("/profile", {});
   }
   return { kind: "ready", route: returnTo };
 }
@@ -73,7 +73,7 @@ export async function completeAuthenticatedFlow(
     const claim = await api.post("/account/claim", { handoff_token: handoffToken || null }, { headers: authorization });
     if (claim.data.claimed === true && claim.data.idempotent === false) registrationCompleted();
     if (!claim.data.profile_complete) {
-      return { kind: "onboarding", route: accountRoute("/account/onboarding", returnTo) };
+      await api.patch("/profile", {}, { headers: authorization });
     }
     return { kind: "ready", route: accountRoute("/account/ready", returnTo) };
   } catch (error) {

@@ -115,7 +115,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       router.replace(`/fixture/${fixtureId}`);
       return;
     }
-    if (!data || isAnonymous || !data.profile?.username) return;
+    if (!data || isAnonymous || !data.profile?.display_name?.trim()) return;
 
     pendingActionStarted.current = true;
     void applyPendingWhosGoing(
@@ -149,7 +149,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const toggleMeeting = async () => {
     if (!data || saving) return;
     if (isAnonymous && !data.open_to_meet) { setAccountPrompt("mate"); return; }
-    if (!data.profile?.username) { router.push(accountRoute("/account/onboarding", `/fixture/${fixtureId}`)); return; }
+    if (!data.profile?.display_name?.trim()) { router.push(accountRoute("/account/onboarding", `/fixture/${fixtureId}`)); return; }
     setSaving(true); setError("");
     try {
       const response = await api.put(`/fixtures/${fixtureId}/open-to-meet`, { open_to_meet: !data.open_to_meet });
@@ -171,13 +171,13 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
 
   const submitPost = async () => {
     if (isAnonymous) { setAccountPrompt("board"); return; }
-    if (!data?.profile?.username) { router.push(accountRoute("/account/onboarding", `/fixture/${fixtureId}`)); return; }
+    if (!data?.profile?.display_name?.trim()) { router.push(accountRoute("/account/onboarding", `/fixture/${fixtureId}`)); return; }
     await postMessage();
   };
 
   const startReply = (postId: number) => {
     if (isAnonymous) { setAccountPrompt("board"); return; }
-    if (!data?.profile?.username) { router.push(accountRoute("/account/onboarding", `/fixture/${fixtureId}`)); return; }
+    if (!data?.profile?.display_name?.trim()) { router.push(accountRoute("/account/onboarding", `/fixture/${fixtureId}`)); return; }
     setReplyingTo(postId);
     requestAnimationFrame(() => composerRef.current?.focus());
   };
@@ -200,7 +200,7 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const renderPost = (post: BoardPost, reply = false) => (
     <article key={post.post_id} className={`${reply ? "ml-3 border-l-2 border-[var(--mg-green)] pl-4 sm:ml-6" : "border-t border-[var(--mg-rule)] py-5"} min-w-0`}>
       <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs uppercase tracking-[0.08em]">
-        <strong className="min-w-0 break-words text-[var(--brand-interactive)]">{post.author.display_name}{post.author.username && <span className="ml-2 font-semibold normal-case text-[var(--tt-muted)]">@{post.author.username}</span>}</strong><time className="text-[var(--tt-muted)]">{new Date(post.created_at).toLocaleString()}</time>
+        <strong className="min-w-0 break-words text-[var(--brand-interactive)]">{post.author.display_name}</strong><time className="text-[var(--tt-muted)]">{new Date(post.created_at).toLocaleString()}</time>
       </div>
       {post.author.supported_club && <p className="mt-1 text-xs text-[var(--tt-muted)]">Supports {post.author.supported_club}</p>}
       <p className={`mt-3 whitespace-pre-wrap break-words leading-7 ${post.deleted ? "italic text-[var(--tt-muted)]" : ""}`}>{post.body}</p>

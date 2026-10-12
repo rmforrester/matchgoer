@@ -25,6 +25,36 @@ function memoryStorage(): BrowserStorage {
   };
 }
 
+test("registered account missing a profile provisions once without required onboarding", async () => {
+  const previous = api.defaults.adapter;
+  const requests: Array<{ method?: string; url?: string; data?: string }> = [];
+  api.defaults.adapter = async (config) => {
+    requests.push({ method: config.method, url: config.url, data: config.data });
+    const data = config.url === "/session" ? { anonymous: false } : config.url === "/account/context" ? { profile_complete: false, anonymous_activity: false } : { profile_complete: true, display_name: "Matchgoer 482731", username: null };
+    return { data, status: 200, statusText: "OK", headers: {}, config };
+  };
+  try {
+    const result = await completeAuthenticatedFlow({ access_token: "synthetic-token" } as never, "/fixture/42");
+    assert.equal(result.route, "/fixture/42");
+    assert.equal(result.kind, "ready");
+    assert.deepEqual(requests.map(x => [x.method, x.url]), [["get", "/session"], ["get", "/account/context"], ["patch", "/profile"]]);
+    assert.equal(requests[2].data, "{}");
+  } finally { api.defaults.adapter = previous; }
+});
+
+test("complete account goes to intended destination without provisioning or onboarding", async () => {
+  const previous = api.defaults.adapter;
+  const requests: string[] = [];
+  api.defaults.adapter = async (config) => {
+    requests.push(config.url ?? "");
+    return { data: config.url === "/session" ? { anonymous: false } : { profile_complete: true, anonymous_activity: false }, status: 200, statusText: "OK", headers: {}, config };
+  };
+  try {
+    assert.equal((await completeAuthenticatedFlow({ access_token: "synthetic-token" } as never, "/my-stadiums")).route, "/my-stadiums");
+    assert.deepEqual(requests, ["/session", "/account/context"]);
+  } finally { api.defaults.adapter = previous; }
+});
+
 test("registered session still claims when a conversion handoff exists", async () => {
   const requests: Array<{ method?: string; url?: string; data?: string }> = [];
   const previous = api.defaults.adapter;

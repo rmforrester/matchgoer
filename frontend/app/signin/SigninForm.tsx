@@ -5,12 +5,14 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AccountShell from "@/app/components/AccountShell";
+import { useAuth } from "@/app/components/AuthProvider";
 import { accountRoute, completeAuthenticatedFlow, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { clearConversionHandoffAfter, loadConversionHandoff, prepareSigninConversion } from "@/lib/account-conversion-checkpoint";
 
 export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, convertAnonymous = false }: { returnTo?: string; handoffToken?: string; convertAnonymous?: boolean }) {
   const router = useRouter();
+  const { refreshAccount } = useAuth();
   const returnTo = safeReturnTo(requestedReturnTo);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,6 +33,7 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, 
       const destination = await clearConversionHandoffAfter(
         completeAuthenticatedFlow(data.session, checkpoint?.returnTo ?? returnTo, handoffToken ?? checkpoint?.token),
       );
+      await refreshAccount();
       router.replace(destination.route);
       router.refresh();
     } catch (requestError) {
