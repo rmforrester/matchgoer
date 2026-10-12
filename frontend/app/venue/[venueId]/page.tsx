@@ -99,11 +99,7 @@ const [showAccountPrompt, setShowAccountPrompt] = useState(false);
   const [loading, setLoading] =
     useState(true);
 
-  const [addingVisited, setAddingVisited] =
-    useState(false);
 
-  const [visitedError, setVisitedError] =
-    useState("");
 
   useEffect(() => {
   // -------------------------------------------------
@@ -259,63 +255,9 @@ api
     router.push(`/my-football?tab=visited&review=${venueId}`);
   };
 
-  const addToVisited = async () => {
-    if (addingVisited || myGround !== null) {
-      return;
-    }
-
-    setAddingVisited(true);
-    setVisitedError("");
-
-    try {
-      await api.post(`/venues/${venueId}/visits`, {});
-
-      const response = await api.get("/my-grounds");
-      const grounds = response.data as MyGround[];
-      const currentGround = grounds.find(
-        (ground) => Number(ground.venue_id) === Number(venueId)
-      );
-
-      if (!currentGround) {
-        throw new Error("Visited record was not returned after creation.");
-      }
-
-      setMyGround(currentGround);
-    } catch (error: unknown) {
-      const status =
-        typeof error === "object" &&
-        error !== null &&
-        "response" in error &&
-        typeof error.response === "object" &&
-        error.response !== null &&
-        "status" in error.response
-          ? error.response.status
-          : undefined;
-
-      if (status === 409) {
-        try {
-          const response = await api.get("/my-grounds");
-          const grounds = response.data as MyGround[];
-          const currentGround = grounds.find(
-            (ground) => Number(ground.venue_id) === Number(venueId)
-          );
-
-          if (currentGround) {
-            setMyGround(currentGround);
-            return;
-          }
-        } catch {
-          // Use the same user-facing error as other failed add attempts.
-        }
-      }
-
-      console.error("Add to Visited error:", error);
-      setVisitedError("Unable to add this ground to My Grounds.");
-    } finally {
-      setAddingVisited(false);
-    }
+  const addToVisited = () => {
+    router.push(`/my-football?tab=visited&recordVenue=${Number(venueId)}#add-ground`);
   };
-
   const upcomingFixtures = venueFixtures
     .filter((fixture) => new Date(fixture.fixture_date) >= new Date())
     .sort((left, right) => new Date(left.fixture_date).getTime() - new Date(right.fixture_date).getTime());
@@ -327,9 +269,6 @@ api
 
       <VenueHeader venue={venue} clubName={guide?.club_name} />
 
-      {visitedError && (
-        <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{visitedError}</p>
-      )}
 
       {hasVisited && <>
       <section className="tt-panel mt-4 p-4 sm:p-5" aria-labelledby="visit-heading">
@@ -350,7 +289,7 @@ api
         <p className="tt-kicker">Your visit</p>
         <div className="mt-1 grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div><h2 id="visit-heading" className="tt-display text-4xl leading-none sm:text-5xl">Make it one of yours</h2><p className="mt-2 max-w-2xl text-[var(--tt-muted)]">Been here? Add it to your football world.</p></div>
-          <button type="button" onClick={addToVisited} disabled={addingVisited} className="tt-action px-5">{addingVisited ? "Adding…" : "Add to My Grounds"}</button>
+          <button type="button" onClick={addToVisited} className="tt-action px-5">Add Ground</button>
         </div>
       </section>}
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { previewItems, trustworthyScore, canConfirmAttendance, partitionMatchdays, formatMatchdayKickoff } from "./matchdays.ts";
+import { previewItems, trustworthyScore, canConfirmAttendance, partitionMatchdays, formatMatchdayKickoff, reconcileGoingRead, type ConfirmedGoing } from "./matchdays.ts";
 
 const matchdaysPage = readFileSync(new URL("../app/components/InterestedTab.tsx", import.meta.url), "utf8");
 const navigation = readFileSync(new URL("../app/components/Navigation.tsx", import.meta.url), "utf8");
@@ -31,6 +31,28 @@ test("mobile wordmark is calibrated without changing its desktop width", () => {
 
 const kickoff = "2026-10-10T14:00:00Z";
 const saved = (id: number, going = false, status = "NS") => ({ fixture_id: id, fixture_date: kickoff, going, status });
+test("Going acknowledgement protects one conflicting read then confirms a fresh matching read", () => {
+  const fixture = saved(1);
+  const confirmations = new Map<number, ConfirmedGoing<typeof fixture>>([[1, { fixture, going: true, checked: false }]]);
+  const stale = reconcileGoingRead([saved(1)], confirmations);
+  assert.equal(stale.rows[0].going, true); assert.deepEqual(stale.retry, [1]);
+  const fresh = reconcileGoingRead([saved(1, true)], confirmations);
+  assert.equal(fresh.rows[0].going, true); assert.equal(confirmations.size, 0);
+  assert.equal(reconcileGoingRead([saved(1, false)], confirmations).rows[0].going, false);
+});
+test("reversal protects against old true and genuine subsequent differences are bounded", () => {
+  const fixture = saved(1, true);
+  const confirmations = new Map<number, ConfirmedGoing<typeof fixture>>([[1, { fixture, going: false, checked: false }]]);
+  assert.equal(reconcileGoingRead([fixture], confirmations).rows[0].going, false);
+  const newer = reconcileGoingRead([fixture], confirmations);
+  assert.equal(newer.rows[0].going, true); assert.deepEqual(newer.changed, [1]); assert.equal(confirmations.size, 0);
+});
+test("missing stale row is protected once but a confirmed removal is not masked forever", () => {
+  const fixture = saved(1);
+  const confirmations = new Map<number, ConfirmedGoing<typeof fixture>>([[1, { fixture, going: true, checked: false }]]);
+  assert.equal(reconcileGoingRead([], confirmations).rows[0].fixture_id, 1);
+  assert.deepEqual(reconcileGoingRead([], confirmations).rows, []);
+});
 test("three hour check-in does not require FT and excludes likely live or non-played matches", () => {
   assert.equal(canConfirmAttendance(saved(1), new Date("2026-10-10T16:59:59Z")), false);
   assert.equal(canConfirmAttendance(saved(1), new Date("2026-10-10T17:00:00Z")), true);

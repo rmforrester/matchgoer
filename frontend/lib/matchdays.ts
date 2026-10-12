@@ -4,6 +4,37 @@ export const UPCOMING_PREVIEW_LIMIT = 3;
 export const ANSWER_PREVIEW_LIMIT = 2;
 export const PAST_PREVIEW_LIMIT = 6;
 
+export type ConfirmedGoing<T> = { fixture: T; going: boolean; checked: boolean };
+
+/** Protect a PUT acknowledgement while checking a conflicting read once more.
+ * The API has no revision token: a subsequent fresh read must be allowed to
+ * reconcile a real reversal/removal rather than pinning client state forever.
+ */
+export function reconcileGoingRead<T extends { fixture_id: number; going?: boolean }>(
+  rows: T[], confirmations: Map<number, ConfirmedGoing<T>>,
+) {
+  const next = [...rows];
+  const retry: number[] = [];
+  const changed: number[] = [];
+  const confirmed: number[] = [];
+  for (const [id, confirmation] of confirmations) {
+    const index = next.findIndex(row => row.fixture_id === id);
+    if (index >= 0 && next[index].going === confirmation.going) {
+      confirmations.delete(id);
+      confirmed.push(id);
+    } else if (!confirmation.checked) {
+      confirmation.checked = true;
+      const protectedRow = { ...(index >= 0 ? next[index] : confirmation.fixture), going: confirmation.going };
+      if (index >= 0) next[index] = protectedRow; else next.push(protectedRow);
+      retry.push(id);
+    } else {
+      confirmations.delete(id);
+      changed.push(id);
+    }
+  }
+  return { rows: next, retry, changed, confirmed };
+}
+
 export type ResultFields = {
   status?: string | null;
   home_goals?: number | null;

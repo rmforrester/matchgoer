@@ -26,6 +26,7 @@ const markerSvg = (visited: boolean, selected: boolean, signal: MarkerSignal, sh
       stroke-linejoin="miter"
     />
     ${showSignal ? markerSignalSvg(signal, markStroke) : ""}
+    ${visited ? `<path data-visited-check="true" d="M8 16L13 21L22 11" fill="none" stroke="${markStroke}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
   </svg>
 `;
 };

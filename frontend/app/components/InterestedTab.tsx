@@ -1,12 +1,12 @@
 "use client";
 
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { apiErrorMessage } from "../../lib/api-error";
 import api, { apiAssetUrl } from "../../lib/api";
 import FixtureTeams from "./FixtureTeams";
 import { trackEvent } from "../../lib/analytics";
-import { ANSWER_PREVIEW_LIMIT, PAST_PREVIEW_LIMIT, UPCOMING_PREVIEW_LIMIT, previewItems, trustworthyScore, partitionMatchdays, formatMatchdayKickoff } from "../../lib/matchdays";
+import { ANSWER_PREVIEW_LIMIT, PAST_PREVIEW_LIMIT, UPCOMING_PREVIEW_LIMIT, previewItems, trustworthyScore, partitionMatchdays, formatMatchdayKickoff, reconcileGoingRead, type ConfirmedGoing } from "../../lib/matchdays";
 import type { InterestedFixture } from "../types/interested";
 import type { AttendedFixture, MyGround } from "../types/grounds";
 
@@ -40,22 +40,74 @@ export default function InterestedTab() {
   const [fixtures, setFixtures] = useState<InterestedFixture[]>([]);
   const [attendedFixtures, setAttendedFixtures] = useState<AttendedMatch[]>([]);
   const [attendanceResolution, setAttendanceResolution] = useState<InterestedFixture | null>(null);
-  const [goingFeedback, setGoingFeedback] = useState<string | null>(null);
+  const [planFeedback, setPlanFeedback] = useState<Record<number, { error: boolean; message: string; expectedGoing?: boolean }>>({});
+  const requestGeneration = useRef(0);
+  const confirmedGoing = useRef(new Map<number, ConfirmedGoing<InterestedFixture>>());
+  const savingGoing = useRef(new Set<number>());
+  const focusFixture = useRef<number | null>(null);
   const [loading, setLoading] = useState(true); const [error, setError] = useState("");
   const [updatingFixtureIds, setUpdatingFixtureIds] = useState<number[]>([]); const [matchdayNow, setMatchdayNow] = useState(() => new Date());
   const [showAllUpcoming, setShowAllUpcoming] = useState(false); const [showAllInterested, setShowAllInterested] = useState(false); const [showAllAnswers, setShowAllAnswers] = useState(false); const [showAllPast, setShowAllPast] = useState(false);
 
-  const loadMatchdays = useCallback(() => api.get("/session").then(() => Promise.all([api.get("/interested"), api.get("/my-grounds")])).then(([interestedResponse, groundsResponse]) => {
-    const grounds = groundsResponse.data as MyGround[]; setFixtures(interestedResponse.data as InterestedFixture[]);
-    setAttendedFixtures(grounds.flatMap((ground) => ground.attended_fixtures.map((fixture) => ({ ...fixture, venue_id: ground.venue_id, venue_name: ground.venue_name, venue_city: ground.venue_city }))).sort((a, b) => new Date(b.fixture_date).getTime() - new Date(a.fixture_date).getTime()));
-  }).catch((requestError) => { console.error("My Matchdays loading error:", requestError); setError(apiErrorMessage(requestError, "We couldn't load your Matchgoer session. Try signing in again.")); }).finally(() => setLoading(false)), []);
+  const loadMatchdays = useCallback(async () => {
+    // One bounded retry; overlapping/older loads cannot replace newer state.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const generation = ++requestGeneration.current;
+      try {
+        await api.get("/session");
+        const [interestedResponse, groundsResponse] = await Promise.all([api.get("/interested"), api.get("/my-grounds")]);
+        if (generation !== requestGeneration.current) return;
+        const grounds = groundsResponse.data as MyGround[];
+        const reconciliation = reconcileGoingRead(interestedResponse.data as InterestedFixture[], confirmedGoing.current);
+        setFixtures(reconciliation.rows);
+        setAttendedFixtures(grounds.flatMap((ground) => ground.attended_fixtures.map((fixture) => ({ ...fixture, venue_id: ground.venue_id, venue_name: ground.venue_name, venue_city: ground.venue_city }))).sort((a, b) => new Date(b.fixture_date).getTime() - new Date(a.fixture_date).getTime()));
+        setPlanFeedback(current => {
+          const next = { ...current };
+          for (const row of reconciliation.rows) {
+            const previous = next[row.fixture_id];
+            if (previous?.expectedGoing !== undefined && previous.expectedGoing !== row.going) delete next[row.fixture_id];
+          }
+          for (const id of reconciliation.confirmed) {
+            const going = reconciliation.rows.find(row => row.fixture_id === id)?.going;
+            next[id] = { error: false, expectedGoing: going, message: current[id]?.error ? "Your saved plan is up to date." : going ? "✓ You're going to this one." : "Back on your Interested list." };
+          }
+          for (const id of reconciliation.retry) next[id] = { error: false, message: "Your change was saved. Checking the latest plan…" };
+          for (const id of reconciliation.changed) next[id] = { error: false, message: "Your saved plan has changed. Showing the latest state." };
+          return next;
+        });
+        if (reconciliation.changed.some(id => !reconciliation.rows.some(row => row.fixture_id === id))) setError("The latest saved list no longer includes this match.");
+        setLoading(false);
+        if (reconciliation.retry.length && attempt === 0) continue;
+        return;
+      } catch (requestError) {
+        if (generation !== requestGeneration.current) return;
+        const message = apiErrorMessage(requestError, "We couldn't refresh your matchdays. Please try again.");
+        if (confirmedGoing.current.size) setPlanFeedback(current => {
+          const next = { ...current };
+          for (const [id, confirmation] of confirmedGoing.current) next[id] = { error: true, expectedGoing: confirmation.going, message: `Your change was saved, but we couldn't refresh it. ${message}` };
+          return next;
+        });
+        else setError(message);
+        setLoading(false);
+        return;
+      }
+    }
+  }, []);
 
   useEffect(() => { void loadMatchdays(); }, [loadMatchdays]);
   useEffect(() => {
-    if (!goingFeedback) return;
-    const timeout = window.setTimeout(() => setGoingFeedback(null), 5000);
-    return () => window.clearTimeout(timeout);
-  }, [goingFeedback]);
+    const refresh = () => { if (document.visibilityState === "visible" && savingGoing.current.size === 0) void loadMatchdays(); };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [loadMatchdays]);
+  useEffect(() => {
+    const id = focusFixture.current;
+    if (id === null || updatingFixtureIds.includes(id)) return;
+    focusFixture.current = null;
+    if (document.activeElement === document.body || document.activeElement?.id === `going-button-${id}`) document.getElementById(`going-button-${id}`)?.focus();
+  }, [updatingFixtureIds]);
+  useEffect(() => () => { requestGeneration.current++; }, []);
   useEffect(() => { const clock = window.setInterval(() => setMatchdayNow(new Date()), 60_000); return () => window.clearInterval(clock); }, []);
   const attendedFixtureIds = useMemo(() => new Set(attendedFixtures.map((fixture) => fixture.fixture_id)), [attendedFixtures]);
   const sections = useMemo(() => partitionMatchdays(fixtures, attendedFixtureIds, matchdayNow), [fixtures, attendedFixtureIds, matchdayNow]);
@@ -63,20 +115,25 @@ export default function InterestedTab() {
   const interestedFixtures = sections.interested;
   const unresolvedFixtures = sections.awaiting;
   const toggleGoing = async (fixture: InterestedFixture) => {
-    if (updatingFixtureIds.includes(fixture.fixture_id) || typeof fixture.going !== "boolean") return;
+    if (savingGoing.current.has(fixture.fixture_id) || updatingFixtureIds.includes(fixture.fixture_id) || typeof fixture.going !== "boolean") return;
+    savingGoing.current.add(fixture.fixture_id);
+    focusFixture.current = fixture.fixture_id;
+    requestGeneration.current++;
     setUpdatingFixtureIds((current) => [...current, fixture.fixture_id]); setError("");
-    setGoingFeedback(null);
+    setPlanFeedback(current => { const next = { ...current }; delete next[fixture.fixture_id]; return next; });
     try {
       const going = !fixture.going;
       const response = await api.put(`/fixtures/${fixture.fixture_id}/going`, { going });
       if (response.data.going !== going) throw new Error("Intention was not confirmed");
+      requestGeneration.current++;
+      confirmedGoing.current.set(fixture.fixture_id, { fixture, going, checked: false });
       trackEvent(going ? "going_selected" : "going_removed", { surface: "matchdays" });
       setFixtures((current) => current.map((item) => item.fixture_id === fixture.fixture_id ? { ...item, going } : item));
-      setGoingFeedback(going ? "✓ You're going to this one." : "Back on your Interested list.");
+      setPlanFeedback(current => ({ ...current, [fixture.fixture_id]: { error: false, expectedGoing: going, message: going ? "✓ You're going to this one." : "Back on your Interested list." } }));
       await loadMatchdays();
     }
-    catch (requestError) { setError(apiErrorMessage(requestError, "We couldn't update your plan. Try again.")); }
-    finally { setUpdatingFixtureIds((current) => current.filter((id) => id !== fixture.fixture_id)); }
+    catch (requestError) { setPlanFeedback(current => ({ ...current, [fixture.fixture_id]: { error: true, message: apiErrorMessage(requestError, "We couldn't update your plan. Try again.") } })); }
+    finally { savingGoing.current.delete(fixture.fixture_id); setUpdatingFixtureIds((current) => current.filter((id) => id !== fixture.fixture_id)); }
   };
 
   const resolveCompletedFixture = async (fixture: InterestedFixture, attended: boolean) => {
@@ -92,14 +149,15 @@ export default function InterestedTab() {
 
   const planFooter = (fixture: InterestedFixture) => {
     const pending = updatingFixtureIds.includes(fixture.fixture_id);
-    return <div className="grid grid-cols-2 gap-2">
+    const feedback = planFeedback[fixture.fixture_id];
+    return <div><div className="grid grid-cols-2 gap-2">
         {linkFooter(fixture.fixture_id)}
-        {typeof fixture.going === "boolean" && <button type="button" aria-pressed={fixture.going} disabled={pending} onClick={() => void toggleGoing(fixture)} className={`min-w-0 cursor-pointer whitespace-nowrap px-2 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)] disabled:cursor-wait disabled:opacity-60 ${fixture.going
+        {typeof fixture.going === "boolean" && <button id={`going-button-${fixture.fixture_id}`} type="button" aria-pressed={fixture.going} aria-busy={pending} aria-describedby={feedback ? `going-feedback-${fixture.fixture_id}` : undefined} disabled={pending} onClick={() => void toggleGoing(fixture)} className={`tt-going-intention min-w-0 cursor-pointer whitespace-nowrap px-2 text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)] disabled:cursor-wait disabled:opacity-60 ${fixture.going
           ? "inline-flex min-h-11 items-center justify-center border-2 border-[color-mix(in_srgb,var(--tt-gold)_70%,var(--tt-ink))] bg-[color-mix(in_srgb,var(--tt-gold)_20%,var(--tt-paper))] text-xs font-extrabold uppercase text-[var(--tt-ink)]"
           : "tt-action tt-action-secondary"}`}>
           {pending ? "Saving..." : fixture.going ? <><span aria-hidden="true" className="mr-1">✓</span> Going</> : "I'm Going"}
         </button>}
-    </div>;
+    </div>{feedback && <p id={`going-feedback-${fixture.fixture_id}`} role={feedback.error ? "alert" : "status"} className={`mt-2 text-sm font-semibold ${feedback.error ? "text-red-800" : "text-[var(--brand-interactive)]"}`}>{feedback.message}</p>}{feedback?.error && confirmedGoing.current.has(fixture.fixture_id) && <button type="button" onClick={() => void loadMatchdays()} className="min-h-11 text-sm font-bold underline">Refresh saved plan</button>}</div>;
   };
 
   return <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10">
@@ -110,7 +168,6 @@ export default function InterestedTab() {
       <p className="mt-1 text-sm text-[var(--tt-muted)]">Added to your football history.</p>
       <Link href="/my-stadiums" className="mt-3 inline-flex min-h-11 items-center text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline underline-offset-4">View my football world →</Link>
     </section>}
-    {goingFeedback && <p role="status" className="mt-4 text-sm font-semibold text-[var(--brand-interactive)]">{goingFeedback}</p>}
     {empty && <section className="tt-panel mt-7 border-l-[8px] border-l-[var(--brand-interactive)] p-6"><p className="tt-kicker">Your matchday history starts here</p><p className="mt-2 max-w-xl text-sm leading-6 text-[var(--tt-muted)]">Shortlist a fixture, then come back after the match to remember the occasion.</p><Link href="/" className="tt-action mt-5 inline-flex items-center justify-center px-5">Find a match →</Link></section>}
     {!loading && upcomingFixtures.length > 0 && <section className="tt-section-rule mt-7 pt-3" aria-labelledby="up-next-heading"><h2 id="up-next-heading" className="tt-display text-3xl leading-none sm:text-4xl">Going</h2><p className="mt-1 text-base text-[var(--tt-muted)]">Your upcoming matchdays.</p><div className="mt-4 grid gap-4 md:grid-cols-2">{previewItems(upcomingFixtures, UPCOMING_PREVIEW_LIMIT, showAllUpcoming).map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="upcoming" footer={planFooter(fixture)} />)}</div><ExpandButton expanded={showAllUpcoming} hiddenCount={upcomingFixtures.length - UPCOMING_PREVIEW_LIMIT} onClick={() => setShowAllUpcoming((value) => !value)} label="View all" /></section>}
     {!loading && interestedFixtures.length > 0 && <section className="tt-section-rule mt-7 pt-3" aria-labelledby="interested-heading"><h2 id="interested-heading" className="tt-display text-3xl leading-none sm:text-4xl">Interested</h2><p className="mt-1 text-base text-[var(--tt-muted)]">Matches you&apos;re thinking about.</p><div className="mt-4 grid gap-4 md:grid-cols-2">{previewItems(interestedFixtures, UPCOMING_PREVIEW_LIMIT, showAllInterested).map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="upcoming" footer={planFooter(fixture)} />)}</div><ExpandButton expanded={showAllInterested} hiddenCount={interestedFixtures.length - UPCOMING_PREVIEW_LIMIT} onClick={() => setShowAllInterested((value) => !value)} label="View all" /></section>}

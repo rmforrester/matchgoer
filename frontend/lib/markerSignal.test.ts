@@ -29,7 +29,7 @@ test("special signals use one central SVG while standard is a plain marker", () 
   }
   assert.doesNotMatch(markerSource, /M6 21V10H9L15 17L21 10H24V21/);
   assert.doesNotMatch(markerSource, /semanticBadge/);
-  assert.doesNotMatch(markerSource, /visited \? `/);
+  assert.match(markerSource, /data-visited-check="true"/);
   assert.match(markerSource, /return "";/);
   assert.match(markerSource, /const goldSignal = signal !== "standard"/);
   assert.match(markerSource, /showSignal \? markerSignalSvg\(signal, markStroke\) : ""/);
