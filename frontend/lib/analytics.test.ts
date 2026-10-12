@@ -6,7 +6,7 @@ test("only allowlisted page families, never queries, identities or callback rout
   assert.equal(safePage("/fixture/42?handoff=secret#token"), "/fixture");
   assert.equal(safePage("/venue/9"), "/venue");
   assert.equal(safePage("/my-football?tab=visited"), "/my-football");
-  for (const path of ["/auth/callback", "/signup", "/signin", "/account/onboarding", "/users/name", "/fixture/name"]) assert.equal(safePage(path), null);
+  for (const path of ["/auth/callback", "/auth/recovery?code=secret", "/auth/forgot-password", "/auth/confirm", "/account", "/signup", "/signin", "/account/onboarding", "/users/name", "/fixture/name"]) assert.equal(safePage(path), null);
 });
 test("strict event/parameter/value allowlists discard identifying content", () => {
   assert.equal(allowedParameters("unknown", {}), null);

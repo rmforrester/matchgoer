@@ -112,14 +112,16 @@ test("callback route carries only the opaque handoff and allowlisted return path
 test("prepares and stores a server-issued handoff before conversion sign-in", async () => {
   const target = memoryStorage();
   const previous = anonymousApi.defaults.adapter;
-  anonymousApi.defaults.adapter = async (config) => ({
+  const requests: string[] = [];
+  anonymousApi.defaults.adapter = async (config) => { requests.push(`${config.method} ${config.url}`); return ({
     data: { handoff_token: "h".repeat(40), expires_at: "2099-01-01T00:00:00Z" },
     status: 200, statusText: "OK", headers: {}, config,
-  });
+  }); };
   try {
     const handoff = await prepareConversionHandoff("/fixture/42", target);
     assert.equal(handoff.token, "h".repeat(40));
     assert.equal(loadConversionHandoff(Date.now(), target)?.returnTo, "/fixture/42");
+    assert.deepEqual(requests, ["get /session", "post /account/conversion-handoff"]);
   } finally {
     anonymousApi.defaults.adapter = previous;
   }

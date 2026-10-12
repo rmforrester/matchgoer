@@ -87,9 +87,15 @@ export async function completeAuthenticatedFlow(
 
 export function userFacingAuthError(error: unknown, fallback: string) {
   const providerMessage = error instanceof Error ? error.message.toLowerCase() : "";
+  const providerCode = (error as { code?: string } | null)?.code;
+  if ((error as { status?: number } | null)?.status === 429) return "Please wait before requesting another email, then try again.";
+  if (providerCode === "weak_password") return "Choose a stronger password with at least 8 characters.";
+  if (providerCode === "same_password") return "Choose a password different from your current one.";
+  if (providerCode === "reauthentication_needed" || providerCode === "reauthentication_not_valid") return "Request a fresh password-reset link to confirm this password change.";
   if (providerMessage.includes("invalid login credentials")) return "The email or password is incorrect.";
   if (providerMessage.includes("email not confirmed")) return "Confirm your email before signing in.";
   if (!axios.isAxiosError(error)) return fallback;
+  if (!error.response || error.response.status >= 500) return "Matchgoer is temporarily unavailable. Your saved history has not been discarded. Please try again.";
   const code = errorCode(error);
   if (code === "TOKEN_EXPIRED") return "Your session has expired. Sign in again.";
   if (code === "IDENTITY_NOT_LINKED") return "This account is not connected to Matchgoer yet.";

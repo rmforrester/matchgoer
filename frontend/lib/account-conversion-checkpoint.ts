@@ -34,6 +34,9 @@ export function clearConversionHandoff(target = storage()) {
 }
 
 export async function prepareConversionHandoff(returnTo: string, target = storage()): Promise<StoredHandoff> {
+  // Direct signup/resend entry may not have visited Discover to obtain a cookie.
+  // Reuse the existing anonymous session; never replace its saved ownership.
+  await anonymousApi.get("/session");
   const response = await anonymousApi.post("/account/conversion-handoff");
   const handoff = {
     token: String(response.data.handoff_token),

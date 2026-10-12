@@ -17,6 +17,7 @@ const dependencies: Record<string, unknown> = {
   "next/image": (props: Record<string, unknown>) => React.createElement("img", props),
   "next/navigation": { usePathname: () => "/fixture/1", useRouter: () => ({}), useSearchParams: () => new URLSearchParams() },
   "./AuthProvider": { useAuth: () => account },
+  "./LogoutButton": () => React.createElement("button", null, "Log out"),
 };
 vm.runInNewContext(code, { module: compiled, exports: compiled.exports, require: (name: string) => dependencies[name] ?? require(name) });
 const Navigation = (compiled.exports as { default: React.ComponentType }).default;

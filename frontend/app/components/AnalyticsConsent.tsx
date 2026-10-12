@@ -4,7 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { acceptAnalytics, configureAnalytics, consentKey, measurementId, readConsent, safePage, setAnalyticsEnabled, trackPage, withdrawAnalytics, type Consent } from "../../lib/analytics";
+import { acceptAnalytics, analyticsChoiceEvent, analyticsPreferencesEvent, configureAnalytics, consentKey, measurementId, readConsent, safePage, setAnalyticsEnabled, trackPage, withdrawAnalytics, type Consent } from "../../lib/analytics";
 
 export default function AnalyticsConsent() {
   const pathname = usePathname();
@@ -32,7 +32,9 @@ export default function AnalyticsConsent() {
     const timer = setTimeout(() => { setConsent(readConsent()); setLoaded(true); }, 0);
     const sync = (event: StorageEvent) => { if (event.key === consentKey && readConsent() !== "accepted") withdrawAnalytics(); };
     window.addEventListener("storage", sync);
-    return () => { clearTimeout(timer); window.removeEventListener("storage", sync); };
+    const open = () => setConsent(null);
+    window.addEventListener(analyticsPreferencesEvent, open);
+    return () => { clearTimeout(timer); window.removeEventListener("storage", sync); window.removeEventListener(analyticsPreferencesEvent, open); };
   }, []);
   useEffect(() => {
     setAnalyticsEnabled(consent === "accepted" && Boolean(safePage(pathname)));
@@ -40,10 +42,12 @@ export default function AnalyticsConsent() {
   }, [consent, pathname, ready]);
 
   const choose = (value: Consent) => {
+    if (value === "rejected" && readConsent() === "accepted") { withdrawAnalytics(); setConsent("rejected"); return; }
     if (value === "accepted") acceptAnalytics();
     if (value === "rejected") setAnalyticsEnabled(false);
     try { localStorage.setItem(consentKey, value); } catch { /* This choice applies to this page only. */ }
     setConsent(value);
+    window.dispatchEvent(new Event(analyticsChoiceEvent));
   };
 
   return <>

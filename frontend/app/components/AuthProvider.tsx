@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 
 import api from "@/lib/api";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { accountIssue, logout, rememberedRecovery, rememberRecovery, type AccountIssue } from "@/lib/auth-reliability";
 
 type AccountProfile = {
   username: string | null;
@@ -16,6 +17,12 @@ type AuthContextValue = {
   loading: boolean;
   authenticated: boolean;
   profile: AccountProfile | null;
+  email: string | null;
+  issue: AccountIssue | null;
+  logoutError: string | null;
+  passwordRecovery: boolean;
+  finishPasswordRecovery: () => void;
+  isPasswordRecovery: () => boolean;
   refreshAccount: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -26,31 +33,65 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [registered, setRegistered] = useState(false);
   const [profile, setProfile] = useState<AccountProfile | null>(null);
+  const [issue, setIssue] = useState<AccountIssue | null>(null);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const owner = useRef<string | null>(null);
+  const refreshGeneration = useRef(0);
+  const loggingOut = useRef(false);
+  const recovery = useRef(false);
+  const finishPasswordRecovery = useCallback(() => { recovery.current = false; setPasswordRecovery(false); rememberRecovery(null); }, []);
+  const isPasswordRecovery = useCallback(() => recovery.current, []);
   const [loading, setLoading] = useState(Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   ));
 
   const refreshAccount = useCallback(async () => {
+    const generation = ++refreshGeneration.current;
     const supabase = getSupabaseBrowserClient();
-    const current = await supabase?.auth.getSession();
+    let current;
+    try {
+      current = await supabase?.auth.getSession();
+      if (current?.error) throw current.error;
+    } catch (error) {
+      if (generation !== refreshGeneration.current) return;
+      const nextIssue = accountIssue(error);
+      setIssue(nextIssue);
+      if (nextIssue === "expired") { setSession(null); setRegistered(false); setProfile(null); owner.current = null; finishPasswordRecovery(); }
+      return;
+    }
     const providerSession = current?.data.session ?? null;
+    if (generation !== refreshGeneration.current) return;
+    if (owner.current !== (providerSession?.user.id ?? null)) {
+      setRegistered(false); setProfile(null);
+    }
+    owner.current = providerSession?.user.id ?? null;
     setSession(providerSession);
     if (!providerSession) {
       setRegistered(false);
       setProfile(null);
+      finishPasswordRecovery();
       return;
     }
     try {
-      const identity = await api.get<{ anonymous: boolean }>("/session");
-      if (identity.data.anonymous !== false) throw new Error("Provider session is not registered");
+      const headers = { Authorization: `Bearer ${providerSession.access_token}` };
+      const identity = await api.get<{ anonymous: boolean }>("/session", { headers });
+      if (generation !== refreshGeneration.current || owner.current !== providerSession.user.id) return;
+      if (identity.data.anonymous !== false) {
+        setRegistered(false); setProfile(null); setIssue("unlinked"); return;
+      }
+      const response = await api.get<AccountProfile | null>("/profile", { headers });
+      if (generation !== refreshGeneration.current || owner.current !== providerSession.user.id) return;
       setRegistered(true);
-      const response = await api.get<AccountProfile | null>("/profile");
       setProfile(response.data);
-    } catch {
-      setRegistered(false);
-      setProfile(null);
+      setIssue(null);
+    } catch (error) {
+      if (generation !== refreshGeneration.current || owner.current !== providerSession.user.id) return;
+      const nextIssue = accountIssue(error);
+      setIssue(nextIssue);
+      if (nextIssue !== "unavailable") { setRegistered(false); setProfile(null); }
     }
-  }, []);
+  }, [finishPasswordRecovery]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -60,11 +101,28 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const initialization = window.setTimeout(() => {
       void refreshAccount().finally(() => setLoading(false));
     }, 0);
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      refreshGeneration.current += 1;
+      if (event === "PASSWORD_RECOVERY" && nextSession) { recovery.current = true; setPasswordRecovery(true); rememberRecovery(nextSession.user.id); }
+      else if (event === "SIGNED_IN" && nextSession) {
+        recovery.current = rememberedRecovery(nextSession.user.id);
+        setPasswordRecovery(recovery.current);
+        if (!recovery.current) rememberRecovery(null);
+        setLogoutError(null);
+      }
+      else if (event === "INITIAL_SESSION" && nextSession) { recovery.current = rememberedRecovery(nextSession.user.id); setPasswordRecovery(recovery.current); }
+      if (nextSession && owner.current !== nextSession.user.id) { setRegistered(false); setProfile(null); }
       setSession(nextSession);
       if (!nextSession) {
         setRegistered(false);
         setProfile(null);
+        setPasswordRecovery(false);
+        recovery.current = false;
+        rememberRecovery(null);
+        if (event === "SIGNED_OUT") {
+          setIssue(!loggingOut.current && owner.current ? "expired" : null);
+          owner.current = null;
+        }
       }
       window.setTimeout(() => void refreshAccount(), 0);
     });
@@ -72,23 +130,42 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(initialization);
       data.subscription.unsubscribe();
     };
-  }, [refreshAccount]);
+  }, [finishPasswordRecovery, refreshAccount]);
 
   const signOut = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
-    await supabase?.auth.signOut();
+    setLogoutError(null);
+    loggingOut.current = true;
+    try { await logout(supabase); }
+    catch (error) {
+      let cleared = false;
+      try { const current = await supabase?.auth.getSession(); cleared = Boolean(supabase && !current?.error && !current?.data.session); } catch { /* State cannot be confirmed. */ }
+      setLogoutError(cleared ? "You're signed out on this device, but we couldn't confirm sign-out of other sessions. Sign in again if you need to retry." : "We couldn't confirm logout. Please try again.");
+      throw error;
+    } finally { loggingOut.current = false; }
     setSession(null);
     setRegistered(false);
     setProfile(null);
+    setIssue(null);
+    setPasswordRecovery(false);
+    recovery.current = false;
+    rememberRecovery(null);
+    owner.current = null;
   }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
     loading,
     authenticated: Boolean(session && registered),
     profile,
+    email: session?.user.email ?? null,
+    issue,
+    logoutError,
+    passwordRecovery,
+    finishPasswordRecovery,
+    isPasswordRecovery,
     refreshAccount,
     signOut,
-  }), [loading, profile, refreshAccount, registered, session, signOut]);
+  }), [finishPasswordRecovery, isPasswordRecovery, issue, loading, logoutError, passwordRecovery, profile, refreshAccount, registered, session, signOut]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

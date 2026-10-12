@@ -2,6 +2,11 @@
 export const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-JNMM0SKS3F";
 export const consentKey = "matchgoer.analytics-consent.v1";
 export type Consent = "accepted" | "rejected";
+export const analyticsChoiceEvent = "matchgoer-analytics-choice";
+export const analyticsPreferencesEvent = "matchgoer-analytics-preferences";
+export function openAnalyticsPreferences() {
+  window.dispatchEvent(new Event(analyticsPreferencesEvent));
+}
 const schema = {
   location_search: { search_method: ["location", "map"], result_count_bucket: ["0", "1-10", "11-50", "51+"] },
   fixture_view: { surface: ["fixture"] },

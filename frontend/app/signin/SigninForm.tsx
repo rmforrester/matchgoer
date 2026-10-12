@@ -12,7 +12,7 @@ import { clearConversionHandoffAfter, loadConversionHandoff, prepareSigninConver
 
 export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, convertAnonymous = false }: { returnTo?: string; handoffToken?: string; convertAnonymous?: boolean }) {
   const router = useRouter();
-  const { refreshAccount } = useAuth();
+  const { refreshAccount, finishPasswordRecovery } = useAuth();
   const returnTo = safeReturnTo(requestedReturnTo);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +29,7 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, 
       const { data, error: signinError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signinError) throw signinError;
       if (!data.session) throw new Error("No provider session was created");
+      finishPasswordRecovery();
       checkpoint = loadConversionHandoff() ?? checkpoint;
       const destination = await clearConversionHandoffAfter(
         completeAuthenticatedFlow(data.session, checkpoint?.returnTo ?? returnTo, handoffToken ?? checkpoint?.token),
@@ -48,6 +49,7 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, 
       {error && <p role="alert" className="text-sm font-bold text-red-800">{error}</p>}
       <button disabled={saving} className="tt-action px-5">{saving ? "Signing in…" : "Sign in"}</button>
     </form>
+    <div className="mt-4 grid gap-1 text-sm"><Link href={accountRoute("/auth/forgot-password", returnTo)} className="min-h-11 content-center font-bold underline">Forgot password?</Link><Link href={accountRoute("/auth/confirm", returnTo)} className="min-h-11 content-center underline">Need a new confirmation email?</Link></div>
     <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">New to Matchgoer? <Link className="font-extrabold uppercase text-[var(--brand-interactive)] underline decoration-2 underline-offset-4" href={accountRoute("/signup", returnTo)}>Create account →</Link></p>
   </AccountShell>;
 }

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./AuthProvider";
+import LogoutButton from "./LogoutButton";
 
 const subscribeToHydration = () => () => {};
 const clientHydrationSnapshot = () => true;
@@ -14,7 +15,29 @@ export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { authenticated, loading, profile, signOut } = useAuth();
+  const { authenticated, loading, issue, logoutError, profile, email } = useAuth();
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountControl = useRef<HTMLDivElement>(null);
+  const accountButton = useRef<HTMLButtonElement>(null);
+  const displayName = profile?.display_name || "Account";
+  useEffect(() => {
+    if (!accountOpen) return;
+    function outside(event: PointerEvent) {
+      if (!accountControl.current?.contains(event.target as Node)) setAccountOpen(false);
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAccountOpen(false);
+        accountButton.current?.focus();
+      }
+    }
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [accountOpen]);
   const hydrated = useSyncExternalStore(subscribeToHydration, clientHydrationSnapshot, serverHydrationSnapshot);
   const linkClass = (active: boolean) =>
     `border-b-2 py-1 transition ${active ? "border-[var(--brand-interactive)] text-[var(--brand-interactive)]" : "border-transparent hover:border-[var(--brand-interactive)] hover:text-[var(--brand-interactive)]"}`;
@@ -44,16 +67,28 @@ export default function Navigation() {
         </nav>
 
         <div className="flex w-auto items-center justify-end gap-3 text-[0.6rem] font-extrabold uppercase tracking-[0.04em] sm:border-l sm:pl-3 sm:text-[0.65rem] sm:tracking-[0.08em]">
-          {hydrated && !loading && authenticated ? <>
-            <span className="max-w-32 truncate text-[var(--brand-interactive)]">{profile?.display_name || "Account"}</span>
-            <button type="button" className="min-h-11 underline decoration-2 underline-offset-4" onClick={() => void signOut().then(() => router.push("/"))}>Log out</button>
-          </> : hydrated && !loading ? <>
+          {hydrated && !loading && authenticated ? <div ref={accountControl} className="relative" onBlur={event => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setAccountOpen(false);
+          }}>
+            <button ref={accountButton} type="button" aria-expanded={accountOpen} aria-controls="navigation-account" aria-label={`Account options for ${displayName}`} onClick={() => setAccountOpen(!accountOpen)} className="flex min-h-11 max-w-[9rem] items-center gap-1 text-[var(--brand-interactive)] focus-visible:outline-2 focus-visible:outline-offset-2 sm:max-w-[12rem]">
+              <span className="truncate">{displayName}</span><span aria-hidden="true">▾</span>
+            </button>
+            {accountOpen && <div id="navigation-account" role="region" aria-label="Account options" className="absolute right-0 top-full z-50 w-[min(18rem,calc(100vw-2rem))] border border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-3 text-sm font-normal normal-case tracking-normal">
+              <p className="break-words font-bold">{displayName}</p>
+              <p className="break-all pb-3 text-[var(--tt-muted)]">{email}</p>
+              <div className="border-t border-[var(--tt-rule)] pt-1">
+                <Link href="/account" onClick={() => setAccountOpen(false)} aria-current={pathname === "/account" ? "page" : undefined} className="block min-h-11 content-center font-bold underline underline-offset-4 focus-visible:outline-2">My Account</Link>
+                <LogoutButton className="block min-h-11 w-full text-left font-bold underline underline-offset-4 focus-visible:outline-2" onSuccess={() => { setAccountOpen(false); router.push("/"); }} />
+              </div>
+            </div>}
+          </div> : hydrated && !loading && issue === "unavailable" ? <Link href="/account" className="min-h-11 content-center text-[var(--brand-interactive)]">My Account</Link> : hydrated && !loading ? <>
             <Link href="/signup" className="min-h-11 content-center text-[var(--brand-interactive)]">Create account</Link>
             <Link href="/signin" className="min-h-11 content-center underline decoration-2 underline-offset-4">Sign in</Link>
           </> : <span className="min-h-11 content-center text-[var(--tt-muted)]">Account</span>}
         </div>
 
       </div>
+      {logoutError && pathname !== "/account" && <p role="alert" className="mx-auto max-w-6xl px-4 pb-3 text-sm text-red-800 sm:px-6">{logoutError}</p>}
     </header>
   );
 }
