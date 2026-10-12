@@ -19,7 +19,7 @@ from identity import (
     verify_claim_provider_identity,
     anonymous_cookie_options,
 )
-from account_claim import claim_anonymous_user, issue_account_conversion_handoff
+from account_claim import claim_anonymous_user, issue_account_conversion_handoff, ensure_account_profile
 from fixture_time import CANCELLED_STATUSES, FINISHED_STATUSES, fixture_datetime_utc, fixture_kickoff_has_passed, utc_date_expression
 from fixture_type import classify_fixture_type
 from location_safety import has_usable_coordinates
@@ -525,7 +525,7 @@ def get_account_context(
     db = SessionLocal()
     try:
         profile = db.query(UserProfile).filter(UserProfile.user_id == identity.user_id).first()
-        profile_complete = bool(profile and profile.username and profile.username.strip() and profile.display_name.strip())
+        profile_complete = bool(profile and profile.display_name.strip())
         candidate_session = (
             db.query(AnonymousSession)
             .filter(AnonymousSession.session_id == session_id, AnonymousSession.revoked_at.is_(None))
@@ -2202,7 +2202,7 @@ def _require_registered_social(identity: ResolvedIdentity):
 
 def _require_social_profile(db, user_id: int):
     profile = _require_profile(db, user_id)
-    if not profile.username or not profile.username.strip():
+    if not profile.display_name or not profile.display_name.strip():
         raise HTTPException(
             status_code=403,
             detail={
@@ -2538,7 +2538,7 @@ def get_profile(identity: ResolvedIdentity | None = Depends(optional_current_ide
             "supported_club": profile.supported_club,
             "broad_location": profile.broad_location,
             "bio": profile.bio,
-            "profile_complete": bool(profile.username and profile.username.strip() and profile.display_name.strip()),
+            "profile_complete": bool(profile.display_name.strip()),
             "grounds_visited": visited_count,
             "created_at": profile.created_at,
         }
@@ -2577,16 +2577,17 @@ def update_registered_profile(
     if not identity.is_registered:
         raise HTTPException(
             status_code=403,
-            detail={"code": "REGISTERED_ACCOUNT_REQUIRED", "message": "Create an account before choosing a username"},
+            detail={"code": "REGISTERED_ACCOUNT_REQUIRED", "message": "Create an account before editing your profile"},
         )
-    username = data.username.strip()
-    display_name = data.display_name.strip()
-    if not re.fullmatch(r"[A-Za-z0-9_]{3,30}", username):
+    fields = data.model_fields_set
+    username = data.username.strip() if data.username else None
+    display_name = data.display_name.strip() if data.display_name else None
+    if "username" in fields and (username is None or not re.fullmatch(r"[A-Za-z0-9_]{3,30}", username)):
         raise HTTPException(
             status_code=422,
             detail={"code": "INVALID_USERNAME", "message": "Use 3 to 30 letters, numbers or underscores"},
         )
-    if not 2 <= len(display_name) <= 40:
+    if "display_name" in fields and (display_name is None or not 2 <= len(display_name) <= 40):
         raise HTTPException(status_code=422, detail={"code": "INVALID_DISPLAY_NAME", "message": "Display name must be 2 to 40 characters"})
 
     optional_values = {
@@ -2596,15 +2597,15 @@ def update_registered_profile(
     }
     db = SessionLocal()
     try:
-        profile = db.query(UserProfile).filter(UserProfile.user_id == identity.user_id).first()
-        if profile is None:
-            profile = UserProfile(user_id=identity.user_id, display_name=display_name)
-            db.add(profile)
-        profile.username = username
-        profile.display_name = display_name
-        profile.supported_club = optional_values["supported_club"] or None
-        profile.broad_location = optional_values["broad_location"] or None
-        profile.bio = optional_values["bio"] or None
+        user = db.query(User).filter(User.user_id == identity.user_id).with_for_update().one()
+        profile = ensure_account_profile(db, user)
+        if "username" in fields:
+            profile.username = username
+        if "display_name" in fields:
+            profile.display_name = display_name
+        for field, value in optional_values.items():
+            if field in fields:
+                setattr(profile, field, value or None)
         db.commit()
         db.refresh(profile)
         return {

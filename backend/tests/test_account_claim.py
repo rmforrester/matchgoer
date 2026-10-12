@@ -219,9 +219,17 @@ class AccountClaimTests(unittest.TestCase):
         return db.query(model).filter(column == user_id).count()
 
     def test_empty_account_claim_and_same_identity_retry_are_idempotent(self):
+        from unittest.mock import patch
         user_id, session_id = self.new_anonymous("empty")
-        first = self.claim(session_id, "empty-subject")
-        retry = self.claim(session_id, "empty-subject")
+        with patch("account_claim.secrets.randbelow", return_value=482731) as random_suffix:
+            first = self.claim(session_id, "empty-subject")
+            retry = self.claim(session_id, "empty-subject")
+            random_suffix.assert_called_once_with(1_000_000)
+        self.assertTrue(first.profile_complete)
+        self.assertTrue(retry.profile_complete)
+        profile = self.db.query(UserProfile).filter_by(user_id=user_id).one()
+        self.assertEqual(profile.display_name, "Matchgoer 482731")
+        self.assertIsNone(profile.username)
         self.assertFalse(first.idempotent)
         self.assertTrue(retry.idempotent)
         self.assertEqual(retry.user_id, user_id)
@@ -230,17 +238,53 @@ class AccountClaimTests(unittest.TestCase):
             1,
         )
 
-    def test_pending_meeting_intent_after_claim_and_onboarding_is_idempotent(self):
+    def test_default_profile_failure_rolls_back_entire_claim(self):
+        from unittest.mock import patch
+        from account_claim import ensure_account_profile
+        user_id, session_id = self.new_anonymous("default-failure")
+        def fail_after_profile(db, user):
+            ensure_account_profile(db, user)
+            raise RuntimeError("synthetic failure after profile flush")
+        with patch("account_claim.ensure_account_profile", side_effect=fail_after_profile):
+            with self.assertRaises(RuntimeError):
+                self.claim(session_id, "default-failure-subject")
+        self.assertIsNone(self.db.query(UserProfile).filter_by(user_id=user_id).first())
+        self.assertIsNone(self.db.query(UserIdentity).filter_by(issuer=ISSUER, subject="default-failure-subject").first())
+        self.assertEqual(self.db.get(User, user_id).account_status, "anonymous")
+        self.assertIsNone(self.db.get(AnonymousSession, session_id).revoked_at)
+
+    def test_claim_retains_existing_null_username_profile_and_optional_data(self):
+        user_id, session_id = self.new_anonymous("existing-profile")
+        self.db.add(UserProfile(user_id=user_id, display_name="Existing name", username=None, supported_club="Club", broad_location="City", bio="Bio"))
+        self.db.commit()
+        result = self.claim(session_id, "existing-profile-subject")
+        self.assertTrue(result.profile_complete)
+        self.db.expire_all()
+        profile = self.db.get(UserProfile, user_id)
+        self.assertEqual([profile.display_name, profile.username, profile.supported_club, profile.broad_location, profile.bio], ["Existing name", None, "Club", "City", "Bio"])
+
+    def test_duplicate_default_display_names_do_not_merge_user_identities(self):
+        from unittest.mock import patch
+        first_id, first_session = self.new_anonymous("same-name-first")
+        second_id, second_session = self.new_anonymous("same-name-second")
+        with patch("account_claim.secrets.randbelow", return_value=482731):
+            first = self.claim(first_session, "same-name-first-subject")
+            second = self.claim(second_session, "same-name-second-subject")
+        self.assertEqual(first.user_id, first_id)
+        self.assertEqual(second.user_id, second_id)
+        self.assertNotEqual(first_id, second_id)
+        self.assertEqual(self.db.get(UserProfile, first_id).display_name, self.db.get(UserProfile, second_id).display_name)
+
+    def test_pending_meeting_intent_after_claim_without_onboarding_is_idempotent(self):
         user_id, session_id = self.new_anonymous("pending-meeting")
         self.db.add(InterestedFixture(user_id=user_id, fixture_id=self.fixture_id))
         self.db.commit()
 
         claimed = self.claim(session_id, "pending-meeting-subject")
-        self.assertFalse(claimed.profile_complete)
+        self.assertTrue(claimed.profile_complete)
         profile_db = Session(bind=engine)
         try:
-            profile_db.add(UserProfile(user_id=user_id, display_name="Pending Supporter", username="pending_supporter"))
-            profile_db.commit()
+            self.assertIsNone(profile_db.query(UserProfile).filter_by(user_id=user_id).one().username)
         finally:
             profile_db.close()
 
@@ -481,8 +525,8 @@ class AccountClaimTests(unittest.TestCase):
         source_id, session_id = self.new_anonymous("collision-source")
         target_id = self.new_registered("collision-subject", "collision")
         self.db.add_all([
-            InterestedFixture(user_id=source_id, fixture_id=self.fixture_id),
-            InterestedFixture(user_id=target_id, fixture_id=self.fixture_id),
+            InterestedFixture(user_id=source_id, fixture_id=self.fixture_id, going=True),
+            InterestedFixture(user_id=target_id, fixture_id=self.fixture_id, going=False),
         ])
         self.db.commit()
         issuer = Session(bind=engine)
@@ -497,6 +541,7 @@ class AccountClaimTests(unittest.TestCase):
             InterestedFixture.fixture_id == self.fixture_id,
             InterestedFixture.user_id.in_([source_id, target_id]),
         ).count(), 1)
+        self.assertTrue(self.db.query(InterestedFixture).filter_by(user_id=target_id, fixture_id=self.fixture_id).one().going)
         self.assert_error(409, "ACCOUNT_HANDOFF_USED", lambda: self.claim(None, "another-target", handoff_token=token))
 
     def test_existing_identity_merge_consumes_all_handoffs_and_does_not_touch_unrelated_user(self):
@@ -591,6 +636,8 @@ class AccountClaimTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(sorted(result.idempotent for result in results), [False, True])
         self.assertEqual(self.db.query(UserIdentity).filter_by(issuer=ISSUER, subject="concurrent-subject", user_id=user_id).count(), 1)
+        self.assertEqual(self.db.query(UserProfile).filter_by(user_id=user_id).count(), 1)
+        self.assertTrue(all(result.profile_complete for result in results))
 
     def test_old_cookie_is_rejected_after_claim(self):
         _user_id, session_id = self.new_anonymous("revoked")

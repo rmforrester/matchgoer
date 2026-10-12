@@ -406,15 +406,22 @@ def _merge_venue_visits(db: Session, *, source_user_id: int, target_user_id: int
             visit.user_id = target_user_id
 
 
-def _result(db: Session, user: User, *, idempotent: bool) -> AccountClaimResult:
+def ensure_account_profile(db: Session, user: User) -> UserProfile:
+    """Caller holds the user row lock; provision once in its existing transaction."""
     profile = db.query(UserProfile).filter(UserProfile.user_id == user.user_id).first()
-    profile_complete = bool(
-        profile
-        and profile.username
-        and profile.username.strip()
-        and profile.display_name
-        and profile.display_name.strip()
-    )
+    if profile is None:
+        profile = UserProfile(
+            user_id=user.user_id,
+            display_name=f"Matchgoer {secrets.randbelow(1_000_000):06d}",
+        )
+        db.add(profile)
+        db.flush()
+    return profile
+
+
+def _result(db: Session, user: User, *, idempotent: bool) -> AccountClaimResult:
+    profile = ensure_account_profile(db, user)
+    profile_complete = bool(profile.display_name and profile.display_name.strip())
     return AccountClaimResult(
         user_id=user.user_id,
         account_status=user.account_status,

@@ -6,12 +6,46 @@ from sqlalchemy.orm import Session
 
 from database import engine
 from identity import ResolvedIdentity
-from main import get_account_context, update_registered_profile
+from main import get_account_context, update_registered_profile, _require_social_profile
 from models import AnonymousSession, Fixture, InterestedFixture, SocialEvent, User, UserProfile
 from schemas import ProfileUpdate
 
 
 class AccountUxContractTests(unittest.TestCase):
+    def test_default_profile_is_idempotent_and_null_username_is_ready(self):
+        user = self.user(registered=True)
+        identity = ResolvedIdentity(user.user_id, "registered", True, "bearer")
+        first = update_registered_profile(data=ProfileUpdate(), identity=identity)
+        second = update_registered_profile(data=ProfileUpdate(), identity=identity)
+        self.assertRegex(first["display_name"], r"^Matchgoer \d{6}$")
+        self.assertEqual(first, second)
+        self.assertIsNone(first["username"])
+        self.assertTrue(first["profile_complete"])
+        self.assertTrue(get_account_context(identity=identity, session_id=None)["profile_complete"])
+        self.assertEqual(_require_social_profile(self.db, user.user_id).user_id, user.user_id)
+
+    def test_display_name_only_update_preserves_every_other_profile_field(self):
+        user = self.user(registered=True)
+        self.db.add(UserProfile(user_id=user.user_id, username="legacy_name", display_name="Old name", supported_club="Club", broad_location="City", bio="Bio"))
+        self.db.commit()
+        identity = ResolvedIdentity(user.user_id, "registered", True, "bearer")
+        result = update_registered_profile(data=ProfileUpdate(display_name="New name"), identity=identity)
+        self.assertEqual(result["display_name"], "New name")
+        self.assertEqual([result[k] for k in ["username", "supported_club", "broad_location", "bio"]], ["legacy_name", "Club", "City", "Bio"])
+        unchanged = update_registered_profile(data=ProfileUpdate(), identity=identity)
+        self.assertEqual(result, unchanged)
+
+    def test_explicit_optional_field_clear_does_not_clear_omitted_fields(self):
+        user = self.user(registered=True)
+        self.db.add(UserProfile(user_id=user.user_id, display_name="Existing", supported_club="Club", broad_location="City", bio="Bio"))
+        self.db.commit()
+        identity = ResolvedIdentity(user.user_id, "registered", True, "bearer")
+        result = update_registered_profile(data=ProfileUpdate(bio=None), identity=identity)
+        self.assertIsNone(result["bio"])
+        self.assertEqual(result["broad_location"], "City")
+        self.assertEqual(result["supported_club"], "Club")
+        self.assertEqual(result["display_name"], "Existing")
+
     def setUp(self):
         self.db = Session(bind=engine)
         self.user_ids = []

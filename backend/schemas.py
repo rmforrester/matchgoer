@@ -368,8 +368,8 @@ class ProfileCreate(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
-    username: str = Field(min_length=3, max_length=30)
-    display_name: str = Field(min_length=2, max_length=40)
+    username: str | None = Field(default=None, min_length=3, max_length=30)
+    display_name: str | None = Field(default=None, min_length=2, max_length=40)
     supported_club: str | None = Field(default=None, max_length=80)
     broad_location: str | None = Field(default=None, max_length=100)
     bio: str | None = Field(default=None, max_length=280)

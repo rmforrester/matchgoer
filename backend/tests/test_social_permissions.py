@@ -118,6 +118,23 @@ class SocialPermissionTests(unittest.TestCase):
         self.assertTrue(removed["interested"])
         self.assertFalse(removed["open_to_meet"])
 
+    def test_registered_null_username_can_join_and_post_without_onboarding(self):
+        db = SessionLocal()
+        try:
+            profile = db.get(UserProfile, self.owner.user_id)
+            profile.username = None
+            db.commit()
+        finally:
+            db.close()
+        joined = update_meeting_intent(self.open_fixture_id, MeetingIntentUpdate(open_to_meet=True), self.owner_identity)
+        self.assertTrue(joined["open_to_meet"])
+        created = create_board_post(self.open_fixture_id, MatchBoardPostCreate(body="Default display-name supporter"), self.owner_identity)
+        board = get_fixture_social(self.open_fixture_id, self.owner_identity)
+        post = next(p for p in board["posts"] if p["post_id"] == created["post_id"])
+        self.assertEqual(post["author"]["display_name"], "Owner Display")
+        self.assertIsNone(post["author"]["username"])
+        self.assertTrue(post["can_delete"])
+
     def test_registered_post_ownership_reporting_and_anonymous_capability_flags(self):
         created = create_board_post(
             self.open_fixture_id,
