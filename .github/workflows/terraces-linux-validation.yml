@@ -45,7 +45,8 @@ jobs:
               python /validation/run_backend_regressions.py; regressions=$?
               python /validation/authentication_boundary.py; auth=$?
               python /validation/orientation_diagnostic.py; diagnostic=$?
-              test "$heic$regressions$auth$diagnostic" = "0000"
+              python /validation/image_security_checks.py; security=$?
+              test "$heic$regressions$auth$diagnostic$security" = "00000"
             ' 2>&1 | tee validation-output/validation-console.txt
       - name: Retain evidence
         if: always()

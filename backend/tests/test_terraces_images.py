@@ -12,6 +12,11 @@ def encoded(fmt, *, size=(32, 20), exif=None):
     kwargs = {"exif": exif} if exif else {}
     if fmt == "HEIF":
         register_heif_opener(thumbnails=False)
+        # HEIF rotation is encoded from image metadata, not an EXIF-only
+        # save override. Keep the exact orientation assertions below.
+        if exif:
+            image.info["exif"] = exif.tobytes()
+            kwargs = {}
     image.save(output, format=fmt, **kwargs)
     return output.getvalue()
 
