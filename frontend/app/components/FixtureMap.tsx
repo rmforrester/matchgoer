@@ -372,18 +372,20 @@ export default function FixtureMap({
 
   return (
 <div>
-{showIntroduction && <section aria-labelledby="discover-marker-introduction" className="mb-3 border border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-3 sm:p-4">
-  <h3 id="discover-marker-introduction" className="tt-kicker text-[var(--brand-interactive)]">Discover football beyond the obvious</h3>
-  <p className="mt-2 text-sm leading-relaxed">Gold markers highlight matches with a distinctive story — from historic rivalries and classic stadiums to supporter traditions worth knowing about.</p>
-  <button type="button" className="tt-action mt-3 min-h-11" onClick={() => {
+{showIntroduction && <section aria-labelledby="discover-marker-introduction" className="mb-1 flex items-center justify-between gap-3 py-1">
+  <div className="min-w-0">
+    <h3 id="discover-marker-introduction" className="tt-kicker text-[var(--brand-interactive)]">Discover beyond the obvious</h3>
+    <p className="mt-1 text-sm leading-snug">Matches with a story worth knowing.</p>
+  </div>
+  <button type="button" className="min-h-11 min-w-11 shrink-0 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]" onClick={() => {
     try { localStorage.setItem("matchgoer.discover-marker-introduction.v1", "dismissed"); } catch { /* Dismiss this encounter even when storage is unavailable. */ }
     setShowIntroduction(false);
     legendRef.current?.focus({ preventScroll: true });
   }}>Got it</button>
 </section>}
-<div role="group" ref={legendRef} tabIndex={-1} aria-label="Discover map legend" className="mb-2 flex flex-wrap gap-x-5 gap-y-2 text-xs leading-relaxed text-[var(--tt-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
-  <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="h-3 w-3 shrink-0 border border-[var(--tt-ink)] bg-[#D6AA18]" />Gold — Matchgoer Highlight</span>
-  <span className="inline-flex items-start gap-2"><span aria-hidden="true" className="font-extrabold text-[var(--brand-interactive)]">✓</span><span><span className="sr-only">Checkmark — </span>Ground where you&apos;ve attended a football match</span></span>
+<div role="group" ref={legendRef} tabIndex={-1} aria-label="Discover map legend" className="mb-1 flex flex-wrap gap-x-3 gap-y-0 text-xs leading-5 text-[var(--tt-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
+  <span className="inline-flex items-center gap-1.5" aria-label="Gold marker — Matchgoer editorial highlight"><span aria-hidden="true" className="inline-flex w-3 shrink-0 items-center [&_svg]:h-4 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(fixtureIcons["classic-false-false"].options.html).replace(/<\/?span[^>]*>/g, "") }} />Gold marker — Highlight</span>
+  <span className="inline-flex items-center gap-1.5" aria-label="Visited marker — Ground where you've attended a football match"><span aria-hidden="true" className="inline-flex w-3 shrink-0 items-center [&_svg]:h-4 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(visitedGroundIcon.options.html).replace(/<\/?span[^>]*>/g, "") }} />Visited marker — Visited</span>
 </div>
 <div className="relative">
 <MapContainer
