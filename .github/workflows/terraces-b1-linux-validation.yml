@@ -24,8 +24,13 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate current B1 worker and regressions in Linux
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p validation-output
+          # Synthetic CI evidence only; the capability-restricted container
+          # cannot override runner ownership when writing this shared directory.
+          chmod 0777 validation-output
           docker pull python:3.14-slim
           docker image inspect python:3.14-slim > validation-output/container-image.json
           docker run --rm --network host --memory=1g --cpus=2 --pids-limit=128 \
