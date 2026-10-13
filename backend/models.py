@@ -23,6 +23,65 @@ from sqlalchemy.sql import func
 Base = declarative_base()
 
 
+class TerracePhoto(Base):
+    """Private submission metadata. No public/upload endpoint is enabled."""
+    __tablename__ = "terrace_photos"
+    photo_id = Column(BigInteger, primary_key=True)
+    owner_user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    visit_id = Column(BigInteger, ForeignKey("venue_visits.visit_id", ondelete="SET NULL"), nullable=True)
+    venue_id = Column(Integer, ForeignKey("venues.venue_id"), nullable=False)
+    fixture_id = Column(Integer, ForeignKey("fixtures.fixture_id"), nullable=True)
+    caption = Column(String(200), nullable=True)
+    submission_key = Column(String(36), nullable=False)
+    source_sha256 = Column(String(64), nullable=False)
+    original_bytes = Column(Integer, nullable=False)
+    display_key = Column(String(100), unique=True, nullable=False)
+    thumbnail_key = Column(String(100), unique=True, nullable=False)
+    width = Column(Integer, nullable=False)
+    height = Column(Integer, nullable=False)
+    thumbnail_width = Column(Integer, nullable=False)
+    thumbnail_height = Column(Integer, nullable=False)
+    content_type = Column(String(40), nullable=False, default="image/jpeg")
+    status = Column(String(16), nullable=False, default="PENDING")
+    consent_version = Column(String(60), nullable=False)
+    submitted_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    published_at = Column(DateTime(timezone=True), nullable=True)
+    rejected_at = Column(DateTime(timezone=True), nullable=True)
+    removed_at = Column(DateTime(timezone=True), nullable=True)
+    dispute_reason = Column(String(500), nullable=True)
+    storage_deleted_at = Column(DateTime(timezone=True), nullable=True)
+    __table_args__ = (
+        UniqueConstraint("owner_user_id", "submission_key", name="uq_terrace_submission"),
+        UniqueConstraint("visit_id", "source_sha256", name="uq_terrace_visit_image"),
+        CheckConstraint("status IN ('PENDING','APPROVED','REJECTED','REMOVED')", name="ck_terrace_status"),
+        CheckConstraint("char_length(caption) <= 200", name="ck_terrace_caption"),
+        CheckConstraint("original_bytes BETWEEN 1 AND 10000000", name="ck_terrace_bytes"),
+        CheckConstraint("width BETWEEN 1 AND 1600 AND height BETWEEN 1 AND 1600 AND thumbnail_width BETWEEN 1 AND 400 AND thumbnail_height BETWEEN 1 AND 400", name="ck_terrace_dimensions"),
+        CheckConstraint("content_type = 'image/jpeg'", name="ck_terrace_mime"),
+        CheckConstraint("status NOT IN ('PENDING','APPROVED') OR visit_id IS NOT NULL", name="ck_terrace_live_visit"),
+        CheckConstraint("published_at IS NULL OR (status = 'APPROVED' AND approved_at IS NOT NULL)", name="ck_terrace_publication"),
+        CheckConstraint("status <> 'REJECTED' OR rejected_at IS NOT NULL", name="ck_terrace_rejection"),
+        CheckConstraint("status <> 'APPROVED' OR approved_at IS NOT NULL", name="ck_terrace_approval"),
+        CheckConstraint("status <> 'REMOVED' OR removed_at IS NOT NULL", name="ck_terrace_removal"),
+        CheckConstraint("dispute_reason IS NULL OR char_length(btrim(dispute_reason)) > 0", name="ck_terrace_dispute"),
+        Index("ix_terrace_publication", "status", "published_at", "photo_id"),
+        Index("ix_terrace_venue", "venue_id", "status", "published_at", "photo_id"),
+    )
+
+
+class TerracePhotoEvent(Base):
+    """Minimal moderation history and durable storage-deletion receipts."""
+    __tablename__ = "terrace_photo_events"
+    event_id = Column(BigInteger, primary_key=True)
+    photo_id = Column(BigInteger, ForeignKey("terrace_photos.photo_id", ondelete="SET NULL"), nullable=True)
+    actor_user_id = Column(Integer, ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)
+    event_type = Column(String(40), nullable=False)
+    payload = Column(JSON, nullable=False, default=dict)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+
 class Venue(Base):
     __tablename__ = "venues"
 
