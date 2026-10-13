@@ -298,6 +298,18 @@ export default function FixtureMap({
   const [tileError, setTileError] = useState(false);
   const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(null);
   const [compactMobile, setCompactMobile] = useState(false);
+  const [showIntroduction, setShowIntroduction] = useState(false);
+  const legendRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        setShowIntroduction(localStorage.getItem("matchgoer.discover-marker-introduction.v1") !== "dismissed");
+      } catch {
+        setShowIntroduction(true);
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
   const mapRef = useRef<L.Map | null>(null);
   const suppressMovementRef = useRef(false);
   const groundIcon = useMemo(() => createGroundMarkerIcon(false), []);
@@ -360,6 +372,19 @@ export default function FixtureMap({
 
   return (
 <div>
+{showIntroduction && <section aria-labelledby="discover-marker-introduction" className="mb-3 border border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-3 sm:p-4">
+  <h3 id="discover-marker-introduction" className="tt-kicker text-[var(--brand-interactive)]">Discover football beyond the obvious</h3>
+  <p className="mt-2 text-sm leading-relaxed">Gold markers highlight matches with a distinctive story — from historic rivalries and classic stadiums to supporter traditions worth knowing about.</p>
+  <button type="button" className="tt-action mt-3 min-h-11" onClick={() => {
+    try { localStorage.setItem("matchgoer.discover-marker-introduction.v1", "dismissed"); } catch { /* Dismiss this encounter even when storage is unavailable. */ }
+    setShowIntroduction(false);
+    legendRef.current?.focus({ preventScroll: true });
+  }}>Got it</button>
+</section>}
+<div role="group" ref={legendRef} tabIndex={-1} aria-label="Discover map legend" className="mb-2 flex flex-wrap gap-x-5 gap-y-2 text-xs leading-relaxed text-[var(--tt-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
+  <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="h-3 w-3 shrink-0 border border-[var(--tt-ink)] bg-[#D6AA18]" />Gold — Matchgoer Highlight</span>
+  <span className="inline-flex items-start gap-2"><span aria-hidden="true" className="font-extrabold text-[var(--brand-interactive)]">✓</span><span><span className="sr-only">Checkmark — </span>Ground where you&apos;ve attended a football match</span></span>
+</div>
 <div className="relative">
 <MapContainer
   ref={mapRef}
