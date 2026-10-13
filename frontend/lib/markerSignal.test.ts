@@ -37,7 +37,7 @@ test("special signals use one central SVG while standard is a plain marker", () 
   assert.match(markerSource, /iconAnchor: \[VENUE_MARKER_DESIGN\.hitSize \/ 2, VENUE_MARKER_DESIGN\.hitSize - 2\]/);
   assert.match(mapSource, /icons\[markerSignalForFixture\(fixture\)\]/);
   assert.match(mapSource, /<MarkerKey \/>/);
-  assert.ok(mapSource.indexOf("Classic ground") > -1);
+  assert.ok(mapSource.indexOf("Classic Ground") > -1);
   assert.ok(!mapSource.slice(mapSource.indexOf("markerKeyItems"), mapSource.indexOf("function MarkerKey")).includes('label: "Standard"'));
 });
 

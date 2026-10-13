@@ -99,7 +99,7 @@ const markerKeyItems: { signal: Exclude<MarkerSignal, "standard">; label: string
   { signal: "cup", label: "Cup" },
   { signal: "rivalry", label: "Rivalry" },
   { signal: "scenic", label: "Scenic" },
-  { signal: "classic", label: "Classic ground" },
+  { signal: "classic", label: "Classic Ground" },
 ];
 
 function MarkerKey() {
@@ -117,15 +117,17 @@ function MarkerKey() {
       setExpanded(next);
       try { localStorage.setItem("matchgoer.discover-map-key.v1", next ? "expanded" : "collapsed"); } catch { /* Current encounter remains usable. */ }
     }} className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 font-extrabold uppercase tracking-[0.1em] marker:content-none">
-      <span>Why these matches?</span><span>{expanded ? "Hide −" : "Expand +"}</span>
+      <span>Why these matches?</span><span>{expanded ? "Hide −" : "+"}</span>
     </summary>
     <div className="pb-2" aria-label="Map key">
-      <div className="mb-2 flex flex-wrap gap-x-5 gap-y-2">
-        <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="inline-flex w-4 shrink-0 [&_span]:contents [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(createGroundMarkerIcon(false, false, "standard", true).options.html).replace(/<\/?span[^>]*>/g, "") }} /><span><strong className="block text-[var(--tt-ink)]">Matchgoer Highlight</strong>Unique / worth going</span></span>
-        <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="inline-flex w-4 shrink-0 [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(createGroundMarkerIcon(true).options.html).replace(/<\/?span[^>]*>/g, "") }} /><span><strong className="block text-[var(--tt-ink)]">Visited</strong>You&apos;ve been here</span></span>
+      <p className="mb-2 font-bold text-[var(--brand-interactive)]">Marker meanings</p>
+      <div role="group" aria-label="Marker meanings" className="grid grid-cols-2 gap-x-3 gap-y-2 text-[var(--tt-ink)]">
+        <span className="flex min-w-0 items-center gap-2"><span aria-hidden="true" className="inline-flex h-5 w-4 shrink-0 [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(createGroundMarkerIcon(false, false, "standard", true).options.html).replace(/<\/?span[^>]*>/g, "") }} /><strong>Matchgoer Pick</strong></span>
+        <span className="flex min-w-0 items-center gap-2"><span aria-hidden="true" className="inline-flex h-5 w-4 shrink-0 [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(createGroundMarkerIcon(true).options.html).replace(/<\/?span[^>]*>/g, "") }} /><strong>Visited</strong></span>
       </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-2">
-        {[{ signal: "standard" as const, label: "Fixture" }, ...markerKeyItems].map(({signal,label}) => <span key={signal} className="inline-flex items-center gap-1 whitespace-nowrap"><span aria-hidden="true" className="inline-flex h-5 w-4 items-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{__html:markerKeyIconHtml(signal)}} />{label}</span>)}
+      <p className="mb-2 mt-3 border-t border-[var(--tt-rule)] pt-2 font-bold text-[var(--brand-interactive)]">Match types</p>
+      <div role="group" aria-label="Match types" className="grid grid-cols-2 gap-x-2 gap-y-2 min-[375px]:grid-cols-3">
+        {[{ signal: "standard" as const, label: "Fixture" }, ...markerKeyItems].map(({signal,label}) => <span key={signal} className="flex min-w-0 items-center gap-1.5 text-[var(--tt-ink)]"><span aria-hidden="true" className="inline-flex h-5 w-4 shrink-0 items-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{__html:markerKeyIconHtml(signal)}} />{label}</span>)}
       </div>
     </div>
   </details>;
