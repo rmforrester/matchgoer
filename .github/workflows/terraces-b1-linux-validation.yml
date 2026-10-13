@@ -46,6 +46,7 @@ jobs:
               export PYTHONPATH=/validation:/source/backend:/source
               status=0
               python /validation/validate_b1_worker.py || status=1
+              python /validation/measure_worker_memory.py || status=1
               python /validation/diagnose_worker.py || status=1
               python /validation/run_backend_regressions.py || status=1
               python /validation/authentication_boundary.py || status=1
