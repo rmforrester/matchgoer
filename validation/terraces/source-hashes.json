@@ -1,0 +1,11 @@
+{
+  "backend/migrations/20261013_terrace_photo_foundation.sql": "2434dfd6e6384b1e5c23d0c2dcff86cfb1962135a498f956bf8300df935cffb7",
+  "backend/migrations/20261013_terrace_photo_foundation_rollback.sql": "ad3c78416df8311e2a608fd08295c3218b0a25188590eb41596eca2e2dba2b61",
+  "backend/models.py": "fb926a0f8b8b7651c43e13f0dc7fb357be2ea630dc2295f8c0cc6300bbfcb57d",
+  "backend/terraces.py": "38f22d408aa265e436fe1f5b827bbf51f8fea94e149f17dba1d21944b7fb4449",
+  "backend/terraces_images.py": "1df3aeca460f67cd2e87b8d8b8d1ae1415b54d76ef3982b0b98661eca66a3c5d",
+  "backend/tests/test_terraces.py": "eb61924607ba1967b305d3374960967bbce9361fa9464acf9efdb96769833c4e",
+  "backend/tests/test_terraces_images.py": "13fd1172d5623496ef1a04e6fee00076e73f1ee2bbd09a563bc4e154d42e5305",
+  "docs/from-the-terraces-phase-a.md": "25cb36792824601a19b6c6cd03bc7e88e8639d0b7fec395d8c5a95b518aeb570",
+  "requirements.txt": "306e0bb5f8060589af6684b39f347987431f7a7de11259f00f50da332784411e"
+}
