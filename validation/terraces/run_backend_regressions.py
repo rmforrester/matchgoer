@@ -3,6 +3,7 @@ import os,sys,subprocess,json
 WT=Path('/source');OUT=Path('/output');port=5432
 assert os.environ.get('DATABASE_URL')=='postgresql://terraces_ci:synthetic_ci_only@127.0.0.1:5432/terraces_ci'
 sys.path[:0]=[str(WT),str(WT/'backend')]
+os.environ['PYTHONPATH']=str(WT)+os.pathsep+str(WT/'backend')
 from database import engine
 from models import Base,Venue,Team,Fixture,ClubVenue
 from sqlalchemy.orm import Session

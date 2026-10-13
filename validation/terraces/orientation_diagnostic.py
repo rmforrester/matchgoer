@@ -7,9 +7,14 @@ from pillow_heif import register_heif_opener
 from terraces_images import sanitise_photo
 register_heif_opener(thumbnails=False)
 checks=[]
-for fmt in ['JPEG','PNG','HEIF']:
+for fmt in ['JPEG','PNG','HEIF','HEIF-image-metadata']:
     im=Image.new('RGB',(32,20),'red');ex=Image.Exif();ex[274]=6
-    out=BytesIO();im.save(out,format=fmt,exif=ex)
+    out=BytesIO()
+    if fmt=='HEIF-image-metadata':
+        im.info['exif']=ex.tobytes()
+        im.save(out,format='HEIF')
+    else:
+        im.save(out,format=fmt,exif=ex)
     with Image.open(BytesIO(out.getvalue())) as raw:
         before={'size':list(raw.size),'orientation':raw.getexif().get(274),'original_orientation':raw.info.get('original_orientation')}
         raw.load();after={'size':list(raw.size),'orientation':raw.getexif().get(274),'original_orientation':raw.info.get('original_orientation')}

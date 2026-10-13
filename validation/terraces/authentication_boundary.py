@@ -3,7 +3,6 @@ from pathlib import Path
 import os, sys, json
 from datetime import datetime, timezone
 from unittest.mock import patch
-ROOT = Path(__file__).resolve().parents[2]
 SOURCE = Path('/source')
 os.environ['DATABASE_URL'] = 'postgresql://unused@127.0.0.1:1/unused'
 os.environ.pop('MATCHGOER_HOSTED_DATABASE_URL', None)
