@@ -1,0 +1,53 @@
+name: Temporary Terraces B1 Linux validation
+on:
+  push:
+    branches: [validation/terraces-phase-b1-linux-20261013]
+permissions:
+  contents: read
+jobs:
+  validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: terraces_ci
+          POSTGRES_PASSWORD: synthetic_ci_only
+          POSTGRES_DB: terraces_ci
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U terraces_ci -d terraces_ci"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate current B1 worker and regressions in Linux
+        run: |
+          mkdir -p validation-output
+          docker pull python:3.14-slim
+          docker image inspect python:3.14-slim > validation-output/container-image.json
+          docker run --rm --network host --memory=1g --cpus=2 --pids-limit=128 \
+            --cap-drop=ALL --security-opt=no-new-privileges \
+            -v "$PWD:/source:ro" -v "$PWD/validation/terraces-b1:/validation:ro" \
+            -v "$PWD/validation-output:/output" \
+            -e PYTHONDONTWRITEBYTECODE=1 \
+            -e DATABASE_URL=postgresql://terraces_ci:synthetic_ci_only@127.0.0.1:5432/terraces_ci \
+            python:3.14-slim sh -eu -c '
+              python -m pip install --no-cache-dir --only-binary=:all: -r /source/requirements.txt
+              python -m pip check
+              python -m pip freeze > /output/dependencies.txt
+              export PYTHONPATH=/validation:/source/backend:/source
+              python /validation/validate_b1_worker.py
+              python /validation/run_backend_regressions.py
+              python /validation/authentication_boundary.py
+            ' 2>&1 | tee validation-output/validation-console.txt
+      - name: Retain synthetic validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraces-b1-linux-validation
+          path: validation-output/
+          retention-days: 7
+          if-no-files-found: error
