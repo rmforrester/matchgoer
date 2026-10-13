@@ -3,7 +3,7 @@ import json,os,subprocess,sys,tempfile
 from pathlib import Path
 SOURCE=Path('/source');worker=SOURCE/'backend/terraces_image_worker.py'
 data=(Path(__file__).parent/'fixtures/pug.heic').read_bytes()
-text=worker.read_text().replace('except Exception:','except Exception as error:').replace('sys.exit(2)',"print(type(error).__name__,str(error),type(error.__cause__).__name__,str(error.__cause__),file=sys.stderr);sys.exit(2)")
+text=worker.read_text().replace('except Exception:','except Exception as error:').replace('sys.exit(2)',"import traceback;traceback.print_exc();sys.exit(2)")
 environment={'PATH':os.environ['PATH'],'PYTHONPATH':'/source/backend','PYTHONDONTWRITEBYTECODE':'1'}
 with tempfile.TemporaryDirectory() as folder:
     target=Path(folder)/'diagnostic_worker.py';target.write_text(text)
