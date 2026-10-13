@@ -110,7 +110,7 @@ test("ordinary fixture group keeps a restrained green marker and vertical result
   const fixtures = [decisionFixture({ fixture_id: 1 }), decisionFixture({ fixture_id: 2 })];
   assert.deepEqual(fixtureGroupDecision(fixtures), { highlighted: false, initialFixtureIndex: 0 });
   assert.match(groundMarkerSource, /goldSignal \? "#D6AA18" : "#174A32"/);
-  assert.match(groundMarkerSource, /showSignal \? markerSignalSvg\(signal, markStroke\) : ""/);
+  assert.match(groundMarkerSource, /!visited \? markerSignalSvg\(signal, categoryStroke \?\? markStroke\) : ""/);
   assert.match(groundMarkerSource, /return "";/);
   assert.match(fixtureCarouselSource, /md:grid-cols-2 xl:grid-cols-3/);
 });
@@ -124,7 +124,7 @@ test("Discover map exposes only the winning marker reason while the carousel kee
   assert.match(fixtureCarouselSource, /fixture\.lead_decision_reason\.label/);
   assert.doesNotMatch(fixtureCarouselSource, /fixture\.lead_decision_reason\.explanation/);
   assert.doesNotMatch(fixtureCarouselSource, /decision_reasons/);
-  assert.match(fixtureMapSource, /decision\.highlighted \? "classic" : "standard"/);
+  assert.match(fixtureMapSource, /markerSignalForFixture\(fixture\)/);
 });
 
 test("fixture popup keeps required match details, accessible dismiss, and View match action", () => {

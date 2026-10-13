@@ -11,9 +11,9 @@ export const markerSignalSvg = (signal: MarkerSignal, stroke: string) => {
   return "";
 };
 
-const markerSvg = (visited: boolean, selected: boolean, signal: MarkerSignal, showSignal = false) => {
+const markerSvg = (visited: boolean, selected: boolean, signal: MarkerSignal, highlighted = false, categoryStroke?: string) => {
   const presentation = venueMarkerPresentation(visited, selected);
-  const goldSignal = signal !== "standard";
+  const goldSignal = highlighted;
   const markerFill = goldSignal ? "#D6AA18" : "#174A32";
   const markStroke = goldSignal ? "#171717" : "#FCFAF5";
   return `
@@ -25,24 +25,24 @@ const markerSvg = (visited: boolean, selected: boolean, signal: MarkerSignal, sh
       stroke-width="2"
       stroke-linejoin="miter"
     />
-    ${showSignal ? markerSignalSvg(signal, markStroke) : ""}
-    ${visited ? `<path data-visited-check="true" d="M8 16L13 21L22 11" fill="none" stroke="${markStroke}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
+    ${!visited ? markerSignalSvg(signal, categoryStroke ?? markStroke) : ""}
+    ${visited ? `<path d="M8 16L13 21L22 11" fill="none" stroke="#171717" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path data-visited-check="true" d="M8 16L13 21L22 11" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
   </svg>
 `;
 };
 
-export function createGroundMarkerIcon(visited = false, selected = false, signal: MarkerSignal = "standard"): L.DivIcon {
+export function createGroundMarkerIcon(visited = false, selected = false, signal: MarkerSignal = "standard", highlighted = false): L.DivIcon {
   return L.divIcon({
     className: `tt-ground-marker${selected ? " tt-ground-marker--selected" : ""}`,
-    html: `<span class="tt-ground-marker__visual">${markerSvg(visited, selected, signal)}</span>`,
+    html: `<span class="tt-ground-marker__visual">${markerSvg(visited, selected, signal, highlighted)}</span>`,
     iconSize: [VENUE_MARKER_DESIGN.hitSize, VENUE_MARKER_DESIGN.hitSize],
     iconAnchor: [VENUE_MARKER_DESIGN.hitSize / 2, VENUE_MARKER_DESIGN.hitSize - 2],
     popupAnchor: [0, -32],
   });
 }
 
-export function markerKeyIconHtml(signal: Exclude<MarkerSignal, "standard">): string {
-  return markerSvg(false, false, signal, true);
+export function markerKeyIconHtml(signal: MarkerSignal): string {
+  return markerSvg(false, false, signal, false);
 }
 
 const attendedGroundMarkerSvg = `

@@ -32,7 +32,7 @@ import { createGroundMarkerIcon, createUserLocationIcon, markerKeyIconHtml } fro
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../lib/fixture-status";
 import { configuredDiscoverTileLayer } from "../../lib/discoverMapTiles";
 import { fixtureTypeLabel, safeFixtureType, type FixtureType } from "../../lib/fixtureType";
-import { editorialReasonForMarkerSignal, type MarkerSignal } from "../../lib/markerSignal";
+import { editorialReasonForMarkerSignal, markerSignalForFixture, type MarkerSignal } from "../../lib/markerSignal";
 
 type Venue = {
   venue_id: number;
@@ -103,16 +103,30 @@ const markerKeyItems: { signal: Exclude<MarkerSignal, "standard">; label: string
 ];
 
 function MarkerKey() {
-  return <details className="mg-content-rule mt-2 text-[0.68rem] text-[var(--tt-muted)]">
-    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-extrabold uppercase tracking-[0.1em] marker:content-none">
-      <span>Why these matches?</span><span aria-hidden="true">＋</span>
+  const [expanded, setExpanded] = useState(true);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      try { setExpanded(localStorage.getItem("matchgoer.discover-map-key.v1") !== "collapsed"); } catch { /* Default expanded when storage is unavailable. */ }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return <details open={expanded} className="mg-content-rule mt-2 text-xs text-[var(--tt-muted)]">
+    <summary onClick={(event) => {
+      event.preventDefault();
+      const next = !expanded;
+      setExpanded(next);
+      try { localStorage.setItem("matchgoer.discover-map-key.v1", next ? "expanded" : "collapsed"); } catch { /* Current encounter remains usable. */ }
+    }} className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 font-extrabold uppercase tracking-[0.1em] marker:content-none">
+      <span>Why these matches?</span><span>{expanded ? "Hide −" : "Expand +"}</span>
     </summary>
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pb-2" aria-label="Map key">
-      <span className="inline-flex items-center gap-2"><span className="h-3 w-3 bg-[var(--brand-interactive)]" aria-hidden="true" />Fixture</span>
-      {markerKeyItems.map(({ signal, label }) => <span key={signal} className="inline-flex items-center gap-1 whitespace-nowrap">
-        <span className="inline-flex h-5 w-4 items-center justify-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: markerKeyIconHtml(signal) }} />
-        {label}
-      </span>)}
+    <div className="pb-2" aria-label="Map key">
+      <div className="mb-2 flex flex-wrap gap-x-5 gap-y-2">
+        <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="inline-flex w-4 shrink-0 [&_span]:contents [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(createGroundMarkerIcon(false, false, "standard", true).options.html).replace(/<\/?span[^>]*>/g, "") }} /><span><strong className="block text-[var(--tt-ink)]">Matchgoer Highlight</strong>Unique / worth going</span></span>
+        <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="inline-flex w-4 shrink-0 [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(createGroundMarkerIcon(true).options.html).replace(/<\/?span[^>]*>/g, "") }} /><span><strong className="block text-[var(--tt-ink)]">Visited</strong>You&apos;ve been here</span></span>
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-2">
+        {[{ signal: "standard" as const, label: "Fixture" }, ...markerKeyItems].map(({signal,label}) => <span key={signal} className="inline-flex items-center gap-1 whitespace-nowrap"><span aria-hidden="true" className="inline-flex h-5 w-4 items-center [&_svg]:h-5 [&_svg]:w-auto" dangerouslySetInnerHTML={{__html:markerKeyIconHtml(signal)}} />{label}</span>)}
+      </div>
     </div>
   </details>;
 }
@@ -133,7 +147,7 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
   const markerLabel = `${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}${visited ? ", visited ground" : ""}`;
   const statusGroup = fixtureStatusGroup(fixture.status);
 
-  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icons[decision.highlighted ? "classic" : "standard"]} title={markerLabel} alt={markerLabel} eventHandlers={{ click: () => {
+  return <Marker position={[fixture.latitude, fixture.longitude]} icon={icons[markerSignalForFixture(fixture)]} title={markerLabel} alt={markerLabel} eventHandlers={{ click: () => {
     if (compactMobile) {
       setFixtureIndex(decision.initialFixtureIndex);
       onFixtureSelect(group.fixtures[decision.initialFixtureIndex].fixture_id);
@@ -298,18 +312,6 @@ export default function FixtureMap({
   const [tileError, setTileError] = useState(false);
   const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(null);
   const [compactMobile, setCompactMobile] = useState(false);
-  const [showIntroduction, setShowIntroduction] = useState(false);
-  const legendRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      try {
-        setShowIntroduction(localStorage.getItem("matchgoer.discover-marker-introduction.v1") !== "dismissed");
-      } catch {
-        setShowIntroduction(true);
-      }
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
   const mapRef = useRef<L.Map | null>(null);
   const suppressMovementRef = useRef(false);
   const groundIcon = useMemo(() => createGroundMarkerIcon(false), []);
@@ -317,17 +319,6 @@ export default function FixtureMap({
   const selectedGroundIcon = useMemo(() => createGroundMarkerIcon(false, true), []);
   const selectedVisitedGroundIcon = useMemo(() => createGroundMarkerIcon(true, true), []);
   const userLocationIcon = useMemo(() => createUserLocationIcon(), []);
-  const fixtureIcons = useMemo(() => {
-    const icons = {} as Record<string, L.DivIcon>;
-    for (const markerSignal of ["standard", "classic", "scenic", "rivalry", "cup", "international"] as const) {
-      for (const visited of [false, true]) {
-        for (const selected of [false, true]) {
-          icons[`${markerSignal}-${visited}-${selected}`] = createGroundMarkerIcon(visited, selected, markerSignal);
-        }
-      }
-    }
-    return icons;
-  }, []);
   const selectedFixtureGroup = useMemo(
     () => selectedFixtureId === null
       ? null
@@ -372,21 +363,6 @@ export default function FixtureMap({
 
   return (
 <div>
-{showIntroduction && <section aria-labelledby="discover-marker-introduction" className="mb-1 flex items-center justify-between gap-3 py-1">
-  <div className="min-w-0">
-    <h3 id="discover-marker-introduction" className="tt-kicker text-[var(--brand-interactive)]">Discover beyond the obvious</h3>
-    <p className="mt-1 text-sm leading-snug">Matches with a story worth knowing.</p>
-  </div>
-  <button type="button" className="min-h-11 min-w-11 shrink-0 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]" onClick={() => {
-    try { localStorage.setItem("matchgoer.discover-marker-introduction.v1", "dismissed"); } catch { /* Dismiss this encounter even when storage is unavailable. */ }
-    setShowIntroduction(false);
-    legendRef.current?.focus({ preventScroll: true });
-  }}>Got it</button>
-</section>}
-<div role="group" ref={legendRef} tabIndex={-1} aria-label="Discover map legend" className="mb-1 flex flex-wrap gap-x-3 gap-y-0 text-xs leading-5 text-[var(--tt-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
-  <span className="inline-flex items-center gap-1.5" aria-label="Gold marker — Matchgoer editorial highlight"><span aria-hidden="true" className="inline-flex w-3 shrink-0 items-center [&_svg]:h-4 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(fixtureIcons["classic-false-false"].options.html).replace(/<\/?span[^>]*>/g, "") }} />Gold marker — Highlight</span>
-  <span className="inline-flex items-center gap-1.5" aria-label="Visited marker — Ground where you've attended a football match"><span aria-hidden="true" className="inline-flex w-3 shrink-0 items-center [&_svg]:h-4 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: String(visitedGroundIcon.options.html).replace(/<\/?span[^>]*>/g, "") }} />Visited marker — Visited</span>
-</div>
 <div className="relative">
 <MapContainer
   ref={mapRef}
@@ -502,7 +478,7 @@ export default function FixtureMap({
         const icons = Object.fromEntries(
           (["standard", "classic", "scenic", "rivalry", "cup", "international"] as const).map((markerSignal) => [
             markerSignal,
-            fixtureIcons[`${markerSignal}-${visited}-${selected}`],
+            createGroundMarkerIcon(visited, selected, markerSignal, fixtureGroupDecision(group.fixtures).highlighted),
           ]),
         ) as Record<MarkerSignal, L.DivIcon>;
         return <FixtureVenueMarker key={group.key} group={group} visited={visited} icons={icons} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} showDistance={showDistance} distanceOrigin={distanceOrigin} compactMobile={compactMobile} />;
