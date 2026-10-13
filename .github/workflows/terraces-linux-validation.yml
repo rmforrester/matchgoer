@@ -25,7 +25,9 @@ jobs:
           persist-credentials: false
       - name: Validate in Railway-compatible Linux container
         run: |
+          set -euo pipefail
           mkdir -p validation-output
+          chmod 0777 validation-output
           docker pull python:3.14-slim
           docker image inspect python:3.14-slim > validation-output/container-image.json
           docker run --rm --network host --memory=1g --cpus=2 --pids-limit=128 \
