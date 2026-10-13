@@ -5,7 +5,7 @@ from pathlib import Path
 if sys.platform!='linux' or sys.version_info[:2]!=(3,14):raise SystemExit('BLOCKED: Linux Python 3.14 required')
 assert importlib.metadata.version('Pillow')=='12.3.0'
 assert importlib.metadata.version('pillow-heif')=='1.8.1'
-from PIL import Image,ImageOps
+from PIL import Image,ImageOps,ImageChops,ImageStat
 from pillow_heif import register_heif_opener
 register_heif_opener(thumbnails=False)
 source=Path(os.getenv('B1_SOURCE','/source'));fixtures=Path(__file__).parent
@@ -14,15 +14,23 @@ env={'PATH':os.environ['PATH'],'PYTHONPATH':str(source/'backend'),'PYTHONDONTWRI
 def execute(data,path=worker):
     return subprocess.run([sys.executable,str(path)],input=data,capture_output=True,env=env,timeout=15)
 def verify(data,label):
+    references={}
     with Image.open(BytesIO(data)) as raw:
         expected=ImageOps.exif_transpose(raw).size
         multi=getattr(raw,'n_frames',1)!=1
+        if not multi:
+            with ImageOps.exif_transpose(raw) as oriented:
+                with oriented.convert('RGB') as rgb:
+                    for name,maximum in [('display',1600),('thumbnail',400)]:
+                        reference=rgb.copy();reference.thumbnail((maximum,maximum),Image.Resampling.LANCZOS)
+                        references[name]=reference
     result=execute(data)
     if multi:
         assert result.returncode!=0 and not result.stdout
         return {'case':label,'multi_frame_rejected':True}
     assert result.returncode==0,(label,result.returncode)
     value=json.loads(result.stdout)
+    quality={}
     assert value['sha256']==hashlib.sha256(data).hexdigest() and value['bytes']==len(data)
     for name,maximum in [('display',1600),('thumbnail',400)]:
         variant=value[name];out=base64.b64decode(variant['data'],validate=True)
@@ -33,7 +41,13 @@ def verify(data,label):
             assert not any(k in clean.info for k in ('exif','xmp','icc_profile','gps'))
             assert max(clean.size)<=maximum
             assert abs(clean.width/clean.height-expected[0]/expected[1])<.05
-    return {'case':label,'decode_orientation_metadata_thumbnails':'PASS'}
+            assert clean.size==references[name].size
+            with ImageChops.difference(clean,references[name]) as difference:
+                rms=ImageStat.Stat(difference).rms
+            assert max(rms)<30,(label,name,rms)
+            quality[name]=rms
+        references[name].close()
+    return {'case':label,'decode_orientation_metadata_thumbnails':'PASS','jpeg_reference_channel_rms':quality}
 checks=[]
 def checked(label,action):
     try:checks.append(action())
