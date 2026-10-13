@@ -35,15 +35,19 @@ def verify(data,label):
             assert abs(clean.width/clean.height-expected[0]/expected[1])<.05
     return {'case':label,'decode_orientation_metadata_thumbnails':'PASS'}
 checks=[]
+def checked(label,action):
+    try:checks.append(action())
+    except Exception as error:
+        checks.append({'case':label,'status':'FAIL','error_type':type(error).__name__,'detail':str(error)})
 for fixture in json.loads((fixtures/'fixture-manifest.json').read_text()):
     data=(fixtures/'fixtures'/fixture['file']).read_bytes()
     assert hashlib.sha256(data).hexdigest()==fixture['sha256']
-    checks.append(verify(data,fixture['file']))
+    checked(fixture['file'],lambda:verify(data,fixture['file']))
 for fmt in ('JPEG','PNG'):
     image=Image.new('RGB',(1800,900),'green');exif=Image.Exif();exif[274]=6
     exif[34853]={1:'N',2:(51.0,0.0,0.0),3:'W',4:(1.0,0.0,0.0)}
     stream=BytesIO();image.save(stream,format=fmt,exif=exif)
-    checks.append(verify(stream.getvalue(),fmt+' orientation and GPS'))
+    checked(fmt+' orientation and GPS',lambda:verify(stream.getvalue(),fmt+' orientation and GPS'))
 for label,data in [('malformed',b'\x00bad'),('oversized',b'x'*10_000_001),('SVG',b'<svg/>')]:
     result=execute(data);assert result.returncode!=0 and not result.stdout
     checks.append({'case':label,'rejected':True})
@@ -65,8 +69,10 @@ runpy.run_path(WORKER,run_name='__main__')
         action={'limits':'pass','memory':'allocation=bytearray(1024*1024*1024)','cpu':'while True: pass'}[mode]
         probe.write_text(body.replace('MODE',action).replace('WORKER',repr(str(worker))))
         result=execute(stream.getvalue(),probe)
-        assert (result.returncode==0) if mode=='limits' else (result.returncode!=0 and not result.stdout)
+        assert (result.returncode==0) if mode=='limits' else (result.returncode==2 and not result.stdout) if mode=='memory' else (result.returncode in (-9,-24) and not result.stdout)
         checks.append({'case':mode+' resource probe','status':'PASS'})
-receipt={'status':'PASS','platform':platform.platform(),'python':platform.python_version(),'Pillow':importlib.metadata.version('Pillow'),'pillow-heif':importlib.metadata.version('pillow-heif'),'checks':checks,'worker_sha256':hashlib.sha256(worker.read_bytes()).hexdigest(),'hosted_connections':0,'storage_uploads':0}
+passed=not any(c.get('status')=='FAIL' for c in checks)
+receipt={'status':'PASS' if passed else 'FAIL','platform':platform.platform(),'python':platform.python_version(),'Pillow':importlib.metadata.version('Pillow'),'pillow-heif':importlib.metadata.version('pillow-heif'),'checks':checks,'worker_sha256':hashlib.sha256(worker.read_bytes()).hexdigest(),'hosted_connections':0,'storage_uploads':0}
 Path('/output/b1-worker-results.json').write_text(json.dumps(receipt,indent=2)+'\n')
-print('B1 worker image/security/resource checks PASS')
+print('B1 worker image/security/resource checks',receipt['status'])
+raise SystemExit(0 if passed else 1)
