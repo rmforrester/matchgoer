@@ -55,7 +55,17 @@ export function terracesError(error: unknown): string {
   if (status === 403) return "Photo sharing isn't available for this account yet. Use your verified account and your own matchdays.";
   if (status === 409) return "This photo or matchday has changed. Refresh its photos before trying again.";
   if (status === 413) return "Each photograph must be no larger than 10 MB.";
-  if (status === 422) return "The photo or details could not be accepted. Check the file and sharing confirmation.";
+  if (status === 422) {
+    const detail = (error as { response?: { data?: { detail?: { code?: unknown } } } })?.response?.data?.detail;
+    switch (detail?.code) {
+      case "unsupported_image_encoding": return "We couldn't open that photo. Try another.";
+      case "image_resource_limit": return "That photo's too large to process. Try a smaller one.";
+      case "image_validation_failed": return "We couldn't use that photo. Try another.";
+      case "image_decode_failed":
+      case "image_processing_failed": return "That photo didn't go through. Give it another go.";
+      default: return "The photo or details could not be accepted. Check the file and sharing confirmation.";
+    }
+  }
   if (status === 429) return "We're busy right now. Give it another go in a moment.";
   if (!status || status >= 500) return "Can't connect right now. Try again in a moment.";
   return "That didn't work. Give it another go.";

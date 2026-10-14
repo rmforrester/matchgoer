@@ -1,0 +1,23 @@
+[
+  {
+    "file": "pug.heic",
+    "source": "https://raw.githubusercontent.com/bigcat88/pillow_heif/64dc06fa7e0142e9133b98ea0d85ffe99544d82f/tests/images/heif_other/pug.heic",
+    "bytes": 1299081,
+    "sha256": "1ddce96766efbfa0f6bdf634bdab26bdeff831393df8d67f4cdc7b7a7afebc67",
+    "decoded": "NOT RUN ? Linux unavailable"
+  },
+  {
+    "file": "arrow.heic",
+    "source": "https://raw.githubusercontent.com/bigcat88/pillow_heif/64dc06fa7e0142e9133b98ea0d85ffe99544d82f/tests/images/heif_other/arrow.heic",
+    "bytes": 792052,
+    "sha256": "73f604d7353df4848505a1f45a5517f736857fe047372f95c2f3d671df92c22c",
+    "decoded": "NOT RUN ? Linux unavailable"
+  },
+  {
+    "file": "L_exif_xmp_iptc.heic",
+    "source": "https://raw.githubusercontent.com/bigcat88/pillow_heif/64dc06fa7e0142e9133b98ea0d85ffe99544d82f/tests/images/heif_other/L_exif_xmp_iptc.heic",
+    "bytes": 56925,
+    "sha256": "0083645511ffdee8acf04973237272678d3eb2554d77bde2adeeca102c220d51",
+    "decoded": "NOT RUN ? Linux unavailable"
+  }
+]

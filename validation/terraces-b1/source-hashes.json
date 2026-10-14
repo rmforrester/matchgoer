@@ -1,0 +1,15 @@
+{
+  "backend/docs/terraces-b1.md": "657c26c0d3b7a3ad3eb32d29752b2159f7d838d2186337de9f806ebbeba77b13",
+  "backend/main.py": "a062c9c6d0cb1edb4c99cb86c6ea77a77a0f0b19b2e62bb2370b105cac0384a7",
+  "backend/migrations/20261013_terrace_photo_b1.sql": "b0fc83316ae9976ba28db4ddfe2dc051e6ee1327c728aa64f4f907ff21eaa939",
+  "backend/migrations/20261013_terrace_photo_b1_rollback.sql": "3d6af8b6aa1ba8e83fdec35e09f7c7d9097929e1925ef76e111043da8c7f98fb",
+  "backend/terraces_api.py": "d9661971ada6b82bb43ad6bb69a9e16dbe9ca91f045b7746fbe5341691fd4072",
+  "backend/terraces_cleanup.py": "17f06b52ae9673d275877fa9b3d516a4389abf044af9e84da8c5e0c5e0980fe7",
+  "backend/terraces_image_worker.py": "1f418cf900595a3d4e93013c455cf6a8c4867837dbc84c019507790e76e82ca1",
+  "backend/terraces_service.py": "a1ebb86a0b75571176a8792f91530a9ae5870bafed6a3cd78635fc43d1632c04",
+  "backend/terraces_storage.py": "4287c89e44d124238f1d9eac0c829fa3904fa7e5ef92ca8c2d7f5fb798cc7a6a",
+  "backend/tests/test_terraces_api.py": "2054ed1aeb59590075f829a97c7b0c8580d64a9ecbea7a83898cfd434d51dadf",
+  "backend/tests/test_terraces_b1.py": "3f1cf1214d03c10e9a83be5c95e810e7d0b86354eccd15e3ee98f9219ef29d88",
+  "backend/tests/test_terraces_cleanup.py": "be97c655dec111e94fdaf2b30054c7650c6a4a3f2b8fb83e57bf2f026759bf85",
+  "backend/tests/test_terraces_storage.py": "dfd5b951d109734efddf452f2147e6022d824a6b12330bd9baae5ce33faa9815"
+}
