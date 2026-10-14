@@ -5,7 +5,7 @@ from datetime import datetime,timedelta,timezone
 from fastapi import HTTPException
 from sqlalchemy import exists,and_,or_,select
 from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit,Fixture,UserProfile
-from terraces import require_verified_account,require_moderator,reserve_photo,may_read_photo,CONSENT_VERSION
+from terraces import require_verified_account,require_photo_submitter,require_moderator,reserve_photo,may_read_photo,CONSENT_VERSION
 from terraces_storage import StorageUnavailable
 
 def now():return datetime.now(timezone.utc)
@@ -23,7 +23,7 @@ def lock(db,photo_id):
 def status(row):return {'photo_id':row.photo_id,'status':row.status}
 
 def submit(db,storage,authorization,visit_id,processed,metadata,key):
-    actor=require_verified_account(db,authorization)
+    actor=require_photo_submitter(db,authorization)
     row=reserve_photo(db,authorization,visit_id=visit_id,photo=processed,submission_key=key,
                       caption=metadata.get('caption'),consent_version=metadata['consent_version'],
                       public_consent=metadata['public_consent'],rights_acknowledged=metadata['rights_acknowledged'])

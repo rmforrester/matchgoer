@@ -32,13 +32,35 @@ def require_verified_account(db, authorization: str | None) -> PhotoActor:
     return PhotoActor(user.user_id)
 
 
-def configured_moderator_user_id() -> int | None:
+def configured_internal_user_id(key: str) -> int | None:
     """Protected server environment only; invalid/unset configuration denies access."""
-    raw = os.getenv("TERRACES_MODERATOR_USER_ID", "")
+    raw = os.getenv(key, "")
     if not re.fullmatch(r"[1-9][0-9]{0,9}", raw):
         return None
     value = int(raw)
     return value if value <= 2_147_483_647 else None
+
+
+def configured_moderator_user_id() -> int | None:
+    return configured_internal_user_id("TERRACES_MODERATOR_USER_ID")
+
+
+def configured_upload_user_ids() -> frozenset[int]:
+    """A malformed entry invalidates the entire protected allowlist."""
+    raw = os.getenv("TERRACES_UPLOAD_USER_IDS", "")
+    values = raw.split(",")
+    if any(not re.fullmatch(r"[1-9][0-9]{0,9}", value.strip()) for value in values):
+        return frozenset()
+    ids = frozenset(int(value.strip()) for value in values)
+    return ids if all(value <= 2_147_483_647 for value in ids) else frozenset()
+
+
+def require_photo_submitter(db, authorization: str | None) -> PhotoActor:
+    actor = require_verified_account(db, authorization)
+    permitted = configured_upload_user_ids()
+    if actor.user_id not in permitted:
+        raise HTTPException(403, "Photo sharing is not available for this account yet")
+    return actor
 
 
 def require_moderator(db, authorization: str | None, *, moderator_user_id: int | None = None) -> PhotoActor:
@@ -58,7 +80,7 @@ def reserve_photo(db, authorization: str | None, *, visit_id: int, photo: Saniti
     Three live (pending/approved) submissions per owned attendance. Rejected and
     removed submissions remain auditable but do not consume public/pending slots.
     """
-    actor = require_verified_account(db, authorization)
+    actor = require_photo_submitter(db, authorization)
     if public_consent is not True or rights_acknowledged is not True or consent_version != CONSENT_VERSION:
         raise HTTPException(422, "Public sharing and image rights must be acknowledged")
     if caption is not None and (not isinstance(caption, str) or len(caption) > 200):

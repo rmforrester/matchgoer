@@ -37,9 +37,11 @@ class PhotoFoundationTests(unittest.TestCase):
         self.provider = type("Verified", (), {"issuer": "https://synthetic.test/auth/v1", "subject": str(self.owner.user_id)})()
         self.mock = patch("terraces.verify_claim_provider_identity", return_value=self.provider)
         self.verify = self.mock.start()
+        self.access = patch.dict('os.environ', {'TERRACES_UPLOAD_USER_IDS':str(self.owner.user_id)})
+        self.access.start()
 
     def tearDown(self):
-        self.mock.stop(); self.db.rollback(); self.db.close()
+        self.access.stop(); self.mock.stop(); self.db.rollback(); self.db.close()
 
     def photo(self, colour="red"):
         out = BytesIO(); Image.new("RGB", (20, 16), colour).save(out, format="JPEG")

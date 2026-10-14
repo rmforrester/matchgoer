@@ -42,7 +42,7 @@ class PhotoB1Tests(unittest.TestCase):
         self.db.add(self.visit);self.db.flush()
         self.provider=type('Provider',(),{'issuer':'https://synthetic.test/auth/v1','subject':str(self.owner.user_id)})()
         self.authentication=patch('terraces.verify_claim_provider_identity',return_value=self.provider);self.authentication.start()
-        self.configuration=patch.dict('os.environ',{'TERRACES_MODERATOR_USER_ID':str(self.owner.user_id)});self.configuration.start()
+        self.configuration=patch.dict('os.environ',{'TERRACES_MODERATOR_USER_ID':str(self.owner.user_id),'TERRACES_UPLOAD_USER_IDS':str(self.owner.user_id)});self.configuration.start()
         self.storage=FakeStorage();self.meta={'public_consent':True,'rights_acknowledged':True,'consent_version':CONSENT_VERSION,'caption':None}
     def tearDown(self):
         self.configuration.stop();self.authentication.stop();self.db.close();self.outer.rollback();self.connection.close()

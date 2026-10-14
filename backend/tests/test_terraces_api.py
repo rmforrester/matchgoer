@@ -11,6 +11,75 @@ from terraces_storage import LazyPrivatePhotoStorage
 from models import TerracePhoto as Photo
 
 class PhotoApiTests(unittest.TestCase):
+    def test_public_photo_http_route_is_founder_only(self):
+        from fastapi import FastAPI
+        app=FastAPI();app.include_router(api.router)
+        async def get():
+            messages=[]
+            async def receive():return {'type':'http.request','body':b'','more_body':False}
+            async def send(message):messages.append(message)
+            scope={'type':'http','asgi':{'version':'3.0'},'http_version':'1.1','method':'GET','scheme':'http','path':'/terraces/photos','raw_path':b'/terraces/photos','query_string':b'','root_path':'','headers':[(b'authorization',b'Bearer synthetic')],'client':('127.0.0.1',1),'server':('127.0.0.1',1)}
+            await app(scope,receive,send)
+            return next(m['status'] for m in messages if m['type']=='http.response.start')
+        with patch('terraces_service.public_page',return_value={'photos':[],'next_cursor':None}) as reader:
+            self.assertEqual(asyncio.run(get()),200)
+            reader.reset_mock();self.provider.subject=str(self.other.user_id)
+            self.assertEqual(asyncio.run(get()),403);reader.assert_not_called()
+    def test_controlled_access_missing_malformed_or_other_account_denied(self):
+        from terraces import require_photo_submitter
+        for value in ('', '0', '-1', '1,,2', '1,', ',1', '1,invalid', '1,0', '1,-2', '1,2147483648', '2147483648', 'not-an-id'):
+            with patch.dict('os.environ',{'TERRACES_UPLOAD_USER_IDS':value}),self.assertRaises(HTTPException):
+                require_photo_submitter(self.db,'Bearer synthetic')
+        self.provider.subject=str(self.other.user_id)
+        with self.assertRaises(HTTPException):api.controlled_photo_access('Bearer synthetic')
+    def test_two_upload_accounts_and_independent_moderator_configuration(self):
+        from terraces import PhotoActor, require_photo_submitter, require_moderator
+        with patch.dict('os.environ', {'TERRACES_UPLOAD_USER_IDS':'1347, 830', 'TERRACES_MODERATOR_USER_ID':''}):
+            for identifier in (1347,830):
+                with patch('terraces.require_verified_account',return_value=PhotoActor(identifier)):
+                    self.assertEqual(require_photo_submitter(self.db,'Bearer synthetic').user_id,identifier)
+                    with self.assertRaises(HTTPException):require_moderator(self.db,'Bearer synthetic')
+            with patch('terraces.require_verified_account',return_value=PhotoActor(999)):
+                with self.assertRaises(HTTPException):require_photo_submitter(self.db,'Bearer synthetic')
+            with patch.dict('os.environ',{'TERRACES_MODERATOR_USER_ID':'1347'}):
+                with patch('terraces.require_verified_account',return_value=PhotoActor(1347)):
+                    self.assertEqual(require_moderator(self.db,'Bearer synthetic').user_id,1347)
+                with patch('terraces.require_verified_account',return_value=PhotoActor(830)):
+                    with self.assertRaises(HTTPException):require_moderator(self.db,'Bearer synthetic')
+
+    def test_allowlist_whitespace_duplicates_and_invalid_member(self):
+        from terraces import configured_upload_user_ids
+        with patch.dict('os.environ',{'TERRACES_UPLOAD_USER_IDS':'1347, 830,1347'}):
+            self.assertEqual(configured_upload_user_ids(),frozenset((1347,830)))
+        for value in ('1347,bad','1347,2147483648','1347,','', '1347,8 30'):
+            with patch.dict('os.environ',{'TERRACES_UPLOAD_USER_IDS':value}):
+                self.assertEqual(configured_upload_user_ids(),frozenset())
+
+    def test_upload_denied_before_decode_or_storage_and_routes_are_guarded(self):
+        self.provider.subject=str(self.other.user_id)
+        with patch('terraces_api.decode') as decoder,self.assertRaises(HTTPException):self.upload(self.encoded())
+        decoder.assert_not_called();self.assertEqual(self.storage.objects,{})
+        self.assertTrue(api.router.routes)
+        for route in api.router.routes:
+            self.assertTrue(any(dependency.dependency is api.controlled_photo_access for dependency in route.dependencies))
+    def test_submitter_and_moderator_permissions_are_independent(self):
+        from terraces import require_moderator,require_photo_submitter
+        with patch.dict('os.environ',{'TERRACES_MODERATOR_USER_ID':''}):
+            self.assertEqual(require_photo_submitter(self.db,'Bearer synthetic').user_id,self.owner.user_id)
+            with self.assertRaises(HTTPException):require_moderator(self.db,'Bearer synthetic')
+        with patch.dict('os.environ',{'TERRACES_UPLOAD_USER_IDS':''}):
+            self.assertEqual(require_moderator(self.db,'Bearer synthetic').user_id,self.owner.user_id)
+            with self.assertRaises(HTTPException):api.controlled_photo_access('Bearer synthetic')
+    def test_allowed_account_still_cannot_upload_to_another_attendance(self):
+        self.provider.subject=str(self.other.user_id)
+        with patch.dict('os.environ',{'TERRACES_UPLOAD_USER_IDS':str(self.other.user_id)}),self.assertRaises(HTTPException) as error:
+            self.upload(self.encoded())
+        self.assertEqual(error.exception.status_code,404)
+    def test_guest_unverified_identity_denied_even_with_submitter_configuration(self):
+        self.provider.subject=str(self.guest.user_id)
+        with self.assertRaises(HTTPException):api.controlled_photo_access('Bearer synthetic')
+        with patch('terraces.verify_claim_provider_identity',side_effect=HTTPException(401,'Unverified synthetic account')),self.assertRaises(HTTPException):
+            api.controlled_photo_access('Bearer synthetic')
     submit=fixtures.PhotoB1Tests.submit
     def setUp(self):
         fixtures.PhotoB1Tests.setUp(self)

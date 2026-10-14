@@ -2,19 +2,23 @@
 import asyncio,base64,binascii,json,os,subprocess,sys
 from pathlib import Path
 from datetime import datetime,timezone
-from fastapi import APIRouter,Header,HTTPException,Request,Query,Response
+from fastapi import APIRouter,Depends,Header,HTTPException,Request,Query,Response
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel,ConfigDict,StrictBool,Field,ValidationError
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DBAPIError
 from database import SessionLocal
 from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit
-from terraces import require_verified_account,require_moderator,may_read_photo
+from terraces import require_verified_account,require_photo_submitter,require_moderator,may_read_photo
 from terraces_images import MAX_INPUT_BYTES,SanitisedPhoto,ImageVariant
 from terraces_storage import LazyPrivatePhotoStorage as PrivatePhotoStorage,StorageUnavailable
 import terraces_service as service
 
-router=APIRouter(prefix='/terraces',tags=['From the Terraces'])
+def controlled_photo_access(authorization:str|None=Header(default=None)):
+    # Controlled testing covers reads too: approved test images must not become public.
+    return transaction(lambda db:require_photo_submitter(db,authorization))
+
+router=APIRouter(prefix='/terraces',tags=['From the Terraces'],dependencies=[Depends(controlled_photo_access)])
 slots=asyncio.Semaphore(2)
 class Metadata(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)
@@ -56,7 +60,7 @@ def transaction(call):
 async def submit(visit_id:int,request:Request,response:Response,authorization:str|None=Header(default=None),idempotency_key:str=Header(),x_terraces_metadata:str=Header()):
     # Verify identity/owned attendance BEFORE reading/decoding untrusted bytes.
     def check(db):
-        actor=require_verified_account(db,authorization)
+        actor=require_photo_submitter(db,authorization)
         if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).first():raise HTTPException(404,'Owned recorded matchday not found')
     await run_in_threadpool(transaction,check)
     try:
