@@ -33,18 +33,36 @@ class Hold(BaseModel):
     model_config=ConfigDict(extra='forbid')
     reason:str|None=Field(default=None,min_length=1,max_length=500)
 
+IMAGE_ERROR_CODES = frozenset(("unsupported_image_encoding", "image_decode_failed", "image_resource_limit", "image_validation_failed", "image_processing_failed"))
+
+def image_rejection(code):
+    return HTTPException(422, {'code': code, 'message': 'Photograph could not be safely processed'})
+
 def decode(data):
     environment={k:v for k,v in os.environ.items() if k in ('PATH','SYSTEMROOT','WINDIR','PYTHONPATH')}
     environment['PYTHONDONTWRITEBYTECODE']='1'
     flags=subprocess.CREATE_NO_WINDOW if sys.platform=='win32' else 0
     try:
         result=subprocess.run([sys.executable,str(Path(__file__).with_name('terraces_image_worker.py'))],input=data,capture_output=True,env=environment,timeout=15,creationflags=flags)
-        if result.returncode:raise ValueError()
+        if result.returncode:
+            code = 'image_processing_failed'
+            if result.returncode in (-9, -24):
+                code = 'image_resource_limit'
+            elif result.returncode == 2 and len(result.stdout) <= 256:
+                try:
+                    reported = json.loads(result.stdout).get('error_code')
+                    if isinstance(reported, str) and reported in IMAGE_ERROR_CODES:
+                        code = reported
+                except (ValueError, AttributeError, TypeError):
+                    pass
+            raise image_rejection(code)
         payload=json.loads(result.stdout)
         variants=[ImageVariant(base64.b64decode(payload[n]['data'],validate=True),payload[n]['width'],payload[n]['height']) for n in ('display','thumbnail')]
         return SanitisedPhoto(payload['sha256'],payload['bytes'],*variants)
-    except (subprocess.TimeoutExpired,ValueError,KeyError,TypeError,binascii.Error):
-        raise HTTPException(422,'Photograph could not be safely processed') from None
+    except subprocess.TimeoutExpired:
+        raise image_rejection('image_resource_limit') from None
+    except (OSError, ValueError,KeyError,TypeError,binascii.Error):
+        raise image_rejection('image_processing_failed') from None
 
 def transaction(call):
     with SessionLocal() as db:

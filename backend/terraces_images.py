@@ -15,7 +15,9 @@ THUMBNAIL_SIDE = 400
 
 
 class UnsafeImage(ValueError):
-    pass
+    def __init__(self, message, code="image_validation_failed"):
+        super().__init__(message)
+        self.code = code
 
 
 @dataclass(frozen=True)
@@ -52,21 +54,21 @@ def sanitise_photo(data: bytes) -> SanitisedPhoto:
         if not 20 <= box_size <= len(data) or box_size % 4:
             raise UnsafeImage("Invalid HEIC container")
         if data[8:12] == b"mif1" and not any(data[pos:pos+4] in {b"heic", b"heix", b"hevc", b"hevx"} for pos in range(16, box_size, 4)):
-            raise UnsafeImage("Only HEIC image containers are supported")
+            raise UnsafeImage("Only HEIC image containers are supported", "unsupported_image_encoding")
         register_heif_opener(thumbnails=False)
         formats = ["HEIF"]
     else:
-        raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported")
+        raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported", "unsupported_image_encoding")
     clean = None
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
             with Image.open(BytesIO(data), formats=formats) as source:
                 if source.format not in {"JPEG", "PNG", "HEIF"}:
-                    raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported")
+                    raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported", "unsupported_image_encoding")
                 width, height = source.size
                 if min(width, height) < 1 or max(width, height) > MAX_INPUT_SIDE or width * height > MAX_PIXELS:
-                    raise UnsafeImage("Photograph dimensions exceed the safe processing limit")
+                    raise UnsafeImage("Photograph dimensions exceed the safe processing limit", "image_resource_limit")
                 if getattr(source, "n_frames", 1) != 1:
                     raise UnsafeImage("Only one still photograph per file is supported")
                 source.load()
@@ -89,10 +91,10 @@ def sanitise_photo(data: bytes) -> SanitisedPhoto:
                     variants.append(ImageVariant(output.getvalue(), *variant.size))
     except UnsafeImage:
         raise
-    except MemoryError as error:
-        raise UnsafeImage("Photograph exceeds the safe processing memory limit") from error
-    except (UnidentifiedImageError, OSError, ValueError, SyntaxError, Image.DecompressionBombError, Image.DecompressionBombWarning) as error:
-        raise UnsafeImage("The photograph could not be safely decoded") from error
+    except (MemoryError, Image.DecompressionBombError, Image.DecompressionBombWarning) as error:
+        raise UnsafeImage("Photograph exceeds the safe processing memory limit", "image_resource_limit") from error
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError) as error:
+        raise UnsafeImage("The photograph could not be safely decoded", "image_decode_failed") from error
     finally:
         if clean is not None:
             clean.close()
