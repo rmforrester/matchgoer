@@ -70,6 +70,37 @@ class PhotoB1Tests(unittest.TestCase):
         self.submit('two');self.submit('three')
         with self.assertRaises(HTTPException):self.submit('four')
         self.assertEqual(self.db.query(Photo).count(),3)
+    def test_three_photos_remove_then_different_replacement_preserves_audit(self):
+        one=self.submit('one');self.submit('two');self.submit('three')
+        result=service.remove(self.db,self.storage,'Bearer synthetic',one['photo_id'])
+        self.assertEqual(result['status'],'REMOVED')
+        replacement=self.submit('replacement')
+        self.assertEqual(replacement['status'],'PENDING')
+        self.assertEqual(self.db.query(Photo).filter(Photo.status.in_(('PENDING','APPROVED'))).count(),3)
+        self.assertEqual(self.db.query(Photo).count(),4)
+        self.assertEqual(self.db.get(Photo,one['photo_id']).status,'REMOVED')
+        self.assertTrue(self.db.query(Event).filter_by(photo_id=one['photo_id'],event_type='REMOVAL_REQUESTED').count())
+
+    def test_cleanup_failure_does_not_consume_removed_slot(self):
+        one=self.submit('one');self.submit('two');self.submit('three')
+        self.storage.fail_delete=True
+        result=service.remove(self.db,self.storage,'Bearer synthetic',one['photo_id'])
+        self.assertEqual(result['physical_cleanup'],'pending')
+        self.assertEqual(self.submit('different')['status'],'PENDING')
+        self.assertIsNone(self.db.get(Photo,one['photo_id']).storage_deleted_at)
+
+    def test_private_payload_preserves_canonical_name_and_status_if_signing_fails(self):
+        result=self.submit();row=self.db.get(Photo,result['photo_id'])
+        with patch.object(self.storage,'signed',side_effect=StorageUnavailable()):
+            payload=service.photo_payload(self.db,self.storage,row,private=True)
+        self.assertEqual(payload['venue_name'],self.venue.name)
+        self.assertEqual(payload['venue_id'],self.venue.venue_id)
+        self.assertEqual(payload['status'],'PENDING')
+        self.assertEqual(payload['image_state'],'unavailable')
+        self.assertNotIn('image_url',payload)
+        self.assertNotIn('thumbnail_url',payload)
+        self.assertEqual(row.status,'PENDING')
+
     def test_partial_failure_cleaned_then_same_key_can_retry(self):
         key=str(uuid4());self.storage.fail_put=2
         with self.assertRaises(HTTPException) as error:self.submit(key=key)

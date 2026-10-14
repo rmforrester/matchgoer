@@ -4,7 +4,7 @@ import json
 from datetime import datetime,timedelta,timezone
 from fastapi import HTTPException
 from sqlalchemy import exists,and_,or_,select
-from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit,Fixture,UserProfile
+from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit,Fixture,UserProfile,Venue
 from terraces import require_verified_account,require_photo_submitter,require_moderator,reserve_photo,may_read_photo,CONSENT_VERSION
 from terraces_storage import StorageUnavailable
 
@@ -148,13 +148,19 @@ def photo_payload(db,storage,row,*,private=False):
     profile=db.get(UserProfile,row.owner_user_id)
     fixture=db.get(Fixture,row.fixture_id) if row.fixture_id else None
     visit=db.get(VenueVisit,row.visit_id) if row.visit_id else None
-    result={'photo_id':row.photo_id,'venue_id':row.venue_id,'fixture_id':row.fixture_id,'caption':row.caption,
+    venue=db.get(Venue,row.venue_id)
+    result={'photo_id':row.photo_id,'venue_id':row.venue_id,'venue_name':venue.name if venue else None,'fixture_id':row.fixture_id,'caption':row.caption,
             'display_name':profile.display_name if profile else 'Matchgoer','published_at':row.published_at,
             'match_date':fixture.fixture_date if fixture else visit.visit_date if visit else None,
             'home_team':fixture.home_team if fixture else None,'away_team':fixture.away_team if fixture else None}
     if private:result.update(status=row.status,submitted_at=row.submitted_at,held=bool(row.dispute_reason),upload_state='ready' if ready(db,row) else 'incomplete')
     if ready(db,row) and row.storage_deleted_at is None and row.status!='REMOVED':
-        result.update(image_url=storage.signed(row.display_key),thumbnail_url=storage.signed(row.thumbnail_key),expires_in=90)
+        try:
+            display=storage.signed(row.display_key);thumbnail=storage.signed(row.thumbnail_key)
+            result.update(image_url=display,thumbnail_url=thumbnail,expires_in=90,image_state='available')
+        except StorageUnavailable:
+            # A failed image delivery must not erase confirmed list/status metadata.
+            result.update(image_state='unavailable')
     return result
 
 def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12):
