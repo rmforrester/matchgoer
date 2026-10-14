@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from hashlib import sha256
 from io import BytesIO
 import warnings
+from xml.etree import ElementTree
 
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import Image, ImageOps, JpegImagePlugin, UnidentifiedImageError
 from pillow_heif import register_heif_opener
 
 MAX_INPUT_BYTES = 10_000_000  # 10 MB, decimal.
@@ -37,6 +38,98 @@ class SanitisedPhoto:
     thumbnail: ImageVariant
 
 
+def _apple_hdr_primary(data, source):
+    """Validate the observed two-JPEG Apple gain-map envelope, not general MPO."""
+    def reject():
+        raise UnsafeImage("Unsupported multi-image photograph", "image_validation_failed")
+
+    entries = source.mpinfo.get(0xB002, [])
+    if source.n_frames != 2 or len(entries) != 2:
+        reject()
+    # Locate the MPF TIFF origin in the primary JPEG's bounded header.
+    position, origins = 2, []
+    while position + 4 <= len(data):
+        if data[position] != 255:
+            reject()
+        marker = data[position + 1]
+        if marker == 0xDA:
+            break
+        length = int.from_bytes(data[position + 2:position + 4], "big")
+        end = position + 2 + length
+        if length < 2 or end > len(data):
+            reject()
+        if marker == 0xE2 and data[position + 4:position + 8] == b"MPF\0":
+            origins.append(position + 8)
+        position = end
+    if len(origins) != 1:
+        reject()
+    first, auxiliary = entries
+    for entry, kind in ((first, "Baseline MP Primary Image"), (auxiliary, "Undefined")):
+        attributes = entry["Attribute"]
+        if (attributes["MPType"] != kind or attributes["ImageDataFormat"] != "JPEG"
+                or attributes["Reserved"] or attributes["DependentParentImageFlag"]
+                or attributes["DependentChildImageFlag"] or attributes["RepresentativeImageFlag"]
+                or entry["EntryNo1"] or entry["EntryNo2"]):
+            reject()
+    split = first["Size"]
+    if (first["DataOffset"] != 0 or split <= origins[0]
+            or origins[0] + auxiliary["DataOffset"] != split
+            or auxiliary["Size"] <= 0 or split + auxiliary["Size"] != len(data)
+            or data[:2] != b"\xff\xd8" or data[split - 2:split] != b"\xff\xd9"
+            or data[split:split + 2] != b"\xff\xd8" or data[-2:] != b"\xff\xd9"):
+        reject()
+    width, height = source.size
+    if min(width, height) < 2 or max(width, height) > MAX_INPUT_SIDE or width * height > MAX_PIXELS:
+        raise UnsafeImage("Photograph dimensions exceed the safe processing limit", "image_resource_limit")
+    orientation = source.getexif().get(274, 1)
+    if orientation not in range(1, 9) or source.mode != "RGB":
+        reject()
+    source.seek(1)
+    if (source.size != (width // 2, height // 2) or source.mode != "L"
+            or source.getexif().get(274, 1) != orientation):
+        reject()
+    if any(marker == "APP2" and value.startswith(b"MPF\0") for marker, value in source.applist):
+        reject()
+    # Exact structured declaration; arbitrary text or MPF Undefined is insufficient.
+    prefix = b"http://ns.adobe.com/xap/1.0/\0"
+    packets = [value[len(prefix):] for marker, value in source.applist
+               if marker == "APP1" and value.startswith(prefix)]
+    if len(packets) != 1 or len(packets[0]) > 65536:
+        reject()
+    packet = packets[0]
+    if b"\0" in packet or b"<!DOCTYPE" in packet.upper() or b"<!ENTITY" in packet.upper():
+        reject()
+    try:
+        # The verified envelope uses UTF-8. Reject alternate encodings rather
+        # than allowing encoded DTD/entity declarations to evade the bound.
+        root = ElementTree.fromstring(packet.decode("utf-8"))
+    except (ElementTree.ParseError, UnicodeDecodeError):
+        reject()
+    property_name = "{http://ns.apple.com/pixeldatainfo/1.0/}AuxiliaryImageType"
+    declarations = []
+    for node in root.iter():
+        if property_name in node.attrib:
+            declarations.append(node.attrib[property_name])
+        if node.tag == property_name:
+            declarations.append((node.text or "").strip())
+    if declarations != ["urn:com:apple:photo:2020:aux:hdrgainmap"]:
+        reject()
+    source.load()  # Reject corrupt auxiliary entropy, within the existing worker limits.
+    return split
+
+
+def _open_photo(data, formats):
+    source = Image.open(BytesIO(data), formats=formats)
+    if source.format != "MPO":
+        return source
+    try:
+        primary_size = _apple_hdr_primary(data, source)
+    finally:
+        source.close()
+    # Explicit JPEG opening avoids MPO adoption; only validated primary bytes decode.
+    return JpegImagePlugin.JpegImageFile(BytesIO(data[:primary_size]))
+
+
 def sanitise_photo(data: bytes) -> SanitisedPhoto:
     """Reject unsupported/multi-frame files; create fresh pixels without metadata.
 
@@ -64,7 +157,7 @@ def sanitise_photo(data: bytes) -> SanitisedPhoto:
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
-            with Image.open(BytesIO(data), formats=formats) as source:
+            with _open_photo(data, formats) as source:
                 if source.format not in {"JPEG", "PNG", "HEIF"}:
                     raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported", "unsupported_image_encoding", "decoded_format")
                 width, height = source.size
