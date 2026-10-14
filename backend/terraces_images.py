@@ -15,9 +15,10 @@ THUMBNAIL_SIDE = 400
 
 
 class UnsafeImage(ValueError):
-    def __init__(self, message, code="image_validation_failed"):
+    def __init__(self, message, code="image_validation_failed", guard=None):
         super().__init__(message)
         self.code = code
+        self.guard = guard
 
 
 @dataclass(frozen=True)
@@ -54,18 +55,18 @@ def sanitise_photo(data: bytes) -> SanitisedPhoto:
         if not 20 <= box_size <= len(data) or box_size % 4:
             raise UnsafeImage("Invalid HEIC container")
         if data[8:12] == b"mif1" and not any(data[pos:pos+4] in {b"heic", b"heix", b"hevc", b"hevx"} for pos in range(16, box_size, 4)):
-            raise UnsafeImage("Only HEIC image containers are supported", "unsupported_image_encoding")
+            raise UnsafeImage("Only HEIC image containers are supported", "unsupported_image_encoding", "heif_compatible_codec")
         register_heif_opener(thumbnails=False)
         formats = ["HEIF"]
     else:
-        raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported", "unsupported_image_encoding")
+        raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported", "unsupported_image_encoding", "signature_or_major_brand")
     clean = None
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
             with Image.open(BytesIO(data), formats=formats) as source:
                 if source.format not in {"JPEG", "PNG", "HEIF"}:
-                    raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported", "unsupported_image_encoding")
+                    raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported", "unsupported_image_encoding", "decoded_format")
                 width, height = source.size
                 if min(width, height) < 1 or max(width, height) > MAX_INPUT_SIDE or width * height > MAX_PIXELS:
                     raise UnsafeImage("Photograph dimensions exceed the safe processing limit", "image_resource_limit")

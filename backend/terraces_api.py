@@ -1,5 +1,6 @@
 """Disabled-by-default backend contracts. No frontend or hosted activation."""
 import asyncio,base64,binascii,json,os,subprocess,sys
+import hashlib,hmac,logging,re
 from pathlib import Path
 from datetime import datetime,timezone
 from fastapi import APIRouter,Depends,Header,HTTPException,Request,Query,Response
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import DBAPIError
 from database import SessionLocal
 from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit
-from terraces import require_verified_account,require_photo_submitter,require_moderator,may_read_photo
+from terraces import require_verified_account,require_photo_submitter,require_moderator,may_read_photo,configured_moderator_user_id
 from terraces_images import MAX_INPUT_BYTES,SanitisedPhoto,ImageVariant
 from terraces_storage import LazyPrivatePhotoStorage as PrivatePhotoStorage,StorageUnavailable
 import terraces_service as service
@@ -34,6 +35,48 @@ class Hold(BaseModel):
     reason:str|None=Field(default=None,min_length=1,max_length=500)
 
 IMAGE_ERROR_CODES = frozenset(("unsupported_image_encoding", "image_decode_failed", "image_resource_limit", "image_validation_failed", "image_processing_failed"))
+IMAGE_REJECTION_GUARDS = frozenset(('signature_or_major_brand','heif_compatible_codec','decoded_format'))
+
+def record_image_rejection(data, content_type, error, actor_user_id=None):
+    # Temporary opt-in comparison. Never put the reference/input hash in logs,
+    # HTTP details, worker environment, DB, or frontend configuration.
+    moderator_id = configured_moderator_user_id()
+    if moderator_id is None or type(actor_user_id) is not int or actor_user_id != moderator_id:
+        return
+    reference = os.environ.get('TERRACES_REQUEST_DIAGNOSTIC_SHA256', '')
+    if not re.fullmatch('[a-fA-F0-9]{64}', reference):
+        return
+    detail = error.detail
+    code = detail.get('code') if isinstance(detail, dict) else None
+    if not isinstance(code, str) or code not in IMAGE_ERROR_CODES:
+        return
+    declared = (content_type or '').split(';', 1)[0].strip().lower()
+    allowed = {'image/jpeg','image/png','image/heic','image/heif','image/heic-sequence','image/heif-sequence','application/octet-stream','multipart/form-data'}
+    declared = declared if declared in allowed else 'other' if declared else 'missing'
+    mime, signature = 'unknown', 'unrecognised'
+    if not data:
+        signature = 'empty'
+    elif data.startswith(b'\xff\xd8\xff'):
+        mime, signature = 'image/jpeg', 'jpeg'
+    elif data.startswith(b'\x89PNG\r\n\x1a\n'):
+        mime, signature = 'image/png', 'png'
+    elif len(data) >= 12 and data[4:8] == b'ftyp':
+        brand = bytes(data[8:12])
+        # Classifications only, never raw image header bytes.
+        known = {b'heic',b'heix',b'hevc',b'hevx',b'mif1',b'msf1',b'heim',b'heis',b'hevm',b'hevs',b'avif',b'avis',b'jpeg'}
+        signature = 'ftyp_' + brand.decode('ascii') if brand in known else 'ftyp_other'
+        if brand in {b'heic',b'heix',b'hevc',b'hevx'}:
+            mime = 'image/heic'
+        elif brand == b'mif1':
+            mime = 'image/heif'
+    elif data.startswith(b'--'):
+        signature = 'multipart_prefix'
+    guard = getattr(error, 'image_guard', None)
+    record = {'request_content_type':declared, 'file_mime_classification':mime,
+              'file_byte_length':len(data), 'image_signature_classification':signature,
+              'matches_known_original':hmac.compare_digest(hashlib.sha256(data).hexdigest(), reference.lower()),
+              'rejection_category':code, 'rejecting_guard':guard if isinstance(guard, str) and guard in IMAGE_REJECTION_GUARDS else 'unavailable'}
+    logging.getLogger('terraces.image_diagnostic').warning('terraces_image_request_diagnostic %s', json.dumps(record, sort_keys=True))
 
 def image_rejection(code):
     return HTTPException(422, {'code': code, 'message': 'Photograph could not be safely processed'})
@@ -46,16 +89,23 @@ def decode(data):
         result=subprocess.run([sys.executable,str(Path(__file__).with_name('terraces_image_worker.py'))],input=data,capture_output=True,env=environment,timeout=15,creationflags=flags)
         if result.returncode:
             code = 'image_processing_failed'
+            guard = None
             if result.returncode in (-9, -24):
                 code = 'image_resource_limit'
             elif result.returncode == 2 and len(result.stdout) <= 256:
                 try:
-                    reported = json.loads(result.stdout).get('error_code')
+                    failure = json.loads(result.stdout)
+                    reported = failure.get('error_code')
                     if isinstance(reported, str) and reported in IMAGE_ERROR_CODES:
                         code = reported
+                    candidate = failure.get('guard')
+                    if code == 'unsupported_image_encoding' and isinstance(candidate, str) and candidate in IMAGE_REJECTION_GUARDS:
+                        guard = candidate
                 except (ValueError, AttributeError, TypeError):
                     pass
-            raise image_rejection(code)
+            rejection = image_rejection(code)
+            rejection.image_guard = guard
+            raise rejection
         payload=json.loads(result.stdout)
         variants=[ImageVariant(base64.b64decode(payload[n]['data'],validate=True),payload[n]['width'],payload[n]['height']) for n in ('display','thumbnail')]
         return SanitisedPhoto(payload['sha256'],payload['bytes'],*variants)
@@ -80,7 +130,8 @@ async def submit(visit_id:int,request:Request,response:Response,authorization:st
     def check(db):
         actor=require_photo_submitter(db,authorization)
         if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).first():raise HTTPException(404,'Owned recorded matchday not found')
-    await run_in_threadpool(transaction,check)
+        return actor.user_id
+    actor_user_id = await run_in_threadpool(transaction,check)
     try:
         if len(x_terraces_metadata)>2048:raise ValueError()
         raw=base64.b64decode(x_terraces_metadata+'='*(-len(x_terraces_metadata)%4),altchars=b'-_',validate=True)
@@ -99,7 +150,14 @@ async def submit(visit_id:int,request:Request,response:Response,authorization:st
             except asyncio.TimeoutError:raise HTTPException(408,'Photo upload timed out') from None
             if len(data)+len(chunk)>MAX_INPUT_BYTES:raise HTTPException(413,'Photographs must be no larger than 10 MB')
             data.extend(chunk)
-        processed=await run_in_threadpool(decode,bytes(data));data.clear()
+        try:
+            processed=await run_in_threadpool(decode,bytes(data))
+        except HTTPException as error:
+            if error.status_code == 422:
+                record_image_rejection(data, request.headers.get('content-type'), error, actor_user_id)
+            raise
+        finally:
+            data.clear()
         result=await run_in_threadpool(transaction,lambda db:service.submit(db,PrivatePhotoStorage(),authorization,visit_id,processed,metadata,idempotency_key))
         response.headers['Cache-Control']='no-store';return result
     finally:slots.release()
