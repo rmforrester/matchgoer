@@ -35,7 +35,7 @@ with Session(engine) as db:
  db.add(ClubVenue(team_id=900000001,venue_id=v.venue_id,relationship_type='HOME',status='CURRENT'))
  db.add(Fixture(fixture_id=900000001,home_team_id=900000001,away_team_id=900000002,home_team='Synthetic home',away_team='Synthetic away',venue_id=v.venue_id,fixture_date=datetime.now(timezone.utc),country='Test',league_name='Synthetic'));db.flush();baseline_venue_id=v.venue_id;db.commit()
 engine.dispose()
-modules=['test_terraces_request_diagnostic','test_terraces_image_errors','test_terraces_images','test_terraces_b1','test_terraces_storage','test_terraces_cleanup','test_terraces_api','test_terraces','test_account_claim','test_account_ux','test_identity','test_social_permissions','test_venue_visits']
+modules=['test_terraces_apple_hdr','test_terraces_request_diagnostic','test_terraces_image_errors','test_terraces_images','test_terraces_b1','test_terraces_storage','test_terraces_cleanup','test_terraces_api','test_terraces','test_account_claim','test_account_ux','test_identity','test_social_permissions','test_venue_visits']
 modules=[f'backend.tests.{name}' for name in modules if (WT/'backend/tests'/f'{name}.py').exists()]
 r=subprocess.run([sys.executable,'-m','unittest','-v',*modules],cwd=WT,env=os.environ.copy(),capture_output=True,text=True,encoding='utf-8')
 (OUT/'backend-tests.txt').write_text(r.stdout+r.stderr,encoding='utf-8');print((r.stdout+r.stderr)[-5500:]);test_returncode=r.returncode
