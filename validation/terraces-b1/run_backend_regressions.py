@@ -60,6 +60,8 @@ with Session(engine) as db:
  owner=User(account_status='registered',is_anonymous=False);db.add(owner);db.flush();owner_id=owner.user_id
  db.add(UserIdentity(user_id=owner_id,issuer='https://synthetic.test/auth/v1',subject=str(owner_id),email_verified_at=now))
  visits=[VenueVisit(user_id=owner_id,venue_id=baseline_venue_id,source='manual') for _ in range(3)];db.add_all(visits);db.flush();visit_ids=[x.visit_id for x in visits];db.commit()
+# Isolated synthetic CI owner only; never a production permission grant.
+os.environ['TERRACES_UPLOAD_USER_IDS']=str(owner_id)
 provider=type('Verified',(),{'issuer':'https://synthetic.test/auth/v1','subject':str(owner_id)})()
 outcomes=[]
 for mode,visit_id in zip(('helper','database','service'),visit_ids):
