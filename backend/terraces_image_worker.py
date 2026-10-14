@@ -20,5 +20,9 @@ except Exception as error:
     elif "UnsafeImage" in globals() and isinstance(error, UnsafeImage):
         if error.code in ("unsupported_image_encoding", "image_decode_failed", "image_resource_limit", "image_validation_failed", "image_processing_failed"):
             code = error.code
-    sys.stdout.write(json.dumps({"error_code": code}))
+    failure = {"error_code": code}
+    guard = getattr(error, "guard", None)
+    if code == "unsupported_image_encoding" and guard in ("signature_or_major_brand", "heif_compatible_codec", "decoded_format"):
+        failure['guard'] = guard
+    sys.stdout.write(json.dumps(failure))
     sys.exit(2)
