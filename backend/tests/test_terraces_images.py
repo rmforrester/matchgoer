@@ -64,3 +64,17 @@ class PhotoImageTests(unittest.TestCase):
                                                append_images=[Image.new("RGB", (16, 16), "blue")], duration=100)
         with self.assertRaises(UnsafeImage):
             sanitise_photo(output.getvalue())
+
+    def test_memory_exhaustion_is_a_safe_rejection(self):
+        data=encoded("PNG")
+        with patch("terraces_images.ImageOps.exif_transpose",side_effect=MemoryError()),self.assertRaisesRegex(UnsafeImage,"safe processing memory limit"):
+            sanitise_photo(data)
+
+    def test_transparency_is_flattened_without_colour_or_size_changes(self):
+        image=Image.new("RGBA",(40,20),(255,0,0,0));image.putpixel((20,10),(0,0,255,255))
+        stream=BytesIO();image.save(stream,format="PNG")
+        result=sanitise_photo(stream.getvalue())
+        self.assertEqual((result.display.width,result.display.height),(40,20))
+        with Image.open(BytesIO(result.display.data)) as decoded:
+            self.assertTrue(all(value>240 for value in decoded.getpixel((0,0))))
+            self.assertFalse(decoded.getexif())

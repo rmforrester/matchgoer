@@ -57,6 +57,7 @@ def sanitise_photo(data: bytes) -> SanitisedPhoto:
         formats = ["HEIF"]
     else:
         raise UnsafeImage("Only JPEG, PNG and HEIC photographs are supported")
+    clean = None
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
@@ -69,20 +70,30 @@ def sanitise_photo(data: bytes) -> SanitisedPhoto:
                 if getattr(source, "n_frames", 1) != 1:
                     raise UnsafeImage("Only one still photograph per file is supported")
                 source.load()
-                oriented = ImageOps.exif_transpose(source)
+                ImageOps.exif_transpose(source, in_place=True)
                 # Do not copy info, EXIF, XMP, ICC, GPS or embedded thumbnails.
-                rgba = oriented.convert("RGBA")
-                clean = Image.new("RGB", rgba.size, "white")
-                clean.paste(rgba, mask=rgba.getchannel("A"))
-                variants = []
-                for side in (DISPLAY_SIDE, THUMBNAIL_SIDE):
-                    variant = clean.copy()
+                with source.convert("RGBA") as rgba:
+                    clean = Image.new("RGB", rgba.size, "white")
+                    with rgba.getchannel("A") as alpha:
+                        clean.paste(rgba, mask=alpha)
+            # Release decoder-owned data and full-resolution intermediates
+            # before allocating either variant. Closing the HEIF image alone
+            # can leave plugin data referenced by the local source object.
+            del source
+            variants = []
+            for side in (DISPLAY_SIDE, THUMBNAIL_SIDE):
+                with clean.copy() as variant:
                     variant.thumbnail((side, side), Image.Resampling.LANCZOS)
                     output = BytesIO()
                     variant.save(output, format="JPEG", quality=85, progressive=True)
                     variants.append(ImageVariant(output.getvalue(), *variant.size))
     except UnsafeImage:
         raise
+    except MemoryError as error:
+        raise UnsafeImage("Photograph exceeds the safe processing memory limit") from error
     except (UnidentifiedImageError, OSError, ValueError, SyntaxError, Image.DecompressionBombError, Image.DecompressionBombWarning) as error:
         raise UnsafeImage("The photograph could not be safely decoded") from error
+    finally:
+        if clean is not None:
+            clean.close()
     return SanitisedPhoto(sha256(data).hexdigest(), len(data), *variants)

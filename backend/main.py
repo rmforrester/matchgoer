@@ -90,6 +90,11 @@ app = FastAPI(
     title="Matchgoer API"
 )
 
+# Phase B1 remains disabled until a separately approved backend activation.
+if os.getenv("TERRACES_BACKEND_ENABLED", "false").casefold() == "true":
+    from terraces_api import router as terraces_router
+    app.include_router(terraces_router)
+
 
 def ticketing_v2_serving_enabled() -> bool:
     return os.getenv("TICKETING_V2_SERVING_ENABLED", "false").strip().casefold() in {
