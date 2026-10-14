@@ -4,6 +4,24 @@ import { occupiedPhotoSlots, photoMetadata, recordedPhotoAttendance, terracesErr
 import type { MyGround } from "../app/types/grounds.ts";
 
 const file = { size: 40, type: "image/jpeg", name: "photo.jpg" };
+test("fixed image rejection codes have safe supporter copy and unknown codes fall back", () => {
+  const messages: Record<string,string> = {
+    unsupported_image_encoding: "We couldn't open that photo. Try another.",
+    image_decode_failed: "That photo didn't go through. Give it another go.",
+    image_resource_limit: "That photo's too large to process. Try a smaller one.",
+    image_validation_failed: "We couldn't use that photo. Try another.",
+    image_processing_failed: "That photo didn't go through. Give it another go.",
+  };
+  for (const [code,message] of Object.entries(messages)) {
+    const error={response:{status:422,data:{detail:{code,message:"private"}}}};
+    assert.equal(terracesError(error),message);
+    assert.equal(error.response.data.detail.code,code);
+    assert.doesNotMatch(terracesError(error),/private|image_/);
+  }
+  for (const detail of [null,"private",{code:"private"},{code:[]}]) {
+    assert.equal(terracesError({response:{status:422,data:{detail}}}),"The photo or details could not be accepted. Check the file and sharing confirmation.");
+  }
+});
 test("three active slots, including incomplete reservations; rejected/removed release slots", () => {
   assert.equal(occupiedPhotoSlots([{ status: "PENDING", upload_state: "incomplete" }, { status: "APPROVED" }, { status: "REJECTED" }, { status: "REMOVED" }] as TerracePhoto[]), 2);
   assert.equal(validatePhotoSelection([file], 2), null);
