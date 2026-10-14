@@ -37,3 +37,9 @@ test("disabled, forbidden and failed actions have safe, honest error copy", () =
   assert.match(terracesError({response:{status:503}, detail:"secret"}),/connect/);
   assert.doesNotMatch(terracesError({response:{status:503}, detail:"secret"}),/secret/);
 });
+
+test("photo errors distinguish absent routes from missing owned matchdays and replacement rules", () => {
+  assert.equal(terracesError({response:{status:404,data:{detail:"Not Found"}}}),"Photo sharing isn't available yet. Try again later.");
+  assert.equal(terracesError({response:{status:404,data:{detail:"Recorded matchday not found"}}}),"We couldn't find this matchday. Refresh My Matchdays and try again.");
+  assert.equal(terracesError({response:{status:409,data:{detail:"This photograph was already submitted for this matchday"}}}),"You've shared this photo here before. Choose a different one.");
+});

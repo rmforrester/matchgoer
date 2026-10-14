@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { useAuth } from "./AuthProvider";
 import { apiErrorMessage } from "../../lib/api-error";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -26,6 +27,11 @@ const knownDate = (value: string | null) => {
 };
 
 export default function VisitedTab() {
+  const { accountKey } = useAuth();
+  return <VisitedTabContent key={accountKey} />;
+}
+
+function VisitedTabContent() {
   const requestedReview = useSearchParams().get("review");
   const requestedVenue = useSearchParams().get("recordVenue");
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);

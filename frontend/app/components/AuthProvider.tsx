@@ -16,6 +16,7 @@ type AccountProfile = {
 type AuthContextValue = {
   loading: boolean;
   authenticated: boolean;
+  accountKey: string;
   profile: AccountProfile | null;
   email: string | null;
   issue: AccountIssue | null;
@@ -156,6 +157,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(() => ({
     loading,
     authenticated: Boolean(session && registered),
+    accountKey: session?.user.id ?? "guest",
     profile,
     email: session?.user.email ?? null,
     issue,

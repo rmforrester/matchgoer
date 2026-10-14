@@ -40,6 +40,11 @@ function ExpandButton({ expanded, hiddenCount, onClick, label }: { expanded: boo
 }
 
 export default function InterestedTab() {
+  const { accountKey } = useAuth();
+  return <InterestedTabContent key={accountKey} />;
+}
+
+function InterestedTabContent() {
   const { email } = useAuth();
   const [photoAttendances, setPhotoAttendances] = useState<PhotoAttendance[]>([]);
   const [fixtures, setFixtures] = useState<InterestedFixture[]>([]);
@@ -47,6 +52,7 @@ export default function InterestedTab() {
   const [attendanceResolution, setAttendanceResolution] = useState<InterestedFixture | null>(null);
   const [planFeedback, setPlanFeedback] = useState<Record<number, { error: boolean; message: string; expectedGoing?: boolean }>>({});
   const requestGeneration = useRef(0);
+  const active = useRef(true);
   const confirmedGoing = useRef(new Map<number, ConfirmedGoing<InterestedFixture>>());
   const savingGoing = useRef(new Set<number>());
   const focusFixture = useRef<number | null>(null);
@@ -54,16 +60,19 @@ export default function InterestedTab() {
   const [updatingFixtureIds, setUpdatingFixtureIds] = useState<number[]>([]); const [matchdayNow, setMatchdayNow] = useState(() => new Date());
   const [showAllUpcoming, setShowAllUpcoming] = useState(false); const [showAllInterested, setShowAllInterested] = useState(false); const [showAllAnswers, setShowAllAnswers] = useState(false); const [showAllPast, setShowAllPast] = useState(false);
 
-  const loadMatchdays = useCallback(async () => {
+  const loadMatchdays = useCallback(async (confirmedAttendance?: PhotoAttendance) => {
     // One bounded retry; overlapping/older loads cannot replace newer state.
     for (let attempt = 0; attempt < 2; attempt++) {
+      if (!active.current) return;
       const generation = ++requestGeneration.current;
       try {
         await api.get("/session");
         const [interestedResponse, groundsResponse] = await Promise.all([api.get("/interested"), api.get("/my-grounds")]);
-        if (generation !== requestGeneration.current) return;
+        if (!active.current || generation !== requestGeneration.current) return;
         const grounds = groundsResponse.data as MyGround[];
-        setPhotoAttendances(recordedPhotoAttendance(grounds));
+        const ownedPhotos = recordedPhotoAttendance(grounds);
+        const attendanceReadBack = !confirmedAttendance || ownedPhotos.some(visit => visit.visit_id === confirmedAttendance.visit_id);
+        setPhotoAttendances(attendanceReadBack ? ownedPhotos : [...ownedPhotos, confirmedAttendance]);
         const reconciliation = reconcileGoingRead(interestedResponse.data as InterestedFixture[], confirmedGoing.current);
         setFixtures(reconciliation.rows);
         setAttendedFixtures(grounds.flatMap((ground) => ground.attended_fixtures.map((fixture) => ({ ...fixture, venue_id: ground.venue_id, venue_name: ground.venue_name, venue_city: ground.venue_city }))).sort((a, b) => new Date(b.fixture_date).getTime() - new Date(a.fixture_date).getTime()));
@@ -83,10 +92,10 @@ export default function InterestedTab() {
         });
         if (reconciliation.changed.some(id => !reconciliation.rows.some(row => row.fixture_id === id))) setError("The latest saved list no longer includes this match.");
         setLoading(false);
-        if (reconciliation.retry.length && attempt === 0) continue;
+        if ((reconciliation.retry.length || !attendanceReadBack) && attempt === 0) continue;
         return;
       } catch (requestError) {
-        if (generation !== requestGeneration.current) return;
+        if (!active.current || generation !== requestGeneration.current) return;
         const message = apiErrorMessage(requestError, "We couldn't refresh your matchdays. Please try again.");
         if (confirmedGoing.current.size) setPlanFeedback(current => {
           const next = { ...current };
@@ -113,7 +122,7 @@ export default function InterestedTab() {
     focusFixture.current = null;
     if (document.activeElement === document.body || document.activeElement?.id === `going-button-${id}`) document.getElementById(`going-button-${id}`)?.focus();
   }, [updatingFixtureIds]);
-  useEffect(() => () => { requestGeneration.current++; }, []);
+  useEffect(() => { const current = active; const generations = requestGeneration; current.current = true; return () => { current.current = false; generations.current++; }; }, []);
   useEffect(() => { const clock = window.setInterval(() => setMatchdayNow(new Date()), 60_000); return () => window.clearInterval(clock); }, []);
   const attendedFixtureIds = useMemo(() => new Set(attendedFixtures.map((fixture) => fixture.fixture_id)), [attendedFixtures]);
   const sections = useMemo(() => partitionMatchdays(fixtures, attendedFixtureIds, matchdayNow), [fixtures, attendedFixtureIds, matchdayNow]);
@@ -145,7 +154,19 @@ export default function InterestedTab() {
   const resolveCompletedFixture = async (fixture: InterestedFixture, attended: boolean) => {
     if (updatingFixtureIds.includes(fixture.fixture_id)) return;
     setAttendanceResolution(null); setUpdatingFixtureIds((current) => [...current, fixture.fixture_id]); setFixtures((current) => current.filter((item) => item.fixture_id !== fixture.fixture_id)); setError("");
-    try { if (attended && !attendedFixtureIds.has(fixture.fixture_id)) await api.post(`/fixtures/${fixture.fixture_id}/attendance`); if (!attended) await api.delete(`/fixtures/${fixture.fixture_id}/interested`); if (attended) setAttendanceResolution(fixture); await loadMatchdays(); }
+    try {
+      let confirmed: PhotoAttendance | undefined;
+      if (attended && !attendedFixtureIds.has(fixture.fixture_id)) {
+        const response = await api.post(`/fixtures/${fixture.fixture_id}/attendance`);
+        if (!active.current) return;
+        if (!Number.isInteger(response.data.visit_id) || !Number.isInteger(response.data.venue_id) || response.data.fixture_id !== fixture.fixture_id) throw new Error("Attendance not confirmed");
+        confirmed = { ...response.data, venue_name: fixture.venue_name || "Ground not recorded", match_date: response.data.visit_date, home_team: fixture.home_team, away_team: fixture.away_team };
+        setPhotoAttendances(current => current.some(visit => visit.visit_id === confirmed?.visit_id) ? current : [...current, confirmed!]);
+      }
+      if (!attended) await api.delete(`/fixtures/${fixture.fixture_id}/interested`);
+      if (attended) setAttendanceResolution(fixture);
+      await loadMatchdays(confirmed);
+    }
     catch (requestError) { setError(apiErrorMessage(requestError, "We couldn't update this matchday. Try again.")); await loadMatchdays(); }
     finally { setUpdatingFixtureIds((current) => current.filter((id) => id !== fixture.fixture_id)); }
   };

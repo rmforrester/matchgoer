@@ -1,7 +1,7 @@
 import type { MyGround } from "../app/types/grounds.ts";
 
 export type TerracePhoto = {
-  photo_id: number; venue_id: number; fixture_id: number | null;
+  photo_id: number; venue_id: number; venue_name?: string | null; image_state?: "available" | "unavailable"; fixture_id: number | null;
   caption: string | null; display_name: string; match_date: string | null;
   home_team: string | null; away_team: string | null;
   status?: "PENDING" | "APPROVED" | "REJECTED" | "REMOVED";
@@ -40,7 +40,17 @@ export function photoMetadata(caption: string, consent: boolean): string {
 }
 export function terracesError(error: unknown): string {
   const status = (error as { response?: { status?: number } })?.response?.status;
-  if (status === 404) return "Photo sharing isn't available here yet, or this matchday is no longer available.";
+  if (status === 404) {
+    const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+    return detail === "Recorded matchday not found" || detail === "Owned recorded matchday not found" || detail === "Owned recorded attendance was not found"
+      ? "We couldn't find this matchday. Refresh My Matchdays and try again."
+      : "Photo sharing isn't available yet. Try again later.";
+  }
+  if (status === 409) {
+    const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+    if (detail === "This photograph was already submitted for this matchday") return "You've shared this photo here before. Choose a different one.";
+    if (detail === "A matchday can have no more than three photographs") return "You have three photos here already. Remove one before adding another.";
+  }
   if (status === 401) return "Sign in with your verified account to continue.";
   if (status === 403) return "Photo sharing isn't available for this account yet. Use your verified account and your own matchdays.";
   if (status === 409) return "This photo or matchday has changed. Refresh its photos before trying again.";
