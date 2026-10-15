@@ -23,6 +23,7 @@ function PhotoSubmissionContent({ attendance }: { attendance: PhotoAttendance })
   const [consent, setConsent] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<PhotoFeedback | null>(null);
   const error = feedback?.kind === "error" ? feedback.text : "";
   const message = feedback?.kind === "success" ? feedback.text : "";
@@ -69,7 +70,7 @@ function PhotoSubmissionContent({ attendance }: { attendance: PhotoAttendance })
     const fresh = drafts.filter(draft => !draft.attempted);
     const invalid = fresh.length ? validatePhotoSelection(fresh.map(d => d.file), occupiedPhotoSlots(photos)) : null;
     if (invalid) { setError(invalid); return; }
-    writing.current = true; ++request.current; setBusy(true); setError(""); setMessage("");
+    writing.current = true; ++request.current; setBusy(true); setSending(true); setError(""); setMessage("");
     let sent = 0; let reviewed = false; let outcome: PhotoFeedback | undefined;
     try {
       for (const draft of drafts) {
@@ -95,12 +96,12 @@ function PhotoSubmissionContent({ attendance }: { attendance: PhotoAttendance })
       setDrafts(current => current.map(item => item.attempted ? { ...item, outcome: uncertainPhotoResponse(e) ? "uncertain" : "failed", error: terracesError(e) } : item));
       outcome = uploadFeedback(sent, drafts.length, terracesError(e), false, uncertainPhotoResponse(e)); setFeedback(outcome);
     }
-    finally { writing.current = false; if (!scope.current?.signal.aborted) { setBusy(false); const latest = await refresh(false, sent > 0 ? outcome : undefined);
+    finally { writing.current = false; if (!scope.current?.signal.aborted) { setSending(false); setBusy(false); const latest = await refresh(false, sent > 0 ? outcome : undefined);
       if (latest) {
         const remaining = reconcilePhotoDrafts(drafts.map(d => ({ ...d, attempted: true })), latest);
         const confirmedCount = drafts.filter(d => latest.some(p => p.submission_key === d.key && p.upload_state === "ready")).length;
-        if (!remaining.length) setMessage(drafts.some(d => latest.some(p => p.submission_key === d.key && p.status !== "PENDING")) ? "Your photos are saved." : "Photos sent. Pending review.");
-        else if (confirmedCount > sent) setFeedback(uploadFeedback(confirmedCount, drafts.length, "That photo didn't go through. Give it another go."));
+        if (!remaining.length) setMessage(drafts.some(d => latest.some(p => p.submission_key === d.key && p.status !== "PENDING")) ? "Your photos are saved." : drafts.length === 1 ? "Photo sent. Pending review." : "Photos sent. Pending review.");
+        else if (confirmedCount > sent) setFeedback(uploadFeedback(confirmedCount, drafts.length, "Couldn't send that photo. Try again."));
       } } }
   }
   async function remove(photo: TerracePhoto) {
@@ -129,7 +130,7 @@ function PhotoSubmissionContent({ attendance }: { attendance: PhotoAttendance })
   }
   return <section aria-label={`Photos from ${attendance.venue_name}`} className="mt-3 min-w-0 border-t border-[var(--tt-rule)] pt-3">
     <div className="flex items-center justify-between gap-2"><h3 className="tt-display text-2xl uppercase">From the Terraces</h3><span className="shrink-0 text-xs text-[var(--tt-muted)]">{occupied}/3 photos</span></div>
-    {busy && <p role="status" className="text-sm">One moment…</p>}
+    {busy && <p role="status" className="text-sm">{sending ? drafts.length === 1 ? "Sending your photo\u2026" : "Sending your photos\u2026" : "One moment\u2026"}</p>}
     {error && <p role="alert" className="mt-2 text-sm font-bold text-red-800">{error}</p>}
     {message && <p role="status" className="mt-2 text-sm font-bold">{message}</p>}
     {!loaded && !busy && <button type="button" onClick={() => void refresh()} className="min-h-11 text-sm underline">Try again</button>}
@@ -138,7 +139,7 @@ function PhotoSubmissionContent({ attendance }: { attendance: PhotoAttendance })
       {!drafts.length && <div className="mt-3 grid grid-cols-3 items-start gap-2">
         {visible.map(photo => <article key={photo.photo_id} className="relative min-w-0">
           <TerracePhotoView photo={photo} refresh={() => void refresh()} showContext={false} compact onOpen={() => setSelectedPhoto(photo.photo_id)} />
-          <span className={`pointer-events-none absolute bottom-0 left-0 px-2 py-1 text-[0.65rem] font-bold uppercase ${photo.status === "PENDING" ? "bg-[var(--tt-gold)] text-black" : photo.status === "REJECTED" ? "bg-[var(--tt-paper)] text-black" : "bg-[var(--brand-interactive)] text-white"}`}>{photoStatus(photo)}</span>
+          <span className={photo.status === "APPROVED" ? "sr-only" : `pointer-events-none absolute bottom-0 left-0 px-2 py-1 text-[0.65rem] font-bold uppercase ${photo.status === "PENDING" ? "bg-[var(--tt-gold)] text-black" : photo.status === "REJECTED" ? "bg-[var(--tt-paper)] text-black" : "bg-[var(--brand-interactive)] text-white"}`}>{photoStatus(photo)}</span>
         </article>)}
         {occupied < 3 && <button type="button" disabled={busy} aria-label="Add photos" onClick={() => picker.current?.click()} className="flex aspect-square min-h-11 flex-col items-center justify-center border border-dashed border-[var(--tt-rule)] px-1 text-xs font-bold uppercase"><span aria-hidden="true" className="text-3xl font-normal">+</span>Add photo</button>}
         {Array.from({ length: Math.max(0, 3 - visible.length - (occupied < 3 ? 1 : 0)) }, (_, i) => <div key={i} aria-hidden="true" className="aspect-square border border-dashed border-[var(--tt-rule)]" />)}

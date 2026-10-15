@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { refreshFailure, uploadFeedback, uncertainPhotoResponse } from "./terraces-feedback.ts";
 test("whole-batch success only when every selected photo is confirmed", () => {
+  assert.equal(uploadFeedback(1,1,"").text,"Photo sent. Pending review.");
   assert.equal(uploadFeedback(3,3,"").kind,"success");
   assert.equal(uploadFeedback(0,3,"That didn't work. Give it another go.").text,"That didn't work. Give it another go.");
   assert.equal(uploadFeedback(0,3,"failure").kind,"error");
@@ -12,7 +13,7 @@ test("partial success has one truthful outcome and remaining count", () => {
 });
 test("failed refresh preserves confirmed persistence without calling submission failed", () => {
   const outcome=refreshFailure(uploadFeedback(3,3,""));
-  assert.equal(outcome.kind,"error");assert.match(outcome.text,/Photos sent/);assert.match(outcome.text,/Can't load/);
+  assert.equal(outcome.kind,"success");assert.match(outcome.text,/Photos sent/);assert.match(outcome.text,/Can't load/);
   assert.doesNotMatch(outcome.text,/didn't work/);
   assert.equal(refreshFailure().text,"Can't connect right now. Try again in a moment.");
 });

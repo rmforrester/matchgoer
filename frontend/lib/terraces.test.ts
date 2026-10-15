@@ -7,10 +7,10 @@ const file = { size: 40, type: "image/jpeg", name: "photo.jpg" };
 test("fixed image rejection codes have safe supporter copy and unknown codes fall back", () => {
   const messages: Record<string,string> = {
     unsupported_image_encoding: "We couldn't open that photo. Try another.",
-    image_decode_failed: "That photo didn't go through. Give it another go.",
+    image_decode_failed: "Couldn't send that photo. Try again.",
     image_resource_limit: "That photo's too large to process. Try a smaller one.",
     image_validation_failed: "We couldn't use that photo. Try another.",
-    image_processing_failed: "That photo didn't go through. Give it another go.",
+    image_processing_failed: "Couldn't send that photo. Try again.",
   };
   for (const [code,message] of Object.entries(messages)) {
     const error={response:{status:422,data:{detail:{code,message:"private"}}}};

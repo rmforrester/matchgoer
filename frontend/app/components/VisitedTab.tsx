@@ -53,6 +53,14 @@ function VisitedTabContent() {
   const [editingVisitId, setEditingVisitId] = useState<number | null>(null);
   const [timeframe, setTimeframe] = useState<GroundTimeframe>("lifetime");
   const [reviewingId, setReviewingId] = useState<number | null>(null);
+  const [ratingMessage, setRatingMessage] = useState("");
+  const savingReview = useRef(false);
+  const ratingNotice = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (!ratingMessage) return;
+    ratingNotice.current?.focus({ preventScroll: true });
+    ratingNotice.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [ratingMessage]);
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (reviewingId === null || loading) return;
@@ -83,6 +91,7 @@ function VisitedTabContent() {
   }, []);
 
   const showReview = (ground: MyGround) => {
+    setRatingMessage("");
     setReviewingId(ground.venue_id);
     setScores({
       atmosphere: ground.review?.atmosphere_score ?? null,
@@ -148,13 +157,19 @@ function VisitedTabContent() {
   };
 
   const submitReview = async () => {
-    if (reviewingId === null || saving) return;
-    setSaving(true); setError("");
+    if (reviewingId === null || saving || savingReview.current) return;
+    const venueId = reviewingId;
+    savingReview.current = true; setSaving(true); setError(""); setRatingMessage("");
     try {
-      await api.patch(`/venues/${reviewingId}/away-day-reviews`, { recommend: scores.recommend, atmosphere_score: scores.atmosphere, pubs_score: scores.pubs, getting_there_score: scores.travel, facilities_score: scores.facilities });
-      await loadGrounds(); setReviewingId(null);
-    } catch (requestError) { setError(apiErrorMessage(requestError, "Unable to save your review.")); }
-    finally { setSaving(false); }
+      const { data } = await api.patch<GroundReview & { venue_id: number }>(`/venues/${venueId}/away-day-reviews`, { recommend: scores.recommend, atmosphere_score: scores.atmosphere, pubs_score: scores.pubs, getting_there_score: scores.travel, facilities_score: scores.facilities });
+      if (data.venue_id !== venueId || !Number.isInteger(data.review_id)) throw new Error("Rating not confirmed");
+      const complete = [data.overall_score, data.atmosphere_score, data.pubs_score, data.getting_there_score, data.facilities_score].every(value => value !== null) && data.recommend !== null;
+      setGrounds(current => current.map(ground => ground.venue_id === venueId ? { ...ground, review: { ...data, state: complete ? "completed" : "partial", completed: complete } } : ground));
+      setReviewingId(null); setRatingMessage("RATING SAVED");
+      // Reuse the persisted response; an unrelated refresh cannot turn
+      // this acknowledged write into a failure or overwrite it with old data.
+    } catch { setError("Couldn't save your rating. Try again."); }
+    finally { savingReview.current = false; setSaving(false); }
   };
 
   const findPastMatches = async (venueId: number, date = pastMatchDate) => {
@@ -211,6 +226,12 @@ function VisitedTabContent() {
       <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
       <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
       <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not recorded"}</p>
+      {ground.review && (ground.review.overall_score !== null || ground.review.recommend !== null) && <section aria-label={`Your rating for ${ground.venue_name}`} className="mt-3 border-t border-[var(--tt-rule)] pt-3">
+        <h3 className="tt-kicker">YOUR RATING</h3>
+        <dl className="mt-2 grid gap-1 text-sm">{([['Atmosphere', ground.review.atmosphere_score], ['Pubs & food', ground.review.pubs_score], ['Getting there', ground.review.getting_there_score], ['Stadium experience', ground.review.facilities_score]] as const).map(([label, value]) => <div key={label} className="flex justify-between gap-3"><dt>{label}</dt><dd className="font-bold">{value ?? "Not rated"}</dd></div>)}</dl>
+        {ground.review.recommend !== null && <p className="mt-1 text-xs">Would recommend: {ground.review.recommend ? "Yes" : "No"}</p>}
+        <button type="button" disabled={saving} onClick={() => void openReview(ground)} className="min-h-11 text-xs font-extrabold underline">EDIT RATING &rarr;</button>
+      </section>}
       {reviewingId === ground.venue_id && Number(requestedReview) !== ground.venue_id && renderReviewPanel(ground)}
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
@@ -240,6 +261,7 @@ function VisitedTabContent() {
 
   return <main className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
     <header className="border-b-2 border-[var(--tt-ink)] pb-3"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My football world</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Football takes you places.</p></header>
+    {ratingMessage && <p ref={ratingNotice} tabIndex={-1} role="status" className="mt-4 scroll-mt-4 border-l-2 border-[var(--tt-gold)] pl-3 text-sm font-bold">{ratingMessage}</p>}
     {!loading && requestedReview && grounds.filter(ground => ground.venue_id === reviewingId && ground.venue_id === Number(requestedReview)).map(ground => <div key={ground.venue_id}><p className="mt-4 font-bold">{ground.venue_name}</p>{renderReviewPanel(ground)}</div>)}
     {!loading && (grounds.length === 0 || showAddGround) && recordForm}
     {!loading && grounds.length > 0 && <button type="button" onClick={() => setShowAddGround((current) => !current)} aria-expanded={showAddGround} aria-controls="add-ground" className="tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">{showAddGround ? "Close add ground" : "+ Add a ground"}</button>}

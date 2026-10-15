@@ -23,5 +23,5 @@ test("gallery status never calls an unpublished photo live", () => {
   assert.equal(photoStatus({...photo("rejected"), status:"REJECTED"}), "Rejected");
   assert.equal(photoStatus(photo("pending")), "Pending");
   assert.equal(photoStatus({...photo("approved"), status:"APPROVED", published_at:null}), "Approved");
-  assert.equal(photoStatus({...photo("live"), status:"APPROVED", published_at:"2026-10-14"}), "Live");
+  assert.equal(photoStatus({...photo("live"), status:"APPROVED", published_at:"2026-10-14"}), "Shared");
 });
