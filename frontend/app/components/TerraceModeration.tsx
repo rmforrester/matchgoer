@@ -45,8 +45,16 @@ function TerraceModerationContent() {
   const [rejecting, setRejecting] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const scope = useRef(new AbortController());
+  const removedFromQueue = useRef(new Set<string>());
+  const resolved = useRef(new Set<number>());
+  useEffect(() => {
+    if (feedback?.kind !== "success") return;
+    const timer = window.setTimeout(() => setFeedback(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [feedback]);
   const generation = useRef(0); const writing = useRef(false); const selectedTab = useRef(tab);
   const load = useCallback(async (state: State, after = 0, clear = true, confirmed?: string) => {
+    if (writing.current) return;
     const request = ++generation.current; setBusy(true); if (clear) setError("");
     try {
       // Every tab is independently protected by B1, including Reported.
@@ -55,14 +63,15 @@ function TerraceModerationContent() {
         const pending = await api.get<ModeratorPage>("/terraces/moderator/photos", { params: { limit: 1 } });
         const detail = await Promise.all(response.data.reports.map(report => report.photo_id === null ? null : api.get<TerracePhoto>(`/terraces/photos/${report.photo_id}`).then(result => result.data).catch(() => null)));
         if (scope.current?.signal.aborted || request !== generation.current || selectedTab.current !== state) return;
-        setReports(current => after ? [...current, ...response.data.reports] : response.data.reports);
-        setPhotos(current => after ? [...current, ...detail.filter((photo): photo is TerracePhoto => photo !== null)] : detail.filter((photo): photo is TerracePhoto => photo !== null));
+        setReports(current => Array.from(new Map((after ? [...current, ...response.data.reports] : response.data.reports).filter(report => !resolved.current.has(report.report_id)).map(report => [report.report_id, report])).values()));
+        setPhotos(current => Array.from(new Map((after ? [...current, ...detail.filter((photo): photo is TerracePhoto => photo !== null)] : detail.filter((photo): photo is TerracePhoto => photo !== null)).map(photo => [photo.photo_id, photo])).values()));
         setCount(pending.data.pending_count); setNext(response.data.next_id);
       } else {
         const response = await api.get<ModeratorPage>("/terraces/moderator/photos", { params: { state, after_id: after } });
         if (scope.current?.signal.aborted || request !== generation.current || selectedTab.current !== state) return;
-        setPhotos(current => after ? [...current, ...response.data.photos] : response.data.photos); setReports([]);
-        setCount(response.data.pending_count); setNext(response.data.next_id);
+        const eligible = response.data.photos.filter(photo => photo.status === state && photo.upload_state === "ready" && (state !== "APPROVED" || photo.published_at) && !removedFromQueue.current.has(`${state}:${photo.photo_id}`));
+        setPhotos(current => Array.from(new Map((after ? [...current, ...eligible] : eligible).map(photo => [photo.photo_id, photo])).values())); setReports([]);
+        setCount(Math.max(0, response.data.pending_count - (state === "PENDING" ? response.data.photos.filter(photo => removedFromQueue.current.has(`PENDING:${photo.photo_id}`)).length : 0))); setNext(response.data.next_id);
       }
       setAllowed(true);
     } catch (e) {
@@ -90,13 +99,14 @@ function TerraceModerationContent() {
       const response = method === "delete" ? await api.delete(path, { signal: scope.current?.signal }) : await api.post(path, reason ? { reason } : undefined, { signal: scope.current?.signal });
       if (scope.current?.signal.aborted) return;
       if (response.data.status !== expected) throw new Error("Action not confirmed");
-      if (expected === "resolved") setReports(current => current.filter(report => report.report_id !== response.data.report_id));
+      if (expected === "resolved") { resolved.current.add(response.data.report_id); setReports(current => current.filter(report => report.report_id !== response.data.report_id)); }
       else {
+        removedFromQueue.current.add(`${tab}:${response.data.photo_id}`);
         setPhotos(current => current.filter(photo => photo.photo_id !== response.data.photo_id));
         if (tab === "PENDING") setCount(current => Math.max(0, current - 1));
       }
       confirmed = expected === "APPROVED" ? "Photo is live." : expected === "REJECTED" ? "Photo won't be shared." : expected === "resolved" ? "Report resolved." : "Photo removed.";
-      setMessage(confirmed);
+      setMessage(confirmed); setRejecting(null); setNotes({});
     } catch (e) { if (!scope.current?.signal.aborted) setError(terracesError(e)); }
     finally { writing.current = false; if (!scope.current?.signal.aborted) { setBusy(false); await load(tab, 0, false, confirmed); } }
   }
@@ -108,17 +118,16 @@ function TerraceModerationContent() {
   return <div className="mt-5 min-w-0">
     {busy && <p role="status">One moment…</p>}{error && <p role="alert" className="mb-3 text-sm font-bold text-red-800">{error}</p>}{message && <p role="status" className="mb-3 font-bold">{message}</p>}
     {!allowed ? <button disabled={busy} onClick={() => void load("PENDING")} className="min-h-11 font-bold underline">Try again</button> : <>
-      <p className="text-sm font-bold">{count} pending</p>
       <nav aria-label="Submission sections" className="my-3 grid grid-cols-3 gap-1 border-b border-[var(--tt-rule)]">
-        {([['PENDING', 'Pending'], ['APPROVED', 'Published'], ['REPORTS', 'Reported']] as const).map(([state, label]) => <button type="button" key={state} disabled={busy} aria-current={tab === state ? "page" : undefined} className={`min-h-11 text-sm font-extrabold uppercase ${tab === state ? "underline decoration-2 underline-offset-4" : ""}`} onClick={() => { selectedTab.current = state; setTab(state); setPhotos([]); setReports([]); setMessage(""); void load(state); }}>{label}</button>)}
+        {([['PENDING', 'Pending'], ['APPROVED', 'Published'], ['REPORTS', 'Reported']] as const).map(([state, label]) => <button type="button" key={state} disabled={busy} aria-current={tab === state ? "page" : undefined} className={`min-h-11 min-w-0 text-xs font-extrabold uppercase ${tab === state ? "underline decoration-2 underline-offset-4" : ""}`} onClick={() => { selectedTab.current = state; setTab(state); setPhotos([]); setReports([]); setMessage(""); void load(state); }}>{label}{state === "PENDING" ? ` (${count})` : ""}</button>)}
       </nav>
       {tab !== "REPORTS" && !photos.length && !busy && !error && <p className="py-4">{tab === "PENDING" ? "All caught up." : "Nothing here yet."}</p>}
-      {tab !== "REPORTS" && photos.map(photo => <article key={photo.photo_id} className="min-w-0 border-b border-[var(--tt-rule)] py-3 [&_figure]:float-left [&_figure]:mr-3 [&_figure]:w-24 [&_figure]:max-w-[35%] after:block after:clear-both">
-        <p className="mb-2 break-words font-bold">{photo.venue_name || "Ground not recorded"} &middot; {photo.display_name}</p>
-        <TerracePhotoView photo={photo} refresh={() => void load(tab)} compact />
+      {tab !== "REPORTS" && photos.map(photo => <article key={photo.photo_id} className="min-w-0 border-b border-[var(--tt-rule)] py-3">
+        <TerracePhotoView photo={photo} refresh={() => void load(tab)} showContext={false} showCaption={false} />
+        <p className="mt-2 break-words font-bold">{photo.venue_name || "Ground not recorded"}</p>
         <p className="mt-1 text-sm font-bold">{photo.home_team && photo.away_team ? `${photo.home_team} v ${photo.away_team}` : "Historical matchday"}</p>
         <p className="text-xs text-[var(--tt-muted)]">Match date: {photo.match_date?.slice(0, 10) || "Not recorded"} &middot; Submitted: {photo.submitted_at?.slice(0, 10) || "Not recorded"}</p>
-        {photo.caption && <p className="mt-1 break-words text-sm">{photo.caption}</p>}
+        {photo.display_name && <p className="mt-1 break-words text-xs text-[var(--tt-muted)]">{photo.display_name}</p>}{photo.caption && <p className="mt-1 break-words text-sm">{photo.caption}</p>}
         {photo.held && <p className="text-sm font-bold">Keep this photo while the concern is reviewed.</p>}
         {tab === "PENDING" ? <>
           <div className="clear-both mt-3 grid grid-cols-2 gap-2">
@@ -130,11 +139,11 @@ function TerraceModerationContent() {
         </> : <button disabled={busy} onClick={() => void action(`/terraces/moderator/photos/${photo.photo_id}`, "delete", "REMOVED")} className="min-h-11 font-bold underline">REMOVE PHOTO</button>}
       </article>)}
       {tab === "REPORTS" && !reports.length && !busy && !error && <p className="py-4">Nothing here yet.</p>}
-      {tab === "REPORTS" && reports.map(report => { const photo = photos.find(item => item.photo_id === report.photo_id); return <article key={report.report_id} className="min-w-0 border-b border-[var(--tt-rule)] py-3 [&_figure]:float-left [&_figure]:mr-3 [&_figure]:w-24 [&_figure]:max-w-[35%] after:block after:clear-both">
-        {photo ? <><p className="mb-2 break-words font-bold">{photo.venue_name || "Ground not recorded"} &middot; {photo.display_name}</p><TerracePhotoView photo={photo} refresh={() => void load(tab)} compact />
+      {tab === "REPORTS" && reports.map(report => { const photo = photos.find(item => item.photo_id === report.photo_id); return <article key={report.report_id} className="min-w-0 border-b border-[var(--tt-rule)] py-3">
+        {photo ? <><TerracePhotoView photo={photo} refresh={() => void load(tab)} showContext={false} showCaption={false} /><p className="mt-2 break-words font-bold">{photo.venue_name || "Ground not recorded"}</p>
         <p className="mt-1 text-sm font-bold">{photo.home_team && photo.away_team ? `${photo.home_team} v ${photo.away_team}` : "Historical matchday"}</p>
         <p className="text-xs text-[var(--tt-muted)]">Match date: {photo.match_date?.slice(0, 10) || "Not recorded"} &middot; Submitted: {photo.submitted_at?.slice(0, 10) || "Not recorded"}</p>
-        {photo.caption && <p className="mt-1 break-words text-sm">{photo.caption}</p>}</> : <p>Can&apos;t show this reported photo right now.</p>}
+        {photo.display_name && <p className="mt-1 break-words text-xs text-[var(--tt-muted)]">{photo.display_name}</p>}{photo.caption && <p className="mt-1 break-words text-sm">{photo.caption}</p>}</> : <p>Can&apos;t show this reported photo right now.</p>}
         <p className="mt-2 break-words text-sm"><strong>Report:</strong> {report.reason}</p>
         {photo?.status === "APPROVED" && <button disabled={busy} onClick={() => void action(`/terraces/moderator/photos/${photo.photo_id}`, "delete", "REMOVED")} className="min-h-11 font-bold underline">REMOVE PHOTO</button>}
         {reason(`report-${report.report_id}`, "Resolution note")}

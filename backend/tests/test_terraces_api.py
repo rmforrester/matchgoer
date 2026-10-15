@@ -11,6 +11,21 @@ from terraces_storage import LazyPrivatePhotoStorage
 from models import TerracePhoto as Photo
 
 class PhotoApiTests(unittest.TestCase):
+    def test_owner_submission_reconciliation_key_is_private(self):
+        identifier = self.submit()['photo_id']
+        row = self.db.get(Photo, identifier)
+        result = api.owned_photos(self.visit.visit_id, Response(), authorization='Bearer synthetic')
+        self.assertTrue(result['reconciliation_supported'])
+        owned = result['photos']
+        self.assertEqual(owned[0]['submission_key'], row.submission_key)
+        self.assertEqual(owned[0]['upload_state'], 'ready')
+        import terraces_service as service
+        self.assertNotIn('submission_key', service.photo_payload(self.db, self.storage, row))
+        self.assertNotIn('submission_key', service.photo_payload(self.db, self.storage, row, private=True))
+        self.provider.subject = str(self.other.user_id)
+        with self.assertRaises(HTTPException):
+            api.owned_photos(self.visit.visit_id, Response(), authorization='Bearer synthetic')
+
     def test_public_photo_http_route_is_founder_only(self):
         from fastapi import FastAPI
         app=FastAPI();app.include_router(api.router)

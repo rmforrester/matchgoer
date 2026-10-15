@@ -1,6 +1,7 @@
 import type { MyGround } from "../app/types/grounds.ts";
 
 export type TerracePhoto = {
+  submission_key?: string;
   photo_id: number; venue_id: number; venue_name?: string | null; image_state?: "available" | "unavailable"; fixture_id: number | null;
   caption: string | null; display_name: string; match_date: string | null;
   home_team: string | null; away_team: string | null;
@@ -22,7 +23,7 @@ export function recordedPhotoAttendance(grounds: MyGround[]): PhotoAttendance[] 
 }
 export function validatePhotoSelection(files: { size: number; type: string; name: string }[], occupied: number): string | null {
   if (!files.length) return "Choose a photograph.";
-  if (files.length + occupied > 3) return "You can have up to three pending or approved photos per matchday.";
+  if (files.length + occupied > 3) return "You're at three photos for this matchday.";
   for (const file of files) {
     if (!file.size || file.size > 10_000_000) return "Each photograph must be no larger than 10 MB.";
     if (!["image/jpeg", "image/png", "image/heic", "image/heif"].includes(file.type.toLowerCase()) &&

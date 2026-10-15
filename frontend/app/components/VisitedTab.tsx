@@ -53,6 +53,15 @@ function VisitedTabContent() {
   const [editingVisitId, setEditingVisitId] = useState<number | null>(null);
   const [timeframe, setTimeframe] = useState<GroundTimeframe>("lifetime");
   const [reviewingId, setReviewingId] = useState<number | null>(null);
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (reviewingId === null || loading) return;
+    const frame = window.requestAnimationFrame(() => {
+      reviewHeading.current?.focus({ preventScroll: true });
+      reviewHeading.current?.scrollIntoView({ block: "start", behavior: "instant" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [reviewingId, loading]);
   const [showAddGround, setShowAddGround] = useState(false);
   useEffect(() => {
     if (!selected || loading) return;
@@ -190,7 +199,7 @@ function VisitedTabContent() {
 
   const renderReviewPanel = (ground: MyGround) => <section className="mt-5 border-t-2 border-[var(--tt-ink)] pt-5" aria-labelledby={`review-heading-${ground.venue_id}`}>
     <p className="tt-kicker">Your verdict</p>
-    <h3 id={`review-heading-${ground.venue_id}`} className="tt-display mt-1 text-4xl leading-none">{reviewLabel(ground.review)}</h3>
+    <h3 ref={reviewHeading} tabIndex={-1} id={`review-heading-${ground.venue_id}`} className="tt-display scroll-mt-4 mt-1 text-4xl leading-none">{reviewLabel(ground.review)}</h3>
     <p className="mt-2 text-[var(--tt-muted)]">Your review is one opinion of the ground and remains separate from your visit history.</p>
     <div className="mt-5 bg-[var(--tt-newsprint)] p-4 sm:p-5"><p className="tt-display text-4xl text-[var(--brand-interactive)]">{overall} / 10</p><div className="mt-5 grid gap-5 sm:grid-cols-2">{([['Atmosphere','atmosphere'],['Pubs & food','pubs'],['Getting there','travel'],['Stadium experience','facilities']] as const).map(([label,key]) => <fieldset key={key}><legend className="tt-kicker">{label}</legend><div className="mt-2 flex flex-wrap gap-1">{[1,2,3,4,5,6,7,8,9,10].map((score) => <button key={score} type="button" aria-pressed={scores[key] === score} onClick={() => setScores((current) => ({ ...current, [key]: score }))} className={`min-h-10 min-w-10 border-2 border-[var(--tt-ink)] text-sm font-bold ${scores[key] === score ? "bg-[var(--brand-interactive)] text-[var(--tt-paper)]" : "bg-[var(--tt-paper)]"}`}>{score}</button>)}</div></fieldset>)}</div><fieldset className="mt-6"><legend className="tt-kicker">Would you recommend this ground?</legend><div className="mt-2 flex gap-2"><button type="button" onClick={() => setScores((current) => ({...current,recommend:true}))} className={`tt-action px-5 ${scores.recommend === true ? "" : "tt-action-secondary"}`}>Yes</button><button type="button" onClick={() => setScores((current) => ({...current,recommend:false}))} className={`tt-action px-5 ${scores.recommend === false ? "" : "tt-action-secondary"}`}>No</button></div></fieldset>
       <MatchdayTips venueId={ground.venue_id} inline />
@@ -202,7 +211,7 @@ function VisitedTabContent() {
       <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
       <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
       <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not recorded"}</p>
-      {reviewingId === ground.venue_id && renderReviewPanel(ground)}
+      {reviewingId === ground.venue_id && Number(requestedReview) !== ground.venue_id && renderReviewPanel(ground)}
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
         <button type="button" aria-expanded={expandedId === ground.venue_id} aria-controls={`ground-visits-${ground.venue_id}`} onClick={() => setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id)} className="tt-action tt-action-secondary min-w-0 whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button>
@@ -231,6 +240,7 @@ function VisitedTabContent() {
 
   return <main className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
     <header className="border-b-2 border-[var(--tt-ink)] pb-3"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My football world</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Football takes you places.</p></header>
+    {!loading && requestedReview && grounds.filter(ground => ground.venue_id === reviewingId && ground.venue_id === Number(requestedReview)).map(ground => <div key={ground.venue_id}><p className="mt-4 font-bold">{ground.venue_name}</p>{renderReviewPanel(ground)}</div>)}
     {!loading && (grounds.length === 0 || showAddGround) && recordForm}
     {!loading && grounds.length > 0 && <button type="button" onClick={() => setShowAddGround((current) => !current)} aria-expanded={showAddGround} aria-controls="add-ground" className="tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">{showAddGround ? "Close add ground" : "+ Add a ground"}</button>}
     {!loading && grounds.length > 0 && showAddGround && <section id="add-ground" className="mt-8 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="add-ground-heading"><h2 id="add-ground-heading" className="tt-display text-3xl leading-none sm:text-4xl">Add a ground</h2>{grounds.length > 0 && <p className="mt-1 text-sm text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>}<div className="mt-4 flex flex-wrap gap-2"><label htmlFor="ground-search" className="sr-only">Search for a ground or city</label><input id="ground-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} placeholder="Search ground or city" className="tt-control min-w-0 flex-1 px-4"/><button type="button" disabled={searching || query.trim().length < 2} onClick={() => void search()} className="tt-action px-5">{searching ? "Searching…" : "Search"}</button></div>

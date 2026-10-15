@@ -172,7 +172,8 @@ def owned_photos(visit_id:int,response:Response,authorization:str|None=Header(de
     def action(db):
         actor=require_verified_account(db,authorization)
         if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).first():raise HTTPException(404,'Recorded matchday not found')
-        return {'photos':[service.photo_payload(db,PrivatePhotoStorage(),row,private=True) for row in db.query(Photo).filter_by(visit_id=visit_id,owner_user_id=actor.user_id).order_by(Photo.submitted_at,Photo.photo_id).all()]}
+        # Owner-only reconciliation: never include submission keys in public or moderator payloads.
+        return {'reconciliation_supported':True,'photos':[{**service.photo_payload(db,PrivatePhotoStorage(),row,private=True), 'submission_key':row.submission_key} for row in db.query(Photo).filter_by(visit_id=visit_id,owner_user_id=actor.user_id).order_by(Photo.submitted_at,Photo.photo_id).all()]}
     response.headers['Cache-Control']='no-store';return transaction(action)
 
 @router.get('/photos/{photo_id}')
