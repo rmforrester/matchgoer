@@ -9,10 +9,10 @@ export function reconcilePhotoDrafts(drafts: PhotoDraft[], photos: TerracePhoto[
     if (saved && (saved.status === "REMOVED" || saved.status === "REJECTED")) return [];
     // A successful authoritative owner read establishes whether the prior
     // request completed. Incomplete reservations resume with the SAME UUID.
-    return [{ ...draft, outcome: "failed" as const, error: draft.outcome === "failed" && draft.error ? draft.error : "That photo didn't go through. Give it another go." }];
+    return [{ ...draft, outcome: "failed" as const, error: draft.outcome === "failed" && draft.error ? draft.error : "Couldn't send that photo. Try again." }];
   });
 }
 export function photoStatus(photo: TerracePhoto): string {
   if (photo.upload_state === "incomplete") return "Not sent";
-  return photo.status === "APPROVED" ? photo.published_at ? "Live" : "Approved" : photo.status === "REJECTED" ? "Rejected" : "Pending";
+  return photo.status === "APPROVED" ? photo.published_at ? "Shared" : "Approved" : photo.status === "REJECTED" ? "Rejected" : "Pending";
 }

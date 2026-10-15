@@ -63,7 +63,7 @@ export function terracesError(error: unknown): string {
       case "image_resource_limit": return "That photo's too large to process. Try a smaller one.";
       case "image_validation_failed": return "We couldn't use that photo. Try another.";
       case "image_decode_failed":
-      case "image_processing_failed": return "That photo didn't go through. Give it another go.";
+      case "image_processing_failed": return "Couldn't send that photo. Try again.";
       default: return "The photo or details could not be accepted. Check the file and sharing confirmation.";
     }
   }
