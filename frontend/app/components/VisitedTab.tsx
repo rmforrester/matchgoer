@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
 import type { GroundReview, MyGround } from "../types/grounds";
 import MatchdayTips from "./MatchdayTips";
+import GroundPhotograph from "./GroundPhotograph";
 import { footballCountry, footballPassport, groundTimeframes, groundsInTimeframe, type GroundTimeframe } from "../../lib/my-grounds";
 
 const PersonalGroundMap = dynamic(() => import("./PersonalGroundMap"), { ssr: false });
@@ -225,30 +226,37 @@ function VisitedTabContent() {
 
   const renderReviewPanel = (ground: MyGround) => <section id={`review-form-${ground.venue_id}`} className="mt-4 border-t border-[var(--tt-rule)] pt-4" aria-labelledby={`review-heading-${ground.venue_id}`}>
 
-    <h3 ref={reviewHeading} tabIndex={-1} id={`review-heading-${ground.venue_id}`} className="tt-display scroll-mt-4 mt-1 text-4xl leading-none">{reviewLabel(ground.review)}</h3>
+    <h3 ref={reviewHeading} tabIndex={-1} id={`review-heading-${ground.venue_id}`} className="sr-only scroll-mt-4">{reviewLabel(ground.review)}</h3>
 
-    <div className="mt-4"><p className="tt-display text-4xl text-[var(--brand-interactive)]">{overall} / 10</p><div className="mt-5 grid gap-5 sm:grid-cols-2">{([['Atmosphere','atmosphere'],['Pubs & food','pubs'],['Getting there','travel'],['Stadium experience','facilities']] as const).map(([label,key]) => <fieldset key={key}><legend className="tt-kicker">{label}</legend><div className="mt-2 flex flex-wrap gap-1">{[1,2,3,4,5,6,7,8,9,10].map((score) => <button key={score} type="button" aria-pressed={scores[key] === score} onClick={() => setScores((current) => ({ ...current, [key]: score }))} className={`min-h-10 min-w-10 border-2 border-[var(--tt-ink)] text-sm font-bold ${scores[key] === score ? "bg-[var(--brand-interactive)] text-[var(--tt-paper)]" : "bg-[var(--tt-paper)]"}`}>{score}</button>)}</div></fieldset>)}</div><fieldset className="mt-6"><legend className="tt-kicker">Would you recommend this ground?</legend><div className="mt-2 flex gap-2"><button type="button" aria-pressed={scores.recommend === true} onClick={() => setScores((current) => ({...current,recommend:true}))} className={`tt-action px-5 ${scores.recommend === true ? "" : "tt-action-secondary"}`}>Yes</button><button type="button" aria-pressed={scores.recommend === false} onClick={() => setScores((current) => ({...current,recommend:false}))} className={`tt-action px-5 ${scores.recommend === false ? "" : "tt-action-secondary"}`}>No</button></div></fieldset>
+    <div className="mt-3"><p className="sr-only">Overall preview: {overall} / 10</p><div className="grid gap-4 sm:grid-cols-2">{([['Atmosphere','atmosphere'],['Pubs & food','pubs'],['Getting there','travel'],['Stadium experience','facilities']] as const).map(([label,key]) => <fieldset key={key}><legend className="tt-kicker">{label}</legend><div className="mt-2 flex flex-wrap gap-1">{[1,2,3,4,5,6,7,8,9,10].map((score) => <button key={score} type="button" aria-pressed={scores[key] === score} onClick={() => setScores((current) => ({ ...current, [key]: score }))} className={`min-h-10 min-w-10 border-2 border-[var(--tt-ink)] text-sm font-bold ${scores[key] === score ? "bg-[var(--brand-interactive)] text-[var(--tt-paper)]" : "bg-[var(--tt-paper)]"}`}>{score}</button>)}</div></fieldset>)}</div><fieldset className="mt-6"><legend className="tt-kicker">Would you recommend this ground?</legend><div className="mt-2 flex gap-2"><button type="button" aria-pressed={scores.recommend === true} onClick={() => setScores((current) => ({...current,recommend:true}))} className={`tt-action px-5 ${scores.recommend === true ? "" : "tt-action-secondary"}`}>Yes</button><button type="button" aria-pressed={scores.recommend === false} onClick={() => setScores((current) => ({...current,recommend:false}))} className={`tt-action px-5 ${scores.recommend === false ? "" : "tt-action-secondary"}`}>No</button></div></fieldset>
       <MatchdayTips venueId={ground.venue_id} inline />
       {error && <p role="alert" className="mt-4 text-sm font-bold text-red-800">{error}</p>}
-      <div className="mt-6 flex flex-wrap gap-3"><button type="button" disabled={saving} onClick={() => { showReview(ground); returnFocusVenue.current = ground.venue_id; setReviewingId(null); setError(""); }} className="tt-action tt-action-secondary px-5">Cancel</button><button type="button" disabled={saving || (scores.recommend === null && enteredScores.length === 0)} onClick={() => void submitReview()} className="tt-action px-5">{saving ? "Saving…" : "Save review"}</button></div>
+      <div className="mt-4 grid grid-cols-2 gap-2"><button type="button" disabled={saving} onClick={() => { showReview(ground); returnFocusVenue.current = ground.venue_id; setReviewingId(null); setError(""); }} className="tt-action tt-action-secondary px-5">Cancel</button><button type="button" disabled={saving || (scores.recommend === null && enteredScores.length === 0)} onClick={() => void submitReview()} className="tt-action px-5">{saving ? "Saving…" : "Save review"}</button></div>
     </div>
   </section>;
 
-  const renderPersonalReview = (ground: MyGround) => {
+  const renderPersonalReview = (ground: MyGround, contained = false) => {
     const review = ground.review;
     const hasRating = review && (review.overall_score !== null || review.recommend !== null);
     const editing = reviewingId === ground.venue_id;
     if (!hasRating && !editing) return null;
-    return <section id={`personal-review-${ground.venue_id}`} tabIndex={-1} aria-label={`Your verdict for ${ground.venue_name}`} className="tt-panel mt-4 scroll-mt-4 p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
-      {Number(requestedReview) === ground.venue_id && <h2 className="tt-display break-words text-3xl leading-none">{ground.venue_name}</h2>}
-      <h3 className="tt-kicker mt-2">YOUR VERDICT</h3>
-      {review?.overall_score != null && <p className="tt-display mt-2 text-4xl text-[var(--brand-interactive)]">{review.overall_score.toFixed(1)} / 10</p>}
-      {review?.recommend !== null && review?.recommend !== undefined && <p className="mt-2 text-sm font-bold">{review.recommend ? "Would recommend ✓" : "Would not recommend"}</p>}
-      {savedVenueId === ground.venue_id && ratingMessage && <p role="status" className="mt-3 text-sm font-bold text-[var(--brand-interactive)]">{ratingMessage}</p>}
-      <button type="button" disabled={saving} aria-expanded={editing} aria-controls={`review-form-${ground.venue_id}`} onClick={() => {
-        if (editing) { showReview(ground); returnFocusVenue.current = ground.venue_id; setReviewingId(null); setError(""); }
-        else void openReview(ground);
-      }} className="mt-2 min-h-11 text-xs font-extrabold underline focus-visible:outline-2 focus-visible:outline-offset-2">{editing ? "CLOSE REVIEW ↑" : "EDIT MY REVIEW ↓"}</button>
+    return <section id={`personal-review-${ground.venue_id}`} tabIndex={-1} aria-label={`Your verdict for ${ground.venue_name}`} className={`${contained ? "mt-2" : "tt-panel mt-4 p-3 sm:p-4"} scroll-mt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]`}>
+      <div className="flex items-start gap-3">
+        <GroundPhotograph venueId={ground.venue_id} compact />
+        <div className="min-w-0 flex-1">
+          {!contained && <h2 className="tt-display break-words text-2xl leading-none">{ground.venue_name}</h2>}
+          <h3 className="sr-only">Your verdict</h3>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-bold">
+            {review?.overall_score != null && <p><span aria-hidden="true">★ </span><span className="text-lg text-[var(--brand-interactive)]">{review.overall_score.toFixed(1)}</span> / 10</p>}
+            {review?.recommend != null && <p className="border-l border-[var(--tt-rule)] pl-3">{review.recommend ? "Would recommend" : "Would not recommend"}</p>}
+          </div>
+          {savedVenueId === ground.venue_id && ratingMessage && <p role="status" className="mt-2 text-sm font-bold text-[var(--brand-interactive)]">{ratingMessage}</p>}
+          <button type="button" disabled={saving} aria-expanded={editing} aria-controls={`review-form-${ground.venue_id}`} onClick={() => {
+            if (editing) { showReview(ground); returnFocusVenue.current = ground.venue_id; setReviewingId(null); setError(""); }
+            else void openReview(ground);
+          }} className="min-h-11 text-xs font-extrabold underline focus-visible:outline-2 focus-visible:outline-offset-2">{editing ? "HIDE REVIEW ↑" : "EDIT MY REVIEW →"}</button>
+        </div>
+      </div>
       {editing && renderReviewPanel(ground)}
     </section>;
   };
@@ -257,7 +265,7 @@ function VisitedTabContent() {
       <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
       <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
       <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not recorded"}</p>
-      {Number(requestedReview) !== ground.venue_id && renderPersonalReview(ground)}
+      {Number(requestedReview) !== ground.venue_id && renderPersonalReview(ground, true)}
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
         <button type="button" aria-expanded={expandedId === ground.venue_id} aria-controls={`ground-visits-${ground.venue_id}`} onClick={() => setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id)} className="tt-action tt-action-secondary min-w-0 whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button>
