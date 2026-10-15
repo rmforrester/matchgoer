@@ -1,5 +1,7 @@
 "use client";
 
+import TerracePublicGallery from "../../components/TerracePublicGallery";
+
 import { formatKickoffTime } from "../../../lib/fixture-format";
 
 import { use, useEffect, useState } from "react";
@@ -297,6 +299,7 @@ api
       {guide && <VenueGuide guide={guide} />}
 
       <AwayDayScore reviewCount={awayDayScore?.review_count} recommendPercentage={awayDayScore?.recommend_percentage} categoryScores={awayDayScore?.category_scores} />
+      <TerracePublicGallery key={venueId} mode="venue" venueId={Number(venueId)} />
 
       {!hasVisited && <section className="tt-section-rule mt-10 pt-4" aria-labelledby="visit-heading">
         <p className="tt-kicker">Your visit</p>

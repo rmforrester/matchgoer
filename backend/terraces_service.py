@@ -164,7 +164,7 @@ def photo_payload(db,storage,row,*,private=False):
     return result
 
 def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12):
-    query=db.query(Photo).filter(Photo.status=='APPROVED',Photo.approved_at.is_not(None),Photo.published_at.is_not(None),Photo.storage_deleted_at.is_(None),ready_clause())
+    query=db.query(Photo).filter(Photo.status=='APPROVED',Photo.approved_at.is_not(None),Photo.published_at.is_not(None),Photo.storage_deleted_at.is_(None),Photo.dispute_reason.is_(None),ready_clause())
     if venue_id is not None:query=query.filter(Photo.venue_id==venue_id)
     if fixture_id is not None:query=query.filter(Photo.fixture_id==fixture_id)
     if cursor:

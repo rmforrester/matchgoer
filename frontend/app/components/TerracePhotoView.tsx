@@ -16,7 +16,7 @@ export default function TerracePhotoView({ photo, refresh, showContext = true, c
   const image = source && !unavailable ? <>
     {/* Private URLs bypass public image optimisation and are never logged. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img key={`${source}:${attempt}`} src={source} alt={photo.caption || "Matchday photograph"} referrerPolicy="no-referrer" onLoad={() => setLoaded(`${source}:${attempt}`)} onError={() => setFailed(source)} className={`${loaded === `${source}:${attempt}` ? "" : "opacity-0"} ${compact ? "aspect-square w-full object-cover" : "h-auto max-h-[65vh] w-full object-contain"}`} />
+    <img key={`${source}:${attempt}`} src={source} alt={photo.caption || "Matchday photograph"} loading="lazy" decoding="async" referrerPolicy="no-referrer" onLoad={() => setLoaded(`${source}:${attempt}`)} onError={() => setFailed(source)} className={`${loaded === `${source}:${attempt}` ? "" : "opacity-0"} ${compact ? "aspect-square w-full object-cover" : "h-auto max-h-[65vh] w-full object-contain"}`} />
   </> : null;
   return <figure className="min-w-0">
     {!unavailable && (awaitingDelivery || (source && loaded !== `${source}:${attempt}`)) && <p role="status" className="text-xs text-[var(--tt-muted)]">Loading photo…</p>}
