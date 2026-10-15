@@ -16,6 +16,7 @@ import AccountConversionPrompt from "../../components/AccountConversionPrompt";
 import FixtureTeams from "../../components/FixtureTeams";
 import type { MyGround } from "../../types/grounds";
 import { fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
+import { useAuth } from "../../components/AuthProvider";
 
 type Venue = {
   venue_id: number;
@@ -66,10 +67,17 @@ type Props = {
   }>;
 };
 
-export default function VenuePage({
+export default function VenuePage(props: Props) {
+  const { accountKey } = useAuth();
+  const { venueId } = use(props.params);
+  return <VenuePageContent key={`${accountKey}:${venueId}`} {...props} />;
+}
+
+function VenuePageContent({
   params,
 }: Props) {
   const { venueId } = use(params);
+  const { authenticated } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTeamId = Number(searchParams.get("teamId"));
@@ -267,7 +275,12 @@ api
     <main className="mx-auto w-full min-w-0 max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
       <AccountConversionPrompt open={showAccountPrompt} kind="interested" onDismiss={() => setShowAccountPrompt(false)} />
 
-      <VenueHeader venue={venue} clubName={guide?.club_name} />
+      <VenueHeader venue={venue} clubName={guide?.club_name}>
+        {authenticated && myGround?.review?.overall_score != null && <div className="mt-4 border-t border-[var(--tt-rule)] pt-3 text-sm">
+          <p className="font-extrabold text-[var(--brand-interactive)]">YOUR RATING · {myGround.review.overall_score.toFixed(1)}/10</p>
+          <Link href={`/my-football?tab=visited&review=${Number(venueId)}`} className="inline-flex min-h-11 items-center text-xs font-extrabold underline focus-visible:outline-2 focus-visible:outline-offset-2">VIEW YOUR REVIEW →</Link>
+        </div>}
+      </VenueHeader>
 
 
       {hasVisited && <>

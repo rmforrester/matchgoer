@@ -55,12 +55,15 @@ function VisitedTabContent() {
   const [reviewingId, setReviewingId] = useState<number | null>(null);
   const [ratingMessage, setRatingMessage] = useState("");
   const savingReview = useRef(false);
-  const ratingNotice = useRef<HTMLParagraphElement>(null);
+  const [savedVenueId, setSavedVenueId] = useState<number | null>(null);
+  const returnFocusVenue = useRef<number | null>(null);
   useEffect(() => {
-    if (!ratingMessage) return;
-    ratingNotice.current?.focus({ preventScroll: true });
-    ratingNotice.current?.scrollIntoView({ block: "start", behavior: "instant" });
-  }, [ratingMessage]);
+    if (reviewingId !== null || returnFocusVenue.current === null) return;
+    const summary = document.getElementById(`personal-review-${returnFocusVenue.current}`);
+    summary?.focus({ preventScroll: true });
+    summary?.scrollIntoView({ block: "start", behavior: "instant" });
+    returnFocusVenue.current = null;
+  }, [reviewingId, ratingMessage]);
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (reviewingId === null || loading) return;
@@ -91,7 +94,7 @@ function VisitedTabContent() {
   }, []);
 
   const showReview = (ground: MyGround) => {
-    setRatingMessage("");
+    setRatingMessage(""); setError("");
     setReviewingId(ground.venue_id);
     setScores({
       atmosphere: ground.review?.atmosphere_score ?? null,
@@ -122,7 +125,15 @@ function VisitedTabContent() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadGrounds().then((loaded) => {
       const ground = loaded.find((item) => item.venue_id === Number(requestedReview));
-      if (requestedReview && ground) { setCollection("all"); void openReview(ground); }
+      if (requestedReview && ground) {
+        setCollection("all");
+        if (!ground.review || ground.review.state === "blank") void openReview(ground);
+        else window.requestAnimationFrame(() => {
+          const summary = document.getElementById(`personal-review-${ground.venue_id}`);
+          summary?.focus({ preventScroll: true });
+          summary?.scrollIntoView({ block: "start", behavior: "instant" });
+        });
+      }
     }).catch(() => setError("Unable to load My Grounds.")).finally(() => setLoading(false));
   }, [loadGrounds, openReview, requestedReview]);
 
@@ -165,7 +176,7 @@ function VisitedTabContent() {
       if (data.venue_id !== venueId || !Number.isInteger(data.review_id)) throw new Error("Rating not confirmed");
       const complete = [data.overall_score, data.atmosphere_score, data.pubs_score, data.getting_there_score, data.facilities_score].every(value => value !== null) && data.recommend !== null;
       setGrounds(current => current.map(ground => ground.venue_id === venueId ? { ...ground, review: { ...data, state: complete ? "completed" : "partial", completed: complete } } : ground));
-      setReviewingId(null); setRatingMessage("RATING SAVED");
+      returnFocusVenue.current = venueId; setSavedVenueId(venueId); setReviewingId(null); setRatingMessage("RATING SAVED");
       // Reuse the persisted response; an unrelated refresh cannot turn
       // this acknowledged write into a failure or overwrite it with old data.
     } catch { setError("Couldn't save your rating. Try again."); }
@@ -212,27 +223,41 @@ function VisitedTabContent() {
   const matchdayCount = visibleGrounds.reduce((total, ground) => total + ground.visit_count, 0);
   const unplottableCount = visibleGrounds.filter((ground) => ground.latitude === null || ground.longitude === null).length;
 
-  const renderReviewPanel = (ground: MyGround) => <section className="mt-5 border-t-2 border-[var(--tt-ink)] pt-5" aria-labelledby={`review-heading-${ground.venue_id}`}>
-    <p className="tt-kicker">Your verdict</p>
+  const renderReviewPanel = (ground: MyGround) => <section id={`review-form-${ground.venue_id}`} className="mt-4 border-t border-[var(--tt-rule)] pt-4" aria-labelledby={`review-heading-${ground.venue_id}`}>
+
     <h3 ref={reviewHeading} tabIndex={-1} id={`review-heading-${ground.venue_id}`} className="tt-display scroll-mt-4 mt-1 text-4xl leading-none">{reviewLabel(ground.review)}</h3>
-    <p className="mt-2 text-[var(--tt-muted)]">Your review is one opinion of the ground and remains separate from your visit history.</p>
-    <div className="mt-5 bg-[var(--tt-newsprint)] p-4 sm:p-5"><p className="tt-display text-4xl text-[var(--brand-interactive)]">{overall} / 10</p><div className="mt-5 grid gap-5 sm:grid-cols-2">{([['Atmosphere','atmosphere'],['Pubs & food','pubs'],['Getting there','travel'],['Stadium experience','facilities']] as const).map(([label,key]) => <fieldset key={key}><legend className="tt-kicker">{label}</legend><div className="mt-2 flex flex-wrap gap-1">{[1,2,3,4,5,6,7,8,9,10].map((score) => <button key={score} type="button" aria-pressed={scores[key] === score} onClick={() => setScores((current) => ({ ...current, [key]: score }))} className={`min-h-10 min-w-10 border-2 border-[var(--tt-ink)] text-sm font-bold ${scores[key] === score ? "bg-[var(--brand-interactive)] text-[var(--tt-paper)]" : "bg-[var(--tt-paper)]"}`}>{score}</button>)}</div></fieldset>)}</div><fieldset className="mt-6"><legend className="tt-kicker">Would you recommend this ground?</legend><div className="mt-2 flex gap-2"><button type="button" onClick={() => setScores((current) => ({...current,recommend:true}))} className={`tt-action px-5 ${scores.recommend === true ? "" : "tt-action-secondary"}`}>Yes</button><button type="button" onClick={() => setScores((current) => ({...current,recommend:false}))} className={`tt-action px-5 ${scores.recommend === false ? "" : "tt-action-secondary"}`}>No</button></div></fieldset>
+
+    <div className="mt-4"><p className="tt-display text-4xl text-[var(--brand-interactive)]">{overall} / 10</p><div className="mt-5 grid gap-5 sm:grid-cols-2">{([['Atmosphere','atmosphere'],['Pubs & food','pubs'],['Getting there','travel'],['Stadium experience','facilities']] as const).map(([label,key]) => <fieldset key={key}><legend className="tt-kicker">{label}</legend><div className="mt-2 flex flex-wrap gap-1">{[1,2,3,4,5,6,7,8,9,10].map((score) => <button key={score} type="button" aria-pressed={scores[key] === score} onClick={() => setScores((current) => ({ ...current, [key]: score }))} className={`min-h-10 min-w-10 border-2 border-[var(--tt-ink)] text-sm font-bold ${scores[key] === score ? "bg-[var(--brand-interactive)] text-[var(--tt-paper)]" : "bg-[var(--tt-paper)]"}`}>{score}</button>)}</div></fieldset>)}</div><fieldset className="mt-6"><legend className="tt-kicker">Would you recommend this ground?</legend><div className="mt-2 flex gap-2"><button type="button" aria-pressed={scores.recommend === true} onClick={() => setScores((current) => ({...current,recommend:true}))} className={`tt-action px-5 ${scores.recommend === true ? "" : "tt-action-secondary"}`}>Yes</button><button type="button" aria-pressed={scores.recommend === false} onClick={() => setScores((current) => ({...current,recommend:false}))} className={`tt-action px-5 ${scores.recommend === false ? "" : "tt-action-secondary"}`}>No</button></div></fieldset>
       <MatchdayTips venueId={ground.venue_id} inline />
-      <div className="mt-6 flex flex-wrap gap-3"><button type="button" onClick={() => setReviewingId(null)} className="tt-action tt-action-secondary px-5">Maybe later</button><button type="button" disabled={saving || (scores.recommend === null && enteredScores.length === 0)} onClick={() => void submitReview()} className="tt-action px-5">{saving ? "Saving…" : "Save review"}</button></div>
+      {error && <p role="alert" className="mt-4 text-sm font-bold text-red-800">{error}</p>}
+      <div className="mt-6 flex flex-wrap gap-3"><button type="button" disabled={saving} onClick={() => { showReview(ground); returnFocusVenue.current = ground.venue_id; setReviewingId(null); setError(""); }} className="tt-action tt-action-secondary px-5">Cancel</button><button type="button" disabled={saving || (scores.recommend === null && enteredScores.length === 0)} onClick={() => void submitReview()} className="tt-action px-5">{saving ? "Saving…" : "Save review"}</button></div>
     </div>
   </section>;
+
+  const renderPersonalReview = (ground: MyGround) => {
+    const review = ground.review;
+    const hasRating = review && (review.overall_score !== null || review.recommend !== null);
+    const editing = reviewingId === ground.venue_id;
+    if (!hasRating && !editing) return null;
+    return <section id={`personal-review-${ground.venue_id}`} tabIndex={-1} aria-label={`Your verdict for ${ground.venue_name}`} className="tt-panel mt-4 scroll-mt-4 p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
+      {Number(requestedReview) === ground.venue_id && <h2 className="tt-display break-words text-3xl leading-none">{ground.venue_name}</h2>}
+      <h3 className="tt-kicker mt-2">YOUR VERDICT</h3>
+      {review?.overall_score != null && <p className="tt-display mt-2 text-4xl text-[var(--brand-interactive)]">{review.overall_score.toFixed(1)} / 10</p>}
+      {review?.recommend !== null && review?.recommend !== undefined && <p className="mt-2 text-sm font-bold">{review.recommend ? "Would recommend ✓" : "Would not recommend"}</p>}
+      {savedVenueId === ground.venue_id && ratingMessage && <p role="status" className="mt-3 text-sm font-bold text-[var(--brand-interactive)]">{ratingMessage}</p>}
+      <button type="button" disabled={saving} aria-expanded={editing} aria-controls={`review-form-${ground.venue_id}`} onClick={() => {
+        if (editing) { showReview(ground); returnFocusVenue.current = ground.venue_id; setReviewingId(null); setError(""); }
+        else void openReview(ground);
+      }} className="mt-2 min-h-11 text-xs font-extrabold underline focus-visible:outline-2 focus-visible:outline-offset-2">{editing ? "CLOSE REVIEW ↑" : "EDIT MY REVIEW ↓"}</button>
+      {editing && renderReviewPanel(ground)}
+    </section>;
+  };
 
   const renderGround = (ground: MyGround, nested: boolean) => <article key={ground.venue_id} className={`${nested ? "flex min-w-0 flex-col py-4" : "tt-panel flex min-w-0 flex-col p-4"} ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>
       <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
       <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
       <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not recorded"}</p>
-      {ground.review && (ground.review.overall_score !== null || ground.review.recommend !== null) && <section aria-label={`Your rating for ${ground.venue_name}`} className="mt-3 border-t border-[var(--tt-rule)] pt-3">
-        <h3 className="tt-kicker">YOUR RATING</h3>
-        <dl className="mt-2 grid gap-1 text-sm">{([['Atmosphere', ground.review.atmosphere_score], ['Pubs & food', ground.review.pubs_score], ['Getting there', ground.review.getting_there_score], ['Stadium experience', ground.review.facilities_score]] as const).map(([label, value]) => <div key={label} className="flex justify-between gap-3"><dt>{label}</dt><dd className="font-bold">{value ?? "Not rated"}</dd></div>)}</dl>
-        {ground.review.recommend !== null && <p className="mt-1 text-xs">Would recommend: {ground.review.recommend ? "Yes" : "No"}</p>}
-        <button type="button" disabled={saving} onClick={() => void openReview(ground)} className="min-h-11 text-xs font-extrabold underline">EDIT RATING &rarr;</button>
-      </section>}
-      {reviewingId === ground.venue_id && Number(requestedReview) !== ground.venue_id && renderReviewPanel(ground)}
+      {Number(requestedReview) !== ground.venue_id && renderPersonalReview(ground)}
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
         <button type="button" aria-expanded={expandedId === ground.venue_id} aria-controls={`ground-visits-${ground.venue_id}`} onClick={() => setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id)} className="tt-action tt-action-secondary min-w-0 whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button>
@@ -261,14 +286,13 @@ function VisitedTabContent() {
 
   return <main className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
     <header className="border-b-2 border-[var(--tt-ink)] pb-3"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My football world</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Football takes you places.</p></header>
-    {ratingMessage && <p ref={ratingNotice} tabIndex={-1} role="status" className="mt-4 scroll-mt-4 border-l-2 border-[var(--tt-gold)] pl-3 text-sm font-bold">{ratingMessage}</p>}
-    {!loading && requestedReview && grounds.filter(ground => ground.venue_id === reviewingId && ground.venue_id === Number(requestedReview)).map(ground => <div key={ground.venue_id}><p className="mt-4 font-bold">{ground.venue_name}</p>{renderReviewPanel(ground)}</div>)}
+    {!loading && requestedReview && grounds.filter(ground => ground.venue_id === Number(requestedReview)).map(ground => <div key={ground.venue_id}>{renderPersonalReview(ground)}</div>)}
     {!loading && (grounds.length === 0 || showAddGround) && recordForm}
     {!loading && grounds.length > 0 && <button type="button" onClick={() => setShowAddGround((current) => !current)} aria-expanded={showAddGround} aria-controls="add-ground" className="tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">{showAddGround ? "Close add ground" : "+ Add a ground"}</button>}
     {!loading && grounds.length > 0 && showAddGround && <section id="add-ground" className="mt-8 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="add-ground-heading"><h2 id="add-ground-heading" className="tt-display text-3xl leading-none sm:text-4xl">Add a ground</h2>{grounds.length > 0 && <p className="mt-1 text-sm text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>}<div className="mt-4 flex flex-wrap gap-2"><label htmlFor="ground-search" className="sr-only">Search for a ground or city</label><input id="ground-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} placeholder="Search ground or city" className="tt-control min-w-0 flex-1 px-4"/><button type="button" disabled={searching || query.trim().length < 2} onClick={() => void search()} className="tt-action px-5">{searching ? "Searching…" : "Search"}</button></div>
       {!selected && results.length > 0 && <div className="tt-panel mt-4 divide-y divide-[var(--tt-rule)]">{results.map((venue) => <button key={venue.venue_id} type="button" onClick={() => { setSelected(venue); setSelectedFixtureId(null); setFixtureCandidates([]); setUnknownDetails(false); }} className="block min-h-12 w-full px-4 py-3 text-left hover:bg-[var(--tt-paper)]"><strong>{venue.name}</strong>{venue.city && <span className="ml-2 text-[var(--tt-muted)]">{venue.city}</span>}{grounds.some((ground) => ground.venue_id === venue.venue_id) && <span className="ml-2 text-xs font-bold uppercase text-[var(--brand-interactive)]">Already visited</span>}</button>)}</div>}
     </section>}
-    {error && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
+    {error && reviewingId === null && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
     {loading && <p className="mt-6 font-semibold">Loading your ground history…</p>}
     {!loading && grounds.length === 0 && <section className="mt-8 border-y-2 border-[var(--tt-ink)] py-8"><p className="tt-display text-3xl">Your football story starts here.</p><p className="mt-2 text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p><a href="#add-ground" className="tt-action mt-4 inline-flex min-h-11 items-center justify-center px-4">Add a ground →</a></section>}
 
