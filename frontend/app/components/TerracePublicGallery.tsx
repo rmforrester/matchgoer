@@ -4,6 +4,7 @@ import axios from "axios";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import api, { anonymousApi } from "../../lib/api";
+import { mergePublicPhotos, groupPublicPhotos } from "../../lib/terraces-groups";
 import type { TerracePhoto } from "../../lib/terraces";
 import { useAuth } from "./AuthProvider";
 import TerracePhotoView from "./TerracePhotoView";
@@ -44,15 +45,15 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     const controller = scope.current;
     try {
       // Public reads never carry a bearer token, even for an owner/moderator.
-      const { data } = await anonymousApi.get<PhotoPage>("/terraces/photos", { params: { limit, venue_id: venueId, cursor: after }, signal: controller?.signal });
+      const { data } = await anonymousApi.get<PhotoPage>("/terraces/photos", { params: { limit, venue_id: venueId, cursor: after, selection: mode === "preview" ? "discover" : undefined }, signal: controller?.signal });
       if (controller?.signal.aborted) return;
-      setPhotos(current => after ? [...new Map([...current, ...data.photos].map(photo => [photo.photo_id, photo])).values()] : data.photos);
+      setPhotos(current => after ? mergePublicPhotos(current, data.photos) : data.photos);
       setCursor(data.next_cursor);
     } catch (failure) {
       if (controller?.signal.aborted) return;
       setError(axios.isAxiosError(failure) && failure.response?.status === 404 ? "Photo browsing isn't available here yet." : "Can't load the photos right now. Try again in a moment.");
     } finally { if (!controller?.signal.aborted) { busy.current = false; setLoading(false); } }
-  }, [limit, venueId]);
+  }, [limit, venueId, mode]);
 
   useEffect(() => {
     scope.current = new AbortController();
@@ -61,9 +62,8 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
   }, [load]);
 
   useEffect(() => {
-    if (mode !== "preview") return;
     const controller = scope.current;
-    for (const photo of photos.slice(0, 5)) {
+    for (const photo of (mode === "preview" ? photos.slice(0, 5) : groupPublicPhotos(photos).map(group => group[0]))) {
       if (requestedVenues.current.has(photo.venue_id)) continue;
       requestedVenues.current.add(photo.venue_id);
       void anonymousApi.get<{ city?: string | null; country?: string | null }>(`/venue/${photo.venue_id}`, { signal: controller?.signal }).then(({ data }) => {
@@ -122,20 +122,21 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     </>;
   };
 
+  const grouped = mode === "feed" && !venueId;
+  const groups = groupPublicPhotos(photos);
   const feedPhotos = mode === "preview" ? photos.slice(0, 5) : photos;
   if (mode !== "feed" && photos.length === 0) return null;
   return <section className={mode === "feed" ? "min-w-0" : "mt-6 min-w-0 border-t-2 border-[var(--tt-ink)] pt-4"} aria-label={mode === "venue" ? "Supporter photographs from this ground" : "From the Terraces photographs"}>
     {mode === "feed" && <header><h1 tabIndex={-1} className="tt-display text-4xl leading-none sm:text-5xl">FROM THE TERRACES</h1><h2 className="mt-3 text-xs font-bold tracking-widest">LATEST PHOTOS</h2></header>}
     {mode !== "feed" && <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="tt-display text-2xl">FROM THE TERRACES</h2><Link href={destination} className="inline-flex min-h-11 items-center text-xs font-bold underline">{mode === "venue" ? "MORE FROM THIS GROUND →" : "VIEW ALL →"}</Link></div>}
-    {feedPhotos.length > 0 && <div role={mode === "preview" ? "group" : undefined} aria-label={mode === "preview" ? "Recent photographs" : undefined} tabIndex={mode === "preview" ? 0 : undefined} className={mode === "preview" ? "flex snap-x snap-proximity items-start gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pt-1 focus-visible:outline-2 focus-visible:outline-[var(--brand-interactive)]" : `grid items-start gap-5 ${mode === "feed" ? "mt-3 sm:grid-cols-2" : "grid-cols-2"}`}>
-      {feedPhotos.map(photo => <article key={photo.photo_id} className={`min-w-0 ${mode === "preview" ? "max-w-52 shrink-0 basis-[42%] snap-start" : ""}`}>
+    {feedPhotos.length > 0 && <div role={mode === "preview" ? "group" : undefined} aria-label={mode === "preview" ? "Recent photographs" : undefined} tabIndex={mode === "preview" ? 0 : undefined} className={mode === "preview" ? "flex snap-x snap-proximity items-start gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pt-1 focus-visible:outline-2 focus-visible:outline-[var(--brand-interactive)]" : `grid items-start gap-5 ${mode === "feed" ? "mt-3 sm:grid-cols-2" : photos.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+      {grouped ? groups.map(group => <GroundPhotoGroup key={group[0].venue_id} photos={group} location={locations[group[0].venue_id]} getSignal={() => scope.current?.signal} onPhotos={incoming => setPhotos(current => mergePublicPhotos(current, incoming))} open={open} refresh={photo => void refresh(photo)} />) : feedPhotos.map(photo => <article key={photo.photo_id} className={`min-w-0 ${mode === "preview" ? "max-w-52 shrink-0 basis-[42%] snap-start" : ""}`}>
         {mode === "preview" ? <button type="button" onClick={() => open(photo)} aria-label={`View photograph from ${photo.venue_name || "this ground"}${photo.home_team && photo.away_team ? `, ${photo.home_team} v ${photo.away_team}` : ""}`} className="block min-h-11 w-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
           <TerracePhotoView photo={photo} compact passive showContext={false} showCaption={false} refresh={() => void refresh(photo)} />
-          <span className="mt-2 block break-words text-sm font-extrabold">{photo.venue_name || "Ground"}</span>
-          {photo.home_team && photo.away_team && <span className="mt-1 block break-words text-xs text-[var(--tt-muted)]">{photo.home_team} v {photo.away_team}</span>}
-          {locations[photo.venue_id] && <span className="mt-1 block break-words text-xs text-[var(--tt-muted)]">{locations[photo.venue_id]}</span>}
+          <span className="mt-2 block break-words text-sm font-extrabold">{photo.home_team && photo.away_team ? `${photo.home_team} v ${photo.away_team}` : photo.venue_name || "Ground"}</span>
+          <span className="mt-1 block break-words text-xs text-[var(--tt-muted)]">{photo.home_team && photo.away_team && photo.venue_name}{photo.home_team && photo.away_team && photo.venue_name && locations[photo.venue_id] && " · "}{locations[photo.venue_id]}</span>
         </button> : <>
-        <TerracePhotoView photo={photo} compact={mode !== "feed"} presentation={mode === "feed" ? "editorial" : "default"} showContext={false} showCaption={false} onOpen={() => open(photo)} refresh={() => void refresh(photo)} />
+        <TerracePhotoView photo={photo} compact={mode === "venue" && photos.length > 1} presentation={mode === "feed" || photos.length === 1 ? "editorial" : "default"} showContext={false} showCaption={false} onOpen={() => open(photo)} refresh={() => void refresh(photo)} />
         <div className="mt-2 break-words">{mode === "feed" ? context(photo) : <Link href={`/venue/${photo.venue_id}`} className="text-sm font-bold underline">{photo.venue_name || "View ground"}</Link>}</div>
         </>}
       </article>)}
@@ -156,4 +157,46 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
       </div>
     </dialog>
   </section>;
+}
+
+
+function GroundPhotoGroup({ photos, location, getSignal, onPhotos, open, refresh }: { photos: TerracePhoto[]; location?: string; getSignal: () => AbortSignal | undefined; onPhotos: (photos: TerracePhoto[]) => void; open: (photo: TerracePhoto) => void; refresh: (photo: TerracePhoto) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const [cursor, setCursor] = useState<string | null | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const busy = useRef(false);
+  const control = useRef<HTMLButtonElement>(null);
+  const photo = photos[0];
+  const id = `ground-photos-${photo.venue_id}`;
+  const fixture = photo.home_team && photo.away_team ? `${photo.home_team} v ${photo.away_team}` : null;
+  const load = async () => {
+    const signal = getSignal();
+    if (busy.current || cursor === null || signal?.aborted) return;
+    busy.current = true; setLoading(true); setError("");
+    try {
+      const { data } = await anonymousApi.get<PhotoPage>("/terraces/photos", { params: { venue_id: photo.venue_id, limit: 24, cursor }, signal });
+      if (signal?.aborted) return;
+      onPhotos(data.photos); setCursor(data.next_cursor);
+    } catch { if (!signal?.aborted) setError("Can't load the photos right now. Try again in a moment."); }
+    finally { busy.current = false; if (!signal?.aborted) setLoading(false); }
+  };
+  return <article className="min-w-0">
+    <header className="mb-2 break-words"><h3 className="text-base font-extrabold">{fixture || photo.venue_name || "Ground"}</h3><p className="mt-1 text-xs text-[var(--tt-muted)]">{fixture && photo.venue_name}{fixture && photo.venue_name && location && " · "}{location}</p></header>
+    <TerracePhotoView photo={photo} presentation="editorial" showContext={false} showCaption={false} onOpen={() => open(photo)} refresh={() => refresh(photo)} />
+    <PhotoDetails photo={photo} />
+    <button ref={control} type="button" aria-expanded={expanded} aria-controls={id} onClick={() => { setExpanded(!expanded); if (!expanded && cursor === undefined) void load(); }} className="mt-2 min-h-11 text-left text-xs font-bold underline">{expanded ? "SHOW LESS" : "MORE PHOTOS FROM THIS GROUND"}</button>
+    <div id={id} hidden={!expanded}>
+      <div className="grid grid-cols-2 items-start gap-3">{expanded && photos.slice(1).map(item => <div key={item.photo_id} className="min-w-0"><TerracePhotoView photo={item} compact showContext={false} showCaption={false} onOpen={() => open(item)} refresh={() => refresh(item)} /><p className="mt-1 break-words text-xs font-bold">{item.home_team && item.away_team ? `${item.home_team} v ${item.away_team}` : item.venue_name || "Ground"}</p><PhotoDetails photo={item} /></div>)}</div>
+      {loading && <p role="status" className="py-2 text-sm">Loading photos…</p>}
+      {error && <p role="alert" className="py-2 text-sm">{error}</p>}
+      {!loading && cursor === null && photos.length === 1 && <p className="py-2 text-sm">No other photos here yet.</p>}
+      {(cursor || error) && <button type="button" disabled={loading} onClick={() => void load()} className="min-h-11 text-xs font-bold underline">{error ? "Try again" : "MORE PHOTOS"}</button>}
+      {photos.length > 3 && <button type="button" onClick={() => { setExpanded(false); control.current?.focus(); }} className="block min-h-11 text-xs font-bold underline">SHOW LESS</button>}
+    </div>
+  </article>;
+}
+function PhotoDetails({ photo }: { photo: TerracePhoto }) {
+  const date = formatMatchDate(photo.match_date), publication = formatPublicationDate(photo.published_at);
+  return <div className="mt-2 break-words text-xs text-[var(--tt-muted)]">{date && <p><span className="sr-only">Match date: </span><time dateTime={photo.match_date ?? undefined}>{date}</time></p>}{photo.caption && <p className="mt-1 text-sm text-[var(--tt-ink)]">{photo.caption}</p>}<p className="mt-1">{photo.display_name}{publication && <> · <time dateTime={photo.published_at ?? undefined}>{publication}</time></>}</p></div>;
 }

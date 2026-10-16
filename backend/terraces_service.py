@@ -167,10 +167,32 @@ def photo_payload(db,storage,row,*,private=False):
             result.update(image_state='unavailable')
     return result
 
-def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12):
+def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,selection=None):
     query=db.query(Photo).filter(Photo.status=='APPROVED',Photo.approved_at.is_not(None),Photo.published_at.is_not(None),Photo.storage_deleted_at.is_(None),Photo.dispute_reason.is_(None),ready_clause())
     if venue_id is not None:query=query.filter(Photo.venue_id==venue_id)
     if fixture_id is not None:query=query.filter(Photo.fixture_id==fixture_id)
+    if selection == 'discover':
+        if cursor is not None or venue_id is not None or fixture_id is not None:
+            raise HTTPException(422,'Discover selection cannot be combined with filters or a cursor')
+        # Hard cap bounds SQL results, memory and work; never sign unselected candidates.
+        candidates=query.order_by(Photo.published_at.desc(),Photo.photo_id.desc()).limit(120).all()
+        representatives={}
+        for row in candidates:representatives.setdefault(row.venue_id,row)
+        selected=[];contributors=set();remaining=list(representatives.values())
+        while remaining and len(selected)<min(limit,5):
+            timestamp=remaining[0].published_at
+            # Contributor preference only within exact timestamp ties: no stale displacement.
+            row=next((p for p in remaining if p.published_at==timestamp and p.owner_user_id not in contributors),remaining[0])
+            selected.append(row);contributors.add(row.owner_user_id);remaining.remove(row)
+        if len(selected)<min(limit,5):
+            identifiers={p.photo_id for p in selected}
+            remaining=[p for p in candidates if p.photo_id not in identifiers]
+            while remaining and len(selected)<min(limit,5):
+                timestamp=remaining[0].published_at
+                row=next((p for p in remaining if p.published_at==timestamp and p.owner_user_id not in contributors),remaining[0])
+                selected.append(row);contributors.add(row.owner_user_id);remaining.remove(row)
+        selected.sort(key=lambda p:(p.published_at,p.photo_id),reverse=True)
+        return {'photos':[photo_payload(db,storage,row) for row in selected],'next_cursor':None}
     if cursor:
         try:
             if len(cursor)>256:raise ValueError()
