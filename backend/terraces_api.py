@@ -202,7 +202,9 @@ def photo_detail(photo_id:int,response:Response,authorization:str|None=Header(de
         row=db.get(Photo,photo_id)
         if not row or not may_read_photo(row,actor) or not service.ready(db,row):raise HTTPException(404,'Photograph not found')
         private=not (row.status=='APPROVED' and row.published_at is not None)
-        return service.photo_payload(db,PrivatePhotoStorage(),row,private=private)
+        result=service.photo_payload(db,PrivatePhotoStorage(),row,private=private)
+        if not private:result.update(service.public_matchday_metadata(db,row))
+        return result
     response.headers['Cache-Control']='no-store';return transaction(action)
 
 @router.delete('/photos/{photo_id}')

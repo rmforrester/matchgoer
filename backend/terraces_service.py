@@ -3,7 +3,7 @@ import base64
 import json
 from datetime import datetime,timedelta,timezone
 from fastapi import HTTPException
-from sqlalchemy import exists,and_,or_,select
+from sqlalchemy import exists,and_,or_,select,func
 from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit,Fixture,UserProfile,Venue
 from terraces import require_verified_account,require_photo_submitter,require_moderator,configured_moderator_user_id,reserve_photo,may_read_photo,CONSENT_VERSION
 from terraces_storage import StorageUnavailable
@@ -167,8 +167,26 @@ def photo_payload(db,storage,row,*,private=False):
             result.update(image_state='unavailable')
     return result
 
+def public_photo_query(db):
+    # One eligibility predicate for lists and matchday counts.
+    return db.query(Photo).filter(Photo.status=='APPROVED',Photo.approved_at.is_not(None),Photo.published_at.is_not(None),Photo.storage_deleted_at.is_(None),Photo.dispute_reason.is_(None),ready_clause())
+
+
+def public_matchday_metadata(db,row):
+    query=public_photo_query(db).filter(Photo.venue_id==row.venue_id)
+    if row.fixture_id is not None:
+        query=query.filter(Photo.fixture_id==row.fixture_id)
+    elif row.visit_id is not None:
+        # A recorded visit is a reliable shared identity; never infer by date/ground.
+        # The visit ID is used internally only, never added to public output.
+        query=query.filter(Photo.fixture_id.is_(None),Photo.visit_id==row.visit_id)
+    else:return {}
+    total=query.with_entities(func.count(Photo.photo_id)).scalar()
+    return {'matchday_photo_count':total} if total else {}
+
+
 def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,selection=None):
-    query=db.query(Photo).filter(Photo.status=='APPROVED',Photo.approved_at.is_not(None),Photo.published_at.is_not(None),Photo.storage_deleted_at.is_(None),Photo.dispute_reason.is_(None),ready_clause())
+    query=public_photo_query(db)
     if venue_id is not None:query=query.filter(Photo.venue_id==venue_id)
     if fixture_id is not None:query=query.filter(Photo.fixture_id==fixture_id)
     if selection == 'discover':
@@ -184,15 +202,8 @@ def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,
             # Contributor preference only within exact timestamp ties: no stale displacement.
             row=next((p for p in remaining if p.published_at==timestamp and p.owner_user_id not in contributors),remaining[0])
             selected.append(row);contributors.add(row.owner_user_id);remaining.remove(row)
-        if len(selected)<min(limit,5):
-            identifiers={p.photo_id for p in selected}
-            remaining=[p for p in candidates if p.photo_id not in identifiers]
-            while remaining and len(selected)<min(limit,5):
-                timestamp=remaining[0].published_at
-                row=next((p for p in remaining if p.published_at==timestamp and p.owner_user_id not in contributors),remaining[0])
-                selected.append(row);contributors.add(row.owner_user_id);remaining.remove(row)
         selected.sort(key=lambda p:(p.published_at,p.photo_id),reverse=True)
-        return {'photos':[photo_payload(db,storage,row) for row in selected],'next_cursor':None}
+        return {'photos':[{**photo_payload(db,storage,row),**public_matchday_metadata(db,row)} for row in selected],'next_cursor':None}
     if cursor:
         try:
             if len(cursor)>256:raise ValueError()

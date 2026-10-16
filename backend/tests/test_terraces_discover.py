@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 from unittest.mock import patch
 from sqlalchemy import event
-from models import TerracePhoto as Photo, TerracePhotoEvent as Event, Venue, VenueVisit
+from models import TerracePhoto as Photo, TerracePhotoEvent as Event, Venue, VenueVisit, Fixture
 from backend.tests import test_terraces_public as fixtures
 import terraces_service as service
 
@@ -16,11 +16,12 @@ class DiscoverPhotoTests(unittest.TestCase):
     request=fixtures.PublicPhotoTests.request
     def ground(self):
         row=Venue(name='Synthetic ground',country='Test');self.db.add(row);self.db.flush();return row
-    def photo(self,venue=None,owner=None,at=None,status='APPROVED',ready=True,hold=False,deleted=False):
+    def photo(self,venue=None,owner=None,at=None,status='APPROVED',ready=True,hold=False,deleted=False,fixture=None,visit=None):
         venue=venue or self.venue;owner=owner or self.owner;at=at or datetime(2026,10,16,tzinfo=timezone.utc)
-        visit=VenueVisit(user_id=owner.user_id,venue_id=venue.venue_id,source='manual');self.db.add(visit);self.db.flush()
+        if visit is None:
+            visit=VenueVisit(user_id=owner.user_id,venue_id=venue.venue_id,fixture_id=fixture.fixture_id if fixture else None,source='manual');self.db.add(visit);self.db.flush()
         key=uuid4().hex
-        row=Photo(owner_user_id=owner.user_id,visit_id=visit.visit_id,venue_id=venue.venue_id,source_sha256=key*2,original_bytes=1,display_key=f'photos/{key}/display.jpg',thumbnail_key=f'photos/{key}/thumbnail.jpg',width=1,height=1,thumbnail_width=1,thumbnail_height=1,submission_key=str(uuid4()),consent_version='terraces-public-v1',status='PENDING')
+        row=Photo(owner_user_id=owner.user_id,visit_id=visit.visit_id,venue_id=venue.venue_id,fixture_id=visit.fixture_id,source_sha256=key*2,original_bytes=1,display_key=f'photos/{key}/display.jpg',thumbnail_key=f'photos/{key}/thumbnail.jpg',width=1,height=1,thumbnail_width=1,thumbnail_height=1,submission_key=str(uuid4()),consent_version='terraces-public-v1',status='PENDING')
         self.db.add(row);self.db.flush()
         if ready:self.db.add(Event(photo_id=row.photo_id,event_type='STORAGE_READY',payload={},completed_at=at));self.db.flush()
         row.status=status;row.approved_at=at if status=='APPROVED' else None;row.published_at=at if status=='APPROVED' else None
@@ -55,11 +56,11 @@ class DiscoverPhotoTests(unittest.TestCase):
         # No older representative replaces the newest at the same ground.
         newest=self.photo(venue=self.db.get(Venue,other.venue_id),at=datetime(2026,10,17,tzinfo=timezone.utc))
         self.assertEqual(self.page()['photos'][0]['photo_id'],newest.photo_id)
-    def test_fills_spare_slots_and_public_exclusions(self):
+    def test_no_filler_and_public_exclusions(self):
         rows=[self.photo() for _ in range(3)]
         for status in ('PENDING','REJECTED','REMOVED'):self.photo(status=status)
         self.photo(ready=False);self.photo(hold=True);self.photo(deleted=True)
-        self.assertEqual({p['photo_id'] for p in self.page()['photos']},{p.photo_id for p in rows})
+        self.assertEqual({p['photo_id'] for p in self.page()['photos']},{rows[-1].photo_id})
         self.assertIsNone(self.page()['photos'][0]['home_team']);self.assertIsNone(self.page()['photos'][0]['match_date'])
     def test_candidate_cap_and_ordinary_cursor_unchanged(self):
         old=self.photo(venue=self.ground(),at=datetime(2020,1,1,tzinfo=timezone.utc))
@@ -80,9 +81,72 @@ class DiscoverPhotoTests(unittest.TestCase):
                 self.assertEqual(self.request('/terraces/photos?selection=discover&'+query)[0],422)
         with patch.dict('os.environ',{'TERRACES_PUBLIC_READS_ENABLED':'false'}):
             self.assertEqual(self.request('/terraces/photos?selection=discover')[0],404)
-    def test_filler_contributor_ties_use_internal_ids_without_displacing_newer(self):
+    def test_contributor_does_not_replace_latest_photo_at_same_ground(self):
         other=self.photo(owner=self.other)
         for _ in range(6):self.photo()
-        self.assertIn(other.photo_id,[p['photo_id'] for p in self.page()['photos']])
+        self.assertEqual(len(self.page()['photos']),1)
+        self.assertNotIn(other.photo_id,[p['photo_id'] for p in self.page()['photos']])
         other.published_at=datetime(2020,1,1,tzinfo=timezone.utc);self.db.flush()
         self.assertNotIn(other.photo_id,[p['photo_id'] for p in self.page()['photos']])
+    def test_four_grounds_six_photos_return_only_four(self):
+        at=datetime(2026,10,16,tzinfo=timezone.utc)
+        oldest=self.photo(at=at-timedelta(days=2))
+        representatives=[self.photo(venue=self.ground(),at=at-timedelta(hours=i+1)) for i in range(3)]
+        repeat=self.photo(at=at-timedelta(minutes=2))
+        newest=self.photo(at=at-timedelta(minutes=1))
+        result=self.page()['photos']
+        self.assertEqual([p['photo_id'] for p in result],[newest.photo_id,*[p.photo_id for p in representatives]])
+        self.assertEqual(len({p['venue_id'] for p in result}),4)
+        self.assertNotIn(oldest.photo_id,[p['photo_id'] for p in result])
+    def test_three_grounds_return_three_without_fallback(self):
+        at=datetime(2026,10,16,tzinfo=timezone.utc)
+        other=[self.photo(venue=self.ground(),at=at-timedelta(days=i+1)) for i in range(2)]
+        for i in range(8):self.photo(at=at-timedelta(minutes=i))
+        result=self.page()['photos']
+        self.assertEqual(len(result),3);self.assertEqual(len({p['venue_id'] for p in result}),3)
+        self.assertTrue({p.photo_id for p in other}.issubset({p['photo_id'] for p in result}))
+        self.assertEqual(len({p['photo_id'] for p in result}),3)
+    def test_canonical_identity_not_ground_name_controls_diversity(self):
+        alias_ground=self.ground();alias_ground.name=self.venue.name;self.db.flush()
+        self.photo(venue=alias_ground);self.photo();self.photo()
+        result=self.page()['photos']
+        self.assertEqual(len({p['venue_id'] for p in result}),2)
+        self.assertEqual(len({p['venue_name'] for p in result}),1)
+    def fixture(self,at=None):
+        row=Fixture(fixture_id=900000020+self.db.query(Fixture).count(),home_team='Synthetic home',away_team='Synthetic away',venue_id=self.venue.venue_id,fixture_date=at)
+        self.db.add(row);self.db.flush();return row
+    def test_matchday_counts_all_contributors_and_only_eligible_fixture_photos(self):
+        fixture=self.fixture(datetime(2001,7,3,tzinfo=timezone.utc));other_fixture=self.fixture()
+        rows=[self.photo(fixture=fixture),self.photo(fixture=fixture,owner=self.other),self.photo(fixture=fixture)]
+        self.photo(fixture=other_fixture)
+        for status in ('PENDING','REJECTED','REMOVED'):self.photo(fixture=fixture,status=status)
+        self.photo(fixture=fixture,ready=False);self.photo(fixture=fixture,hold=True);self.photo(fixture=fixture,deleted=True)
+        for row in rows:self.assertEqual(service.public_matchday_metadata(self.db,row),{'matchday_photo_count':3})
+        with patch.dict('os.environ',{'TERRACES_PUBLIC_READS_ENABLED':'true'}):
+            code,data=self.request(f'/terraces/photos/{rows[0].photo_id}')
+            self.assertEqual(code,200);self.assertEqual(data['matchday_photo_count'],3)
+            self.assertFalse({'owner_user_id','visit_id','contributor_id','submission_key'} & data.keys())
+        service.remove(self.db,self.storage,'Bearer synthetic',rows[-1].photo_id)
+        self.assertEqual(service.public_matchday_metadata(self.db,rows[0]),{'matchday_photo_count':2})
+        with patch.dict('os.environ',{'TERRACES_PUBLIC_READS_ENABLED':'true'}):
+            self.assertEqual(self.request(f'/terraces/photos/{rows[0].photo_id}')[1]['matchday_photo_count'],2)
+    def test_fixture_null_groups_only_same_recorded_visit_never_same_date_or_ground(self):
+        rows=[self.photo(visit=self.visit) for _ in range(3)]
+        unrelated=self.photo();other_owner=self.photo(owner=self.other)
+        from datetime import date
+        for row in (rows[0],unrelated,other_owner):self.db.get(VenueVisit,row.visit_id).visit_date=date(2001,7,3)
+        self.db.flush()
+        self.assertEqual(service.public_matchday_metadata(self.db,rows[0]),{'matchday_photo_count':3})
+        self.assertEqual(service.public_matchday_metadata(self.db,unrelated),{'matchday_photo_count':1})
+        from types import SimpleNamespace
+        self.assertEqual(service.public_matchday_metadata(self.db,SimpleNamespace(venue_id=self.venue.venue_id,fixture_id=None,visit_id=None)),{})
+    def test_count_is_complete_outside_candidate_window_and_ordinary_feed_unchanged(self):
+        fixture=self.fixture()
+        for i in range(123):self.photo(fixture=fixture,owner=self.other if i%2 else self.owner)
+        page=self.page();self.assertEqual(len(page['photos']),1)
+        self.assertEqual(page['photos'][0]['matchday_photo_count'],123)
+        self.assertNotIn('matchday_photo_count',service.public_page(self.db,self.storage,limit=1)['photos'][0])
+    def test_two_grounds_never_create_empty_slots_or_repeats(self):
+        for _ in range(3):self.photo()
+        self.photo(venue=self.ground())
+        self.assertEqual(len(self.page()['photos']),2)

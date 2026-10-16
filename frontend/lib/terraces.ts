@@ -2,6 +2,7 @@ import type { MyGround } from "../app/types/grounds.ts";
 
 export type TerracePhoto = {
   submission_key?: string;
+  matchday_photo_count?: number;
   photo_id: number; venue_id: number; venue_name?: string | null; image_state?: "available" | "unavailable"; fixture_id: number | null;
   caption: string | null; display_name: string; match_date: string | null;
   home_team: string | null; away_team: string | null;
