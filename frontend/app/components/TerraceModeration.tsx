@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import api from "@/lib/api";
 import { useAuth } from "./AuthProvider";
 import TerracePhotoView from "./TerracePhotoView";
+import { MODERATION_CHANGED } from "./ModeratorAttentionDot";
 import { terracesError, type PhotoReport, type TerracePhoto } from "@/lib/terraces";
 import type { PhotoFeedback } from "@/lib/terraces-feedback";
 
@@ -108,7 +109,7 @@ function TerraceModerationContent() {
       confirmed = expected === "APPROVED" ? "Photo is live." : expected === "REJECTED" ? "Photo won't be shared." : expected === "resolved" ? "Report resolved." : "Photo removed.";
       setMessage(confirmed); setRejecting(null); setNotes({});
     } catch (e) { if (!scope.current?.signal.aborted) setError(terracesError(e)); }
-    finally { writing.current = false; if (!scope.current?.signal.aborted) { setBusy(false); await load(tab, 0, false, confirmed); } }
+    finally { writing.current = false; if (!scope.current?.signal.aborted) { setBusy(false); window.dispatchEvent(new Event(MODERATION_CHANGED)); await load(tab, 0, false, confirmed); } }
   }
   function reason(key: string, label: string) {
     return <label className="mt-3 grid gap-1 text-sm font-bold">{label}<textarea maxLength={200} rows={2} disabled={busy} className="tt-control w-full min-w-0 p-2 font-normal" value={notes[key] ?? ""} onChange={event => setNotes(current => ({ ...current, [key]: event.target.value }))} /><span className="font-normal">{(notes[key] ?? "").length}/200</span></label>;

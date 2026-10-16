@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "./AuthProvider";
+import ModeratorAttentionDot from "./ModeratorAttentionDot";
 
 const subscribeToHydration = () => () => {};
 const clientHydrationSnapshot = () => true;
@@ -69,7 +70,7 @@ export default function Navigation() {
             if (!event.currentTarget.contains(event.relatedTarget)) setAccountOpen(false);
           }}>
             <button ref={accountButton} type="button" aria-expanded={accountOpen} aria-controls="navigation-account" aria-label={`Account options for ${displayName}`} onClick={() => setAccountOpen(!accountOpen)} className="flex min-h-11 max-w-[9rem] items-center gap-1 text-[var(--brand-interactive)] focus-visible:outline-2 focus-visible:outline-offset-2 sm:max-w-[12rem]">
-              <span className="truncate">{displayName}</span><span aria-hidden="true">▾</span>
+              <span className="truncate">{displayName}</span><ModeratorAttentionDot /><span aria-hidden="true">▾</span>
             </button>
             {accountOpen && <div id="navigation-account" role="region" aria-label="Account options" className="absolute right-0 top-full z-50 w-[min(18rem,calc(100vw-2rem))] border border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-3 text-sm font-normal normal-case tracking-normal">
               <p className="break-words font-bold">{displayName}</p>
