@@ -172,21 +172,31 @@ def public_photo_query(db):
     return db.query(Photo).filter(Photo.status=='APPROVED',Photo.approved_at.is_not(None),Photo.published_at.is_not(None),Photo.storage_deleted_at.is_(None),Photo.dispute_reason.is_(None),ready_clause())
 
 
-def public_matchday_metadata(db,row):
+def public_matchday_query(db,row):
     query=public_photo_query(db).filter(Photo.venue_id==row.venue_id)
-    if row.fixture_id is not None:
-        query=query.filter(Photo.fixture_id==row.fixture_id)
-    elif row.visit_id is not None:
-        # A recorded visit is a reliable shared identity; never infer by date/ground.
-        # The visit ID is used internally only, never added to public output.
-        query=query.filter(Photo.fixture_id.is_(None),Photo.visit_id==row.visit_id)
-    else:return {}
+    if row.fixture_id is not None:return query.filter(Photo.fixture_id==row.fixture_id)
+    if row.visit_id is not None:
+        # Internal recorded-visit relationship only; never infer by date/ground.
+        return query.filter(Photo.fixture_id.is_(None),Photo.visit_id==row.visit_id)
+    return None
+
+
+def public_matchday_metadata(db,row):
+    query=public_matchday_query(db,row)
+    if query is None:return {}
     total=query.with_entities(func.count(Photo.photo_id)).scalar()
     return {'matchday_photo_count':total} if total else {}
 
 
-def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,selection=None):
+def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,selection=None,matchday_of=None):
     query=public_photo_query(db)
+    if matchday_of is not None:
+        if selection is not None or venue_id is not None or fixture_id is not None:
+            raise HTTPException(422,'Matchday selection cannot be combined with other filters')
+        anchor=query.filter(Photo.photo_id==matchday_of).first()
+        if anchor is None:raise HTTPException(404,'Photograph not found')
+        related=public_matchday_query(db,anchor)
+        query=related if related is not None else query.filter(Photo.photo_id==anchor.photo_id)
     if venue_id is not None:query=query.filter(Photo.venue_id==venue_id)
     if fixture_id is not None:query=query.filter(Photo.fixture_id==fixture_id)
     if selection == 'discover':

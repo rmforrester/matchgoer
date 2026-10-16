@@ -150,3 +150,51 @@ class DiscoverPhotoTests(unittest.TestCase):
         for _ in range(3):self.photo()
         self.photo(venue=self.ground())
         self.assertEqual(len(self.page()['photos']),2)
+    def test_matchday_anchor_and_fixture_pages_share_stable_public_collection(self):
+        fixture=self.fixture(datetime(2001,7,3,tzinfo=timezone.utc));different=self.fixture()
+        rows=[self.photo(fixture=fixture,owner=self.other if i%2 else self.owner) for i in range(31)]
+        self.photo(fixture=different);self.photo()
+        expected=sorted([p.photo_id for p in rows],reverse=True)
+        for filters in ({'matchday_of':rows[0].photo_id},{'venue_id':self.venue.venue_id,'fixture_id':fixture.fixture_id}):
+            ids=[];cursor=None
+            while True:
+                page=service.public_page(self.db,self.storage,limit=7,cursor=cursor,**filters)
+                for item in page['photos']:
+                    self.assertFalse({'visit_id','owner_user_id','contributor_id','submission_key','display_key'} & item.keys())
+                    self.assertEqual(item['fixture_id'],fixture.fixture_id)
+                ids.extend(item['photo_id'] for item in page['photos']);cursor=page['next_cursor']
+                if not cursor:break
+            self.assertEqual(ids,expected);self.assertEqual(len(set(ids)),31)
+    def test_fixture_null_public_anchor_never_exposes_or_merges_other_visits(self):
+        from datetime import date
+        rows=[self.photo(visit=self.visit) for _ in range(3)];unrelated=self.photo();other=self.photo(owner=self.other)
+        for row in (rows[0],unrelated,other):self.db.get(VenueVisit,row.visit_id).visit_date=date(2001,7,3)
+        self.db.flush()
+        with patch.dict('os.environ',{'TERRACES_PUBLIC_READS_ENABLED':'true'}):
+            code,data=self.request(f'/terraces/photos?matchday_of={rows[0].photo_id}&limit=2')
+            self.assertEqual(code,200);self.assertEqual([p['photo_id'] for p in data['photos']],[rows[2].photo_id,rows[1].photo_id])
+            self.assertTrue(data['next_cursor'])
+            from urllib.parse import quote
+            code,last=self.request(f'/terraces/photos?matchday_of={rows[0].photo_id}&limit=2&cursor='+quote(data['next_cursor']))
+            self.assertEqual(code,200);self.assertEqual([p['photo_id'] for p in last['photos']],[rows[0].photo_id]);self.assertIsNone(last['next_cursor'])
+            self.assertTrue(all(not {'visit_id','owner_user_id','contributor_id'} & p.keys() for p in data['photos']+last['photos']))
+    def test_matchday_anchor_requires_current_public_eligibility_even_for_owner(self):
+        private=[self.photo(status=status) for status in ('PENDING','REJECTED','REMOVED')]
+        private.extend([self.photo(ready=False),self.photo(hold=True),self.photo(deleted=True)])
+        self.db.commit()  # Keep fixtures across the API's expected error rollbacks.
+        with patch.dict('os.environ',{'TERRACES_PUBLIC_READS_ENABLED':'true'}):
+            for identifier in [p.photo_id for p in private]+[2147483647]:
+                for token in (None,True):
+                    if identifier!=2147483647:self.assertIsNotNone(self.db.get(Photo,identifier))
+                    self.assertEqual(self.request(f'/terraces/photos?matchday_of={identifier}',token=token)[0],404)
+    def test_matchday_anchor_validation_and_removal_are_fail_closed(self):
+        anchor=self.photo();self.photo(visit=self.db.get(VenueVisit,anchor.visit_id));self.db.commit()
+        with patch.dict('os.environ',{'TERRACES_PUBLIC_READS_ENABLED':'true'}):
+            for value in ('0','-1','not-an-id'):self.assertEqual(self.request('/terraces/photos?matchday_of='+value)[0],422)
+            for extra in ('venue_id=1','fixture_id=1','selection=discover'):
+                self.assertEqual(self.request(f'/terraces/photos?matchday_of={anchor.photo_id}&'+extra)[0],422)
+            self.assertEqual(self.request(f'/terraces/photos?matchday_of={anchor.photo_id}')[0],200)
+            service.remove(self.db,self.storage,'Bearer synthetic',anchor.photo_id)
+            self.assertEqual(self.request(f'/terraces/photos?matchday_of={anchor.photo_id}')[0],404)
+        with patch.dict('os.environ',{'TERRACES_PUBLIC_READS_ENABLED':'false'}):
+            self.assertEqual(self.request(f'/terraces/photos?matchday_of={anchor.photo_id}')[0],404)
