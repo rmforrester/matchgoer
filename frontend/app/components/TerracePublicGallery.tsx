@@ -1,0 +1,154 @@
+"use client";
+
+import axios from "axios";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import api, { anonymousApi } from "../../lib/api";
+import type { TerracePhoto } from "../../lib/terraces";
+import { useAuth } from "./AuthProvider";
+import TerracePhotoView from "./TerracePhotoView";
+import { formatMatchDate, formatPublicationDate } from "../../lib/terraces-dates";
+
+type PhotoPage = { photos: TerracePhoto[]; next_cursor: string | null };
+type Props = { mode?: "feed" | "preview" | "venue"; venueId?: number };
+
+export default function TerracePublicGallery(props: Props) {
+  const { accountKey } = useAuth();
+  return <PublicGalleryContent key={accountKey} {...props} />;
+}
+
+function PublicGalleryContent({ mode = "feed", venueId }: Props) {
+  const { authenticated } = useAuth();
+  const [photos, setPhotos] = useState<TerracePhoto[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selected, setSelected] = useState<TerracePhoto | null>(null);
+  const [detailError, setDetailError] = useState("");
+  const [reason, setReason] = useState("");
+  const [reportMessage, setReportMessage] = useState("");
+  const [reporting, setReporting] = useState(false);
+  const busy = useRef(false);
+  const scope = useRef<AbortController | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const feedHeading = useRef<HTMLHeadingElement>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  const selectedId = useRef<number | null>(null);
+  const [failedHeroIds, setFailedHeroIds] = useState<number[]>([]);
+  const limit = mode === "feed" ? 12 : mode === "preview" ? 2 : 4;
+  const destination = `/from-the-terraces${venueId ? `?venue=${venueId}` : ""}`;
+
+  const load = useCallback(async (after?: string) => {
+    if (busy.current) return;
+    busy.current = true; setLoading(true); setError("");
+    const controller = scope.current;
+    try {
+      // Public reads never carry a bearer token, even for an owner/moderator.
+      const { data } = await anonymousApi.get<PhotoPage>("/terraces/photos", { params: { limit, venue_id: venueId, cursor: after }, signal: controller?.signal });
+      if (controller?.signal.aborted) return;
+      setPhotos(current => after ? [...new Map([...current, ...data.photos].map(photo => [photo.photo_id, photo])).values()] : data.photos);
+      setCursor(data.next_cursor);
+    } catch (failure) {
+      if (controller?.signal.aborted) return;
+      setError(axios.isAxiosError(failure) && failure.response?.status === 404 ? "Photo browsing isn't available here yet." : "Can't load the photos right now. Try again in a moment.");
+    } finally { if (!controller?.signal.aborted) { busy.current = false; setLoading(false); } }
+  }, [limit, venueId]);
+
+  useEffect(() => {
+    scope.current = new AbortController();
+    void load();
+    return () => { scope.current?.abort(); busy.current = false; };
+  }, [load]);
+
+  const refresh = async (photo: TerracePhoto) => {
+    const controller = scope.current;
+    try {
+      const { data } = await anonymousApi.get<TerracePhoto>(`/terraces/photos/${photo.photo_id}`, { signal: controller?.signal });
+      if (controller?.signal.aborted) return;
+      setPhotos(current => current.map(item => item.photo_id === data.photo_id ? data : item));
+      setSelected(current => current?.photo_id === data.photo_id ? data : current);
+      setDetailError("");
+    } catch (failure) {
+      if (controller?.signal.aborted) return;
+      if (axios.isAxiosError(failure) && failure.response?.status === 404) {
+        setPhotos(current => current.filter(item => item.photo_id !== photo.photo_id));
+        setSelected(current => current?.photo_id === photo.photo_id ? null : current);
+        if (selectedId.current === photo.photo_id) dialog.current?.close();
+      } else if (selectedId.current === photo.photo_id) setDetailError("Can't load that photo right now. Try again in a moment.");
+    }
+  };
+  const open = (photo: TerracePhoto) => {
+    opener.current = document.activeElement as HTMLElement;
+    selectedId.current = photo.photo_id;
+    setSelected(photo); setDetailError(""); setReason(""); setReportMessage("");
+    dialog.current?.showModal();
+    void refresh(photo);
+  };
+  const report = async () => {
+    if (!selected || reporting || !reason.trim()) return;
+    const photoId = selected.photo_id;
+    setReporting(true); setReportMessage("");
+    try {
+      await api.post(`/terraces/photos/${photoId}/reports`, { reason: reason.trim() }, { signal: scope.current?.signal });
+      setReportMessage("Report sent. We'll take a look."); setReason("");
+    } catch { setReportMessage("Couldn't send your report. Check you're signed in with a verified account and try again."); }
+    finally { setReporting(false); }
+  };
+  const context = (photo: TerracePhoto, dark = false) => {
+    const matchDate = formatMatchDate(photo.match_date);
+    const publication = formatPublicationDate(photo.published_at);
+    const fixture = photo.home_team && photo.away_team ? `${photo.home_team} v ${photo.away_team}` : null;
+    const secondary = dark ? "text-white/75" : "text-[var(--tt-muted)]";
+    return <>
+      <Link href={`/venue/${photo.venue_id}`} className="text-base font-extrabold underline">{photo.venue_name || "View ground"}</Link>
+      {(fixture || matchDate) && <p className={`mt-1 text-xs ${secondary}`}>{fixture}{fixture && matchDate && " · "}{matchDate && <>Match date: {matchDate}</>}</p>}
+      {photo.caption && <p className="mt-1 break-words text-sm">{photo.caption}</p>}
+      <p className={`mt-1 text-xs ${secondary}`}>Shared by {photo.display_name}{publication && <> · Published {publication}</>}</p>
+    </>;
+  };
+
+  const hero = mode === "feed" ? photos.find(photo => photo.image_url && photo.published_at && !photo.held && (!photo.status || photo.status === "APPROVED") && !failedHeroIds.includes(photo.photo_id)) : undefined;
+  const feedPhotos = hero ? photos.filter(photo => photo.photo_id !== hero.photo_id) : photos;
+  if (mode !== "feed" && photos.length === 0) return null;
+  return <section className={mode === "feed" ? "min-w-0" : "mt-6 min-w-0 border-t-2 border-[var(--tt-ink)] pt-4"} aria-label={mode === "venue" ? "Supporter photographs from this ground" : "From the Terraces photographs"}>
+    {mode === "feed" && <header className={`relative isolate overflow-hidden bg-[var(--brand-interactive)] text-white ${hero ? "min-h-64" : ""}`}>
+      {hero && <>
+        {/* Already approved, sanitised public variant; no stock or placeholder photograph. */}
+        <button type="button" aria-label="View featured photograph" onClick={() => open(hero)} className="absolute inset-0 z-0 h-full w-full focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={hero.image_url} alt="" referrerPolicy="no-referrer" decoding="async" className="h-full w-full object-cover" onError={() => setFailedHeroIds(current => [...current, hero.photo_id])} />
+        </button>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-black/85 via-black/65 to-black/65" />
+      </>}
+      <div className="pointer-events-none relative z-20 p-4 sm:p-6">
+        <p className="text-xs font-bold uppercase tracking-widest">From the Terraces</p>
+        <h1 tabIndex={-1} className="tt-display mt-2 max-w-md text-4xl leading-none sm:text-5xl">FOOTBALL THROUGH YOUR EYES</h1>
+        <p className="mt-2 max-w-sm text-sm">Real moments. Real grounds.</p>
+        <button type="button" onClick={() => { feedHeading.current?.focus({ preventScroll: true }); feedHeading.current?.scrollIntoView({ block: "start", behavior: "instant" }); }} className="pointer-events-auto mt-3 min-h-11 bg-[var(--brand-interactive)] px-4 text-xs font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">EXPLORE PHOTOS →</button>
+      </div>
+    </header>}
+    {mode === "feed" && <h2 ref={feedHeading} tabIndex={-1} className="tt-display mt-4 scroll-mt-4 text-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">LATEST PHOTOS</h2>}
+    {mode !== "feed" && <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="tt-display text-2xl">FROM THE TERRACES</h2><Link href={destination} className="inline-flex min-h-11 items-center text-xs font-bold underline">{mode === "venue" ? "MORE FROM THIS GROUND →" : "VIEW ALL →"}</Link></div>}
+    {feedPhotos.length > 0 && <div className={`grid items-start gap-5 ${mode === "feed" ? "mt-5 sm:grid-cols-2" : "grid-cols-2"}`}>
+      {feedPhotos.map(photo => <article key={photo.photo_id} className="min-w-0">
+        <TerracePhotoView photo={photo} compact={mode !== "feed"} presentation={mode === "feed" ? "editorial" : "default"} showContext={false} showCaption={false} onOpen={() => open(photo)} refresh={() => void refresh(photo)} />
+        <div className="mt-2 break-words">{mode === "feed" ? context(photo) : <Link href={`/venue/${photo.venue_id}`} className="text-sm font-bold underline">{photo.venue_name || "View ground"}</Link>}</div>
+      </article>)}
+    </div>}
+    {mode === "feed" && <>
+      {loading && <p role="status" className="py-4 text-sm">Loading photos…</p>}
+      {!loading && !error && photos.length === 0 && <p className="py-4">Nothing here yet.</p>}
+      {error && <div className="py-3"><p role="alert" className="text-sm">{error}</p><button type="button" onClick={() => void load(photos.length ? cursor ?? undefined : undefined)} className="min-h-11 font-bold underline">Try again</button></div>}
+      {cursor && !error && <button type="button" disabled={loading} onClick={() => void load(cursor)} className="tt-action mt-5 min-h-11 px-5">{loading ? "Loading…" : "MORE PHOTOS"}</button>}
+    </>}
+    <dialog ref={dialog} onClose={() => { selectedId.current = null; setSelected(null); if (opener.current?.isConnected) opener.current.focus(); else document.querySelector<HTMLElement>("h1")?.focus(); }} aria-label="From the Terraces photo" className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-auto bg-black p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] text-white backdrop:bg-black">
+      <div className="mx-auto max-w-6xl">
+      <button type="button" aria-label="Close photo" onClick={() => dialog.current?.close()} className="sticky top-0 z-10 mb-2 min-h-11 bg-black px-2 text-sm font-bold underline focus-visible:outline-2 focus-visible:outline-white">CLOSE</button>
+      {selected && <><TerracePhotoView photo={selected} presentation="immersive" showContext={false} showCaption={false} refresh={() => void refresh(selected)} /><div className="mt-3">{context(selected, true)}</div>
+        {detailError && <p role="alert" className="mt-2 text-sm">{detailError}</p>}
+        {authenticated ? <details className="mt-3"><summary className="min-h-11 cursor-pointer content-center text-sm underline">Report photo</summary><label className="grid gap-2 text-sm">What should we know?<textarea value={reason} onChange={event => setReason(event.target.value)} maxLength={200} className="tt-control p-2" /></label><button type="button" disabled={reporting || !reason.trim()} onClick={() => void report()} className="min-h-11 text-sm font-bold underline">{reporting ? "Sending…" : "SEND REPORT"}</button>{reportMessage && <p role="status" className="text-sm">{reportMessage}</p>}</details> : <Link href="/signin" className="mt-3 inline-flex min-h-11 items-center text-sm underline">Sign in to report a photo</Link>}
+      </>}
+      </div>
+    </dialog>
+  </section>;
+}

@@ -19,7 +19,26 @@ def controlled_photo_access(authorization:str|None=Header(default=None)):
     # Controlled testing covers reads too: approved test images must not become public.
     return transaction(lambda db:require_photo_submitter(db,authorization))
 
-router=APIRouter(prefix='/terraces',tags=['From the Terraces'],dependencies=[Depends(controlled_photo_access)])
+def public_reads_enabled():
+    return os.getenv('TERRACES_PUBLIC_READS_ENABLED', 'false').casefold() == 'true'
+
+def photo_access(request: Request, authorization: str | None = Header(default=None)):
+    path=request.url.path
+    if request.method == 'GET' and path == '/terraces/photos':
+        if not public_reads_enabled(): raise HTTPException(404, 'Photographs are not available here yet')
+        return
+    if request.method == 'GET' and path.startswith('/terraces/photos/'):
+        if public_reads_enabled(): return
+        return controlled_photo_access(authorization)
+    if '/moderator/' in path:
+        return transaction(lambda db:require_moderator(db,authorization))
+    if request.method == 'POST' and path.startswith('/terraces/visits/'):
+        return controlled_photo_access(authorization)
+    if request.method == 'POST' and path.endswith('/reports') and not public_reads_enabled():
+        return controlled_photo_access(authorization)
+    return transaction(lambda db:require_verified_account(db,authorization))
+
+router=APIRouter(prefix='/terraces',tags=['From the Terraces'],dependencies=[Depends(photo_access)])
 slots=asyncio.Semaphore(2)
 class Metadata(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)

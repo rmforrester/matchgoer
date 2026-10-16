@@ -1,5 +1,7 @@
 "use client";
 
+import TerracePublicGallery from "./components/TerracePublicGallery";
+
 import {
   FormEvent,
   useCallback,
@@ -802,6 +804,8 @@ const loadVisitedStadiums = () => {
         )}
       </section>
 
+      {!appliedSearch && <TerracePublicGallery mode="preview" />}
+
       {/* Map */}
 
       {appliedSearch && (
@@ -866,6 +870,7 @@ const loadVisitedStadiums = () => {
       )}
 
       <DiscoverShortlist fixtures={shortlistFixtures} discoveredFixtures={fixtures} updatingFixtureIds={updatingInterestedFixtureIds} onRemove={toggleInterested} />
+      {appliedSearch && <TerracePublicGallery mode="preview" />}
 
     </main>
   );

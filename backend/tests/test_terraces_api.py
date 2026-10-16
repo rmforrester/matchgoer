@@ -26,7 +26,7 @@ class PhotoApiTests(unittest.TestCase):
         with self.assertRaises(HTTPException):
             api.owned_photos(self.visit.visit_id, Response(), authorization='Bearer synthetic')
 
-    def test_public_photo_http_route_is_founder_only(self):
+    def test_public_photo_http_route_requires_explicit_activation(self):
         from fastapi import FastAPI
         app=FastAPI();app.include_router(api.router)
         async def get():
@@ -37,9 +37,11 @@ class PhotoApiTests(unittest.TestCase):
             await app(scope,receive,send)
             return next(m['status'] for m in messages if m['type']=='http.response.start')
         with patch('terraces_service.public_page',return_value={'photos':[],'next_cursor':None}) as reader:
-            self.assertEqual(asyncio.run(get()),200)
-            reader.reset_mock();self.provider.subject=str(self.other.user_id)
-            self.assertEqual(asyncio.run(get()),403);reader.assert_not_called()
+            self.assertEqual(asyncio.run(get()),404);reader.assert_not_called()
+            with patch.dict('os.environ', {'TERRACES_PUBLIC_READS_ENABLED':'true'}):
+                self.assertEqual(asyncio.run(get()),200)
+                self.provider.subject=str(self.other.user_id)
+                self.assertEqual(asyncio.run(get()),200)
     def test_controlled_access_missing_malformed_or_other_account_denied(self):
         from terraces import require_photo_submitter
         for value in ('', '0', '-1', '1,,2', '1,', ',1', '1,invalid', '1,0', '1,-2', '1,2147483648', '2147483648', 'not-an-id'):
@@ -76,7 +78,7 @@ class PhotoApiTests(unittest.TestCase):
         decoder.assert_not_called();self.assertEqual(self.storage.objects,{})
         self.assertTrue(api.router.routes)
         for route in api.router.routes:
-            self.assertTrue(any(dependency.dependency is api.controlled_photo_access for dependency in route.dependencies))
+            self.assertTrue(any(dependency.dependency is api.photo_access for dependency in route.dependencies))
     def test_submitter_and_moderator_permissions_are_independent(self):
         from terraces import require_moderator,require_photo_submitter
         with patch.dict('os.environ',{'TERRACES_MODERATOR_USER_ID':''}):

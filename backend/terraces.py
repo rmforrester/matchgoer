@@ -146,7 +146,7 @@ def may_read_photo(photo: TerracePhoto, actor: PhotoActor | None = None, *, mode
     """
     if photo.storage_deleted_at is not None or photo.status == "REMOVED":
         return False
-    if photo.status == "APPROVED" and photo.approved_at is not None and photo.published_at is not None:
+    if photo.status == "APPROVED" and photo.approved_at is not None and photo.published_at is not None and photo.dispute_reason is None:
         return True
     if actor is None:
         return False
