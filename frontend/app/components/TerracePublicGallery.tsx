@@ -31,11 +31,9 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
   const busy = useRef(false);
   const scope = useRef<AbortController | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
-  const feedHeading = useRef<HTMLHeadingElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const selectedId = useRef<number | null>(null);
-  const [failedHeroIds, setFailedHeroIds] = useState<number[]>([]);
-  const limit = mode === "feed" ? 12 : mode === "preview" ? 2 : 4;
+  const limit = mode === "feed" ? 12 : mode === "preview" ? 5 : 4;
   const destination = `/from-the-terraces${venueId ? `?venue=${venueId}` : ""}`;
 
   const load = useCallback(async (after?: string) => {
@@ -101,36 +99,19 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     const secondary = dark ? "text-white/75" : "text-[var(--tt-muted)]";
     return <>
       <Link href={`/venue/${photo.venue_id}`} className="text-base font-extrabold underline">{photo.venue_name || "View ground"}</Link>
-      {(fixture || matchDate) && <p className={`mt-1 text-xs ${secondary}`}>{fixture}{fixture && matchDate && " · "}{matchDate && <>Match date: {matchDate}</>}</p>}
+      {(fixture || matchDate) && <p className={`mt-1 text-xs ${secondary}`}>{fixture}{fixture && matchDate && " · "}{matchDate && <><span className="sr-only">Match date: </span><time dateTime={photo.match_date ?? undefined}>{matchDate}</time></>}</p>}
       {photo.caption && <p className="mt-1 break-words text-sm">{photo.caption}</p>}
-      <p className={`mt-1 text-xs ${secondary}`}>Shared by {photo.display_name}{publication && <> · Published {publication}</>}</p>
+      <p className={`mt-1 text-xs ${secondary}`}><span className="sr-only">Shared by </span>{photo.display_name}{publication && <> · <span className="sr-only">Published </span><time dateTime={photo.published_at ?? undefined}>{publication}</time></>}</p>
     </>;
   };
 
-  const hero = mode === "feed" ? photos.find(photo => photo.image_url && photo.published_at && !photo.held && (!photo.status || photo.status === "APPROVED") && !failedHeroIds.includes(photo.photo_id)) : undefined;
-  const feedPhotos = hero ? photos.filter(photo => photo.photo_id !== hero.photo_id) : photos;
+  const feedPhotos = mode === "preview" ? photos.slice(0, 5) : photos;
   if (mode !== "feed" && photos.length === 0) return null;
   return <section className={mode === "feed" ? "min-w-0" : "mt-6 min-w-0 border-t-2 border-[var(--tt-ink)] pt-4"} aria-label={mode === "venue" ? "Supporter photographs from this ground" : "From the Terraces photographs"}>
-    {mode === "feed" && <header className={`relative isolate overflow-hidden bg-[var(--brand-interactive)] text-white ${hero ? "min-h-64" : ""}`}>
-      {hero && <>
-        {/* Already approved, sanitised public variant; no stock or placeholder photograph. */}
-        <button type="button" aria-label="View featured photograph" onClick={() => open(hero)} className="absolute inset-0 z-0 h-full w-full focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={hero.image_url} alt="" referrerPolicy="no-referrer" decoding="async" className="h-full w-full object-cover" onError={() => setFailedHeroIds(current => [...current, hero.photo_id])} />
-        </button>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-black/85 via-black/65 to-black/65" />
-      </>}
-      <div className="pointer-events-none relative z-20 p-4 sm:p-6">
-        <p className="text-xs font-bold uppercase tracking-widest">From the Terraces</p>
-        <h1 tabIndex={-1} className="tt-display mt-2 max-w-md text-4xl leading-none sm:text-5xl">FOOTBALL THROUGH YOUR EYES</h1>
-        <p className="mt-2 max-w-sm text-sm">Real moments. Real grounds.</p>
-        <button type="button" onClick={() => { feedHeading.current?.focus({ preventScroll: true }); feedHeading.current?.scrollIntoView({ block: "start", behavior: "instant" }); }} className="pointer-events-auto mt-3 min-h-11 bg-[var(--brand-interactive)] px-4 text-xs font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">EXPLORE PHOTOS →</button>
-      </div>
-    </header>}
-    {mode === "feed" && <h2 ref={feedHeading} tabIndex={-1} className="tt-display mt-4 scroll-mt-4 text-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">LATEST PHOTOS</h2>}
+    {mode === "feed" && <header><h1 tabIndex={-1} className="tt-display text-4xl leading-none sm:text-5xl">FROM THE TERRACES</h1><h2 className="mt-3 text-xs font-bold tracking-widest">LATEST PHOTOS</h2></header>}
     {mode !== "feed" && <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="tt-display text-2xl">FROM THE TERRACES</h2><Link href={destination} className="inline-flex min-h-11 items-center text-xs font-bold underline">{mode === "venue" ? "MORE FROM THIS GROUND →" : "VIEW ALL →"}</Link></div>}
-    {feedPhotos.length > 0 && <div className={`grid items-start gap-5 ${mode === "feed" ? "mt-5 sm:grid-cols-2" : "grid-cols-2"}`}>
-      {feedPhotos.map(photo => <article key={photo.photo_id} className="min-w-0">
+    {feedPhotos.length > 0 && <div role={mode === "preview" ? "group" : undefined} aria-label={mode === "preview" ? "Recent photographs" : undefined} tabIndex={mode === "preview" ? 0 : undefined} className={mode === "preview" ? "flex snap-x snap-proximity items-start gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pt-1 focus-visible:outline-2 focus-visible:outline-[var(--brand-interactive)]" : `grid items-start gap-5 ${mode === "feed" ? "mt-3 sm:grid-cols-2" : "grid-cols-2"}`}>
+      {feedPhotos.map(photo => <article key={photo.photo_id} className={`min-w-0 ${mode === "preview" ? "max-w-52 shrink-0 basis-[42%] snap-start" : ""}`}>
         <TerracePhotoView photo={photo} compact={mode !== "feed"} presentation={mode === "feed" ? "editorial" : "default"} showContext={false} showCaption={false} onOpen={() => open(photo)} refresh={() => void refresh(photo)} />
         <div className="mt-2 break-words">{mode === "feed" ? context(photo) : <Link href={`/venue/${photo.venue_id}`} className="text-sm font-bold underline">{photo.venue_name || "View ground"}</Link>}</div>
       </article>)}
