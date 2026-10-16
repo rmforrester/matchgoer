@@ -18,11 +18,14 @@ test("failed refresh preserves confirmed persistence without calling submission 
   assert.equal(refreshFailure().text,"Can't connect right now. Try again in a moment.");
 });
 test("idempotent retry of already reviewed photos does not promise another review", () => {
-  assert.equal(uploadFeedback(1,1,"",true).text,"Your photos are saved.");
+  assert.equal(uploadFeedback(1,1,"",1).text,"Photo shared.");
+  assert.equal(uploadFeedback(3,3,"",3).text,"Photos shared.");
+  assert.equal(uploadFeedback(2,3,"",2).text,"2 photos shared. One didn't go through — try again.");
+  assert.equal(uploadFeedback(3,3,"",1).text,"1 photo shared. 2 photos sent. Pending review.");
 });
 test("lost/503 responses do not claim the server definitely rejected a photo", () => {
   assert.equal(uncertainPhotoResponse(new Error("timeout")),true);
   assert.equal(uncertainPhotoResponse({response:{status:503}}),true);
   assert.equal(uncertainPhotoResponse({response:{status:422}}),false);
-  assert.equal(uploadFeedback(2,3,"",false,true).text,"2 photos sent. We couldn't confirm one — try again.");
+  assert.equal(uploadFeedback(2,3,"",0,true).text,"2 photos sent. We couldn't confirm one — try again.");
 });

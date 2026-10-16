@@ -1,4 +1,5 @@
 import unittest
+from contextlib import nullcontext
 from unittest.mock import patch
 from datetime import datetime,timedelta,timezone
 from uuid import uuid4
@@ -46,9 +47,11 @@ class PhotoB1Tests(unittest.TestCase):
         self.storage=FakeStorage();self.meta={'public_consent':True,'rights_acknowledged':True,'consent_version':CONSENT_VERSION,'caption':None}
     def tearDown(self):
         self.configuration.stop();self.authentication.stop();self.db.close();self.outer.rollback();self.connection.close()
-    def submit(self,label='one',key=None):
+    def submit(self,label='one',key=None,moderator=False):
         image=SanitisedPhoto(sha256(label.encode()).hexdigest(),1,ImageVariant(b'display',1,1),ImageVariant(b'thumbnail',1,1))
-        return service.submit(self.db,self.storage,'Bearer synthetic',self.visit.visit_id,image,self.meta,key or str(uuid4()))
+        # Existing pending/moderation tests submit as a supporter, not a moderator.
+        with nullcontext() if moderator else patch.dict('os.environ',{'TERRACES_MODERATOR_USER_ID':str(self.other.user_id)}):
+            return service.submit(self.db,self.storage,'Bearer synthetic',self.visit.visit_id,image,self.meta,key or str(uuid4()))
     def test_pending_private_historical_owned_context(self):
         result=self.submit();row=self.db.get(Photo,result['photo_id'])
         self.assertEqual(row.status,'PENDING');self.assertEqual(row.venue_id,self.venue.venue_id);self.assertIsNone(row.fixture_id)

@@ -5,7 +5,7 @@ from datetime import datetime,timedelta,timezone
 from fastapi import HTTPException
 from sqlalchemy import exists,and_,or_,select
 from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit,Fixture,UserProfile,Venue
-from terraces import require_verified_account,require_photo_submitter,require_moderator,reserve_photo,may_read_photo,CONSENT_VERSION
+from terraces import require_verified_account,require_photo_submitter,require_moderator,configured_moderator_user_id,reserve_photo,may_read_photo,CONSENT_VERSION
 from terraces_storage import StorageUnavailable
 
 def now():return datetime.now(timezone.utc)
@@ -38,6 +38,10 @@ def submit(db,storage,authorization,visit_id,processed,metadata,key):
         storage.put(row.display_key,processed.display.data)
         storage.put(row.thumbnail_key,processed.thumbnail.data)
         event(db,row,'STORAGE_READY',actor,completed=True)
+        # Publication and readiness commit together; identity is resolved server-side.
+        if actor.user_id == configured_moderator_user_id() and row.owner_user_id == actor.user_id and row.status == 'PENDING' and not row.dispute_reason:
+            row.status='APPROVED';row.approved_at=now();row.published_at=row.approved_at
+            event(db,row,'MODERATOR_APPROVED',actor,{'method':'automatic','reason':'moderator_submission'},completed=True)
         db.commit()
         return status(row)
     except StorageUnavailable:

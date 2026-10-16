@@ -71,7 +71,7 @@ function PhotoSubmissionContent({ attendance }: { attendance: PhotoAttendance })
     const invalid = fresh.length ? validatePhotoSelection(fresh.map(d => d.file), occupiedPhotoSlots(photos)) : null;
     if (invalid) { setError(invalid); return; }
     writing.current = true; ++request.current; setBusy(true); setSending(true); setError(""); setMessage("");
-    let sent = 0; let reviewed = false; let outcome: PhotoFeedback | undefined;
+    let sent = 0; let reviewed = 0; let outcome: PhotoFeedback | undefined;
     try {
       for (const draft of drafts) {
         if (scope.current?.signal.aborted) return;
@@ -87,21 +87,22 @@ function PhotoSubmissionContent({ attendance }: { attendance: PhotoAttendance })
           home_team: attendance.home_team, away_team: attendance.away_team,
           status: result.data.status as "PENDING" | "APPROVED",
         }]);
-        sent++; reviewed ||= result.data.status === "APPROVED";
+        sent++; if (result.data.status === "APPROVED") reviewed++;
         setDrafts(current => current.filter(item => item.key !== draft.key));
       }
       outcome = uploadFeedback(sent, drafts.length, "", reviewed); setFeedback(outcome);
     } catch (e) {
       if (scope.current?.signal.aborted) return;
       setDrafts(current => current.map(item => item.attempted ? { ...item, outcome: uncertainPhotoResponse(e) ? "uncertain" : "failed", error: terracesError(e) } : item));
-      outcome = uploadFeedback(sent, drafts.length, terracesError(e), false, uncertainPhotoResponse(e)); setFeedback(outcome);
+      outcome = uploadFeedback(sent, drafts.length, terracesError(e), reviewed, uncertainPhotoResponse(e)); setFeedback(outcome);
     }
     finally { writing.current = false; if (!scope.current?.signal.aborted) { setSending(false); setBusy(false); const latest = await refresh(false, sent > 0 ? outcome : undefined);
       if (latest) {
         const remaining = reconcilePhotoDrafts(drafts.map(d => ({ ...d, attempted: true })), latest);
-        const confirmedCount = drafts.filter(d => latest.some(p => p.submission_key === d.key && p.upload_state === "ready")).length;
-        if (!remaining.length) setMessage(drafts.some(d => latest.some(p => p.submission_key === d.key && p.status !== "PENDING")) ? "Your photos are saved." : drafts.length === 1 ? "Photo sent. Pending review." : "Photos sent. Pending review.");
-        else if (confirmedCount > sent) setFeedback(uploadFeedback(confirmedCount, drafts.length, "Couldn't send that photo. Try again."));
+        const confirmedCount = drafts.filter(d => latest.some(p => p.submission_key === d.key && p.upload_state === "ready" && (p.status === "PENDING" || p.status === "APPROVED"))).length;
+        const publishedCount = drafts.filter(d => latest.some(p => p.submission_key === d.key && p.status === "APPROVED" && p.upload_state === "ready")).length;
+        if (!remaining.length) setFeedback(confirmedCount === drafts.length ? uploadFeedback(confirmedCount, drafts.length, "", publishedCount) : { kind: "success", text: "Your photos are saved." });
+        else if (confirmedCount > sent) setFeedback(uploadFeedback(confirmedCount, drafts.length, "Couldn't send that photo. Try again.", publishedCount));
       } } }
   }
   async function remove(photo: TerracePhoto) {
@@ -161,7 +162,7 @@ function PhotoSubmissionContent({ attendance }: { attendance: PhotoAttendance })
         {drafts.length + occupied < 3 && !drafts.some(d => d.attempted) && <button type="button" disabled={busy} onClick={() => picker.current?.click()} className="mt-3 min-h-11 w-full border border-dashed border-[var(--tt-rule)] text-sm">+ Add another photo</button>}
         <p className="mt-2 text-xs text-[var(--tt-muted)]">JPEG, PNG &amp; iPhone photos · Max 10 MB each.</p>
         <label className="mt-5 flex items-start gap-2 text-sm"><input type="checkbox" checked={consent} disabled={busy || drafts.some(d => d.attempted)} onChange={event => setConsent(event.target.checked)} className="mt-1 h-5 w-5 shrink-0" /><span>I have permission to share these photos publicly on Matchgoer.</span></label>
-        <p className="mt-1 text-xs text-[var(--tt-muted)]">Shared with your display name after review.</p>
+          <p className="mt-1 text-xs text-[var(--tt-muted)]">Shared with your display name.</p>
         <button type="button" disabled={busy || !consent} onClick={() => void submit()} className="tt-action mt-4 w-full px-3">{busy ? "Sending…" : uncertain ? "CHECK PHOTOS" : drafts.some(d => d.attempted) ? "TRY AGAIN" : "SHARE PHOTOS →"}</button>
         {!uncertain && <button type="button" disabled={busy} onClick={() => { setDrafts([]); setConsent(false); setFeedback(null); }} className="min-h-11 text-sm font-bold underline">Cancel selection</button>}
       </div>}

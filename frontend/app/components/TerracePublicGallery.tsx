@@ -28,6 +28,8 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
   const [reason, setReason] = useState("");
   const [reportMessage, setReportMessage] = useState("");
   const [reporting, setReporting] = useState(false);
+  const [locations, setLocations] = useState<Record<number, string>>({});
+  const requestedVenues = useRef(new Set<number>());
   const busy = useRef(false);
   const scope = useRef<AbortController | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -57,6 +59,20 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     void load();
     return () => { scope.current?.abort(); busy.current = false; };
   }, [load]);
+
+  useEffect(() => {
+    if (mode !== "preview") return;
+    const controller = scope.current;
+    for (const photo of photos.slice(0, 5)) {
+      if (requestedVenues.current.has(photo.venue_id)) continue;
+      requestedVenues.current.add(photo.venue_id);
+      void anonymousApi.get<{ city?: string | null; country?: string | null }>(`/venue/${photo.venue_id}`, { signal: controller?.signal }).then(({ data }) => {
+        if (controller?.signal.aborted) return;
+        const location = [...new Set([data.city?.trim(), data.country?.trim()].filter(Boolean))].join(", ");
+        setLocations(current => ({ ...current, [photo.venue_id]: location }));
+      }).catch(() => { /* Missing canonical location is simply omitted. */ });
+    }
+  }, [mode, photos]);
 
   const refresh = async (photo: TerracePhoto) => {
     const controller = scope.current;
@@ -98,10 +114,11 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     const fixture = photo.home_team && photo.away_team ? `${photo.home_team} v ${photo.away_team}` : null;
     const secondary = dark ? "text-white/75" : "text-[var(--tt-muted)]";
     return <>
-      <Link href={`/venue/${photo.venue_id}`} className="text-base font-extrabold underline">{photo.venue_name || "View ground"}</Link>
+      {dark ? <p className="text-base font-extrabold">{photo.venue_name || "Ground"}</p> : <Link href={`/venue/${photo.venue_id}`} className="text-base font-extrabold underline">{photo.venue_name || "View ground"}</Link>}
       {(fixture || matchDate) && <p className={`mt-1 text-xs ${secondary}`}>{fixture}{fixture && matchDate && " · "}{matchDate && <><span className="sr-only">Match date: </span><time dateTime={photo.match_date ?? undefined}>{matchDate}</time></>}</p>}
       {photo.caption && <p className="mt-1 break-words text-sm">{photo.caption}</p>}
       <p className={`mt-1 text-xs ${secondary}`}><span className="sr-only">Shared by </span>{photo.display_name}{publication && <> · <span className="sr-only">Published </span><time dateTime={photo.published_at ?? undefined}>{publication}</time></>}</p>
+      {dark && <Link href={`/venue/${photo.venue_id}`} className="mt-2 inline-flex min-h-11 items-center text-xs font-bold underline">VIEW GROUND →</Link>}
     </>;
   };
 
@@ -112,8 +129,15 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     {mode !== "feed" && <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="tt-display text-2xl">FROM THE TERRACES</h2><Link href={destination} className="inline-flex min-h-11 items-center text-xs font-bold underline">{mode === "venue" ? "MORE FROM THIS GROUND →" : "VIEW ALL →"}</Link></div>}
     {feedPhotos.length > 0 && <div role={mode === "preview" ? "group" : undefined} aria-label={mode === "preview" ? "Recent photographs" : undefined} tabIndex={mode === "preview" ? 0 : undefined} className={mode === "preview" ? "flex snap-x snap-proximity items-start gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pt-1 focus-visible:outline-2 focus-visible:outline-[var(--brand-interactive)]" : `grid items-start gap-5 ${mode === "feed" ? "mt-3 sm:grid-cols-2" : "grid-cols-2"}`}>
       {feedPhotos.map(photo => <article key={photo.photo_id} className={`min-w-0 ${mode === "preview" ? "max-w-52 shrink-0 basis-[42%] snap-start" : ""}`}>
+        {mode === "preview" ? <button type="button" onClick={() => open(photo)} aria-label={`View photograph from ${photo.venue_name || "this ground"}${photo.home_team && photo.away_team ? `, ${photo.home_team} v ${photo.away_team}` : ""}`} className="block min-h-11 w-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
+          <TerracePhotoView photo={photo} compact passive showContext={false} showCaption={false} refresh={() => void refresh(photo)} />
+          <span className="mt-2 block break-words text-sm font-extrabold">{photo.venue_name || "Ground"}</span>
+          {photo.home_team && photo.away_team && <span className="mt-1 block break-words text-xs text-[var(--tt-muted)]">{photo.home_team} v {photo.away_team}</span>}
+          {locations[photo.venue_id] && <span className="mt-1 block break-words text-xs text-[var(--tt-muted)]">{locations[photo.venue_id]}</span>}
+        </button> : <>
         <TerracePhotoView photo={photo} compact={mode !== "feed"} presentation={mode === "feed" ? "editorial" : "default"} showContext={false} showCaption={false} onOpen={() => open(photo)} refresh={() => void refresh(photo)} />
         <div className="mt-2 break-words">{mode === "feed" ? context(photo) : <Link href={`/venue/${photo.venue_id}`} className="text-sm font-bold underline">{photo.venue_name || "View ground"}</Link>}</div>
+        </>}
       </article>)}
     </div>}
     {mode === "feed" && <>

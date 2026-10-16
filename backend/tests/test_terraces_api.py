@@ -117,7 +117,7 @@ class PhotoApiTests(unittest.TestCase):
         meta=base64.urlsafe_b64encode(json.dumps(metadata or self.meta).encode()).decode()
         return asyncio.run(api.submit(self.visit.visit_id,self.request(data),Response(),authorization='Bearer synthetic',idempotency_key='f1d8e839-7807-4690-88e2-3f0711b65b32',x_terraces_metadata=meta))
     def test_real_jpeg_subprocess_and_header_contract(self):
-        result=self.upload(self.encoded());self.assertEqual(result['status'],'PENDING')
+        result=self.upload(self.encoded());self.assertEqual(result['status'],'APPROVED')
         self.assertEqual(len(self.storage.objects),2)
     def test_oversized_stream_and_malicious_image(self):
         for data in (b'x'*10_000_001,b'<svg><script>bad</script></svg>'):
