@@ -33,3 +33,23 @@ test("attended personal block follows the venue hero while unattended hierarchy 
   assert.ok(hero > -1 && hero < attended && attended < guide && guide < unattended);
   assert.match(venuePage, /tt-panel mt-4 p-4 sm:p-5/);
 });
+
+// Fixture-page attendance requires authoritative completion, not board closure.
+test("completed attendance handoff excludes uncertain and retained plans", async () => {
+  const { canRecordCompletedFixture } = await import("./fixture-status.ts");
+  for (const status of ["FT", "AET", "PEN", "ft"]) assert.equal(canRecordCompletedFixture(status, 9), true);
+  for (const status of ["NS", "TBD", "1H", "HT", "2H", "ET", "P", "PST", "CANC", "ABD", "AWD", "WO", "SUSP", "INT", "LIVE", "", null, undefined]) {
+    assert.equal(canRecordCompletedFixture(status, 9), false, String(status));
+  }
+  for (const venue of [null, 0, -1, 1.5, NaN]) assert.equal(canRecordCompletedFixture("FT", venue), false);
+});
+
+test("retained status messages preserve uncertainty and saved intentions", async () => {
+  const { retainedMatchMessage } = await import("./fixture-status.ts");
+  assert.equal(retainedMatchMessage("PST"), "This match has been postponed. Your saved match has been kept.");
+  assert.equal(retainedMatchMessage("canc"), "This match has been cancelled. Your saved match has been kept.");
+  assert.equal(retainedMatchMessage("ABD"), "This match was abandoned. Your saved match has been kept.");
+  assert.equal(retainedMatchMessage("AWD", false), "This match was awarded.");
+  assert.equal(retainedMatchMessage("WO", false), "This match was decided by a walkover.");
+  for (const status of ["FT", "NS", "LIVE", null]) assert.equal(retainedMatchMessage(status), null);
+});

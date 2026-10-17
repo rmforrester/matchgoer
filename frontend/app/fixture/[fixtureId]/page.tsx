@@ -7,7 +7,8 @@ import { use, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import api, { apiAssetUrl } from "../../../lib/api";
-import { fixtureHasFinishedForSocial, fixtureKickoffConfirmed, fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
+import { canRecordCompletedFixture, retainedMatchMessage, fixtureHasFinishedForSocial, fixtureKickoffConfirmed, fixtureStatusGroup, fixtureStatusLabel } from "../../../lib/fixture-status";
+import { useAuth } from "../../components/AuthProvider";
 import AccountConversionPrompt from "../../components/AccountConversionPrompt";
 import FixtureTeams from "../../components/FixtureTeams";
 import { accountRoute } from "@/lib/auth-flow";
@@ -45,7 +46,15 @@ type SocialFixture = {
   board_closed: boolean; posts: BoardPost[];
 };
 
-export default function FixturePage({ params, searchParams }: { params: Promise<{ fixtureId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+type FixturePageProps = { params: Promise<{ fixtureId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+export default function FixturePage(props: FixturePageProps) {
+  const { accountKey } = useAuth();
+  const { fixtureId } = use(props.params);
+  return <FixturePageContent key={`${accountKey}:${fixtureId}`} {...props} />;
+}
+
+function FixturePageContent({ params, searchParams }: FixturePageProps) {
   const { fixtureId } = use(params);
   const pendingSearchParams = use(searchParams);
   const router = useRouter();
@@ -60,6 +69,28 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
   const [reporting, setReporting] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("other");
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const attendanceWriting = useRef(false);
+  const attendanceHeading = useRef<HTMLHeadingElement>(null);
+  const active = useRef(true);
+  useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
+
+  const recordAttendance = async () => {
+    if (!data || data.own_attendance.attended || attendanceWriting.current || saving || !canRecordCompletedFixture(data.fixture.status, data.fixture.venue_id)) return;
+    attendanceWriting.current = true; setSaving(true); setError("");
+    try {
+      const response = await api.post(`/fixtures/${fixtureId}/attendance`);
+      if (!active.current) return;
+      const visit = response.data;
+      if (!Number.isInteger(visit.visit_id) || visit.visit_id <= 0 || visit.fixture_id !== data.fixture.fixture_id || visit.venue_id !== data.fixture.venue_id) throw new Error("Attendance not confirmed");
+      setData(current => current ? { ...current, own_attendance: { attended: true, visit_id: visit.visit_id, venue_id: visit.venue_id, visit_date: visit.visit_date } } : current);
+      requestAnimationFrame(() => { if (active.current) attendanceHeading.current?.focus(); });
+    } catch {
+      if (active.current) setError("We couldn't record this matchday. Try again.");
+    } finally {
+      attendanceWriting.current = false;
+      if (active.current) setSaving(false);
+    }
+  };
   const pendingActionStarted = useRef(false);
 
   const load = useCallback(
@@ -262,11 +293,11 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
       {(data.terrace_rating !== null || data.recommend_percentage !== null) && <details className="mt-2 text-xs text-[var(--tt-muted)]"><summary className="cursor-pointer font-bold uppercase tracking-[0.08em]">Community ground ratings</summary><div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">{data.terrace_rating !== null && <span>★ {data.terrace_rating.toFixed(1)} Terrace Rating</span>}{data.recommend_percentage !== null && <span>{Math.round(data.recommend_percentage)}% recommended</span>}</div></details>}
     </section>}
 
-    {statusGroup === "cancelled" ? <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="matchday-heading"><p className="mg-section-label">06 / Your matchday</p><h2 id="matchday-heading" className="mg-display-section mt-2">This match is cancelled</h2><p className="mg-body mt-3 max-w-2xl text-[var(--mg-muted)]">It won&apos;t appear as an upcoming plan or attendance option.</p>{data.interested && <button type="button" disabled={saving} onClick={toggleInterested} className="mg-secondary-action mt-4 px-5">Remove from My Matchdays</button>}</section> : !finishedForSocial ? <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="matchday-heading">
+    {(statusGroup === "cancelled" || (statusGroup === "postponed" && finishedForSocial)) ? <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="matchday-heading"><p className="mg-section-label">06 / Your matchday</p><h2 id="matchday-heading" className="mg-display-section mt-2">Your matchday</h2><p className="mg-body mt-3 max-w-2xl text-[var(--mg-muted)]">{retainedMatchMessage(data.fixture.status, data.interested)}</p>{(data.interested || statusGroup === "postponed") && <button type="button" disabled={saving} onClick={toggleInterested} className="mg-secondary-action mt-4 px-5">{data.interested ? "Remove from My Matchdays" : "Save match"}</button>}</section> : !finishedForSocial ? <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="matchday-heading">
       <div>
         <p className="mg-section-label">06 / Your matchday</p>
-        <h2 id="matchday-heading" className="mg-display-section mt-2">{statusGroup === "postponed" ? "Match postponed" : "Your matchday"}</h2>
-        {statusGroup === "postponed" && <p className="mt-3 text-[var(--tt-muted)]">Keep this on your radar while a new kickoff is confirmed.</p>}
+        <h2 id="matchday-heading" className="mg-display-section mt-2">Your matchday</h2>
+        {statusGroup === "postponed" && <p className="mt-3 text-[var(--tt-muted)]">{retainedMatchMessage(data.fixture.status, data.interested)}</p>}
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`${data.interested ? "mg-primary-action" : "mg-secondary-action"} px-5 py-3 text-left`}>{data.interested ? "✓ Added to My Matchdays" : "Save match"}</button>
           <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`${data.open_to_meet ? "mg-primary-action" : "mg-secondary-action"} px-5 py-3 text-left`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Open to meeting supporters"}</button>
@@ -275,6 +306,11 @@ export default function FixturePage({ params, searchParams }: { params: Promise<
         <p className="mt-2 text-xs leading-5 text-[var(--tt-muted)]">Meet safely in public matchday locations and use your judgment when meeting someone new.</p>
       </div>
     </section> : null}
+
+    {canRecordCompletedFixture(data.fixture.status, data.fixture.venue_id) && <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="attendance-heading">
+      <h2 ref={attendanceHeading} tabIndex={-1} id="attendance-heading" className="mg-display-section focus-visible:outline-2 focus-visible:outline-offset-2">{data.own_attendance.attended ? "Matchday recorded" : "Did you go?"}</h2>
+      {data.own_attendance.attended ? <><p role="status" className="mt-3 font-bold text-[var(--brand-interactive)]">Added to your football history.</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-2"><Link href="/my-football?tab=interested" className="mg-tertiary-action inline-flex min-h-11 items-center">View my matchdays →</Link><Link href={`/my-football?tab=visited&review=${data.fixture.venue_id}`} className="mg-tertiary-action inline-flex min-h-11 items-center">Rate this ground →</Link></div></> : <><p className="mg-body mt-2">Were you at this match?</p><button type="button" disabled={saving} aria-busy={saving} onClick={() => void recordAttendance()} className="mg-primary-action mt-3 px-5">{saving ? "Saving…" : "Yes, I went"}</button></>}
+    </section>}
 
     <section className="mt-5 border-t border-[var(--mg-rule)] pt-3" aria-labelledby="board-heading">
       {finishedForSocial && <p className="mg-section-label">06 / Your matchday</p>}

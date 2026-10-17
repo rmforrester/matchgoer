@@ -35,3 +35,18 @@ export function fixtureHasFinishedForSocial(status: string | null | undefined, b
   const group = fixtureStatusGroup(status);
   return group === "finished" || (boardClosed && group !== "cancelled");
 }
+
+/** Saved intentions survive changes to the fixture; this never implies attendance. */
+export function retainedMatchMessage(status: string | null | undefined, saved = true): string | null {
+  const messages: Record<string, string> = {
+    PST: "This match has been postponed.", CANC: "This match has been cancelled.",
+    ABD: "This match was abandoned.", AWD: "This match was awarded.", WO: "This match was decided by a walkover.",
+  };
+  const message = messages[(status ?? "").toUpperCase()];
+  return message ? `${message}${saved ? " Your saved match has been kept." : ""}` : null;
+}
+
+/** Board closure or elapsed kickoff alone cannot authorise this fixture-page handoff. */
+export function canRecordCompletedFixture(status: string | null | undefined, venueId: number | null): boolean {
+  return fixtureStatusGroup(status) === "finished" && Number.isInteger(venueId) && Number(venueId) > 0;
+}
