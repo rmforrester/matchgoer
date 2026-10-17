@@ -8,10 +8,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import api from "../../lib/api";
-import type { GroundReview, MyGround } from "../types/grounds";
+import type { FootprintSummary, GroundReview, MyGround, MyGroundFootprint } from "../types/grounds";
 import MatchdayTips from "./MatchdayTips";
 import GroundPhotograph from "./GroundPhotograph";
-import { footballCountry, footballPassport, groundTimeframes, groundsInTimeframe, type GroundTimeframe } from "../../lib/my-grounds";
+import { footballCountry, footballPassport } from "../../lib/my-grounds";
+
+import FootprintLeagues from "./FootprintLeagues";
+import { footprintGrounds, type FootprintPeriod } from "../../lib/football-footprint";
 
 const PersonalGroundMap = dynamic(() => import("./PersonalGroundMap"), { ssr: false });
 
@@ -38,6 +41,7 @@ function VisitedTabContent() {
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
   const [unknownDetails, setUnknownDetails] = useState(false);
   const [grounds, setGrounds] = useState<MyGround[]>([]);
+  const [footprint, setFootprint] = useState<FootprintSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -52,7 +56,7 @@ function VisitedTabContent() {
   const [fixtureCandidates, setFixtureCandidates] = useState<FixtureCandidate[]>([]);
   const [findingMatches, setFindingMatches] = useState(false);
   const [editingVisitId, setEditingVisitId] = useState<number | null>(null);
-  const [timeframe, setTimeframe] = useState<GroundTimeframe>("lifetime");
+  const [timeframe, setTimeframe] = useState<FootprintPeriod>("lifetime");
   const [reviewingId, setReviewingId] = useState<number | null>(null);
   const [ratingMessage, setRatingMessage] = useState("");
   const savingReview = useRef(false);
@@ -88,8 +92,10 @@ function VisitedTabContent() {
 
   const loadGrounds = useCallback(async () => {
     await api.get("/session");
-    const response = await api.get("/my-grounds");
-    const loaded = response.data as MyGround[];
+    const response = await api.get<MyGroundFootprint | MyGround[]>("/my-grounds", { params: { footprint: true } });
+    // Old-backend compatibility: keep Lifetime usable without inventing seasons.
+    const loaded = Array.isArray(response.data) ? response.data : response.data.grounds;
+    setFootprint(Array.isArray(response.data) ? null : response.data.footprint);
     setGrounds(loaded);
     return loaded;
   }, []);
@@ -217,7 +223,7 @@ function VisitedTabContent() {
 
   const enteredScores = [scores.atmosphere, scores.pubs, scores.travel, scores.facilities].filter((score): score is number => score !== null);
   const overall = enteredScores.length ? (enteredScores.reduce((sum, score) => sum + score, 0) / enteredScores.length).toFixed(1) : "—";
-  const visibleGrounds = useMemo(() => groundsInTimeframe(grounds, timeframe), [grounds, timeframe]);
+  const visibleGrounds = useMemo(() => footprintGrounds(grounds, timeframe, footprint), [grounds, timeframe, footprint]);
   const cityCount = new Set(visibleGrounds.flatMap((ground) => ground.venue_city ? [ground.venue_city.trim().toLocaleLowerCase()] : [])).size;
   const passport = useMemo(() => footballPassport(visibleGrounds), [visibleGrounds]);
   const countryCount = passport.length;
@@ -304,10 +310,10 @@ function VisitedTabContent() {
     {loading && <p className="mt-6 font-semibold">Loading your ground history…</p>}
     {!loading && grounds.length === 0 && <section className="mt-8 border-y-2 border-[var(--tt-ink)] py-8"><p className="tt-display text-3xl">Your football story starts here.</p><p className="mt-2 text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p><a href="#add-ground" className="tt-action mt-4 inline-flex min-h-11 items-center justify-center px-4">Add a ground →</a></section>}
 
-    {!loading && grounds.length > 0 && <section className="mt-5" aria-labelledby="football-map-heading"><h2 id="football-map-heading" className="sr-only">My football world map</h2><div className="mb-4 inline-flex max-w-full overflow-x-auto border-b border-[var(--tt-rule)]" aria-label="Show visits from">{groundTimeframes.map((option) => <button key={option.key} type="button" aria-pressed={timeframe === option.key} onClick={() => { setTimeframe(option.key); setCollection(null); }} className={`min-h-11 shrink-0 border-b-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] ${timeframe === option.key ? "border-[var(--brand-interactive)] text-[var(--brand-interactive)]" : "border-transparent text-[var(--tt-muted)]"}`}>{option.label}</button>)}</div>{visibleGrounds.length > 0 ? <PersonalGroundMap grounds={visibleGrounds}/> : <div className="border-y-2 border-[var(--tt-ink)] py-6"><p className="font-bold">No visits in this timeframe.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Try a longer timeframe.</p></div>}{unplottableCount > 0 && <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">{unplottableCount} visited {unplottableCount === 1 ? "ground could" : "grounds could"} not be plotted because coordinates are unavailable.</p>}</section>}
+    {!loading && grounds.length > 0 && <section className="mt-5" aria-labelledby="football-map-heading"><h2 id="football-map-heading" className="tt-display mb-3 text-2xl text-[var(--brand-interactive)]">Your football footprint</h2><div className="mb-4 inline-flex max-w-full overflow-x-auto border-b border-[var(--tt-rule)]" aria-label="Show visits from">{([{ key: "lifetime", label: "Lifetime" }, { key: "season", label: "This Season" }] as const).map((option) => <button key={option.key} type="button" aria-pressed={timeframe === option.key} disabled={option.key === "season" && !footprint} onClick={() => { setTimeframe(option.key); setCollection(null); }} className={`min-h-11 shrink-0 border-b-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] ${timeframe === option.key ? "border-[var(--brand-interactive)] text-[var(--brand-interactive)]" : "border-transparent text-[var(--tt-muted)]"}`}>{option.label}</button>)}</div>{!footprint && <p className="mb-3 text-xs text-[var(--tt-muted)]">Season coverage isn&apos;t available right now. Your Lifetime history is here.</p>}{timeframe === "season" && <p className="mb-3 text-xs text-[var(--tt-muted)]">Dated visits within verified current league seasons. Undated and unclassified visits stay in Lifetime.</p>}{visibleGrounds.length > 0 ? <PersonalGroundMap grounds={visibleGrounds}/> : <div className="border-y-2 border-[var(--tt-ink)] py-6"><p className="font-bold">No recorded visits in a verified current season.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Your full ground history is in Lifetime.</p></div>}{unplottableCount > 0 && <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">{unplottableCount} visited {unplottableCount === 1 ? "ground could" : "grounds could"} not be plotted because coordinates are unavailable.</p>}</section>}
 
     {!loading && grounds.length > 0 && <section className="mt-5 border-y border-[var(--tt-rule)] py-4" aria-labelledby="footprint-heading">
-      <h2 id="footprint-heading" className="tt-display text-2xl leading-none text-[var(--brand-interactive)] sm:text-3xl">Your football footprint</h2>
+      <h2 id="footprint-heading" className="tt-display text-2xl leading-none text-[var(--brand-interactive)] sm:text-3xl">Your footprint in numbers</h2>
       <p className="mt-2 text-xs text-[var(--tt-muted)]">Every ground has a story.</p>
       <dl className="mt-4 grid grid-cols-3 divide-x divide-[var(--tt-rule)]">
         {[[visibleGrounds.length, "Grounds"], [countryCount, "Countries"], [matchdayCount, "Matchdays"]].map(([value, label]) => <div key={label} className="flex min-w-0 flex-col px-1 first:pl-0 sm:px-3">
@@ -330,7 +336,7 @@ function VisitedTabContent() {
               <span className="flex items-start justify-between gap-3"><span className="tt-display min-w-0 break-words text-2xl leading-none text-[var(--brand-interactive)]">{country.name}</span><span aria-hidden="true" className="shrink-0 text-[var(--brand-interactive)]">{isOpen ? "⌃" : "⌄"}</span></span>
               <span className="mt-2 block text-xs font-extrabold uppercase tracking-[0.04em]">{country.groundCount} {country.groundCount === 1 ? "ground" : "grounds"} · {country.matchdayCount} {country.matchdayCount === 1 ? "matchday" : "matchdays"}</span>
             </button></h3>
-            {isOpen && <div id={panelId} className="mx-3 border-t border-[var(--tt-rule)] divide-y divide-[var(--tt-rule)]">{visibleGrounds.filter((ground) => footballCountry(ground.venue_country)?.key === country.key).map((ground) => renderGround(ground, true))}</div>}
+            {isOpen && <div id={panelId} className="mx-3 border-t border-[var(--tt-rule)] divide-y divide-[var(--tt-rule)]">{<FootprintLeagues key={`${country.key}-${timeframe}`} grounds={visibleGrounds.filter((ground) => footballCountry(ground.venue_country)?.key === country.key)} footprint={footprint} period={timeframe} />}</div>}
           </li>;
         })}
       </ul>

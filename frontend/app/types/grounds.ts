@@ -50,3 +50,26 @@ export type MyGround = {
   community_review_count: number;
   community_recommend_percentage: number | null;
 };
+
+// Owner-only, bounded current-season projection; no complete league rosters.
+export type FootprintCompetition = {
+  competition_id: number;
+  season: number;
+  season_label: string;
+  name: string;
+  country: string;
+  season_start: string;
+  season_end: string;
+  coverage: "ready" | "incomplete";
+  total_clubs: number;
+  lifetime_clubs: number | null;
+  season_clubs: number | null;
+  grounds: { venue_id: number; clubs: string[]; season_visit_ids: number[] }[];
+};
+export type FootprintSummary = {
+  reviewed_on: string;
+  season_visit_ids: number[];
+  unclassified_dated_visits: number;
+  competitions: FootprintCompetition[];
+};
+export type MyGroundFootprint = { grounds: MyGround[]; footprint: FootprintSummary };

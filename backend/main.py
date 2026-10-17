@@ -68,6 +68,7 @@ from schemas import (
     VenueVisitUpdate,
     VenueVisitResponse,
     MyGroundResponse,
+    MyGroundFootprintResponse,
     ProfileCreate,
     ProfileUpdate,
     AccountContextResponse,
@@ -2423,9 +2424,10 @@ def update_venue_visit_fixture(
         db.close()
 
 
-@app.get("/my-grounds", response_model=list[MyGroundResponse])
+@app.get("/my-grounds", response_model=list[MyGroundResponse] | MyGroundFootprintResponse)
 def get_my_grounds(
     identity: ResolvedIdentity = Depends(required_current_identity),
+    footprint: bool = False,
 ):
     db = SessionLocal()
     try:
@@ -2438,7 +2440,7 @@ def get_my_grounds(
             VenueVisit.created_at,
             VenueVisit.visit_id,
         ).all()
-        if not visits:
+        if not visits and not footprint:
             return []
         venue_ids = {visit.venue_id for visit in visits}
         reviews = {
@@ -2520,7 +2522,11 @@ def get_my_grounds(
                     if recommend_total else None
                 ),
             })
-        return sorted(results, key=lambda item: (item["venue_name"] or "").casefold())
+        grounds = sorted(results, key=lambda item: (item["venue_name"] or "").casefold())
+        if footprint:
+            from football_footprint import build_footprint
+            return {"grounds": grounds, "footprint": build_footprint(db, visits, datetime.now(timezone.utc).date())}
+        return grounds
     finally:
         db.close()
 

@@ -70,7 +70,7 @@ test("My Grounds keeps one contextual add flow and compact card actions", () => 
   assert.match(visitedTab, /aria-controls="add-ground"/);
   assert.match(visitedTab, /grounds\.length > 0 && showAddGround && <section id="add-ground"/);
   assert.match(visitedTab, /grounds\.length === 0 && <section id="add-ground"/);
-  assert.ok(visitedTab.indexOf("showAddGround && <section") < visitedTab.indexOf("My football world map"));
+  assert.ok(visitedTab.indexOf("showAddGround && <section") < visitedTab.indexOf("football-map-heading"));
   assert.match(visitedTab, /Add somewhere you&apos;ve been\./);
   assert.doesNotMatch(visitedTab, /A review is optional\./);
   assert.doesNotMatch(visitedTab, />Add a visit<\/button>/);

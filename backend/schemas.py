@@ -362,6 +362,39 @@ class MyGroundResponse(BaseModel):
     community_recommend_percentage: float | None = None
 
 
+class FootprintGround(BaseModel):
+    venue_id: int
+    clubs: list[str]
+    season_visit_ids: list[int]
+
+
+class FootprintCompetition(BaseModel):
+    competition_id: int
+    season: int
+    season_label: str
+    name: str
+    country: str
+    season_start: date
+    season_end: date
+    coverage: str
+    total_clubs: int
+    lifetime_clubs: int | None
+    season_clubs: int | None
+    grounds: list[FootprintGround]
+
+
+class FootprintSummary(BaseModel):
+    reviewed_on: date
+    season_visit_ids: list[int]
+    unclassified_dated_visits: int
+    competitions: list[FootprintCompetition]
+
+
+class MyGroundFootprintResponse(BaseModel):
+    grounds: list[MyGroundResponse]
+    footprint: FootprintSummary
+
+
 class ProfileCreate(BaseModel):
     display_name: str = Field(min_length=2, max_length=40)
     supported_club: str | None = Field(default=None, max_length=80)

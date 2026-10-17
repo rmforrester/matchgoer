@@ -247,8 +247,8 @@ test("My Matchdays uses one empty state and does not preserve non-attendance his
 });
 
 test("My Grounds filters one coherent visit view and keeps cards supporter-facing", () => {
-  assert.match(groundsSource, /groundTimeframes/);
-  assert.match(groundsSource, /groundsInTimeframe\(grounds, timeframe\)/);
+  assert.match(groundsSource, /label: "This Season"/);
+  assert.match(groundsSource, /footprintGrounds\(grounds, timeframe, footprint\)/);
   assert.match(groundsSource, /PersonalGroundMap grounds=\{visibleGrounds\}/);
   assert.match(groundsSource, /Last visited/);
   assert.doesNotMatch(groundsSource, />Visits</);
