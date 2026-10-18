@@ -24,14 +24,14 @@ export default function FootprintLeagues({ grounds, footprint, period }: {
               <span className="shrink-0 text-right text-xs font-bold text-[var(--brand-interactive)]">{competition.coverage === "ready" && count !== null ? <>{count} / {competition.total_clubs}<span className="sr-only"> clubs covered across the league</span></> : <>Coverage<br/>incomplete</>}</span>
             </span>
           </summary>
-          <ul className="border-l border-[var(--tt-rule)] pl-3">{competition.grounds.map(item => {
+          <ul className="space-y-3 border-l border-[var(--tt-rule)] pb-3 pl-3">{competition.grounds.map(item => {
             const ground = grounds.find(ground => ground.venue_id === item.venue_id)!;
-            return <li key={item.venue_id} className="py-1"><Link className="inline-flex min-h-11 items-center break-words text-sm font-bold text-[var(--brand-interactive)] underline" href={`/venue/${item.venue_id}`}>{ground.venue_name}</Link>
+            return <li key={item.venue_id} className="min-w-0 border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3"><Link className="inline-flex min-h-11 items-center break-words text-sm font-bold text-[var(--brand-interactive)] underline" href={`/venue/${item.venue_id}`}>{ground.venue_name}</Link>
               <p className="pb-2 text-xs text-[var(--tt-muted)]">{item.clubs.length ? item.clubs.join(" · ") : "Home-ground coverage not verified"}</p><GroundMatchdays key={ground.visits.map(visit => visit.visit_id).join(",")} ground={ground} /></li>;
           })}</ul>
         </details></li>;
       })}</ul>
     </details>)}
-    {otherGrounds.length > 0 && <div className="pt-3"><h4 className="tt-kicker text-xs">{competitions.length ? "Other grounds you've visited" : "Grounds you've visited"}</h4><ul>{otherGrounds.map(ground => <li key={ground.venue_id}><Link href={`/venue/${ground.venue_id}`} className="inline-flex min-h-11 items-center break-words text-sm font-bold text-[var(--brand-interactive)] underline">{ground.venue_name}</Link><GroundMatchdays key={ground.visits.map(visit => visit.visit_id).join(",")} ground={ground} /></li>)}</ul></div>}
+    {otherGrounds.length > 0 && <div className="pt-3"><h4 className="tt-kicker text-xs">{competitions.length ? "Other grounds you've visited" : "Grounds you've visited"}</h4><ul className="mt-3 space-y-3">{otherGrounds.map(ground => <li key={ground.venue_id} className="min-w-0 border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3"><Link href={`/venue/${ground.venue_id}`} className="inline-flex min-h-11 items-center break-words text-sm font-bold text-[var(--brand-interactive)] underline">{ground.venue_name}</Link><GroundMatchdays key={ground.visits.map(visit => visit.visit_id).join(",")} ground={ground} /></li>)}</ul></div>}
   </div>;
 }
