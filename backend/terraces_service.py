@@ -1,3 +1,4 @@
+from venue_resolution import resolution
 """Photo lifecycle on existing Phase A tables. This service owns its commits."""
 import base64
 import json
@@ -152,8 +153,9 @@ def photo_payload(db,storage,row,*,private=False):
     profile=db.get(UserProfile,row.owner_user_id)
     fixture=db.get(Fixture,row.fixture_id) if row.fixture_id else None
     visit=db.get(VenueVisit,row.visit_id) if row.visit_id else None
-    venue=db.get(Venue,row.venue_id)
-    result={'photo_id':row.photo_id,'venue_id':row.venue_id,'venue_name':venue.name if venue else None,'fixture_id':row.fixture_id,'caption':row.caption,
+    venue_id=resolution(db).canonical(row.venue_id)
+    venue=db.get(Venue,venue_id)
+    result={'photo_id':row.photo_id,'venue_id':venue_id,'venue_name':venue.name if venue else None,'fixture_id':row.fixture_id,'caption':row.caption,
             'display_name':profile.display_name if profile else 'Matchgoer','published_at':row.published_at,
             'match_date':fixture.fixture_date if fixture else visit.visit_date if visit else None,
             'home_team':fixture.home_team if fixture else None,'away_team':fixture.away_team if fixture else None}
@@ -173,7 +175,7 @@ def public_photo_query(db):
 
 
 def public_matchday_query(db,row):
-    query=public_photo_query(db).filter(Photo.venue_id==row.venue_id)
+    query=public_photo_query(db).filter(Photo.venue_id.in_(resolution(db).equivalents(row.venue_id)))
     if row.fixture_id is not None:return query.filter(Photo.fixture_id==row.fixture_id)
     if row.visit_id is not None:
         # Internal recorded-visit relationship only; never infer by date/ground.
@@ -197,7 +199,7 @@ def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,
         if anchor is None:raise HTTPException(404,'Photograph not found')
         related=public_matchday_query(db,anchor)
         query=related if related is not None else query.filter(Photo.photo_id==anchor.photo_id)
-    if venue_id is not None:query=query.filter(Photo.venue_id==venue_id)
+    if venue_id is not None:query=query.filter(Photo.venue_id.in_(resolution(db).equivalents(venue_id)))
     if fixture_id is not None:query=query.filter(Photo.fixture_id==fixture_id)
     if selection == 'discover':
         if cursor is not None or venue_id is not None or fixture_id is not None:
@@ -205,7 +207,7 @@ def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,
         # Hard cap bounds SQL results, memory and work; never sign unselected candidates.
         candidates=query.order_by(Photo.published_at.desc(),Photo.photo_id.desc()).limit(120).all()
         representatives={}
-        for row in candidates:representatives.setdefault(row.venue_id,row)
+        for row in candidates:representatives.setdefault(resolution(db).canonical(row.venue_id),row)
         selected=[];contributors=set();remaining=list(representatives.values())
         while remaining and len(selected)<min(limit,5):
             timestamp=remaining[0].published_at

@@ -211,7 +211,7 @@ class OwnedFootprintContractTests(unittest.TestCase):
             self.assertEqual(len(result['grounds']), 1)
             self.assertEqual(result['grounds'][0]['visit_count'], 1000)
             self.assertEqual(len(result['footprint']['season_visit_ids']), 1000)
-            self.assertEqual(statements, ['SELECT'] * 6)
+            self.assertEqual(statements, ['SELECT'] * 8)  # one bulk identity map + root metadata, independent of visits
             print('FOOTPRINT_PERFORMANCE ' + json.dumps({'visits': 1000, 'queries': len(statements), 'elapsed_ms': round(elapsed, 2), 'response_bytes': len(json.dumps(result, default=str))}))
         finally:
             if event.contains(engine, 'before_cursor_execute', count_queries):

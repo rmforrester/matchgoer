@@ -1,6 +1,7 @@
 import unittest
 from datetime import date, datetime, timezone
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+from venue_resolution import VenueResolution
 
 from fastapi import HTTPException
 
@@ -9,6 +10,13 @@ from models import Fixture, VenueVisit
 
 
 class VenueVisitContractTests(unittest.TestCase):
+    def setUp(self):
+        # These original tests isolate attendance reconciliation, not DB locks.
+        locks = patch('main.lock_ground', side_effect=lambda db, key: key)
+        identities = patch('main.resolution', return_value=VenueResolution({}))
+        locks.start(); identities.start()
+        self.addCleanup(locks.stop); self.addCleanup(identities.stop)
+
     fixture_date = datetime(2026, 8, 30, 15, 0, tzinfo=timezone.utc)
 
     def db_with(self, visits, *, fixture_venue_id=11, fixture_id=99):

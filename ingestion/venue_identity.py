@@ -7,6 +7,35 @@ import unicodedata
 from dataclasses import dataclass
 
 
+class CanonicalVenues:
+    """Reviewed direct physical-ID links, shared by ingestion and application.
+
+    This is deliberately separate from name/locality matching below: labels,
+    coordinates and provider IDs never create an equivalence.
+    """
+    def __init__(self, links):
+        self.links = {}
+        pairs = links.items() if isinstance(links, dict) else links
+        for source, target in pairs:
+            if type(source) is not int or type(target) is not int or source <= 0 or target <= 0:
+                raise ValueError('Invalid reviewed venue equivalence')
+            if source in self.links and self.links[source] != target:
+                raise ValueError('Conflicting reviewed venue equivalence')
+            self.links[source] = target
+        if len(self.links) > 10000 or any(source == target or target in self.links for source, target in self.links.items()):
+            raise ValueError('Venue equivalence must point directly to a root')
+        self.groups = {}
+        for source, target in self.links.items():
+            self.groups.setdefault(target, set()).add(source)
+
+    def canonical(self, venue_id):
+        return self.links.get(venue_id, venue_id)
+
+    def equivalents(self, venue_id):
+        root = self.canonical(venue_id)
+        return {root} | self.groups.get(root, set())
+
+
 _US_REGIONS = {
     "va": "virginia",
     "mo": "missouri",

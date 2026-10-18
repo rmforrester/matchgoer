@@ -18,6 +18,7 @@ from config.venue_overrides import ManualVenueOverride, manual_override_for
 from ingestion.api_football import ApiFootballClient
 from ingestion.coordinates import NominatimCoordinateEnricher, valid_coordinates
 from ingestion.provider_text import normalize_provider_text
+from ingestion.venue_identity import CanonicalVenues
 from ingestion.team_identity import (
     ACCEPTABLE_IDENTITY_RESOLUTIONS,
     ProviderTeamObservation,
@@ -208,6 +209,10 @@ class TerraceTalkImporter:
                 select(self.venues.c.provider_venue_id, self.venues.c.venue_id)
                 .where(self.venues.c.provider_venue_id.in_(missing))
             ).all()))
+        if 'canonical_venue_id' in self.venues.c:
+            links = dict(connection.execute(select(self.venues.c.venue_id, self.venues.c.canonical_venue_id).where(self.venues.c.canonical_venue_id.is_not(None)).limit(10001)).all())
+            identity = CanonicalVenues(links)
+            mapping = {provider: identity.canonical(venue) for provider, venue in mapping.items()}
         return mapping
 
     def _sync_current_name(self, connection, venue_id: int, name: str | None, source: str) -> str | None:
@@ -731,6 +736,7 @@ class TerraceTalkImporter:
                     connection.execute(self.teams.insert().values(team_id=canonical_team_id, **values))
                 else:
                     connection.execute(self.teams.update().where(self.teams.c.team_id == canonical_team_id).values(**values))
+            canonical_identity = CanonicalVenues(dict(connection.execute(select(self.venues.c.venue_id, self.venues.c.canonical_venue_id).where(self.venues.c.canonical_venue_id.is_not(None)).limit(10001)).all())) if 'canonical_venue_id' in self.venues.c else CanonicalVenues({})
             for item in fixture_payloads:
                 fixture, league, teams_payload, goals = item["fixture"], item["league"], item["teams"], item["goals"]
                 venue = fixture.get("venue") or {}
@@ -743,6 +749,10 @@ class TerraceTalkImporter:
                     else provider_venue_id if link_source == "fixture_provider_name"
                     else provider_to_internal.get(provider_venue_id)
                 )
+                if 'canonical_venue_id' in self.venues.c and internal_venue_id is not None:
+                    # Direct-name/manual decisions retain their authority; only an
+                    # explicitly persisted physical equivalence changes the ID.
+                    internal_venue_id = canonical_identity.canonical(internal_venue_id)
                 venue_name = override.venue_name if override else venue.get("name")
                 venue_city = override.city if override else venue.get("city")
                 home_receipt = identity_receipts[self._identity_key(teams_payload["home"], league, scope)]

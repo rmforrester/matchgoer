@@ -11,6 +11,7 @@ from sqlalchemy import or_
 from identity import verify_claim_provider_identity
 from models import User, UserIdentity, VenueVisit, Fixture, TerracePhoto, TerracePhotoEvent
 from terraces_images import SanitisedPhoto
+from venue_resolution import resolution
 
 CONSENT_VERSION = "terraces-public-v1"
 ACTIVE_STATES = ("PENDING", "APPROVED")
@@ -94,7 +95,7 @@ def reserve_photo(db, authorization: str | None, *, visit_id: int, photo: Saniti
         raise HTTPException(404, "Owned recorded attendance was not found")
     if visit.fixture_id is not None:
         fixture = db.get(Fixture, visit.fixture_id)
-        if not fixture or fixture.venue_id != visit.venue_id:
+        if not fixture or resolution(db).canonical(fixture.venue_id) != resolution(db).canonical(visit.venue_id):
             raise HTTPException(409, "Attendance fixture/venue identity requires review")
     existing = db.query(TerracePhoto).filter(TerracePhoto.owner_user_id == actor.user_id, TerracePhoto.submission_key == submission_key).first()
     if existing:

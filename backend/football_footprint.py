@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 from models import ClubVenue, Team, Venue
+from venue_resolution import resolution
 
 
 @lru_cache(maxsize=1)
@@ -42,18 +43,22 @@ def _relationship_key(row):
     return tuple(value(k) for k in ('venue_id', 'relationship_type', 'valid_from', 'valid_until'))
 
 
-def _mapping_is_current(member, teams, venues, relationships, today):
+def _mapping_is_current(member, teams, venues, relationships, today, identity=None):
+    canonical = identity.canonical if identity is not None else lambda key: key
     team = teams.get(member['team_id'])
     if not team or member['venue_id'] not in venues:
         return False
-    if team.venue_id != member['expected_team_venue_id']:
+    if canonical(team.venue_id) != canonical(member['expected_team_venue_id']):
         return False
-    actual = {_relationship_key(r) for r in relationships.get(member['team_id'], [])}
-    expected = {_relationship_key(r) for r in member['expected_relationships']}
+    def physical_key(row):
+        key = _relationship_key(row)
+        return (canonical(key[0]), *key[1:])
+    actual = {physical_key(r) for r in relationships.get(member['team_id'], [])}
+    expected = {physical_key(r) for r in member['expected_relationships']}
     if actual != expected:
         return False
     # A dated relationship expiring since review cannot remain silently current.
-    chosen = [r for r in member['expected_relationships'] if r['venue_id'] == member['venue_id']]
+    chosen = [r for r in member['expected_relationships'] if canonical(r['venue_id']) == canonical(member['venue_id'])]
     return not chosen or any((not r['valid_from'] or r['valid_from'] <= today.isoformat()) and
                              (not r['valid_until'] or today.isoformat() <= r['valid_until']) for r in chosen)
 
@@ -65,7 +70,7 @@ def competition_sort_key(competition):
             competition['name'].casefold(), competition['competition_id'])
 
 
-def project_footprint(visits, scopes, teams, venues, relationships, today):
+def project_footprint(visits, scopes, teams, venues, relationships, today, guarded=None):
     """Pure aggregation; callers MUST pass only the resolved owner's attendance.
 
     Overall season membership is the union of verified relevant season windows:
@@ -80,7 +85,7 @@ def project_footprint(visits, scopes, teams, venues, relationships, today):
         start, end = date.fromisoformat(scope['start']), date.fromisoformat(scope['end'])
         if not start <= today <= end:
             continue
-        safe_members = [m for m in scope['members'] if _mapping_is_current(m, teams, venues, relationships, today)]
+        safe_members = [m for m in scope['members'] if (guarded.get((scope['competition_id'], m['team_id']), False) if guarded is not None else _mapping_is_current(m, teams, venues, relationships, today))]
         home_ids = {m['venue_id'] for m in safe_members}
         linked = [v for v in visits if v.fixture is not None and
                   (v.fixture.league_id, v.fixture.season) == (scope['competition_id'], scope['season'])]
@@ -119,11 +124,13 @@ def build_footprint(db, visits, today=None):
     today = today or datetime.now(timezone.utc).date()
     catalogue = membership_catalogue()
     # Fixed catalogue bound, then only competitions related to this owner's visits.
-    owned_venues = {v.venue_id for v in visits}
+    identity = resolution(db)
+    projected_visits = [identity.visit(v) for v in visits]
+    owned_venues = {v.venue_id for v in projected_visits}
     linked_scopes = {(v.fixture.league_id, v.fixture.season) for v in visits if v.fixture is not None}
     scopes = [s for s in catalogue['scopes'] if s['start'] <= today.isoformat() <= s['end'] and
               ((s['competition_id'], s['season']) in linked_scopes or
-               any(m['venue_id'] in owned_venues or owned_venues.intersection(m.get('context_venue_ids', []))
+               any(identity.canonical(m['venue_id']) in owned_venues or owned_venues.intersection(identity.canonical(v) for v in m.get('context_venue_ids', []))
                    for m in s['members']))]
     members = [m for s in scopes for m in s['members']]
     teams, venues, relationships = {}, set(), {}
@@ -134,5 +141,14 @@ def build_footprint(db, visits, today=None):
         venues = {v.venue_id for v in db.query(Venue.venue_id).filter(Venue.venue_id.in_(venue_ids)).all()}
         for r in db.query(ClubVenue).filter(ClubVenue.team_id.in_(team_ids), ClubVenue.status == 'CURRENT').all():
             relationships.setdefault(r.team_id, []).append(r)
-    result = project_footprint(visits, scopes, teams, venues, relationships, today)
+    # Verify reviewed drift through explicit equivalence, before projection.
+    projected_scopes = []
+    for scope in scopes:
+        copied = dict(scope)
+        copied['members'] = [dict(m, venue_id=identity.canonical(m['venue_id']),
+                                  context_venue_ids=[identity.canonical(v) for v in m.get('context_venue_ids', [])]) for m in scope['members']]
+        projected_scopes.append(copied)
+    # Only venue IDs normalize: role/date/club changes still fail closed.
+    guarded = {(s['competition_id'], m['team_id']): _mapping_is_current(m, teams, venues, relationships, today, identity) for s in scopes for m in s['members']}
+    result = project_footprint(projected_visits, projected_scopes, teams, venues | {identity.canonical(v) for v in venues}, relationships, today, guarded=guarded)
     return dict(reviewed_on=catalogue['reviewed_on'], **result)

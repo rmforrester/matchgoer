@@ -49,7 +49,7 @@ class VenueGuideTests(unittest.TestCase):
             self.user = User(is_anonymous=False, account_status="registered")
             db.add(self.user)
             db.flush()
-            db.add(MatchdayTip(venue_id=self.venue_id, tip="Existing development supporter tip"))
+            db.add(MatchdayTip(venue_id=self.venue_id, tip="Existing development supporter tip", status="active"))
             db.add(AwayDayReview(user_id=self.user.user_id, venue_id=self.venue_id, overall_score=8, recommend=True))
             db.commit()
             self.user_id = self.user.user_id

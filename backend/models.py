@@ -84,9 +84,15 @@ class TerracePhotoEvent(Base):
 
 class Venue(Base):
     __tablename__ = "venues"
+    __table_args__ = (
+        CheckConstraint("canonical_venue_id IS NULL OR canonical_venue_id <> venue_id", name="ck_venue_not_self"),
+        CheckConstraint("(canonical_venue_id IS NULL AND equivalence_source IS NULL) OR (canonical_venue_id IS NOT NULL AND equivalence_source IS NOT NULL AND length(trim(equivalence_source)) > 0)", name="ck_venue_equivalence_source"),
+    )
 
     venue_id = Column(Integer, primary_key=True)
     provider_venue_id = Column(Integer, unique=True, nullable=True)
+    canonical_venue_id = Column(Integer, ForeignKey("venues.venue_id", ondelete="RESTRICT", name="fk_venue_canonical"), nullable=True, index=True)
+    equivalence_source = Column(String, nullable=True)
 
     name = Column(String)
     address = Column(String)

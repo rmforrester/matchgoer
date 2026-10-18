@@ -1,3 +1,4 @@
+from venue_resolution import resolution, resolve_venue, lock_ground, personal_review, unique_owner_reviews, canonical_venues, community_summaries, canonical_fixtures, canonical_row
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import date, datetime, timedelta, timezone
 import os
@@ -184,7 +185,7 @@ def get_fixtures(date: str | None = None):
             utc_date_expression(Fixture.fixture_date) == date
         )
 
-    fixtures = query.limit(500).all()
+    fixtures = canonical_fixtures(db, query.limit(500).all())
 
     db.close()
 
@@ -226,6 +227,7 @@ def get_venues(
             else or_(Venue.longitude >= west, Venue.longitude <= east)
         )
         venues = query.order_by(Venue.name, Venue.venue_id).limit(limit).all()
+        venues = canonical_venues(db, venues)
         db.close()
         return venues
 
@@ -233,6 +235,8 @@ def get_venues(
         db.query(Venue)
         .all()
     )
+
+    venues = canonical_venues(db, venues)
 
     # If no location is supplied, return the
     # existing default venue list.
@@ -288,39 +292,34 @@ def get_venues(
 @app.get("/venue/{venue_id}")
 def get_venue(venue_id: int):
     db = SessionLocal()
-
-    venue = (
-        db.query(Venue)
-        .filter(Venue.venue_id == venue_id)
-        .first()
-    )
-
-    db.close()
-    if venue is None:
-        raise HTTPException(status_code=404, detail="Ground not found")
-    return venue
+    try:
+        root = resolve_venue(db, venue_id)
+        return db.get(Venue, root)
+    finally:
+        db.close()
 
 
 @app.get("/venues/{venue_id}/guide", response_model=VenueGuideResponse)
 def get_venue_guide(venue_id: int, team_id: int | None = None):
     db = SessionLocal()
     try:
+        venue_id = resolve_venue(db, venue_id)
         if not db.query(Venue.venue_id).filter(Venue.venue_id == venue_id).first():
             raise HTTPException(status_code=404, detail="Ground not found")
-        relationships = db.query(ClubVenue).filter(ClubVenue.venue_id == venue_id)
+        relationships = [canonical_row(db, row) for row in db.query(ClubVenue).options(joinedload(ClubVenue.team)).filter(ClubVenue.venue_id.in_(resolution(db).equivalents(venue_id))).all()]
         if team_id is not None:
-            explicit_relationships = relationships.filter(ClubVenue.team_id == team_id).all()
+            explicit_relationships = [row for row in relationships if row.team_id == team_id]
             relationship = resolve_club_venue(team_id, venue_id, explicit_relationships)
         else:
-            relationship = resolve_unique_home_club(venue_id, relationships.all())
+            relationship = resolve_unique_home_club(venue_id, relationships)
         relationship_id = relationship.club_venue_id if relationship is not None else None
-        fact_filter = VenueGuideFact.venue_id == venue_id
+        fact_filter = VenueGuideFact.venue_id.in_(resolution(db).equivalents(venue_id))
         if relationship_id is not None:
             fact_filter = or_(fact_filter, VenueGuideFact.club_venue_id == relationship_id)
         facts = guide_facts_for_relationship(
             venue_id,
             relationship,
-            db.query(VenueGuideFact).filter(fact_filter).all(),
+            [canonical_row(db, row) for row in db.query(VenueGuideFact).filter(fact_filter).all()],
         )
         guide = build_venue_guide(venue_id, facts)
         spots = publishable_spots(
@@ -643,7 +642,7 @@ def get_nearby(
             Fixture.season == season
         )
 
-    fixtures = query.options(joinedload(Fixture.venue)).all()
+    fixtures = canonical_fixtures(db, query.options(joinedload(Fixture.venue)).all())
 
     results = []
 
@@ -868,20 +867,23 @@ def create_tip(
 def get_venue_tips(venue_id: int):
 
     db = SessionLocal()
+    try:
+        venue_id = resolve_venue(db, venue_id)
 
-    tips = (
-        db.query(MatchdayTip)
-        .filter(
-            MatchdayTip.venue_id == venue_id,
-            MatchdayTip.status == "active"
+        tips = (
+            db.query(MatchdayTip)
+            .filter(
+                MatchdayTip.venue_id.in_(resolution(db).equivalents(venue_id)),
+                MatchdayTip.status == "active"
+            )
+            .order_by(
+                MatchdayTip.created_at.desc()
+            )
+            .all()
         )
-        .order_by(
-            MatchdayTip.created_at.desc()
-        )
-        .all()
-    )
 
-    db.close()
+    finally:
+        db.close()
 
     return tips
 
@@ -992,6 +994,8 @@ def search_venues(
             .all()
         )
 
+        venues = canonical_venues(db, venues)
+
         return [
 
             {
@@ -1052,12 +1056,14 @@ def _ensure_venue_visit(
     visit_date,
     source: str,
 ) -> VenueVisit:
+    venue_id = lock_ground(db, venue_id)
+    equivalents = resolution(db).equivalents(venue_id)
     normalized_date = visit_date.date() if isinstance(visit_date, datetime) else visit_date
     if fixture_id is not None:
         fixture = db.query(Fixture).filter(Fixture.fixture_id == fixture_id).first()
         if fixture is None:
             raise HTTPException(status_code=404, detail="Fixture not found")
-        if fixture.venue_id != venue_id:
+        if resolution(db).canonical(fixture.venue_id) != venue_id:
             raise HTTPException(status_code=409, detail="Fixture is linked to a different canonical venue")
         normalized_date = fixture_datetime_utc(fixture.fixture_date).date()
         relevant_visits = db.query(VenueVisit).filter(
@@ -1065,7 +1071,7 @@ def _ensure_venue_visit(
             or_(
                 VenueVisit.fixture_id == fixture_id,
                 (
-                    (VenueVisit.venue_id == venue_id)
+                    (VenueVisit.venue_id.in_(equivalents))
                     & VenueVisit.fixture_id.is_(None)
                     & (VenueVisit.visit_date == normalized_date)
                 ),
@@ -1079,13 +1085,13 @@ def _ensure_venue_visit(
             )
         if existing_fixture_visits:
             existing_fixture_visit = existing_fixture_visits[0]
-            if existing_fixture_visit.venue_id != venue_id:
+            if resolution(db).canonical(existing_fixture_visit.venue_id) != venue_id:
                 raise HTTPException(status_code=409, detail="Attendance already exists for a different venue")
             return existing_fixture_visit
         manual_visits = [
             visit for visit in relevant_visits
             if visit.fixture_id is None
-            and visit.venue_id == venue_id
+            and visit.venue_id in equivalents
             and visit.visit_date == normalized_date
         ]
         if len(manual_visits) > 1:
@@ -1098,6 +1104,12 @@ def _ensure_venue_visit(
             manual_visit.fixture_id = fixture_id
             db.flush()
             return manual_visit
+    if fixture_id is None and len(equivalents) > 1:
+        existing = db.query(VenueVisit).filter(VenueVisit.user_id == user_id, VenueVisit.venue_id.in_(equivalents), VenueVisit.fixture_id.is_(None), VenueVisit.visit_date == normalized_date).order_by(VenueVisit.visit_id).all()
+        if len(existing) > 1:
+            raise HTTPException(409, detail='Multiple attendance records need review')
+        if existing:
+            return existing[0]
     db.execute(
         pg_insert(VenueVisit)
         .values(
@@ -1114,20 +1126,20 @@ def _ensure_venue_visit(
         query = query.filter(VenueVisit.fixture_id == fixture_id)
     elif normalized_date is not None:
         query = query.filter(
-            VenueVisit.venue_id == venue_id,
+            VenueVisit.venue_id.in_(equivalents),
             VenueVisit.fixture_id.is_(None),
             VenueVisit.visit_date == normalized_date,
         )
     else:
         query = query.filter(
-            VenueVisit.venue_id == venue_id,
+            VenueVisit.venue_id.in_(equivalents),
             VenueVisit.fixture_id.is_(None),
             VenueVisit.visit_date.is_(None),
         )
     visit = query.first()
     if visit is None:
         raise RuntimeError("Venue visit could not be created or resolved")
-    if visit.venue_id != venue_id:
+    if resolution(db).canonical(visit.venue_id) != venue_id:
         raise HTTPException(status_code=409, detail="Attendance already exists for a different venue")
     return visit
 
@@ -1145,6 +1157,7 @@ def create_away_day_review(
     db = SessionLocal()
 
     try:
+        venue_id = lock_ground(db, venue_id)
 
         # -----------------------------------------------------
         # Check anonymous session
@@ -1173,7 +1186,7 @@ def create_away_day_review(
         # Make sure body venue matches URL venue
         # -----------------------------------------------------
 
-        if data.venue_id != venue_id:
+        if resolution(db).canonical(data.venue_id) != venue_id:
 
             raise HTTPException(
                 status_code=400,
@@ -1193,8 +1206,7 @@ def create_away_day_review(
                 AwayDayReview.user_id ==
                 identity.user_id,
 
-                AwayDayReview.venue_id ==
-                venue_id
+                AwayDayReview.venue_id.in_(resolution(db).equivalents(venue_id))
             )
             .first()
         )
@@ -1232,7 +1244,7 @@ def create_away_day_review(
                     detail="Fixture not found"
                 )
 
-            if fixture.venue_id != venue_id:
+            if resolution(db).canonical(fixture.venue_id) != venue_id:
 
                 raise HTTPException(
                     status_code=400,
@@ -1249,7 +1261,7 @@ def create_away_day_review(
 
         existing_venue_visit = db.query(VenueVisit.visit_id).filter(
             VenueVisit.user_id == identity.user_id,
-            VenueVisit.venue_id == venue_id,
+            VenueVisit.venue_id.in_(resolution(db).equivalents(venue_id)),
         ).first()
         if data.fixture_id is not None or existing_venue_visit is None:
             _ensure_venue_visit(
@@ -1287,7 +1299,7 @@ def create_away_day_review(
 
         db.refresh(review)
 
-        return review
+        return canonical_row(db, review)
 
     except HTTPException:
 
@@ -1312,16 +1324,20 @@ def create_away_day_review(
 def get_away_day_score(venue_id: int):
 
     db = SessionLocal()
+    try:
+        venue_id = resolve_venue(db, venue_id)
 
-    reviews = (
-        db.query(AwayDayReview)
-        .filter(
-            AwayDayReview.venue_id == venue_id
+        reviews = (
+            db.query(AwayDayReview)
+            .filter(
+                AwayDayReview.venue_id.in_(resolution(db).equivalents(venue_id))
+            )
+            .all()
         )
-        .all()
-    )
 
-    db.close()
+        reviews = unique_owner_reviews(reviews)
+    finally:
+        db.close()
 
     review_count = len(reviews)
 
@@ -1452,6 +1468,7 @@ def update_away_day_review(
     db = SessionLocal()
 
     try:
+        venue_id = lock_ground(db, venue_id)
 
         # -------------------------------------------------
         # Check anonymous session
@@ -1461,16 +1478,15 @@ def update_away_day_review(
         # Find the user's existing stadium visit
         # -------------------------------------------------
 
-        review = (
+        review = personal_review(
             db.query(AwayDayReview)
             .filter(
                 AwayDayReview.user_id ==
                 identity.user_id,
 
-                AwayDayReview.venue_id ==
-                venue_id
+                AwayDayReview.venue_id.in_(resolution(db).equivalents(venue_id))
             )
-            .first()
+            .all()
         )
 
         if not review:
@@ -1561,7 +1577,7 @@ def update_away_day_review(
 
         db.refresh(review)
 
-        return review
+        return canonical_row(db, review)
 
     except HTTPException:
 
@@ -1594,6 +1610,7 @@ def get_venue_fixtures(
     db = SessionLocal()
 
     try:
+        venue_id = resolve_venue(db, venue_id)
 
         # -----------------------------------------------------
         # Make sure venue exists
@@ -1621,7 +1638,7 @@ def get_venue_fixtures(
         query = (
             db.query(Fixture)
             .filter(
-                Fixture.venue_id == venue_id
+                Fixture.venue_id.in_(resolution(db).equivalents(venue_id))
             )
         )
 
@@ -1968,11 +1985,12 @@ def get_interested_fixtures(
         ).all()
     } if fixture_ids else set()
 
+    projected = {f.fixture_id: f for f in canonical_fixtures(db, [item.fixture for item in interested if item.fixture is not None])}
     results = []
 
     for item in interested:
 
-        fixture = item.fixture
+        fixture = projected.get(item.fixture_id)
 
         if not fixture:
             continue
@@ -2076,35 +2094,22 @@ def get_my_reviews(
             .all()
         )
 
-        venue_ids = {review.venue_id for review in reviews}
-        venue_aggregates = {}
-
-        if venue_ids:
-            venue_aggregates = {
-                venue_id: (
-                    round((float(recommend_count) / recommend_total) * 100, 1)
-                    if recommend_total
-                    else None
-                )
-                for venue_id, recommend_count, recommend_total in (
-                    db.query(
-                        AwayDayReview.venue_id,
-                        func.sum(case((AwayDayReview.recommend.is_(True), 1), else_=0)),
-                        func.count(AwayDayReview.recommend),
-                    )
-                    .filter(AwayDayReview.venue_id.in_(venue_ids))
-                    .group_by(AwayDayReview.venue_id)
-                    .all()
-                )
-            }
-
+        identity_map = resolution(db)
+        roots = {identity_map.canonical(review.venue_id) for review in reviews}
+        venue_ids = set().union(*(identity_map.equivalents(root) for root in roots)) if roots else set()
+        by_root = {}
+        for review in reviews:
+            by_root.setdefault(identity_map.canonical(review.venue_id), []).append(review)
+        for group in by_root.values(): personal_review(group)
+        canonical_rows = {row.venue_id: row for row in db.query(Venue).filter(Venue.venue_id.in_(roots)).all()}
+        venue_aggregates = {key: round(float(value[2]) / value[3] * 100, 1) if value[3] else None for key, value in community_summaries(db, venue_ids).items()}
         results = []
 
         for review in reviews:
 
             fixture = review.fixture
 
-            venue = review.venue
+            venue = canonical_rows[identity_map.canonical(review.venue_id)]
 
             results.append({
 
@@ -2151,7 +2156,7 @@ def get_my_reviews(
                     review.recommend,
 
                 "recommend_percentage":
-                    venue_aggregates.get(review.venue_id),
+                    venue_aggregates.get(identity_map.canonical(review.venue_id)),
 
                 "overall_score":
                     review.overall_score,
@@ -2274,7 +2279,7 @@ def record_fixture_attendance(
         )
         db.commit()
         db.refresh(visit)
-        return visit
+        return canonical_row(db, visit)
     except HTTPException:
         db.rollback()
         raise
@@ -2328,6 +2333,7 @@ def record_manual_venue_visit(
 ):
     db = SessionLocal()
     try:
+        venue_id = lock_ground(db, venue_id)
         user_id = identity.user_id
         venue = db.query(Venue).filter(Venue.venue_id == venue_id).first()
         if not venue:
@@ -2337,7 +2343,7 @@ def record_manual_venue_visit(
             fixture = db.query(Fixture).filter(Fixture.fixture_id == data.fixture_id).first()
             if not fixture:
                 raise HTTPException(status_code=404, detail="Fixture not found")
-            if fixture.venue_id != venue_id:
+            if resolution(db).canonical(fixture.venue_id) != venue_id:
                 raise HTTPException(status_code=400, detail="Fixture was not played at this venue")
         visit = _ensure_venue_visit(
             db,
@@ -2349,7 +2355,7 @@ def record_manual_venue_visit(
         )
         db.commit()
         db.refresh(visit)
-        return visit
+        return canonical_row(db, visit)
     except HTTPException:
         db.rollback()
         raise
@@ -2364,6 +2370,7 @@ def record_manual_venue_visit(
 def get_venue_decision(venue_id: int, team_id: int | None = None):
     db = SessionLocal()
     try:
+        venue_id = resolve_venue(db, venue_id)
         subjects = [
             (DecisionFact.subject_type == "VENUE") & (DecisionFact.venue_id == venue_id),
         ]
@@ -2384,10 +2391,11 @@ def update_venue_visit_fixture(
 ):
     db = SessionLocal()
     try:
+        venue_id = lock_ground(db, venue_id)
         visit = db.query(VenueVisit).filter(
             VenueVisit.visit_id == visit_id,
             VenueVisit.user_id == identity.user_id,
-            VenueVisit.venue_id == venue_id,
+            VenueVisit.venue_id.in_(resolution(db).equivalents(venue_id)),
         ).with_for_update().first()
         if visit is None:
             raise HTTPException(status_code=404, detail="Visit not found")
@@ -2398,7 +2406,7 @@ def update_venue_visit_fixture(
             fixture = db.query(Fixture).filter(Fixture.fixture_id == data.fixture_id).first()
             if fixture is None:
                 raise HTTPException(status_code=404, detail="Fixture not found")
-            if fixture.venue_id != venue_id:
+            if resolution(db).canonical(fixture.venue_id) != venue_id:
                 raise HTTPException(status_code=400, detail="Fixture was not played at this venue")
             duplicate = db.query(VenueVisit.visit_id).filter(
                 VenueVisit.user_id == identity.user_id,
@@ -2413,7 +2421,7 @@ def update_venue_visit_fixture(
                 visit.visit_date = fixture_datetime_utc(fixture.fixture_date).date()
         db.commit()
         db.refresh(visit)
-        return visit
+        return canonical_row(db, visit)
     except HTTPException:
         db.rollback()
         raise
@@ -2442,32 +2450,23 @@ def get_my_grounds(
         ).all()
         if not visits and not footprint:
             return []
-        venue_ids = {visit.venue_id for visit in visits}
-        reviews = {
-            review.venue_id: review
-            for review in db.query(AwayDayReview).filter(
-                AwayDayReview.user_id == user_id,
-                AwayDayReview.venue_id.in_(venue_ids),
-            ).all()
-        }
-        community = {
-            venue_id: (average, review_count, recommend_count, recommend_total)
-            for venue_id, average, review_count, recommend_count, recommend_total in db.query(
-                AwayDayReview.venue_id,
-                func.avg(AwayDayReview.overall_score),
-                func.count(AwayDayReview.review_id),
-                func.sum(case((AwayDayReview.recommend.is_(True), 1), else_=0)),
-                func.count(AwayDayReview.recommend),
-            ).filter(AwayDayReview.venue_id.in_(venue_ids)).group_by(AwayDayReview.venue_id).all()
-        }
+        identity_map = resolution(db)
+        roots = {identity_map.canonical(visit.venue_id) for visit in visits}
+        venue_ids = set().union(*(identity_map.equivalents(root) for root in roots)) if roots else set()
+        review_rows = db.query(AwayDayReview).filter(AwayDayReview.user_id == user_id, AwayDayReview.venue_id.in_(venue_ids)).all()
+        reviews = {}
+        for review in review_rows:
+            reviews.setdefault(identity_map.canonical(review.venue_id), []).append(review)
+        canonical_rows = {venue.venue_id: venue for venue in db.query(Venue).filter(Venue.venue_id.in_(roots)).all()}
+        community = community_summaries(db, venue_ids)
         grouped = {}
         for visit in visits:
-            grouped.setdefault(visit.venue_id, []).append(visit)
+            grouped.setdefault(identity_map.canonical(visit.venue_id), []).append(visit)
         results = []
         for venue_id, venue_visits in grouped.items():
-            venue = venue_visits[0].venue
+            venue = canonical_rows[venue_id]
             dated = [visit.visit_date for visit in venue_visits if visit.visit_date is not None]
-            review = reviews.get(venue_id)
+            review = personal_review(reviews.get(venue_id, []))
             state = _review_state(review)
             average, review_count, recommend_count, recommend_total = community.get(
                 venue_id, (None, 0, 0, 0)
@@ -2541,7 +2540,7 @@ def get_profile(identity: ResolvedIdentity | None = Depends(optional_current_ide
         profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
         if not profile:
             return None
-        visited_count = db.query(func.count(func.distinct(VenueVisit.venue_id))).filter(VenueVisit.user_id == user_id).scalar()
+        visited_count = db.query(func.count(func.distinct(func.coalesce(Venue.canonical_venue_id, VenueVisit.venue_id)))).join(Venue, Venue.venue_id == VenueVisit.venue_id).filter(VenueVisit.user_id == user_id).scalar()
         return {
             "user_id": user_id,
             "display_name": profile.display_name,
@@ -2648,14 +2647,15 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
         fixture = db.query(Fixture).options(joinedload(Fixture.venue)).filter(Fixture.fixture_id == fixture_id).first()
         if not fixture:
             raise HTTPException(status_code=404, detail="Fixture not found")
+        fixture = canonical_fixtures(db, [fixture])[0]
         user_id = identity.user_id if identity else None
         profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first() if user_id else None
-        own_review = (
+        own_review = personal_review(
             db.query(AwayDayReview)
-            .filter(AwayDayReview.user_id == user_id, AwayDayReview.venue_id == fixture.venue_id)
-            .first()
+            .filter(AwayDayReview.user_id == user_id, AwayDayReview.venue_id.in_(resolution(db).equivalents(fixture.venue_id)))
+            .all()
             if user_id and fixture.venue_id
-            else None
+            else []
         )
         own_attendance = (
             db.query(VenueVisit)
@@ -2667,11 +2667,8 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
         interested = bool(user_id and db.query(InterestedFixture).filter(InterestedFixture.user_id == user_id, InterestedFixture.fixture_id == fixture_id).first())
         open_to_meet = bool(user_id and db.query(FixtureMeetingIntent).filter(FixtureMeetingIntent.user_id == user_id, FixtureMeetingIntent.fixture_id == fixture_id).first())
         open_count = db.query(func.count(FixtureMeetingIntent.user_id)).filter(FixtureMeetingIntent.fixture_id == fixture_id).scalar()
-        rating = db.query(
-            func.avg(AwayDayReview.overall_score),
-            func.sum(case((AwayDayReview.recommend.is_(True), 1), else_=0)),
-            func.count(AwayDayReview.recommend),
-        ).filter(AwayDayReview.venue_id == fixture.venue_id).one()
+        rating_summary = community_summaries(db, resolution(db).equivalents(fixture.venue_id)).get(fixture.venue_id, (None, 0, 0, 0))
+        rating = (rating_summary[0], rating_summary[2], rating_summary[3])
         posts = db.query(MatchBoardPost).filter(MatchBoardPost.fixture_id == fixture_id).order_by(MatchBoardPost.created_at, MatchBoardPost.post_id).all()
         author_ids = {post.author_user_id for post in posts}
         profiles = {item.user_id: item for item in db.query(UserProfile).filter(UserProfile.user_id.in_(author_ids)).all()} if author_ids else {}
@@ -2752,7 +2749,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             "own_attendance": ({
                 "attended": True,
                 "visit_id": own_attendance.visit_id,
-                "venue_id": own_attendance.venue_id,
+                "venue_id": resolution(db).canonical(own_attendance.venue_id),
                 "visit_date": own_attendance.visit_date,
             } if own_attendance else {"attended": False, "visit_id": None}),
             "board_closed": _board_closed(fixture), "posts": roots,
