@@ -36,7 +36,7 @@ class FootprintTests(unittest.TestCase):
     def test_reviewed_catalogue_is_bounded_and_has_exact_rosters(self):
         data = membership_catalogue()
         self.assertEqual(len(data['scopes']), 274)
-        self.assertEqual(sum(s['complete'] for s in data['scopes']), 96)
+        self.assertEqual(sum(s['complete'] for s in data['scopes']), 97)
         self.assertNotIn(1022, {s['competition_id'] for s in data['scopes']})
         self.assertNotIn(1095, {s['competition_id'] for s in data['scopes']})
 
@@ -76,7 +76,10 @@ class FootprintTests(unittest.TestCase):
         self.assertEqual(next(m for m in norra['members'] if m['team_id'] == 12585)['venue_id'], 22861)
         self.assertFalse(by_id[593]['complete'])
         self.assertEqual(next(m for m in by_id[593]['members'] if m['team_id'] == 11663)['venue_id'], 27752)
-        for lid, team in [(41, 1832), (114, 2171)]:
+        self.assertTrue(by_id[41]['complete'])
+        self.assertEqual(by_id[41]['total'], 24)
+        self.assertEqual(next(m for m in by_id[41]['members'] if m['team_id'] == 1832)['venue_id'], 511)
+        for lid, team in [(114, 2171)]:
             self.assertFalse(by_id[lid]['complete'])
             self.assertIsNone(next(m for m in by_id[lid]['members'] if m['team_id'] == team)['venue_id'])
 
