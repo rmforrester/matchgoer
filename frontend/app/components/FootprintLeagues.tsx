@@ -13,8 +13,8 @@ export default function FootprintLeagues({ grounds, footprint, period }: {
   const otherGrounds = grounds.filter(ground => !classified.has(ground.venue_id));
   return <div className="py-2">
     {seasons.map(season => <details key={season} open className="border-b border-[var(--tt-rule)]">
-      <summary className="min-h-11 cursor-pointer py-3 text-sm font-extrabold">{season}</summary>
-      <ul className="pb-2">{competitions.filter(competition => competition.season_label === season).map(competition => {
+      <summary className="tt-display min-h-11 cursor-pointer py-3 text-xl leading-none text-[var(--tt-ink)]">{season}</summary>
+      <ul className="pb-2 pl-2">{competitions.filter(competition => competition.season_label === season).map(competition => {
         const count = period === "lifetime" ? competition.lifetime_clubs : competition.season_clubs;
         return <li key={`${competition.competition_id}-${competition.season}`}><details>
           <summary className="min-h-11 cursor-pointer py-3 text-sm marker:text-[var(--brand-interactive)]">

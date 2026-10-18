@@ -4,7 +4,7 @@ from types import SimpleNamespace as Row
 import unittest
 from unittest.mock import patch
 
-from football_footprint import membership_catalogue, project_footprint
+from football_footprint import competition_sort_key, membership_catalogue, project_footprint
 
 TODAY = date(2026, 10, 17)
 
@@ -36,9 +36,60 @@ class FootprintTests(unittest.TestCase):
     def test_reviewed_catalogue_is_bounded_and_has_exact_rosters(self):
         data = membership_catalogue()
         self.assertEqual(len(data['scopes']), 274)
-        self.assertEqual(sum(s['complete'] for s in data['scopes']), 95)
+        self.assertEqual(sum(s['complete'] for s in data['scopes']), 96)
         self.assertNotIn(1022, {s['competition_id'] for s in data['scopes']})
         self.assertNotIn(1095, {s['competition_id'] for s in data['scopes']})
+
+    def test_pyramid_ordering_uses_explicit_tier_not_name_or_provider_id(self):
+        def item(name, tier, key):
+            return dict(name=name, tier=tier, competition_id=key, season_label='2026/27')
+        items = [item('A league with unknown tier', None, 1), item('League One', 3, 41),
+                 item('National League South', 6, 51), item('Premier League', 1, 39),
+                 item('National League North', 6, 50), item('Championship', 2, 40)]
+        self.assertEqual([x['name'] for x in sorted(items, key=competition_sort_key)],
+                         ['Premier League', 'Championship', 'League One', 'National League North',
+                          'National League South', 'A league with unknown tier'])
+
+    def test_unknown_tiers_stay_visible_and_have_deterministic_ties(self):
+        items = [dict(name=name, competition_id=key, season_label='2026')
+                 for name, key in [('Zulu', 1), ('alpha', 3), ('Alpha', 2)]]
+        self.assertEqual([x['competition_id'] for x in sorted(items, key=competition_sort_key)], [2, 3, 1])
+
+    def test_output_carries_safe_optional_tier_and_preserves_progress(self):
+        low = scope(); low.update(competition_id=41, name='League One', tier=3)
+        high = scope(); high.update(name='Premier League', tier=1)
+        r = project([visit(1, 11, '2026-09-01')], [low, high])
+        self.assertEqual([x['competition_id'] for x in r['competitions']], [39, 41])
+        self.assertEqual([x['tier'] for x in r['competitions']], [1, 3])
+        self.assertTrue(all(x['season_clubs'] == 1 and x['total_clubs'] == 2 for x in r['competitions']))
+
+    def test_reviewed_priority_mappings_and_remaining_canonical_holds(self):
+        data = membership_catalogue()
+        by_id = {s['competition_id']: s for s in data['scopes']}
+        self.assertEqual(sum('tier' in s for s in data['scopes']), 24)
+        self.assertEqual(by_id[253]['tier'], 1)
+        self.assertEqual(by_id[255]['tier'], 2)
+        self.assertEqual(by_id[489]['tier'], 3)
+        norra = by_id[563]
+        self.assertTrue(norra['complete'])
+        self.assertEqual(norra['total'], 16)
+        self.assertEqual(next(m for m in norra['members'] if m['team_id'] == 12585)['venue_id'], 22861)
+        self.assertFalse(by_id[593]['complete'])
+        self.assertEqual(next(m for m in by_id[593]['members'] if m['team_id'] == 11663)['venue_id'], 27752)
+        for lid, team in [(41, 1832), (114, 2171)]:
+            self.assertFalse(by_id[lid]['complete'])
+            self.assertIsNone(next(m for m in by_id[lid]['members'] if m['team_id'] == team)['venue_id'])
+
+    def test_reviewed_current_home_can_differ_from_stale_team_reference_without_rewriting_it(self):
+        home = member(1, 12)
+        home.update(expected_team_venue_id=11, context_venue_ids=[11, 12])
+        visits = [visit(1, 11, '2026-09-01'), visit(2, 12, '2026-09-02')]
+        teams = {1: Row(venue_id=11)}
+        result = project(visits, [scope([home])], teams=teams)
+        self.assertEqual(result['season_visit_ids'], [2])
+        self.assertEqual(result['competitions'][0]['season_clubs'], 1)
+        self.assertEqual(teams[1].venue_id, 11)
+        self.assertEqual([g['clubs'] for g in result['competitions'][0]['grounds']], [[], ['Club 1']])
 
     def test_lifetime_includes_undated_and_historical_repeat_visits(self):
         result = project([visit(1, 11), visit(2, 11, '1999-01-01'), visit(3, 11, '2026-09-01')])

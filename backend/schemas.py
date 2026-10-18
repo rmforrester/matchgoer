@@ -370,6 +370,7 @@ class FootprintGround(BaseModel):
 
 class FootprintCompetition(BaseModel):
     competition_id: int
+    tier: int | None = Field(default=None, ge=1, le=20)
     season: int
     season_label: str
     name: str

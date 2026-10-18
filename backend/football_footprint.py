@@ -26,6 +26,9 @@ def membership_catalogue():
         assert 0 < scope['total'] == len(members) <= 100
         assert len({m['team_id'] for m in members}) == len(members)
         assert scope['source'].startswith('https://')
+        if scope.get('tier') is not None:
+            assert type(scope['tier']) is int and 1 <= scope['tier'] <= 20
+            assert scope.get('tier_source', '').startswith('https://')
         assert all(m['evidence'] for m in members)
         if scope['complete']:
             assert all(m['venue_id'] is not None for m in members)
@@ -53,6 +56,13 @@ def _mapping_is_current(member, teams, venues, relationships, today):
     chosen = [r for r in member['expected_relationships'] if r['venue_id'] == member['venue_id']]
     return not chosen or any((not r['valid_from'] or r['valid_from'] <= today.isoformat()) and
                              (not r['valid_until'] or today.isoformat() <= r['valid_until']) for r in chosen)
+
+
+def competition_sort_key(competition):
+    """Reviewed domestic tier first, unknown tiers last; stable same-tier ties."""
+    tier = competition.get('tier')
+    return (competition['season_label'], tier is None, tier or 0,
+            competition['name'].casefold(), competition['competition_id'])
 
 
 def project_footprint(visits, scopes, teams, venues, relationships, today):
@@ -90,6 +100,7 @@ def project_footprint(visits, scopes, teams, venues, relationships, today):
         label = str(start_year) if start_year == end_year else f'{start_year}/{str(end_year)[2:]}'
         competitions.append(dict(
             competition_id=scope['competition_id'], season=scope['season'], season_label=label,
+            tier=scope.get('tier'),
             name=scope['name'], country=scope['country'], season_start=scope['start'], season_end=scope['end'],
             coverage='ready' if complete else 'incomplete', total_clubs=scope['total'],
             lifetime_clubs=sum(m['venue_id'] in lifetime_homes for m in safe_members) if complete else None,
@@ -101,7 +112,7 @@ def project_footprint(visits, scopes, teams, venues, relationships, today):
                      for venue_id in sorted(relevant_ids)]))
     return dict(season_visit_ids=sorted(season_visit_ids),
                 unclassified_dated_visits=sum(v.visit_date is not None and v.visit_id not in season_visit_ids for v in visits),
-                competitions=sorted(competitions, key=lambda c: (c['season_label'], c['name'], c['competition_id'])))
+                competitions=sorted(competitions, key=competition_sort_key))
 
 
 def build_footprint(db, visits, today=None):
