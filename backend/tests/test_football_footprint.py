@@ -36,7 +36,7 @@ class FootprintTests(unittest.TestCase):
     def test_reviewed_catalogue_is_bounded_and_has_exact_rosters(self):
         data = membership_catalogue()
         self.assertEqual(len(data['scopes']), 274)
-        self.assertEqual(sum(s['complete'] for s in data['scopes']), 108)
+        self.assertEqual(sum(s['complete'] for s in data['scopes']), 111)
         self.assertNotIn(1022, {s['competition_id'] for s in data['scopes']})
         self.assertNotIn(1095, {s['competition_id'] for s in data['scopes']})
 
