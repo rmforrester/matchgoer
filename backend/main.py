@@ -2540,7 +2540,7 @@ def get_profile(identity: ResolvedIdentity | None = Depends(optional_current_ide
         profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
         if not profile:
             return None
-        visited_count = db.query(func.count(func.distinct(func.coalesce(Venue.canonical_venue_id, VenueVisit.venue_id)))).join(Venue, Venue.venue_id == VenueVisit.venue_id).filter(VenueVisit.user_id == user_id).scalar()
+        visited_count = db.query(func.count(func.distinct(func.coalesce(Venue.canonical_venue_id, VenueVisit.venue_id)))).select_from(VenueVisit).join(Venue, Venue.venue_id == VenueVisit.venue_id).filter(VenueVisit.user_id == user_id).scalar()
         return {
             "user_id": user_id,
             "display_name": profile.display_name,
