@@ -216,6 +216,22 @@ class OwnedFootprintContractTests(unittest.TestCase):
             self.assertEqual(len(result['footprint']['season_visit_ids']), 1000)
             self.assertEqual(statements, ['SELECT'] * 8)  # one bulk identity map + root metadata, independent of visits
             print('FOOTPRINT_PERFORMANCE ' + json.dumps({'visits': 1000, 'queries': len(statements), 'elapsed_ms': round(elapsed, 2), 'response_bytes': len(json.dumps(result, default=str))}))
+            # Retained old seasons must not increase owner query count or credit.
+            retained = []
+            for i in range(999):
+                old = copy.deepcopy(reviewed_scope)
+                old.update(competition_id=10000+i, start='1990-01-01', end='1990-12-31')
+                retained.append(old)
+            statements.clear()
+            event.listen(engine, 'before_cursor_execute', count_queries)
+            start = time.perf_counter()
+            with patch('football_footprint.membership_catalogue', return_value={'reviewed_on': '2026-10-17', 'scopes': retained+[reviewed_scope]}):
+                expanded = get_my_grounds(identity=identity, footprint=True)
+            elapsed = (time.perf_counter()-start)*1000
+            event.remove(engine, 'before_cursor_execute', count_queries)
+            self.assertEqual(expanded, result)
+            self.assertEqual(statements, ['SELECT']*8)
+            print('FOOTPRINT_RETAINED_SCOPES ' + json.dumps({'scopes': 1000, 'queries': len(statements), 'elapsed_ms': round(elapsed, 2)}))
         finally:
             if event.contains(engine, 'before_cursor_execute', count_queries):
                 event.remove(engine, 'before_cursor_execute', count_queries)

@@ -13,10 +13,19 @@ from models import ClubVenue, Team, Venue
 from venue_resolution import resolution
 
 
-@lru_cache(maxsize=1)
-def membership_catalogue():
-    data = json.loads(Path(__file__).with_name('footprint_membership.json').read_text(encoding='utf-8'))
-    assert data['version'] == 1 and len(data['scopes']) <= 400
+MAX_CATALOGUE_SCOPES = 1000
+MAX_CATALOGUE_BYTES = 8 * 1024 * 1024
+
+
+def load_membership_catalogue(path):
+    # Bound the read itself, including whitespace, before decoding/parsing JSON.
+    with path.open('rb') as stream:
+        raw = stream.read(MAX_CATALOGUE_BYTES + 1)
+    if len(raw) > MAX_CATALOGUE_BYTES:
+        raise ValueError('Footprint catalogue exceeds byte limit')
+    data = json.loads(raw)
+    if data['version'] != 1 or len(data['scopes']) > MAX_CATALOGUE_SCOPES:
+        raise ValueError('Unsupported or oversized Footprint catalogue')
     keys = set()
     for scope in data['scopes']:
         key = (scope['competition_id'], scope['season'])
@@ -34,6 +43,11 @@ def membership_catalogue():
         if scope['complete']:
             assert all(m['venue_id'] is not None for m in members)
     return data
+
+
+@lru_cache(maxsize=1)
+def membership_catalogue():
+    return load_membership_catalogue(Path(__file__).with_name('footprint_membership.json'))
 
 
 def _relationship_key(row):
