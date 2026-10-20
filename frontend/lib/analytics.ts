@@ -2,6 +2,7 @@
 export const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-JNMM0SKS3F";
 export const consentKey = "matchgoer.analytics-consent.v1";
 export type Consent = "accepted" | "rejected";
+export type AudienceClass = "internal" | "external" | "unclassified";
 export const analyticsChoiceEvent = "matchgoer-analytics-choice";
 export const analyticsPreferencesEvent = "matchgoer-analytics-preferences";
 export function openAnalyticsPreferences() {
@@ -18,10 +19,14 @@ const schema = {
   going_removed: { surface: ["matchdays"] },
   sign_up: { surface: ["account"] },
   attendance_recorded: { surface: ["matchdays"] },
+  my_grounds_engagement: { surface: ["my_grounds"] },
 } as const;
 export type AnalyticsEvent = keyof typeof schema;
 type AnalyticsWindow = Window & { dataLayer?: unknown[]; gtag?: (...args: unknown[]) => void } & Partial<Record<`ga-disable-${string}`, boolean>>;
 let enabled = false;
+let requestedEnabled = false;
+let audience: AudienceClass | null = null;
+let lastAudience: AudienceClass | null = null;
 let withdrawn = false;
 let configured = false;
 let currentNavigation = "";
@@ -55,21 +60,39 @@ export function readConsent(): Consent | null {
 }
 
 export function setAnalyticsEnabled(value: boolean) {
-  enabled = value && !withdrawn;
+  requestedEnabled = value;
+  enabled = value && !withdrawn && audience !== null;
   if (typeof window !== "undefined") (window as unknown as AnalyticsWindow)[`ga-disable-${measurementId}`] = !enabled;
+}
+export function setAnalyticsAudience(value: AudienceClass | null) {
+  // Validate at the telemetry boundary too: no identity-derived strings.
+  audience = value === "internal" || value === "external" || value === "unclassified" ? value : null;
+  if (audience !== null && audience !== lastAudience) {
+    lastAudience = audience;
+    lastPage = "";
+    recorded.clear();
+  }
+  setAnalyticsEnabled(requestedEnabled);
+  if (configured && typeof window !== "undefined") {
+    (window as unknown as AnalyticsWindow).gtag?.("set", audienceParameters());
+  }
+}
+function audienceParameters() {
+  // Null explicitly clears the previous internal flag on shared browsers.
+  return { audience_class: audience, traffic_type: audience === "internal" ? "internal" : null };
 }
 export function acceptAnalytics() { withdrawn = false; }
 
 export function trackEvent(event: AnalyticsEvent, parameters: Record<string, unknown> = {}, once?: string) {
   if (!enabled || typeof window === "undefined" || !configured || !safePage(window.location.pathname)) return false;
   const safe = allowedParameters(event, parameters);
-  if (!safe) return false;
+  if (!safe || event === "attendance_recorded") return false;
   if (currentNavigation !== window.location.pathname) { currentNavigation = window.location.pathname; recorded.clear(); }
   (window as unknown as AnalyticsWindow).gtag?.("set", { page_location: `${window.location.origin}${safePage(window.location.pathname)}`, page_title: "Matchgoer", page_referrer: entryReferrer });
   const key = once ? `${currentNavigation}:${event}:${once}` : null;
   if (key && recorded.has(key)) return false;
   if (key) recorded.add(key);
-  (window as unknown as AnalyticsWindow).gtag?.("event", event, safe);
+  (window as unknown as AnalyticsWindow).gtag?.("event", event, { ...safe, ...audienceParameters() });
   return true;
 }
 
@@ -83,6 +106,7 @@ export function configureAnalytics() {
   target.gtag = function () { target.dataLayer!.push(arguments); };
   target.gtag("consent", "default", { analytics_storage: "granted", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
   target.gtag("js", new Date());
+  target.gtag("set", audienceParameters());
   target.gtag("config", measurementId, {
     send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false,
     page_location: `${window.location.origin}${safePage(window.location.pathname) ?? "/"}`,
@@ -100,7 +124,7 @@ export function trackPage(path: string) {
   target.gtag?.("set", { page_location: `${window.location.origin}${page}`, page_title: "Matchgoer", page_referrer: entryReferrer });
   if (lastPage !== path) {
     lastPage = path;
-    target.gtag?.("event", "page_view", { page_location: `${window.location.origin}${page}`, page_title: "Matchgoer", page_referrer: entryReferrer });
+    target.gtag?.("event", "page_view", { page_location: `${window.location.origin}${page}`, page_title: "Matchgoer", page_referrer: entryReferrer, ...audienceParameters() });
   }
   if (pendingRegistration) { pendingRegistration = false; trackEvent("sign_up", { surface: "account" }); }
   window.dispatchEvent(new Event("matchgoer-analytics-ready"));

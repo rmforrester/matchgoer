@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type { TerracePhoto } from "@/lib/terraces";
 
-export default function TerracePhotoView({ photo, refresh, showContext = true, compact = false, onOpen, showCaption = true, presentation = "default", passive = false }: { photo: TerracePhoto; refresh: () => void; showContext?: boolean; compact?: boolean; onOpen?: () => void; showCaption?: boolean; presentation?: "default" | "editorial" | "immersive"; passive?: boolean }) {
+export default function TerracePhotoView({ photo, refresh, showContext = true, compact = false, onOpen, showCaption = true, presentation = "default", passive = false }: { photo: TerracePhoto; refresh: () => void; showContext?: boolean; compact?: boolean; onOpen?: () => void; showCaption?: boolean; presentation?: "default" | "editorial" | "immersive" | "mosaic"; passive?: boolean }) {
   const [failed, setFailed] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [loaded, setLoaded] = useState<string | null>(null);
@@ -16,9 +16,9 @@ export default function TerracePhotoView({ photo, refresh, showContext = true, c
   const image = source && !unavailable ? <>
     {/* Private URLs bypass public image optimisation and are never logged. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img key={`${source}:${attempt}`} src={source} alt={photo.caption || "Matchday photograph"} loading="lazy" decoding="async" referrerPolicy="no-referrer" onLoad={() => setLoaded(`${source}:${attempt}`)} onError={() => setFailed(source)} className={`${loaded === `${source}:${attempt}` ? "" : "opacity-0"} ${compact ? "aspect-square w-full object-cover" : presentation === "default" ? "h-auto max-h-[65vh] w-full object-contain" : `mx-auto h-auto w-auto max-w-full object-contain ${presentation === "immersive" ? "max-h-[75dvh]" : "max-h-[36rem]"}`}`} />
+    <img key={`${source}:${attempt}`} src={source} alt={photo.caption || "Matchday photograph"} loading="lazy" decoding="async" referrerPolicy="no-referrer" onLoad={() => setLoaded(`${source}:${attempt}`)} onError={() => setFailed(source)} className={`${loaded === `${source}:${attempt}` ? "" : "opacity-0"} ${presentation === "mosaic" ? "h-full w-full object-cover" : compact ? "aspect-square w-full object-cover" : presentation === "default" ? "h-auto max-h-[65vh] w-full object-contain" : `mx-auto h-auto w-auto max-w-full object-contain ${presentation === "immersive" ? "max-h-[75dvh]" : "max-h-[36rem]"}`}`} />
   </> : null;
-  if (passive) return <span className="relative block min-w-0">{image}{!unavailable && source && loaded !== `${source}:${attempt}` && <span role="status" className="absolute inset-0 content-center text-center text-xs">Loading photo…</span>}{(awaitingDelivery || unavailable) && <span role="status" className="block aspect-square content-center text-xs">{unavailable ? "Photo unavailable. View details." : "Loading photo…"}</span>}</span>;
+  if (passive) return <span className={`relative block min-w-0 ${presentation === "mosaic" ? "h-full" : ""}`}>{image}{!unavailable && source && loaded !== `${source}:${attempt}` && <span role="status" className="absolute inset-0 content-center text-center text-xs">Loading photo…</span>}{(awaitingDelivery || unavailable) && <span role="status" className={`block content-center text-xs ${presentation === "mosaic" ? "h-full" : "aspect-square"}`}>{unavailable ? "Photo unavailable. View details." : "Loading photo…"}</span>}</span>;
   return <figure className="min-w-0">
     {!unavailable && (awaitingDelivery || (source && loaded !== `${source}:${attempt}`)) && <p role="status" className="text-xs text-[var(--tt-muted)]">Loading photo…</p>}
     {image && (onOpen ? <button type="button" aria-label="View larger photograph" onClick={onOpen} className="block w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{image}</button> : image)}

@@ -6,6 +6,7 @@ import type { Session } from "@supabase/supabase-js";
 import api from "@/lib/api";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { accountIssue, logout, rememberedRecovery, rememberRecovery, type AccountIssue } from "@/lib/auth-reliability";
+import { setAnalyticsAudience, type AudienceClass } from "@/lib/analytics";
 
 type AccountProfile = {
   username: string | null;
@@ -14,6 +15,7 @@ type AccountProfile = {
 };
 
 type AuthContextValue = {
+  audienceClass: AudienceClass | null;
   loading: boolean;
   authenticated: boolean;
   accountKey: string;
@@ -31,6 +33,11 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
+  const [audienceClass, setAudienceClass] = useState<AudienceClass | null>(null);
+  const applyAudience = useCallback((value: AudienceClass | null) => {
+    setAnalyticsAudience(value);
+    setAudienceClass(value);
+  }, []);
   const [session, setSession] = useState<Session | null>(null);
   const [registered, setRegistered] = useState(false);
   const [profile, setProfile] = useState<AccountProfile | null>(null);
@@ -49,6 +56,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshAccount = useCallback(async () => {
     const generation = ++refreshGeneration.current;
+    applyAudience(null);
     const supabase = getSupabaseBrowserClient();
     let current;
     try {
@@ -69,6 +77,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     owner.current = providerSession?.user.id ?? null;
     setSession(providerSession);
     if (!providerSession) {
+      applyAudience("unclassified");
       setRegistered(false);
       setProfile(null);
       finishPasswordRecovery();
@@ -76,7 +85,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
       const headers = { Authorization: `Bearer ${providerSession.access_token}` };
-      const identity = await api.get<{ anonymous: boolean }>("/session", { headers });
+      const identity = await api.get<{ anonymous: boolean; audience_class?: unknown }>("/session", { headers });
       if (generation !== refreshGeneration.current || owner.current !== providerSession.user.id) return;
       if (identity.data.anonymous !== false) {
         setRegistered(false); setProfile(null); setIssue("unlinked"); return;
@@ -86,24 +95,28 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       setRegistered(true);
       setProfile(response.data);
       setIssue(null);
+      const classification = identity.data.audience_class;
+      applyAudience(classification === "internal" || classification === "external" ? classification : null);
     } catch (error) {
       if (generation !== refreshGeneration.current || owner.current !== providerSession.user.id) return;
       const nextIssue = accountIssue(error);
       setIssue(nextIssue);
       if (nextIssue !== "unavailable") { setRegistered(false); setProfile(null); }
     }
-  }, [finishPasswordRecovery]);
+  }, [applyAudience, finishPasswordRecovery]);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
-      return;
+      const timer = window.setTimeout(() => void refreshAccount().finally(() => setLoading(false)), 0);
+      return () => window.clearTimeout(timer);
     }
     const initialization = window.setTimeout(() => {
       void refreshAccount().finally(() => setLoading(false));
     }, 0);
     const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
       refreshGeneration.current += 1;
+      applyAudience(null);
       if (event === "PASSWORD_RECOVERY" && nextSession) { recovery.current = true; setPasswordRecovery(true); rememberRecovery(nextSession.user.id); }
       else if (event === "SIGNED_IN" && nextSession) {
         recovery.current = rememberedRecovery(nextSession.user.id);
@@ -130,10 +143,13 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       window.clearTimeout(initialization);
       data.subscription.unsubscribe();
+      setAnalyticsAudience(null);
     };
-  }, [finishPasswordRecovery, refreshAccount]);
+  }, [applyAudience, finishPasswordRecovery, refreshAccount]);
 
   const signOut = useCallback(async () => {
+    refreshGeneration.current += 1;
+    applyAudience(null);
     const supabase = getSupabaseBrowserClient();
     setLogoutError(null);
     loggingOut.current = true;
@@ -142,6 +158,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       let cleared = false;
       try { const current = await supabase?.auth.getSession(); cleared = Boolean(supabase && !current?.error && !current?.data.session); } catch { /* State cannot be confirmed. */ }
       setLogoutError(cleared ? "You're signed out on this device, but we couldn't confirm sign-out of other sessions. Sign in again if you need to retry." : "We couldn't confirm logout. Please try again.");
+      void refreshAccount();
       throw error;
     } finally { loggingOut.current = false; }
     setSession(null);
@@ -152,9 +169,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     recovery.current = false;
     rememberRecovery(null);
     owner.current = null;
-  }, []);
+    void refreshAccount();
+  }, [applyAudience, refreshAccount]);
 
   const value = useMemo<AuthContextValue>(() => ({
+    audienceClass,
     loading,
     authenticated: Boolean(session && registered),
     accountKey: session?.user.id ?? "guest",
@@ -167,7 +186,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     isPasswordRecovery,
     refreshAccount,
     signOut,
-  }), [finishPasswordRecovery, isPasswordRecovery, issue, loading, logoutError, passwordRecovery, profile, refreshAccount, registered, session, signOut]);
+  }), [audienceClass, finishPasswordRecovery, isPasswordRecovery, issue, loading, logoutError, passwordRecovery, profile, refreshAccount, registered, session, signOut]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

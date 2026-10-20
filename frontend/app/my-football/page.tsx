@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
 import InterestedTab from "../components/InterestedTab";
 import VisitedTab from "../components/VisitedTab";
+import { trackEvent } from "../../lib/analytics";
 
 function MyFootballContent() {
   const searchParams = useSearchParams();
@@ -12,6 +13,13 @@ function MyFootballContent() {
     searchParams.get("tab") === "interested"
       ? "interested"
       : "visited";
+  useEffect(() => {
+    if (activeTab !== "visited") return;
+    const record = () => trackEvent("my_grounds_engagement", { surface: "my_grounds" }, "view");
+    record();
+    window.addEventListener("matchgoer-analytics-ready", record);
+    return () => window.removeEventListener("matchgoer-analytics-ready", record);
+  }, [activeTab]);
 
   return activeTab === "interested" ? <InterestedTab /> : <VisitedTab />;
 }

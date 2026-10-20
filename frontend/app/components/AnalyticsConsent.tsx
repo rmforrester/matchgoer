@@ -4,9 +4,11 @@ import Link from "next/link";
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useAuth } from "./AuthProvider";
 import { acceptAnalytics, analyticsChoiceEvent, analyticsPreferencesEvent, configureAnalytics, consentKey, measurementId, readConsent, safePage, setAnalyticsEnabled, trackPage, withdrawAnalytics, type Consent } from "../../lib/analytics";
 
 export default function AnalyticsConsent() {
+  const { audienceClass } = useAuth();
   const pathname = usePathname();
   const [consent, setConsent] = useState<Consent | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -38,8 +40,8 @@ export default function AnalyticsConsent() {
   }, []);
   useEffect(() => {
     setAnalyticsEnabled(consent === "accepted" && Boolean(safePage(pathname)));
-    if (consent === "accepted" && safePage(pathname)) { configureAnalytics(); trackPage(pathname); }
-  }, [consent, pathname, ready]);
+    if (consent === "accepted" && audienceClass !== null && safePage(pathname)) { configureAnalytics(); trackPage(pathname); }
+  }, [audienceClass, consent, pathname, ready]);
 
   const choose = (value: Consent) => {
     if (value === "rejected" && readConsent() === "accepted") { withdrawAnalytics(); setConsent("rejected"); return; }
@@ -51,7 +53,7 @@ export default function AnalyticsConsent() {
   };
 
   return <>
-    {consent === "accepted" && safePage(pathname) && <Script id="matchgoer-ga4" src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} strategy="afterInteractive" onReady={() => setReady(true)} />}
+    {consent === "accepted" && audienceClass !== null && safePage(pathname) && <Script id="matchgoer-ga4" src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} strategy="afterInteractive" onReady={() => setReady(true)} />}
     <footer className="mt-auto border-t border-[var(--tt-rule)] bg-[var(--tt-paper)] px-4 py-4 text-xs text-[var(--tt-muted)]">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2">
         <Link href="/privacy" className="min-h-11 content-center underline">Privacy & cookies</Link>

@@ -12,3 +12,26 @@ export function groupPublicPhotos(photos: TerracePhoto[]): TerracePhoto[][] {
   }
   return [...groups.values()];
 }
+
+// Unlinked visits have no public visit ID. Only relationships returned by the
+// existing matchday_of endpoint may join them; ground/date/name never suffice.
+export function mergeHistoricalGroups(current: Record<number, number>, members: number[]): Record<number, number> {
+  const related = new Set(members.map(id => current[id] ?? id));
+  const representative = Math.min(...related);
+  return { ...Object.fromEntries(Object.entries(current).map(([id, group]) => [id, related.has(group) ? representative : group])),
+    ...Object.fromEntries(members.map(id => [id, representative])) };
+}
+
+export function fixtureGalleryKey(photo: TerracePhoto, historical: Record<number, number> = {}) {
+  return photo.fixture_id !== null ? `fixture-${photo.fixture_id}` : `historical-${historical[photo.photo_id] ?? photo.photo_id}`;
+}
+
+export function groupFixturePhotos(photos: TerracePhoto[], historical: Record<number, number> = {}): TerracePhoto[][] {
+  const groups = new Map<string, TerracePhoto[]>();
+  for (const photo of mergePublicPhotos([], photos)) {
+    const key = fixtureGalleryKey(photo, historical);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(photo);
+  }
+  return [...groups.values()];
+}

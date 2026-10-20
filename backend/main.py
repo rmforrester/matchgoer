@@ -439,6 +439,7 @@ def get_session(
         "user_id": identity.user_id,
         "anonymous": anonymous,
         "anonymous_activity": anonymous_activity,
+        "audience_class": "unclassified" if anonymous else "internal" if identity.user_id in (1347, 830) else "external",
     }
 
 

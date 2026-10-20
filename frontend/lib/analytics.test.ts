@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { acceptAnalytics, allowedParameters, configureAnalytics, consentKey, measurementId, readConsent, registrationCompleted, registrationStarted, resultBucket, safePage, safeReferrer, setAnalyticsEnabled, trackEvent, trackPage, withdrawAnalytics } from "./analytics.ts";
+import { acceptAnalytics, allowedParameters, configureAnalytics, consentKey, measurementId, readConsent, registrationCompleted, registrationStarted, resultBucket, safePage, safeReferrer, setAnalyticsAudience, setAnalyticsEnabled, trackEvent, trackPage, withdrawAnalytics } from "./analytics.ts";
 
 test("only allowlisted page families, never queries, identities or callback routes", () => {
   assert.equal(safePage("/fixture/42?handoff=secret#token"), "/fixture");
@@ -32,7 +32,9 @@ test("consent, navigation deduplication, registration and withdrawal gating", ()
   assert.equal(trackEvent("fixture_saved", { surface: "discover" }), false);
   configureAnalytics(); assert.equal(fakeWindow.dataLayer.length, 0);
   storage.set(consentKey, "rejected"); assert.equal(readConsent(), "rejected");
-  storage.set(consentKey, "accepted"); setAnalyticsEnabled(true); configureAnalytics(); trackPage("/"); trackPage("/");
+  storage.set(consentKey, "accepted"); setAnalyticsEnabled(true); configureAnalytics();
+  assert.equal(fakeWindow.dataLayer.length, 0, "No initial tag configuration before classification");
+  setAnalyticsAudience("internal"); configureAnalytics(); trackPage("/"); trackPage("/");
   const commands = () => fakeWindow.dataLayer.map(command => Array.from(command as ArrayLike<unknown>));
   assert.equal(commands().filter(command => command[1] === "page_view").length, 1);
   fakeWindow.location.pathname = "/fixture/42";
@@ -48,6 +50,30 @@ test("consent, navigation deduplication, registration and withdrawal gating", ()
   assert.equal(commands().filter(command => command[1] === "sign_up").length, beforeSignup + 1);
   fakeWindow.location.pathname = "/auth/callback";
   assert.equal(trackEvent("fixture_saved", { surface: "fixture" }), false);
+  fakeWindow.location.pathname = "/";
+  setAnalyticsAudience(null);
+  const beforePending = commands().filter(command => command[0] === "event").length;
+  assert.equal(trackEvent("fixture_saved", { surface: "fixture" }), false);
+  trackPage("/");
+  assert.equal(commands().filter(command => command[0] === "event").length, beforePending);
+  setAnalyticsAudience("internal");
+  trackEvent("fixture_saved", { surface: "fixture", user_id: 1347, email: "private@example.test", audience_class: "external" });
+  let lastEvent = commands().filter(command => command[0] === "event").at(-1)!;
+  assert.deepEqual(lastEvent[2], { surface: "fixture", audience_class: "internal", traffic_type: "internal" });
+  for (const audience of ["external", "unclassified"] as const) {
+    setAnalyticsAudience(audience);
+    trackPage("/");
+    trackEvent("my_grounds_engagement", { surface: "my_grounds" }, "view");
+    lastEvent = commands().filter(command => command[0] === "event").at(-1)!;
+    assert.deepEqual(lastEvent[2], { surface: "my_grounds", audience_class: audience, traffic_type: null });
+  }
+  setAnalyticsAudience("private@example.test" as never);
+  assert.equal(trackEvent("fixture_saved", { surface: "fixture" }), false);
+  setAnalyticsAudience("external");
+  assert.equal(trackEvent("attendance_recorded", { surface: "matchdays" }), false, "Went telemetry stays disabled");
+  const telemetry = JSON.stringify(commands());
+  for (const forbidden of ["1347", "830", "private@example.test", "user_id", "email"])
+    assert.equal(telemetry.includes(forbidden), false);
   setAnalyticsEnabled(false);
   assert.equal(trackEvent("going_selected", { surface: "matchdays" }), false);
   assert.equal(fakeWindow[`ga-disable-${measurementId}`], true);
@@ -55,6 +81,8 @@ test("consent, navigation deduplication, registration and withdrawal gating", ()
   assert.equal(JSON.stringify(commands()).includes("fixture/42"), false);
   const config = commands().find(command => command[0] === "config")![2] as Record<string, unknown>;
   assert.equal(config.send_page_view, false); assert.equal(config.allow_google_signals, false);
+  assert.equal(Object.hasOwn(config, "audience_class"), false, "Audience must not stick at config scope after account switches");
+  assert.equal(Object.hasOwn(config, "traffic_type"), false);
   Object.defineProperty(globalThis, "document", { configurable: true, value: { cookie: "" } });
   fakeStorage.setItem = () => { throw new Error("Storage unavailable"); };
   fakeWindow.location.pathname = "/";
