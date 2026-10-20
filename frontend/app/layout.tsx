@@ -27,6 +27,28 @@ export const metadata: Metadata = {
   title: "Matchgoer",
   description: "Find football worth going to. Discover matches wherever you are and know the matchday before you get there.",
   icons: { icon: "/favicon.ico" },
+  openGraph: {
+    title: "Matchgoer",
+    description: "Find football worth going to. Discover matches wherever you are and know the matchday before you get there.",
+    type: "website",
+    siteName: "Matchgoer",
+    images: [{
+      url: "https://beta.matchgoer.com/brand/matchgoer-social-preview.png",
+      width: 1200,
+      height: 630,
+      type: "image/png",
+      alt: "Matchgoer circular badge with a football and the words Find Your Football",
+    }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Matchgoer",
+    description: "Find football worth going to. Discover matches wherever you are and know the matchday before you get there.",
+    images: [{
+      url: "https://beta.matchgoer.com/brand/matchgoer-social-preview.png",
+      alt: "Matchgoer circular badge with a football and the words Find Your Football",
+    }],
+  },
 };
 
 export default function RootLayout({
