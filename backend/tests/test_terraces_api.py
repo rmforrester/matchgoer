@@ -11,6 +11,20 @@ from terraces_storage import LazyPrivatePhotoStorage
 from models import TerracePhoto as Photo
 
 class PhotoApiTests(unittest.TestCase):
+    def test_owned_photo_upload_capability_uses_current_fail_closed_allowlist(self):
+        with patch.dict('os.environ', {'TERRACES_UPLOAD_USER_IDS':str(self.owner.user_id)}):
+            result=api.owned_photos(self.visit.visit_id,Response(),authorization='Bearer synthetic')
+            self.assertTrue(result['can_submit'])
+        for value in ('', 'not-an-id', str(self.other.user_id)):
+            with patch.dict('os.environ', {'TERRACES_UPLOAD_USER_IDS':value}):
+                result=api.owned_photos(self.visit.visit_id,Response(),authorization='Bearer synthetic')
+                self.assertFalse(result['can_submit'])
+                self.assertTrue(result['reconciliation_supported'])
+        self.provider.subject=str(self.other.user_id)
+        with self.assertRaises(HTTPException) as failure:
+            api.owned_photos(self.visit.visit_id,Response(),authorization='Bearer synthetic')
+        self.assertEqual(failure.exception.status_code,404)
+
     def test_owner_submission_reconciliation_key_is_private(self):
         identifier = self.submit()['photo_id']
         row = self.db.get(Photo, identifier)

@@ -20,6 +20,7 @@ import FixtureOfficialActions from "../../components/FixtureOfficialActions";
 import type { OfficialChannels } from "../../../lib/official-channels";
 import { trackEvent } from "../../../lib/analytics";
 import AnalyticsExposure from "../../components/AnalyticsExposure";
+import FixturePhotoSharing from "../../components/FixturePhotoSharing";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -309,7 +310,7 @@ function FixturePageContent({ params, searchParams }: FixturePageProps) {
 
     {canRecordCompletedFixture(data.fixture.status, data.fixture.venue_id) && <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="attendance-heading">
       <h2 ref={attendanceHeading} tabIndex={-1} id="attendance-heading" className="mg-display-section focus-visible:outline-2 focus-visible:outline-offset-2">{data.own_attendance.attended ? "Matchday recorded" : "Did you go?"}</h2>
-      {data.own_attendance.attended ? <><p role="status" className="mt-3 font-bold text-[var(--brand-interactive)]">Added to your football history.</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-2"><Link href="/my-football?tab=interested" className="mg-tertiary-action inline-flex min-h-11 items-center">View my matchdays →</Link><Link href={`/my-football?tab=visited&review=${data.fixture.venue_id}`} className="mg-tertiary-action inline-flex min-h-11 items-center">Rate this ground →</Link></div></> : <><p className="mg-body mt-2">Were you at this match?</p><button type="button" disabled={saving} aria-busy={saving} onClick={() => void recordAttendance()} className="mg-primary-action mt-3 px-5">{saving ? "Saving…" : "Yes, I went"}</button></>}
+      {data.own_attendance.attended ? <><p role="status" className="mt-3 font-bold text-[var(--brand-interactive)]">Added to your football history.</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-2"><Link href="/my-football?tab=interested" className="mg-tertiary-action inline-flex min-h-11 items-center">View my matchdays →</Link><Link href={`/my-football?tab=visited&review=${data.fixture.venue_id}`} className="mg-tertiary-action inline-flex min-h-11 items-center">Rate this ground →</Link>{!isAnonymous && data.own_attendance.visit_id !== null && <FixturePhotoSharing attendance={{ visit_id: data.own_attendance.visit_id, venue_id: data.own_attendance.venue_id ?? data.fixture.venue_id!, venue_name: data.fixture.venue_name ?? "Ground", fixture_id: data.fixture.fixture_id, match_date: data.own_attendance.visit_date ?? null, home_team: data.fixture.home_team, away_team: data.fixture.away_team }} />}</div></> : <><p className="mg-body mt-2">Were you at this match?</p><button type="button" disabled={saving} aria-busy={saving} onClick={() => void recordAttendance()} className="mg-primary-action mt-3 px-5">{saving ? "Saving…" : "Yes, I went"}</button></>}
     </section>}
 
     <section className="mt-5 border-t border-[var(--mg-rule)] pt-3" aria-labelledby="board-heading">

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import DBAPIError
 from database import SessionLocal
 from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit
-from terraces import require_verified_account,require_photo_submitter,require_moderator,may_read_photo,configured_moderator_user_id
+from terraces import require_verified_account,require_photo_submitter,require_moderator,may_read_photo,configured_moderator_user_id,configured_upload_user_ids
 from terraces_images import MAX_INPUT_BYTES,SanitisedPhoto,ImageVariant
 from terraces_storage import LazyPrivatePhotoStorage as PrivatePhotoStorage,StorageUnavailable
 import terraces_service as service
@@ -192,7 +192,7 @@ def owned_photos(visit_id:int,response:Response,authorization:str|None=Header(de
         actor=require_verified_account(db,authorization)
         if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).first():raise HTTPException(404,'Recorded matchday not found')
         # Owner-only reconciliation: never include submission keys in public or moderator payloads.
-        return {'reconciliation_supported':True,'photos':[{**service.photo_payload(db,PrivatePhotoStorage(),row,private=True), 'submission_key':row.submission_key} for row in db.query(Photo).filter_by(visit_id=visit_id,owner_user_id=actor.user_id).order_by(Photo.submitted_at,Photo.photo_id).all()]}
+        return {'can_submit':actor.user_id in configured_upload_user_ids(),'reconciliation_supported':True,'photos':[{**service.photo_payload(db,PrivatePhotoStorage(),row,private=True), 'submission_key':row.submission_key} for row in db.query(Photo).filter_by(visit_id=visit_id,owner_user_id=actor.user_id).order_by(Photo.submitted_at,Photo.photo_id).all()]}
     response.headers['Cache-Control']='no-store';return transaction(action)
 
 @router.get('/photos/{photo_id}')
