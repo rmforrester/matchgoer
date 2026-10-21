@@ -2,6 +2,8 @@
 
 import axios from "axios";
 import { useAuth } from "./AuthProvider";
+import { accountRoute, signinRoute } from "../../lib/auth-flow";
+import { eligibleAttendanceFixture, isFutureAttendanceDate } from "../../lib/attendance-eligibility";
 import { apiErrorMessage } from "../../lib/api-error";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -19,7 +21,7 @@ import { footprintGrounds, type FootprintPeriod } from "../../lib/football-footp
 const PersonalGroundMap = dynamic(() => import("./PersonalGroundMap"), { ssr: false });
 
 type VenueResult = { venue_id: number; name: string; city: string | null };
-type FixtureCandidate = { fixture_id: number; fixture_date: string; home_team: string; away_team: string; league_name: string };
+type FixtureCandidate = { status: string | null; fixture_id: number; fixture_date: string; home_team: string; away_team: string; league_name: string };
 
 const reviewLabel = (review: GroundReview | null) =>
   !review || review.state === "blank" ? "Rate this ground" : review.state === "partial" ? "Continue review" : "Edit my review";
@@ -36,6 +38,7 @@ export default function VisitedTab() {
 }
 
 function VisitedTabContent() {
+  const { authenticated, loading: authLoading, issue: authIssue } = useAuth();
   const requestedReview = useSearchParams().get("review");
   const requestedVenue = useSearchParams().get("recordVenue");
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
@@ -55,6 +58,9 @@ function VisitedTabContent() {
   const [pastMatchDate, setPastMatchDate] = useState("");
   const [fixtureCandidates, setFixtureCandidates] = useState<FixtureCandidate[]>([]);
   const [findingMatches, setFindingMatches] = useState(false);
+  const [searchedMatchDate, setSearchedMatchDate] = useState("");
+  const matchSearch = useRef(0);
+  useEffect(() => () => { matchSearch.current += 1; }, []);
   const [editingVisitId, setEditingVisitId] = useState<number | null>(null);
   const [timeframe, setTimeframe] = useState<FootprintPeriod>("lifetime");
   const [reviewingId, setReviewingId] = useState<number | null>(null);
@@ -167,7 +173,7 @@ function VisitedTabContent() {
   };
 
   const addVisit = async (venueId: number, date: string, done: () => void) => {
-    if (saving) return;
+    if (saving || isFutureAttendanceDate(date)) return;
     setSaving(true); setError("");
     try { await api.post(`/venues/${venueId}/visits`, { visit_date: date || null }); await loadGrounds(); done(); }
     catch (requestError) { setError(apiErrorMessage(requestError, "Unable to record this visit.")); }
@@ -191,14 +197,17 @@ function VisitedTabContent() {
   };
 
   const findPastMatches = async (venueId: number, date = pastMatchDate) => {
-    if (!date || findingMatches) return;
-    setFindingMatches(true); setError(""); setFixtureCandidates([]);
+    if (!date || findingMatches || isFutureAttendanceDate(date)) return;
+    const request = ++matchSearch.current;
+    setFindingMatches(true); setError(""); setFixtureCandidates([]); setSearchedMatchDate("");
     try {
       const response = await api.get(`/venues/${venueId}/fixtures`, { params: { around_date: date, days: 7 } });
-      setFixtureCandidates(response.data);
+      if (request !== matchSearch.current) return;
+      setFixtureCandidates(response.data.filter((fixture: FixtureCandidate) => eligibleAttendanceFixture(fixture, venueId)));
+      setSearchedMatchDate(date);
     } catch (requestError) {
-      setError(apiErrorMessage(requestError, "Unable to find likely matches."));
-    } finally { setFindingMatches(false); }
+      if (request === matchSearch.current) setError(apiErrorMessage(requestError, "Unable to find likely matches."));
+    } finally { if (request === matchSearch.current) setFindingMatches(false); }
   };
 
   const updateVisitFixture = async (ground: MyGround, visitId: number, fixtureId: number | null) => {
@@ -212,7 +221,7 @@ function VisitedTabContent() {
   };
 
   const recordSelectedFixture = async (fixtureId: number) => {
-    if (!selected || saving) return;
+    if (!selected || saving || isFutureAttendanceDate(visitDate)) return;
     setSaving(true); setError("");
     try {
       await api.post(`/venues/${selected.venue_id}/visits`, { visit_date: visitDate || null, fixture_id: fixtureId });
@@ -276,7 +285,7 @@ function VisitedTabContent() {
         <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
         <button type="button" aria-expanded={expandedId === ground.venue_id} aria-controls={`ground-visits-${ground.venue_id}`} onClick={() => setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id)} className="tt-action tt-action-secondary min-w-0 whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button>
       </div>
-      {expandedId === ground.venue_id && <ul id={`ground-visits-${ground.venue_id}`} className="mt-4 border-t border-[var(--tt-rule)] pt-3">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-b border-[var(--tt-rule)] py-3 last:border-0"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 font-bold">{fixture.home_team} v {fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}{fixture && <Link href={`/fixture/${fixture.fixture_id}`} className="mt-1 inline-flex min-h-10 items-center text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">View match →</Link>}<button type="button" onClick={() => { setEditingVisitId(visit.visit_id); setPastMatchDate(visit.visit_date ?? ""); setFixtureCandidates([]); }} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{fixture ? "Change match" : "Attach match"}</button>{fixture && <button type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, null)} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--tt-muted)] underline">Remove link</button>}{editingVisitId === visit.visit_id && <div className="mt-2"><div className="flex flex-wrap gap-2"><input type="date" aria-label="Visit date" value={pastMatchDate} onChange={(event) => { setPastMatchDate(event.target.value); setFixtureCandidates([]); }} className="tt-control px-3"/><button type="button" disabled={!pastMatchDate || findingMatches} onClick={() => void findPastMatches(ground.venue_id)} className="tt-action px-3">Find matches</button></div>{fixtureCandidates.map((candidate) => <button key={candidate.fixture_id} type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, candidate.fixture_id)} className="mt-2 block min-h-10 text-left font-bold text-[var(--brand-interactive)] underline">{candidate.home_team} v {candidate.away_team} · {knownDate(candidate.fixture_date.slice(0, 10))}</button>)}</div>}</li>; })}</ul>}
+      {expandedId === ground.venue_id && <ul id={`ground-visits-${ground.venue_id}`} className="mt-4 border-t border-[var(--tt-rule)] pt-3">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-b border-[var(--tt-rule)] py-3 last:border-0"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 font-bold">{fixture.home_team} v {fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}{fixture && <Link href={`/fixture/${fixture.fixture_id}`} className="mt-1 inline-flex min-h-10 items-center text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">View match →</Link>}<button type="button" onClick={() => { setEditingVisitId(visit.visit_id); setPastMatchDate(visit.visit_date ?? ""); setFixtureCandidates([]); }} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{fixture ? "Change match" : "Attach match"}</button>{fixture && <button type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, null)} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--tt-muted)] underline">Remove link</button>}{editingVisitId === visit.visit_id && <div className="mt-2"><div className="flex flex-wrap gap-2"><input type="date" aria-label="Visit date" value={pastMatchDate} onChange={(event) => { matchSearch.current += 1; setFindingMatches(false); setSearchedMatchDate(""); setPastMatchDate(event.target.value); setFixtureCandidates([]); }} className="tt-control px-3"/><button type="button" disabled={!pastMatchDate || findingMatches || isFutureAttendanceDate(pastMatchDate)} onClick={() => void findPastMatches(ground.venue_id)} className="tt-action px-3">Find matches</button></div>{fixtureCandidates.map((candidate) => <button key={candidate.fixture_id} type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, candidate.fixture_id)} className="mt-2 block min-h-10 text-left font-bold text-[var(--brand-interactive)] underline">{candidate.home_team} v {candidate.away_team} · {knownDate(candidate.fixture_date.slice(0, 10))}</button>)}</div>}</li>; })}</ul>}
     </article>;
 
   const recordForm = selected && <section id="record-matchday" aria-labelledby="record-matchday-heading" className="tt-panel mt-4 p-5">
@@ -284,14 +293,16 @@ function VisitedTabContent() {
     <p className="mt-2 font-bold break-words">{selected.name}</p>{selected.city && <p className="break-words text-[var(--tt-muted)]">{selected.city}</p>}
     <p className="mt-3 text-sm">Record a football match you attended here. Date and match details are optional.</p>
     <label htmlFor="new-visit-date" className="tt-kicker mt-4 block">Match date (optional)</label>
-    <input id="new-visit-date" type="date" value={visitDate} onChange={event => { setVisitDate(event.target.value); setFixtureCandidates([]); setSelectedFixtureId(null); setUnknownDetails(false); }} className="tt-control mt-2 max-w-full px-3" />
-    {visitDate && <button type="button" disabled={findingMatches || saving} onClick={() => void findPastMatches(selected.venue_id, visitDate)} className="mt-2 block min-h-11 text-left text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{findingMatches ? "Finding matches…" : "Find the match"}</button>}
+    <input id="new-visit-date" type="date" value={visitDate} onChange={event => { matchSearch.current += 1; setFindingMatches(false); setSearchedMatchDate(""); setVisitDate(event.target.value); setFixtureCandidates([]); setSelectedFixtureId(null); setUnknownDetails(false); }} className="tt-control mt-2 max-w-full px-3" />
+    {visitDate && <button type="button" disabled={findingMatches || saving || isFutureAttendanceDate(visitDate)} onClick={() => void findPastMatches(selected.venue_id, visitDate)} className="mt-2 block min-h-11 text-left text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{findingMatches ? "Finding matches…" : "Find the match"}</button>}
+    {visitDate && searchedMatchDate === visitDate && !findingMatches && !isFutureAttendanceDate(visitDate) && fixtureCandidates.length === 0 && <div role="status" className="mt-3"><h4 className="font-extrabold">CAN&apos;T FIND YOUR MATCH?</h4><p className="mt-1 text-sm">You can still record your visit using the ground and date.</p></div>}
     {fixtureCandidates.map(fixture => <button key={fixture.fixture_id} type="button" aria-pressed={selectedFixtureId === fixture.fixture_id} disabled={saving} onClick={() => { setSelectedFixtureId(fixture.fixture_id); setUnknownDetails(false); }} className="mt-2 block min-h-11 w-full border-t border-[var(--tt-rule)] py-2 text-left font-bold text-[var(--brand-interactive)]">{selectedFixtureId === fixture.fixture_id ? "✓ " : ""}{fixture.home_team} v {fixture.away_team} · {knownDate(fixture.fixture_date.slice(0, 10))}</button>)}
     <button type="button" disabled={saving} onClick={() => { setSelectedFixtureId(null); setFixtureCandidates([]); setVisitDate(""); setUnknownDetails(true); }} className="mt-3 block min-h-11 text-left font-bold underline">I don&apos;t know / I can&apos;t remember</button>
+    {isFutureAttendanceDate(visitDate) && <div role="status" className="mt-3 border-l-4 border-[var(--brand-interactive)] pl-3"><h4 className="font-extrabold">THAT MATCH HASN&apos;T HAPPENED YET</h4><p className="mt-1 text-sm">You can record your matchday once the game has been played.</p></div>}
     {unknownDetails && <p role="status" className="text-sm text-[var(--tt-muted)]">You can record this matchday without a date or match details.</p>}
     <div className="mt-4 flex flex-wrap gap-3">
       <button type="button" disabled={saving} onClick={() => { setSelected(null); setSelectedFixtureId(null); setFixtureCandidates([]); setVisitDate(""); setUnknownDetails(false); window.requestAnimationFrame(() => document.getElementById("ground-search")?.focus()); }} className="tt-action tt-action-secondary px-4">Change ground</button>
-      <button type="button" disabled={saving} onClick={() => {
+      <button type="button" disabled={saving || isFutureAttendanceDate(visitDate)} onClick={() => {
         if (selectedFixtureId !== null) void recordSelectedFixture(selectedFixtureId);
         else void addVisit(selected.venue_id, visitDate, () => { setSelected(null); setVisitDate(""); setQuery(""); setResults([]); setFixtureCandidates([]); setUnknownDetails(false); });
       }} className="tt-action px-4">{saving ? "Saving…" : "Save matchday"}</button>
@@ -308,7 +319,7 @@ function VisitedTabContent() {
     </section>}
     {error && reviewingId === null && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
     {loading && <p className="mt-6 font-semibold">Loading your ground history…</p>}
-    {!loading && grounds.length === 0 && <section className="mt-8 border-y-2 border-[var(--tt-ink)] py-8"><p className="tt-display text-3xl">Your football story starts here.</p><p className="mt-2 text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p><a href="#add-ground" className="tt-action mt-4 inline-flex min-h-11 items-center justify-center px-4">Add a ground →</a></section>}
+    {!loading && grounds.length === 0 && <section className="mt-8 border-y-2 border-[var(--tt-ink)] py-8"><p className="tt-display text-3xl">Your football story starts here.</p><p className="mt-2 text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>{authenticated && <a href="#add-ground" className="tt-action mt-4 inline-flex min-h-11 items-center justify-center px-4">Add a ground →</a>}</section>}
 
     {!loading && grounds.length > 0 && <section className="mt-5" aria-label="Visited grounds map"><div className="mb-4 inline-flex max-w-full overflow-x-auto border-b border-[var(--tt-rule)]" aria-label="Show visits from">{([{ key: "lifetime", label: "Lifetime" }, { key: "season", label: "This Season" }] as const).map((option) => <button key={option.key} type="button" aria-pressed={timeframe === option.key} disabled={option.key === "season" && !footprint} onClick={() => { setTimeframe(option.key); setCollection(null); }} className={`min-h-11 shrink-0 border-b-2 px-3 text-[0.68rem] font-extrabold uppercase tracking-[0.06em] ${timeframe === option.key ? "border-[var(--brand-interactive)] text-[var(--brand-interactive)]" : "border-transparent text-[var(--tt-muted)]"}`}>{option.label}</button>)}</div>{!footprint && <p className="mb-3 text-xs text-[var(--tt-muted)]">Season coverage isn&apos;t available right now. Your Lifetime history is here.</p>}{timeframe === "season" && <p className="mb-3 text-xs text-[var(--tt-muted)]">Dated visits within verified current league seasons. Undated and unclassified visits stay in Lifetime.</p>}{visibleGrounds.length > 0 ? <PersonalGroundMap grounds={visibleGrounds}/> : <div className="border-y-2 border-[var(--tt-ink)] py-6"><p className="font-bold">No recorded visits in a verified current season.</p><p className="mt-1 text-sm text-[var(--tt-muted)]">Your full ground history is in Lifetime.</p></div>}{unplottableCount > 0 && <p className="mt-2 text-xs font-bold text-[var(--tt-muted)]">{unplottableCount} visited {unplottableCount === 1 ? "ground could" : "grounds could"} not be plotted because coordinates are unavailable.</p>}</section>}
 
@@ -350,5 +361,11 @@ function VisitedTabContent() {
     {!loading && grounds.length === 0 && <section id="add-ground" className="mt-8 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="add-ground-heading"><h2 id="add-ground-heading" className="tt-display text-3xl leading-none sm:text-4xl">Add a ground</h2>{grounds.length > 0 && <p className="mt-1 text-sm text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>}<div className="mt-4 flex flex-wrap gap-2"><label htmlFor="ground-search" className="sr-only">Search for a ground or city</label><input id="ground-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} placeholder="Search ground or city" className="tt-control min-w-0 flex-1 px-4"/><button type="button" disabled={searching || query.trim().length < 2} onClick={() => void search()} className="tt-action px-5">{searching ? "Searching…" : "Search"}</button></div>
       {!selected && results.length > 0 && <div className="tt-panel mt-4 divide-y divide-[var(--tt-rule)]">{results.map((venue) => <button key={venue.venue_id} type="button" onClick={() => { setSelected(venue); setSelectedFixtureId(null); setFixtureCandidates([]); setUnknownDetails(false); }} className="block min-h-12 w-full px-4 py-3 text-left hover:bg-[var(--tt-paper)]"><strong>{venue.name}</strong>{venue.city && <span className="ml-2 text-[var(--tt-muted)]">{venue.city}</span>}{grounds.some((ground) => ground.venue_id === venue.venue_id) && <span className="ml-2 text-xs font-bold uppercase text-[var(--brand-interactive)]">Already visited</span>}</button>)}</div>}
     </section>}
+    {!authLoading && !authenticated && !authIssue && <aside aria-labelledby="guest-history-heading" className="mt-6 border-t border-[var(--tt-rule)] pt-4">
+      <h2 id="guest-history-heading" className="tt-display text-2xl">KEEP YOUR FOOTBALL HISTORY</h2>
+      <p className="mt-2 text-sm">Sign in or create an account to keep your grounds and matchdays saved.</p>
+      <p className="mt-2 text-xs text-[var(--tt-muted)]">Your guest history is linked to this browser until you transfer it to your account. Clearing browser data or closing a private session can lose access.</p>
+      <div className="mt-3 flex flex-wrap gap-3"><Link href={accountRoute("/signup", "/my-football?tab=visited")} className="tt-action inline-flex min-h-11 items-center px-4 text-xs">CREATE ACCOUNT</Link><Link href={signinRoute("/my-football?tab=visited", null, true)} className="tt-action tt-action-secondary inline-flex min-h-11 items-center px-4 text-xs">SIGN IN</Link></div>
+    </aside>}
   </main>;
 }

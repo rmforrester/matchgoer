@@ -1048,6 +1048,22 @@ def _review_state(review: AwayDayReview | None) -> str:
     return "partial"
 
 
+def _validate_attendance_date(value):
+    if value is not None and value > datetime.now(timezone.utc).date():
+        raise HTTPException(422, "You can record your matchday once the game has been played.")
+
+
+def _validate_attendance_fixture(fixture):
+    if (fixture.status or "").upper() not in FINISHED_STATUSES or fixture.fixture_date is None:
+        raise HTTPException(409, "Only completed matches can be recorded as attendance.")
+    try:
+        played = fixture_kickoff_has_passed(fixture.fixture_date)
+    except (ValueError, AttributeError):
+        played = False
+    if not played:
+        raise HTTPException(409, "Only completed matches in the past can be recorded as attendance.")
+
+
 def _ensure_venue_visit(
     db,
     *,
@@ -1060,12 +1076,14 @@ def _ensure_venue_visit(
     venue_id = lock_ground(db, venue_id)
     equivalents = resolution(db).equivalents(venue_id)
     normalized_date = visit_date.date() if isinstance(visit_date, datetime) else visit_date
+    _validate_attendance_date(normalized_date)
     if fixture_id is not None:
         fixture = db.query(Fixture).filter(Fixture.fixture_id == fixture_id).first()
         if fixture is None:
             raise HTTPException(status_code=404, detail="Fixture not found")
         if resolution(db).canonical(fixture.venue_id) != venue_id:
             raise HTTPException(status_code=409, detail="Fixture is linked to a different canonical venue")
+        _validate_attendance_fixture(fixture)
         normalized_date = fixture_datetime_utc(fixture.fixture_date).date()
         relevant_visits = db.query(VenueVisit).filter(
             VenueVisit.user_id == user_id,
@@ -2265,6 +2283,7 @@ def record_fixture_attendance(
             raise HTTPException(status_code=404, detail="Fixture not found")
         if fixture.venue_id is None:
             raise HTTPException(status_code=409, detail="Fixture is not linked to a canonical venue")
+        _validate_attendance_fixture(fixture)
         # Serialize intention/removal with explicit attendance for an existing save.
         db.query(InterestedFixture).filter(
             InterestedFixture.user_id == user_id,
@@ -2346,6 +2365,7 @@ def record_manual_venue_visit(
                 raise HTTPException(status_code=404, detail="Fixture not found")
             if resolution(db).canonical(fixture.venue_id) != venue_id:
                 raise HTTPException(status_code=400, detail="Fixture was not played at this venue")
+            _validate_attendance_fixture(fixture)
         visit = _ensure_venue_visit(
             db,
             user_id=user_id,
@@ -2409,6 +2429,8 @@ def update_venue_visit_fixture(
                 raise HTTPException(status_code=404, detail="Fixture not found")
             if resolution(db).canonical(fixture.venue_id) != venue_id:
                 raise HTTPException(status_code=400, detail="Fixture was not played at this venue")
+            _validate_attendance_date(visit.visit_date)
+            _validate_attendance_fixture(fixture)
             duplicate = db.query(VenueVisit.visit_id).filter(
                 VenueVisit.user_id == identity.user_id,
                 VenueVisit.fixture_id == data.fixture_id,

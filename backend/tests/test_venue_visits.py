@@ -1,5 +1,5 @@
 import unittest
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from unittest.mock import MagicMock, patch
 from venue_resolution import VenueResolution
 
@@ -20,7 +20,7 @@ class VenueVisitContractTests(unittest.TestCase):
     fixture_date = datetime(2026, 8, 30, 15, 0, tzinfo=timezone.utc)
 
     def db_with(self, visits, *, fixture_venue_id=11, fixture_id=99):
-        fixture = Fixture(fixture_id=fixture_id, venue_id=fixture_venue_id, fixture_date=self.fixture_date)
+        fixture = Fixture(fixture_id=fixture_id, venue_id=fixture_venue_id, fixture_date=self.fixture_date, status="FT")
         fixture_query = MagicMock()
         fixture_query.filter.return_value = fixture_query
         fixture_query.first.return_value = fixture
@@ -148,6 +148,79 @@ class VenueVisitContractTests(unittest.TestCase):
         self.assertIs(result, visit)
         self.assertEqual((visit.fixture_id, visit.source), (None, "manual"))
         db.execute.assert_called_once()
+
+
+    def test_unplayed_or_unknown_fixture_statuses_are_rejected(self):
+        for status in ["NS", "TBD", "PST", "CANC", "ABD", "AWD", "WO", "1H", "HT", "SUSP", None]:
+            with self.subTest(status=status):
+                db = self.db_with([])
+                db.fixture_query.first.return_value.status = status
+                with self.assertRaises(HTTPException) as failure:
+                    _ensure_venue_visit(db, user_id=7, venue_id=11, fixture_id=99, visit_date=self.fixture_date.date(), source="fixture_confirmation")
+                self.assertEqual(failure.exception.status_code, 409)
+                db.add.assert_not_called()
+
+    def test_future_completed_fixture_and_future_manual_date_are_rejected(self):
+        db = self.db_with([])
+        db.fixture_query.first.return_value.fixture_date = datetime.now(timezone.utc) + timedelta(days=2)
+        with self.assertRaises(HTTPException):
+            _ensure_venue_visit(db, user_id=7, venue_id=11, fixture_id=99, visit_date=None, source="fixture_confirmation")
+        for fixture_id in [None, 99]:
+            with self.assertRaises(HTTPException) as failure:
+                _ensure_venue_visit(db, user_id=7, venue_id=11, fixture_id=fixture_id, visit_date=date.today()+timedelta(days=2), source="manual")
+            self.assertEqual(failure.exception.status_code, 422)
+        db.add.assert_not_called()
+
+    def test_missing_or_naive_fixture_date_fails_closed(self):
+        for value in [None, datetime(2020, 1, 1)]:
+            db = self.db_with([]); db.fixture_query.first.return_value.fixture_date=value
+            with self.assertRaises(HTTPException):
+                _ensure_venue_visit(db, user_id=7, venue_id=11, fixture_id=99, visit_date=None, source="fixture_confirmation")
+            db.add.assert_not_called()
+
+    def test_future_fixture_attachment_does_not_mutate_existing_visit(self):
+        from types import SimpleNamespace
+        from main import update_venue_visit_fixture
+        from schemas import VenueVisitUpdate
+        visit=VenueVisit(visit_id=1,user_id=7,venue_id=11,fixture_id=None,visit_date=date(2026,8,30),source="manual")
+        for status, kickoff in [("NS",self.fixture_date),("FT",datetime.now(timezone.utc)+timedelta(days=2))]:
+            db=self.db_with([]);db.visits_query.first.return_value=visit
+            db.fixture_query.first.return_value.status=status;db.fixture_query.first.return_value.fixture_date=kickoff
+            with patch('main.SessionLocal',return_value=db),self.assertRaises(HTTPException):
+                update_venue_visit_fixture(11,1,VenueVisitUpdate(fixture_id=99),SimpleNamespace(user_id=7))
+            self.assertIsNone(visit.fixture_id);self.assertEqual(visit.visit_date,date(2026,8,30))
+            db.commit.assert_not_called();db.rollback.assert_called_once()
+
+    def test_direct_fixture_and_manual_api_cannot_bypass_eligibility(self):
+        from types import SimpleNamespace
+        from main import record_fixture_attendance,record_manual_venue_visit
+        from schemas import VenueVisitCreate
+        db=self.db_with([]);db.fixture_query.first.return_value.status="NS"
+        with patch('main.SessionLocal',return_value=db),self.assertRaises(HTTPException):
+            record_fixture_attendance(99,SimpleNamespace(user_id=7))
+        db.commit.assert_not_called()
+        db=self.db_with([]);db.fixture_query.first.return_value.fixture_date=None
+        with patch('main.SessionLocal',return_value=db),self.assertRaises(HTTPException) as failure:
+            record_manual_venue_visit(11,VenueVisitCreate(fixture_id=99),SimpleNamespace(user_id=7))
+        self.assertEqual(failure.exception.status_code,409)
+        db.commit.assert_not_called()
+        with patch('main.SessionLocal',return_value=db),self.assertRaises(HTTPException):
+            record_fixture_attendance(99,SimpleNamespace(user_id=7))
+        db.commit.assert_not_called()
+
+        db=self.db_with([])
+        with patch('main.SessionLocal',return_value=db),self.assertRaises(HTTPException):
+            record_manual_venue_visit(11,VenueVisitCreate(visit_date=date.today()+timedelta(days=2)),SimpleNamespace(user_id=7))
+        db.commit.assert_not_called()
+
+
+    def test_all_played_completion_statuses_and_undated_manual_history_are_valid(self):
+        from types import SimpleNamespace
+        from main import _validate_attendance_fixture, _validate_attendance_date
+        for status in ["FT", "AET", "PEN"]:
+            _validate_attendance_fixture(SimpleNamespace(status=status,fixture_date=self.fixture_date))
+        _validate_attendance_date(None)
+        _validate_attendance_date(date(1990,1,1))
 
 
 if __name__ == "__main__":
