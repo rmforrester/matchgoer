@@ -27,7 +27,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p validation-output
+          mkdir -p validation-output validation-baseline
+          git archive c73da2d2e196252236bf164bf6408cefe67b2060 | tar -x -C validation-baseline
           # Synthetic CI evidence only; the capability-restricted container
           # cannot override runner ownership when writing this shared directory.
           chmod 0777 validation-output
@@ -35,7 +36,7 @@ jobs:
           docker image inspect python:3.14-slim > validation-output/container-image.json
           docker run --rm --network host --memory=1g --cpus=2 --pids-limit=128 \
             --cap-drop=ALL --security-opt=no-new-privileges \
-            -v "$PWD:/source:ro" -v "$PWD/validation/fixture-ux:/validation:ro" \
+            -v "$PWD:/source:ro" -v "$PWD/validation-baseline:/baseline:ro" -v "$PWD/validation/fixture-ux:/validation:ro" \
             -v "$PWD/validation-output:/output" \
             -e PYTHONDONTWRITEBYTECODE=1 \
             -e DATABASE_URL=postgresql://terraces_ci:synthetic_ci_only@127.0.0.1:5432/terraces_ci \
@@ -45,6 +46,7 @@ jobs:
               python -m pip freeze > /output/dependencies.txt
               export PYTHONPATH=/validation:/source/backend:/source
               status=0
+              VALIDATION_SOURCE=/baseline VALIDATION_BASELINE=1 python /validation/run_backend_regressions.py
               python /validation/run_backend_regressions.py || status=1
               exit "$status"
             ' 2>&1 | tee validation-output/validation-console.txt
