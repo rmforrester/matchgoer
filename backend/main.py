@@ -1,3 +1,4 @@
+from venue_timezone import venue_timezone
 from venue_resolution import resolution, resolve_venue, lock_ground, personal_review, unique_owner_reviews, canonical_venues, community_summaries, canonical_fixtures, canonical_row
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import date, datetime, timedelta, timezone
@@ -724,6 +725,8 @@ def get_nearby(
 
                 "venue_city":
                     fixture.venue.city,
+
+                "venue_timezone": venue_timezone(fixture.venue),
 
                 "latitude":
                     fixture.venue.latitude,
@@ -2761,6 +2764,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
                 "league_name": fixture.league_name, "venue_id": fixture.venue_id,
                 "venue_name": fixture.venue.name if fixture.venue else fixture.venue_name,
                 "venue_city": fixture.venue.city if fixture.venue else fixture.venue_city,
+                "venue_timezone": venue_timezone(fixture.venue),
             },
             "terrace_rating": round(float(rating[0]), 1) if rating[0] is not None else None,
             "recommend_percentage": recommend_percentage,

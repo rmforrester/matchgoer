@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { ticketVisibleOnMatchday } from "../../lib/fixture-ticket-visibility";
 import { officialChannelLinks, type OfficialChannels } from "../../lib/official-channels";
 import { trackEvent } from "../../lib/analytics";
 
 type TicketAction = { label: string; url: string; source_label: string };
-type Props = { ticketAction?: TicketAction | null; channels?: OfficialChannels | null; teamName: string; ticketGuidance?: { label: string; message: string; source_label: string } | null };
+type Props = { fixtureDate?: string | null; venueTimezone?: string | null; ticketAction?: TicketAction | null; channels?: OfficialChannels | null; teamName: string; ticketGuidance?: { label: string; message: string; source_label: string } | null };
 
 function ActionIcon({ kind }: { kind: "ticket" | "website" | "instagram" }) {
   // The existing UI uses inline SVG; no icon dependency is needed.
@@ -13,12 +15,29 @@ function ActionIcon({ kind }: { kind: "ticket" | "website" | "instagram" }) {
   </svg>;
 }
 
-export default function FixtureOfficialActions({ ticketAction, channels, teamName, ticketGuidance }: Props) {
+export default function FixtureOfficialActions({ ticketAction, channels, teamName, ticketGuidance, fixtureDate, venueTimezone }: Props) {
+  // Start hidden during SSR/hydration; refresh on return and at calendar-minute boundaries (including venue midnight).
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    let clock: number;
+    const refresh = () => {
+      window.clearTimeout(clock);
+      setNow(new Date());
+      clock = window.setTimeout(refresh, 60_000 - Date.now() % 60_000);
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { window.clearTimeout(clock); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, []);
+  const visibleTicket = ticketAction?.label.trim().toLowerCase() === "buy tickets"
+    ? (now && ticketVisibleOnMatchday(fixtureDate, venueTimezone, now) ? ticketAction : null)
+    : ticketAction;
   const links = officialChannelLinks(channels);
-  if (!ticketAction && !ticketGuidance && links.length === 0) return null;
+  if (!visibleTicket && !ticketGuidance && links.length === 0) return null;
   const actions = [
-    ...(ticketAction ? [{ label: ticketAction.label, url: ticketAction.url, kind: "ticket" as const,
-      accessibleLabel: `${ticketAction.label} for ${teamName} from ${ticketAction.source_label}` }] : []),
+    ...(visibleTicket ? [{ label: visibleTicket.label, url: visibleTicket.url, kind: "ticket" as const,
+      accessibleLabel: `${visibleTicket.label} for ${teamName} from ${visibleTicket.source_label}` }] : []),
     ...links.map(link => ({ ...link, kind: link.label === "Club website" ? "website" as const : "instagram" as const,
       accessibleLabel: `${link.label} for ${teamName}` })),
   ];
