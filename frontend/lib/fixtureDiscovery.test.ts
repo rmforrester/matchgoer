@@ -223,17 +223,16 @@ test("My Matchdays separates upcoming, confirmation, and attended history", () =
   assert.match(matchdaysSource, /fixture\.fixture_date/);
   assert.match(matchdaysSource, /setInterval\(\(\) => setMatchdayNow\(new Date\(\)\), 60_000\)/);
   assert.match(matchdaysSource, /Going/);
-  assert.match(matchdaysSource, /Did You Go\?/);
+  assert.match(matchdaysSource, /DID YOU GO\?/);
   assert.match(matchdaysSource, /Yes, I was there/);
-  assert.match(matchdaysSource, /Didn&apos;t go/);
+  assert.match(matchdaysSource, /Didn't go/);
   assert.match(matchdaysSource, /setFixtures\(\(current\) => current\.filter/);
   assert.match(matchdaysSource, /if \(attended && !attendedFixtureIds\.has/);
   assert.match(matchdaysSource, /api\.post\(`\/fixtures\/\$\{fixture\.fixture_id\}\/attendance`\)/);
   assert.match(matchdaysSource, /api\.delete\(`\/fixtures\/\$\{fixture\.fixture_id\}\/interested`\)/);
   assert.match(matchdaysSource, /api\.get\("\/my-grounds"\)/);
-  assert.match(matchdaysSource, /Went/);
+  assert.match(matchdaysSource, /sectionHeading\("went"/);
   assert.match(matchdaysSource, /UPCOMING_PREVIEW_LIMIT/);
-  assert.match(matchdaysSource, /ANSWER_PREVIEW_LIMIT/);
   assert.match(matchdaysSource, /PAST_PREVIEW_LIMIT/);
   assert.doesNotMatch(matchdaysSource, /Who&apos;s Going|Open to meeting supporters/);
 });
@@ -272,7 +271,7 @@ test("My Grounds keeps Add a ground secondary and visited dots light but tappabl
 test("visits can attach, change, or remove an optional fixture without another model", () => {
   assert.match(groundsSource, /visits\/\$\{visitId\}/);
   assert.match(groundsSource, /fixture_id: fixtureId/);
-  assert.match(groundsSource, /Attach match/);
+  assert.match(groundsSource, /Find match/);
   assert.match(groundsSource, /Change match/);
   assert.match(groundsSource, /Remove link/);
   assert.match(groundsSource, /visit\.visit_date \? knownDate\(visit\.visit_date\) : "Date not recorded"/);

@@ -5,8 +5,8 @@ export type Consent = "accepted" | "rejected";
 export type AudienceClass = "internal" | "external" | "unclassified";
 export const analyticsChoiceEvent = "matchgoer-analytics-choice";
 export const analyticsPreferencesEvent = "matchgoer-analytics-preferences";
-export function openAnalyticsPreferences() {
-  window.dispatchEvent(new Event(analyticsPreferencesEvent));
+export function openAnalyticsPreferences(allow = false) {
+  window.dispatchEvent(new CustomEvent(analyticsPreferencesEvent, { detail: allow ? "accepted" : null }));
 }
 const schema = {
   location_search: { search_method: ["location", "map"], result_count_bucket: ["0", "1-10", "11-50", "51+"] },

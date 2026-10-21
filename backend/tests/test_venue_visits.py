@@ -222,6 +222,52 @@ class VenueVisitContractTests(unittest.TestCase):
         _validate_attendance_date(None)
         _validate_attendance_date(date(1990,1,1))
 
+    def test_local_today_uses_server_clock_with_bounded_offset(self):
+        from main import _validate_attendance_date
+        clock=MagicMock()
+        clock.now.return_value=datetime(2026,10,20,15,30,tzinfo=timezone.utc)
+        with patch('main.datetime',clock):
+            _validate_attendance_date(date(2026,10,21),780)  # Auckland, UTC+13.
+            with self.assertRaises(HTTPException):_validate_attendance_date(date(2026,10,22),780)
+            with self.assertRaises(HTTPException):_validate_attendance_date(date(2026,10,21))
+            for offset in (-720,-240,0,345,780,840):
+                today=(clock.now.return_value+timedelta(minutes=offset)).date()
+                _validate_attendance_date(today,offset)
+                _validate_attendance_date(None,offset)
+                _validate_attendance_date(date(1990,1,1),offset)
+                with self.assertRaises(HTTPException):_validate_attendance_date(today+timedelta(days=1),offset)
+            clock.now.return_value=datetime(2026,10,21,1,30,tzinfo=timezone.utc)
+            _validate_attendance_date(date(2026,10,20),-240)
+            with self.assertRaises(HTTPException):_validate_attendance_date(date(2026,10,21),-240)
+
+    def test_invalid_calendar_offsets_fail_closed_at_schema_and_service(self):
+        from schemas import VenueVisitCreate
+        from pydantic import ValidationError
+        from main import _validate_attendance_date
+        for offset in (-721,841,999999,True,False,1.5,'780'):
+            with self.subTest(offset=offset):
+                with self.assertRaises(ValidationError):VenueVisitCreate(calendar_utc_offset_minutes=offset)
+                with self.assertRaises(HTTPException):_validate_attendance_date(date(2026,1,1),offset)
+
+    def test_offset_cannot_make_unplayed_or_future_fixture_eligible(self):
+        for status,kickoff in [('NS',self.fixture_date),('PST',self.fixture_date),('CANC',self.fixture_date),('ABD',self.fixture_date),('FT',datetime.now(timezone.utc)+timedelta(hours=1))]:
+            db=self.db_with([]);db.fixture_query.first.return_value.status=status
+            db.fixture_query.first.return_value.fixture_date=kickoff
+            with self.assertRaises(HTTPException):
+                _ensure_venue_visit(db,user_id=7,venue_id=11,fixture_id=99,visit_date=None,source='manual',calendar_utc_offset_minutes=840)
+            db.add.assert_not_called()
+
+    def test_manual_api_passes_calendar_context_only_for_unlinked_attendance(self):
+        from schemas import VenueVisitCreate
+        from types import SimpleNamespace
+        from main import record_manual_venue_visit
+        for fixture_id in (None,99):
+            db=self.db_with([])
+            with patch('main.SessionLocal',return_value=db),patch('main._ensure_venue_visit',return_value=SimpleNamespace()) as ensure,patch('main.canonical_row',return_value={}):
+                record_manual_venue_visit(11,VenueVisitCreate(visit_date=self.fixture_date.date(),fixture_id=fixture_id,calendar_utc_offset_minutes=780),SimpleNamespace(user_id=7))
+            self.assertEqual(ensure.call_args.kwargs['calendar_utc_offset_minutes'],780 if fixture_id is None else None)
+            self.assertEqual(ensure.call_args.kwargs['user_id'],7)
+
 
 if __name__ == "__main__":
     unittest.main()

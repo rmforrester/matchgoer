@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from pydantic import BaseModel, Field
-from pydantic import StrictBool
+from pydantic import StrictBool, StrictInt
 
 
 class GoingUpdate(BaseModel):
@@ -296,6 +296,7 @@ class MyReviewResponse(BaseModel):
 class VenueVisitCreate(BaseModel):
     visit_date: date | None = None
     fixture_id: int | None = None
+    calendar_utc_offset_minutes: StrictInt | None = Field(default=None, ge=-720, le=840)
 
 
 class VenueVisitUpdate(BaseModel):

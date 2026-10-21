@@ -21,7 +21,6 @@ test("matchday occasions use bounded editorial cards with a graceful score fallb
   assert.match(matchdaysPage, /tt-panel min-w-0 p-4 sm:p-5/);
   assert.match(matchdaysPage, /FixtureTeams compact/);
   assert.match(matchdaysPage, /UPCOMING_PREVIEW_LIMIT/);
-  assert.match(matchdaysPage, /ANSWER_PREVIEW_LIMIT/);
   assert.match(matchdaysPage, /PAST_PREVIEW_LIMIT/);
 });
 

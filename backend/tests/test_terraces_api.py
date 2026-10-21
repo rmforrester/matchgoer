@@ -11,6 +11,47 @@ from terraces_storage import LazyPrivatePhotoStorage
 from models import TerracePhoto as Photo
 
 class PhotoApiTests(unittest.TestCase):
+    def test_personal_matchdays_filters_owned_attendance_before_cursor_and_keeps_public_privacy(self):
+        from models import VenueVisit, TerracePhotoEvent as Event
+        import terraces_service as service
+        from models import Fixture, Venue
+        fixture=self.db.get(Fixture,900000001)
+        self.venue=self.db.get(Venue,fixture.venue_id)
+        self.visit.venue_id=fixture.venue_id;self.visit.fixture_id=fixture.fixture_id
+        self.db.flush()
+        ids=[self.submit(label)['photo_id'] for label in ('personal-one','personal-two','pending')]
+        linked=self.visit
+        self.visit=VenueVisit(user_id=self.owner.user_id,venue_id=self.venue.venue_id,source='manual')
+        self.db.add(self.visit);self.db.flush()
+        unlinked_id=self.submit('unlinked')['photo_id']
+        self.visit=linked
+        for identifier in [*ids[:2],unlinked_id]:service.approve(self.db,'Bearer synthetic',identifier)
+        self.db.add(VenueVisit(user_id=self.other.user_id,venue_id=self.venue.venue_id,fixture_id=900000001,source='fixture'))
+        self.db.flush()
+        # Ordinary verified attendees see other contributors at their Went fixture,
+        # without needing upload/moderator permission or exposing attendance identity.
+        self.provider.subject=str(self.other.user_id)
+        first=api.public_photos(Response(),selection='my_matchdays',limit=1,matchday_of=None,authorization='Bearer synthetic')
+        second=api.public_photos(Response(),selection='my_matchdays',limit=1,matchday_of=None,cursor=first['next_cursor'],authorization='Bearer synthetic')
+        self.assertEqual({p['photo_id'] for page in (first,second) for p in page['photos']},set(ids[:2]))
+        self.assertIsNone(second['next_cursor'])
+        for page in (first,second):
+            for photo in page['photos']:
+                for field in ('owner_user_id','user_id','visit_id','submission_key'):
+                    self.assertNotIn(field,photo)
+        self.db.query(VenueVisit).filter_by(user_id=self.other.user_id).delete();self.db.flush()
+        self.assertEqual(api.public_photos(Response(),selection='my_matchdays',limit=12,matchday_of=None,authorization='Bearer synthetic')['photos'],[])
+        # Fail closed without an authenticated actor even if the public flag is on.
+        with patch('terraces.verify_claim_provider_identity',side_effect=HTTPException(401,'Sign in')),self.assertRaises(HTTPException):
+            api.public_photos(Response(),selection='my_matchdays',limit=12,matchday_of=None,authorization=None)
+        self.provider.subject=str(self.owner.user_id)
+        def personal_ids():return [p['photo_id'] for p in service.public_page(self.db,self.storage,selection='my_matchdays',attendance_user_id=self.owner.user_id)['photos']]
+        self.assertNotIn(ids[2],personal_ids())  # Pending is never public.
+        service.reject(self.db,'Bearer synthetic',ids[2],'Synthetic rejection')
+        self.assertNotIn(ids[2],personal_ids())
+        service.remove(self.db,self.storage,'Bearer synthetic',ids[0])
+        self.assertEqual(personal_ids(),[ids[1]])
+
     def test_owned_photo_upload_capability_uses_current_fail_closed_allowlist(self):
         with patch.dict('os.environ', {'TERRACES_UPLOAD_USER_IDS':str(self.owner.user_id)}):
             result=api.owned_photos(self.visit.visit_id,Response(),authorization='Bearer synthetic')

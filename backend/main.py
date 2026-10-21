@@ -1048,8 +1048,13 @@ def _review_state(review: AwayDayReview | None) -> str:
     return "partial"
 
 
-def _validate_attendance_date(value):
-    if value is not None and value > datetime.now(timezone.utc).date():
+def _validate_attendance_date(value, calendar_utc_offset_minutes=None):
+    # Use the server clock; the bounded offset supplies calendar context, never time.
+    offset = 0 if calendar_utc_offset_minutes is None else calendar_utc_offset_minutes
+    if type(offset) is not int or not -720 <= offset <= 840:
+        raise HTTPException(422, "Invalid attendance calendar offset.")
+    today = (datetime.now(timezone.utc) + timedelta(minutes=offset)).date()
+    if value is not None and value > today:
         raise HTTPException(422, "You can record your matchday once the game has been played.")
 
 
@@ -1072,11 +1077,12 @@ def _ensure_venue_visit(
     fixture_id: int | None,
     visit_date,
     source: str,
+    calendar_utc_offset_minutes: int | None = None,
 ) -> VenueVisit:
     venue_id = lock_ground(db, venue_id)
     equivalents = resolution(db).equivalents(venue_id)
     normalized_date = visit_date.date() if isinstance(visit_date, datetime) else visit_date
-    _validate_attendance_date(normalized_date)
+    _validate_attendance_date(normalized_date, calendar_utc_offset_minutes if fixture_id is None else None)
     if fixture_id is not None:
         fixture = db.query(Fixture).filter(Fixture.fixture_id == fixture_id).first()
         if fixture is None:
@@ -2373,6 +2379,7 @@ def record_manual_venue_visit(
             fixture_id=data.fixture_id,
             visit_date=(data.visit_date or fixture_datetime_utc(fixture.fixture_date).date()) if fixture else data.visit_date,
             source="fixture_confirmation" if fixture else "manual",
+            calendar_utc_offset_minutes=data.calendar_utc_offset_minutes if fixture is None else None,
         )
         db.commit()
         db.refresh(visit)

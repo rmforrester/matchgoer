@@ -182,9 +182,9 @@ async def submit(visit_id:int,request:Request,response:Response,authorization:st
     finally:slots.release()
 
 @router.get('/photos')
-def public_photos(response:Response,selection:str|None=Query(None,pattern='^discover$'),venue_id:int|None=None,fixture_id:int|None=None,cursor:str|None=None,limit:int=Query(12,ge=1,le=24),matchday_of:int|None=Query(None,ge=1)):
+def public_photos(response:Response,selection:str|None=Query(None,pattern='^(discover|my_matchdays)$'),venue_id:int|None=None,fixture_id:int|None=None,cursor:str|None=None,limit:int=Query(12,ge=1,le=24),matchday_of:int|None=Query(None,ge=1),authorization:str|None=Header(default=None)):
     response.headers['Cache-Control']='no-store'
-    return transaction(lambda db:service.public_page(db,PrivatePhotoStorage(),venue_id=venue_id,fixture_id=fixture_id,cursor=cursor,limit=limit,selection=selection,matchday_of=matchday_of))
+    return transaction(lambda db:service.public_page(db,PrivatePhotoStorage(),venue_id=venue_id,fixture_id=fixture_id,cursor=cursor,limit=limit,selection=selection,matchday_of=matchday_of,attendance_user_id=require_verified_account(db,authorization).user_id if selection=='my_matchdays' else None))
 
 @router.get('/visits/{visit_id}/photos')
 def owned_photos(visit_id:int,response:Response,authorization:str|None=Header(default=None)):

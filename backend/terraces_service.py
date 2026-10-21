@@ -190,8 +190,11 @@ def public_matchday_metadata(db,row):
     return {'matchday_photo_count':total} if total else {}
 
 
-def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,selection=None,matchday_of=None):
+def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,selection=None,matchday_of=None,attendance_user_id=None):
     query=public_photo_query(db)
+    if selection == 'my_matchdays':
+        if attendance_user_id is None:raise HTTPException(401,'Sign in to see your matchdays')
+        query=query.filter(Photo.fixture_id.is_not(None),exists(select(VenueVisit.visit_id).where(VenueVisit.user_id==attendance_user_id,VenueVisit.fixture_id==Photo.fixture_id)))
     if matchday_of is not None:
         if selection is not None or venue_id is not None or fixture_id is not None:
             raise HTTPException(422,'Matchday selection cannot be combined with other filters')

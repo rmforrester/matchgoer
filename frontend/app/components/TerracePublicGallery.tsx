@@ -13,14 +13,14 @@ import TerraceFixtureGallery from "./TerraceFixtureGallery";
 import { formatMatchDate, formatPublicationDate } from "../../lib/terraces-dates";
 
 type PhotoPage = { photos: TerracePhoto[]; next_cursor: string | null };
-type Props = { mode?: "feed" | "preview" | "venue"; venueId?: number };
+type Props = { mode?: "feed" | "preview" | "venue"; venueId?: number; personal?: boolean };
 
 export default function TerracePublicGallery(props: Props) {
   const { accountKey } = useAuth();
   return <PublicGalleryContent key={accountKey} {...props} />;
 }
 
-function PublicGalleryContent({ mode = "feed", venueId }: Props) {
+function PublicGalleryContent({ mode = "feed", venueId, personal = false }: Props) {
   const { authenticated } = useAuth();
   const [photos, setPhotos] = useState<TerracePhoto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -66,8 +66,8 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     busy.current = true; setLoading(true); setError("");
     const controller = scope.current;
     try {
-      // Public reads never carry a bearer token, even for an owner/moderator.
-      const { data } = await anonymousApi.get<PhotoPage>("/terraces/photos", { params: { limit, venue_id: venueId, cursor: after, selection: mode === "preview" ? "discover" : undefined }, signal: controller?.signal });
+      // Only the owned-attendance selection carries authentication. Public reads stay anonymous.
+      const { data } = await (personal ? api : anonymousApi).get<PhotoPage>("/terraces/photos", { params: { limit, venue_id: venueId, cursor: after, selection: personal ? "my_matchdays" : mode === "preview" ? "discover" : undefined }, signal: controller?.signal });
       if (controller?.signal.aborted) return;
       setPhotos(current => after ? mergePublicPhotos(current, data.photos) : data.photos);
       setCursor(data.next_cursor);
@@ -75,7 +75,7 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
       if (controller?.signal.aborted) return;
       setError(axios.isAxiosError(failure) && failure.response?.status === 404 ? "Photo browsing isn't available here yet." : "Can't load the photos right now. Try again in a moment.");
     } finally { if (!controller?.signal.aborted) { busy.current = false; setLoading(false); } }
-  }, [limit, venueId, mode]);
+  }, [limit, venueId, mode, personal]);
 
   useEffect(() => {
     scope.current = new AbortController();
@@ -150,6 +150,7 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     selectedId.current = photo.photo_id;
     setSelected(photo); setDetailError(""); setReason(""); setReportMessage("");
     dialog.current?.showModal();
+    dialog.current?.focus({ preventScroll: true });
     startMatchday(photo);
     void refresh(photo);
   };
@@ -201,7 +202,7 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     const matchDate = formatMatchDate(photo.match_date);
     const publication = formatPublicationDate(photo.published_at);
     const fixture = photo.home_team && photo.away_team ? `${photo.home_team} v ${photo.away_team}` : null;
-    const secondary = dark ? "text-white/75" : "text-[var(--tt-muted)]";
+    const secondary = "text-[var(--tt-muted)]";
     return <>
       {dark ? <p className="text-base font-extrabold">{photo.venue_name || "Ground"}</p> : <Link href={`/venue/${photo.venue_id}`} className="text-base font-extrabold underline">{photo.venue_name || "View ground"}</Link>}
       {(fixture || matchDate) && <p className={`mt-1 text-xs ${secondary}`}>{fixture}{fixture && matchDate && " · "}{matchDate && <><span className="sr-only">Match date: </span><time dateTime={photo.match_date ?? undefined}>{matchDate}</time></>}</p>}
@@ -221,7 +222,7 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
   const nextAvailable = (matchdayPhotos.length > matchdayIndex + 1 || !!matchdayCursor) && !navigationBusy;
   if (mode !== "feed" && photos.length === 0) return null;
   return <section className={mode === "feed" ? "min-w-0" : "mt-6 min-w-0 border-t-2 border-[var(--tt-ink)] pt-4"} aria-label={mode === "venue" ? "Supporter photographs from this ground" : "From the Terraces photographs"}>
-    {mode === "feed" && <header><h1 tabIndex={-1} className="tt-display text-4xl leading-none sm:text-5xl">FROM THE TERRACES</h1><h2 className="mt-3 text-xs font-bold tracking-widest">LATEST PHOTOS</h2></header>}
+    {mode === "feed" && <header><h1 tabIndex={-1} className="tt-display text-4xl leading-none sm:text-5xl">FROM THE TERRACES</h1><h2 className="mt-3 text-xs font-bold tracking-widest">{personal ? "YOUR MATCHDAYS" : "LATEST PHOTOS"}</h2></header>}
     {mode !== "feed" && <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="tt-display text-2xl">FROM THE TERRACES</h2><Link href={destination} className="inline-flex min-h-11 items-center text-xs font-bold underline">{mode === "venue" ? "MORE FROM THIS GROUND →" : "VIEW ALL →"}</Link></div>}
     {feedPhotos.length > 0 && <div role={mode === "preview" ? "group" : undefined} aria-label={mode === "preview" ? "Recent photographs" : undefined} tabIndex={mode === "preview" ? 0 : undefined} className={mode === "preview" ? "flex snap-x snap-proximity items-start gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pt-1 focus-visible:outline-2 focus-visible:outline-[var(--brand-interactive)]" : `grid grid-cols-1 items-start gap-6 ${mode === "feed" ? "mt-4" : ""}`}>
       {mode !== "preview" ? groups.map(group => <TerraceFixtureGallery key={fixtureGalleryKey(group[0], historicalGroups)} photos={group} location={locations[group[0].venue_id]} onPhotos={receiveMatchday} open={open} refresh={photo => void refresh(photo)} />) : feedPhotos.map(photo => <article key={photo.photo_id} className={`min-w-0 ${mode === "preview" ? "max-w-52 shrink-0 basis-[42%] snap-start" : ""}`}>
@@ -237,13 +238,13 @@ function PublicGalleryContent({ mode = "feed", venueId }: Props) {
     </div>}
     {mode !== "preview" && <>
       {loading && <p role="status" className="py-4 text-sm">Loading photos…</p>}
-      {!loading && !error && photos.length === 0 && <p className="py-4">Nothing here yet.</p>}
+      {!loading && !error && photos.length === 0 && <p className="py-4">{personal ? "No photos from your Went fixtures yet. Approved photos from you and other matchgoers at those matches will appear here. Visits without a linked fixture stay in My Grounds." : "Nothing here yet."}</p>}
       {error && <div className="py-3"><p role="alert" className="text-sm">{error}</p><button type="button" onClick={() => void load(photos.length ? cursor ?? undefined : undefined)} className="min-h-11 font-bold underline">Try again</button></div>}
       {cursor && !error && <button type="button" disabled={loading} onClick={() => void load(cursor)} className="tt-action mt-5 min-h-11 px-5">{loading ? "Loading…" : "MORE PHOTOS"}</button>}
     </>}
-    <dialog ref={dialog} onClose={() => { reportRequest.current += 1; setReporting(false); viewerScope.current?.abort(); viewerRun.current += 1; selectedId.current = null; setSelected(null); if (opener.current?.isConnected) opener.current.focus(); else document.querySelector<HTMLElement>("h1")?.focus(); }} onKeyDown={event => { if (!multiple || event.altKey || event.ctrlKey || event.metaKey || (event.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]")) return; if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); if (event.key === "ArrowLeft" ? previousAvailable : nextAvailable) void move(event.key === "ArrowLeft" ? -1 : 1); } }} aria-label="From the Terraces photo" className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-auto bg-black p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] text-white backdrop:bg-black">
+    <dialog tabIndex={-1} ref={dialog} onClose={() => { reportRequest.current += 1; setReporting(false); viewerScope.current?.abort(); viewerRun.current += 1; selectedId.current = null; setSelected(null); if (opener.current?.isConnected) opener.current.focus(); else document.querySelector<HTMLElement>("h1")?.focus(); }} onKeyDown={event => { if (!multiple || event.altKey || event.ctrlKey || event.metaKey || (event.target as HTMLElement).closest("input,textarea,select,[contenteditable=true]")) return; if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); if (event.key === "ArrowLeft" ? previousAvailable : nextAvailable) void move(event.key === "ArrowLeft" ? -1 : 1); } }} aria-label="From the Terraces photo" className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-auto bg-[#F4F0E5] p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] text-[var(--tt-ink)] outline-none backdrop:bg-[#F4F0E5]">
       <div className="mx-auto max-w-6xl">
-      <button type="button" aria-label="Close photo" onClick={() => dialog.current?.close()} className="sticky top-0 z-10 mb-2 min-h-11 bg-black px-2 text-sm font-bold underline focus-visible:outline-2 focus-visible:outline-white">CLOSE</button>
+      <button type="button" aria-label="Close photo" onClick={() => dialog.current?.close()} className="sticky top-0 z-10 mb-2 ml-auto flex min-h-11 items-center gap-2 border-0 bg-transparent px-2 text-sm font-bold text-[var(--brand-interactive)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]"><span aria-hidden="true">✕</span> CLOSE</button>
       {selected && <><div style={{ touchAction: multiple ? "pan-y pinch-zoom" : undefined }} onPointerDown={event => { if (!multiple || event.pointerType !== "touch" || !event.isPrimary) { swipe.current = null; return; } swipe.current = { id: event.pointerId, x: event.clientX, y: event.clientY }; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerCancel={() => { swipe.current = null; }} onPointerUp={event => { const start = swipe.current; swipe.current = null; if (!start || start.id !== event.pointerId) return; const x = event.clientX - start.x, y = event.clientY - start.y; if (Math.abs(x) >= 45 && Math.abs(x) > Math.abs(y) * 1.25 && (x < 0 ? nextAvailable : previousAvailable)) void move(x < 0 ? 1 : -1); }}><TerracePhotoView key={selected.photo_id} photo={selected} presentation="immersive" showContext={false} showCaption={false} refresh={() => void refresh(selected)} /></div>
         {<>
           {multiple && <div className="mx-auto mt-2 max-w-xl" aria-busy={navigationBusy}>

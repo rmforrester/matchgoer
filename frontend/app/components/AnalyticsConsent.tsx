@@ -34,7 +34,13 @@ export default function AnalyticsConsent() {
     const timer = setTimeout(() => { setConsent(readConsent()); setLoaded(true); }, 0);
     const sync = (event: StorageEvent) => { if (event.key === consentKey && readConsent() !== "accepted") withdrawAnalytics(); };
     window.addEventListener("storage", sync);
-    const open = () => setConsent(null);
+    const open = (event: Event) => {
+      if ((event as CustomEvent).detail === "accepted") {
+        acceptAnalytics();
+        try { localStorage.setItem(consentKey, "accepted"); } catch { /* Applies to this page only. */ }
+        setConsent("accepted"); window.dispatchEvent(new Event(analyticsChoiceEvent));
+      } else setConsent(null);
+    };
     window.addEventListener(analyticsPreferencesEvent, open);
     return () => { clearTimeout(timer); window.removeEventListener("storage", sync); window.removeEventListener(analyticsPreferencesEvent, open); };
   }, []);
