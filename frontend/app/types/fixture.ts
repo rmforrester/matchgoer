@@ -9,6 +9,7 @@ export type DecisionReason = {
 export type Fixture = {
   fixture_id: number;
   fixture_date: string;
+  venue_timezone?: string | null;
   home_team: string;
   home_team_id?: number | null;
   home_team_badge_url?: string | null;

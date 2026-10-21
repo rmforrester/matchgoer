@@ -34,7 +34,7 @@ type DecisionReason = {
 };
 
 type SocialFixture = {
-  fixture: { fixture_id: number; fixture_date: string; home_team: string; home_team_id: number | null; home_team_badge_url: string | null; away_team: string; away_team_id: number | null; away_team_badge_url: string | null; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
+  fixture: { fixture_id: number; fixture_date: string; venue_timezone?: string | null; home_team: string; home_team_id: number | null; home_team_badge_url: string | null; away_team: string; away_team_id: number | null; away_team_badge_url: string | null; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
   terrace_rating: number | null; recommend_percentage: number | null;
   decision_reasons: DecisionReason[]; highlight_eligible: boolean;
   ticket_action: { label: string; url: string; source_label: string } | null;
@@ -267,7 +267,7 @@ function FixturePageContent({ params, searchParams }: FixturePageProps) {
     <AccountConversionPrompt open={accountPrompt !== null} kind={accountPrompt ?? "interested"} onDismiss={() => setAccountPrompt(null)} returnTo={accountPrompt === "mate" ? pendingWhosGoingReturnTo(Number(fixtureId)) : undefined} />
     {error && <p role="alert" className="mt-4 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
 
-    <FixtureOfficialActions ticketAction={data.ticket_action} channels={data.official_channels} teamName={data.fixture.home_team} ticketGuidance={data.ticket_guidance} />
+    <FixtureOfficialActions ticketAction={data.ticket_action} fixtureDate={data.fixture.fixture_date} venueTimezone={data.fixture.venue_timezone} channels={data.official_channels} teamName={data.fixture.home_team} ticketGuidance={data.ticket_guidance} />
 
     {hasDecisionReasons && <section className="mg-editorial-rule mt-6 pt-3" aria-labelledby="why-this-match-heading"><AnalyticsExposure section="decide">
       <p className="mg-section-label">02 / Why this match</p>

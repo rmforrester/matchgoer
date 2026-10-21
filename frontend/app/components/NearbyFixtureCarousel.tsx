@@ -90,12 +90,12 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, distance
               </Link>
               <div className={`mt-2 grid items-stretch gap-2 ${isInterested ? "grid-cols-1 @min-[340px]:grid-cols-[1fr_1.65fr]" : "grid-cols-2"}`}>
               <Link href={`/fixture/${fixture.fixture_id}`} className="flex min-h-11 items-center justify-center border border-[var(--brand-interactive)] bg-[var(--brand-interactive)] px-3 py-2 text-center text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--tt-paper)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View match →</Link>
-              <button type="button" aria-label={isInterested ? `Remove ${fixture.home_team} versus ${fixture.away_team} from My Matchdays` : `Save ${fixture.home_team} versus ${fixture.away_team} to My Matchdays`} aria-pressed={isInterested} disabled={isUpdating} onClick={() => onToggleInterested(fixture.fixture_id)} className="min-h-11 min-w-0 border border-[var(--brand-interactive)] bg-[var(--tt-paper)] px-3 py-2 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)] disabled:cursor-wait disabled:opacity-60">
-                <span className="inline-flex items-center justify-center gap-2">
-                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <button type="button" aria-label={isInterested ? `Remove ${fixture.home_team} versus ${fixture.away_team} from My Matchdays` : `Add ${fixture.home_team} versus ${fixture.away_team} to My Matchdays`} aria-pressed={isInterested} disabled={isUpdating} onClick={() => onToggleInterested(fixture.fixture_id)} className="min-h-11 min-w-0 border border-[var(--brand-interactive)] bg-[var(--tt-paper)] px-3 py-2 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)] disabled:cursor-wait disabled:opacity-60">
+                <span className="inline-flex max-w-full items-center justify-center gap-2">
+                  <svg className="shrink-0" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     {isInterested ? <path d="m5 12 4 4L19 6" /> : <path d="M6 3h12v18l-6-4-6 4z" />}
                   </svg>
-                  {isInterested ? "Added to My Matchdays" : "Save match"}
+                  <span className="min-w-0">{isInterested ? "Added to My Matchdays" : "ADD TO MY MATCHDAYS"}</span>
                 </span>
               </button>
               </div>

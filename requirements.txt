@@ -23,3 +23,7 @@ uvicorn==0.52.1
 requests==2.34.2
 pillow-heif==1.8.1
 Pillow==12.3.0
+
+# Offline venue-local calendar resolution; pin code and polygon data together.
+timezonefinder==9.1.0
+timezonefinder-data==4.2026.5

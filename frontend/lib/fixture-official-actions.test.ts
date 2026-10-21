@@ -16,10 +16,13 @@ function compile(path: string, dependencies: Record<string, unknown> = {}) {
   return compiled.exports;
 }
 const channels = compile("./official-channels.ts");
-const component = compile("../app/components/FixtureOfficialActions.tsx", { "../../lib/official-channels": channels, "../../lib/analytics": { trackEvent: () => undefined } }) as { default: React.ComponentType<Record<string, unknown>> };
+const visibility = compile("./fixture-ticket-visibility.ts");
+const dependencies = { "../../lib/official-channels": channels, "../../lib/analytics": { trackEvent: () => undefined }, "../../lib/fixture-ticket-visibility": visibility };
+const component = compile("../app/components/FixtureOfficialActions.tsx", { ...dependencies, react: { ...React, useState: () => [new Date("2026-10-20T12:00:00Z"), () => undefined] } }) as { default: React.ComponentType<Record<string, unknown>> };
+
 const digital = { official_homepage_url: "https://club.test/", official_instagram_url: "https://www.instagram.com/club/" };
 const ticket = { label: "Buy tickets", url: "https://club.test/tickets", source_label: "Club" };
-function render(props: Record<string, unknown>) { return renderToStaticMarkup(React.createElement(component.default, { teamName: "Club", ...props })); }
+function render(props: Record<string, unknown>) { return renderToStaticMarkup(React.createElement(component.default, { teamName: "Club", fixtureDate: "2026-10-20T19:00:00Z", venueTimezone: "Europe/London", ...props })); }
 const cases = [
   ["online and both channels", { ticketAction: ticket, channels: digital }, ["Buy tickets", "Club website", "Instagram"]],
   ["information and both channels", { ticketAction: { ...ticket, label: "Ticket info" }, channels: digital }, ["Ticket info", "Club website", "Instagram"]],
@@ -54,4 +57,19 @@ test("protected admission text stays exact, ahead of digital links, without a fa
   assert.equal((html.match(/<a /g) ?? []).length, 2);
   assert.doesNotMatch(html, /Buy tickets|Ticket info/);
   assert.equal(render({ ticketGuidance: { label: "Admission", message: "Cash only at the gate.", source_label: "Club" } }).includes("<a "), false);
+});
+
+test("expired or unknown-timezone BUY TICKETS hidden without losing club links or Ticket info", () => {
+  for (const props of [{ fixtureDate: "2026-10-19T19:00:00Z" }, { venueTimezone: null }, { venueTimezone: "invalid" }]) {
+    const html = render({ ticketAction: ticket, channels: digital, ...props });
+    assert.doesNotMatch(html, /Buy tickets|https:\/\/club.test\/tickets/);
+    assert.match(html, /Club website/); assert.match(html, /Instagram/);
+  }
+  assert.match(render({ fixtureDate: "2026-10-19T19:00:00Z", ticketAction: { ...ticket, label: "Ticket info" } }), /Ticket info/);
+});
+
+test("server rendering does not flash BUY TICKETS before the client checks time", () => {
+  const actual = compile("../app/components/FixtureOfficialActions.tsx", dependencies) as typeof component;
+  const html = renderToStaticMarkup(React.createElement(actual.default, { teamName: "Club", ticketAction: ticket, channels: digital, fixtureDate: "2026-10-20T19:00:00Z", venueTimezone: "Europe/London" }));
+  assert.doesNotMatch(html, /Buy tickets/); assert.match(html, /Club website/);
 });
