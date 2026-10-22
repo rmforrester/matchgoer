@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
+import GoogleSignInButton from "@/app/components/GoogleSignInButton";
 import AccountShell from "@/app/components/AccountShell";
 import { accountRoute, authCallbackRoute, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
 import { prepareConversionHandoff, savePendingWhosGoingFromReturnTo } from "@/lib/account-conversion-checkpoint";
@@ -88,6 +89,7 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
       {error && <p role="alert" className="text-sm font-bold text-red-800">{error}</p>}
       <button disabled={saving || cooldown.remaining > 0} className="tt-action px-5">{saving ? "Creating…" : cooldown.remaining ? `Try again in ${cooldown.remaining}s` : "Create account"}</button>
     </form>
+    <GoogleSignInButton returnTo={returnTo} disabled={saving} onBusyChange={setSaving} />
     <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">Already have an account? <Link className="font-extrabold uppercase text-[var(--brand-interactive)] underline decoration-2 underline-offset-4" href={accountRoute("/signin", returnTo)}>Sign in →</Link></p>
   </AccountShell>;
 }

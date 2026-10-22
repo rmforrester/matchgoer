@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import GoogleSignInButton from "@/app/components/GoogleSignInButton";
 import AccountShell from "@/app/components/AccountShell";
 import { useAuth } from "@/app/components/AuthProvider";
 import { accountRoute, completeAuthenticatedFlow, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
@@ -21,6 +22,7 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, 
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (saving) return;
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return setError("Account services are unavailable right now.");
     setSaving(true); setError("");
@@ -49,6 +51,7 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, 
       {error && <p role="alert" className="text-sm font-bold text-red-800">{error}</p>}
       <button disabled={saving} className="tt-action px-5">{saving ? "Signing in…" : "Sign in"}</button>
     </form>
+    <GoogleSignInButton returnTo={returnTo} disabled={saving} onBusyChange={setSaving} handoffToken={handoffToken} convertAnonymous={convertAnonymous} />
     <div className="mt-4 grid gap-1 text-sm"><Link href={accountRoute("/auth/forgot-password", returnTo)} className="min-h-11 content-center font-bold underline">Forgot password?</Link><Link href={accountRoute("/auth/confirm", returnTo)} className="min-h-11 content-center underline">Need a new confirmation email?</Link></div>
     <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">New to Matchgoer? <Link className="font-extrabold uppercase text-[var(--brand-interactive)] underline decoration-2 underline-offset-4" href={accountRoute("/signup", returnTo)}>Create account →</Link></p>
   </AccountShell>;
