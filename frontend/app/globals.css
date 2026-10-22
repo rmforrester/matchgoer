@@ -191,7 +191,7 @@ body {
   input.tt-control,
   select.tt-control,
   textarea.tt-control { font-size: 1rem; }
-  .tt-map { height: 17.5rem; }
+  .tt-map { height: 18.5rem; }
   .tt-fixture-popup .leaflet-popup-content { margin: 0.45rem; min-width: min(12rem, calc(100vw - 5rem)); }
   .tt-fixture-popup .tt-fixture-popup-optional { display: none; }
   .tt-mobile-fixture-safe-area {
@@ -202,7 +202,7 @@ body {
     pointer-events: none;
     position: absolute;
     right: 0.75rem;
-    top: 4rem;
+    top: 5rem;
     z-index: 1000;
   }
   .tt-mobile-fixture-card {
@@ -212,7 +212,7 @@ body {
     max-height: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow: hidden;
+    overflow-y: auto;
     padding: 0.625rem;
     pointer-events: auto;
     width: 100%;

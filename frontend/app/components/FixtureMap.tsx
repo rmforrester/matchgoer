@@ -12,7 +12,7 @@ import {
 } from "react-leaflet";
 
 import L from "leaflet";
-import Link from "next/link";
+import MapFixtureActions, { type MapSaveActions } from "./MapFixtureActions";
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 
 import "leaflet/dist/leaflet.css";
@@ -42,7 +42,7 @@ type Venue = {
   longitude: number | null;
 };
 
-type Props = {
+type Props = MapSaveActions & {
   fixtures: Fixture[];
   venues: Venue[];
   latitude: number;
@@ -66,7 +66,7 @@ type Props = {
 
 export type MapSearchArea = DiscoveryViewport;
 
-type FixtureVenueMarkerProps = {
+type FixtureVenueMarkerProps = MapSaveActions & {
   group: FixtureVenueGroup;
   visited: boolean;
   icons: Record<MarkerSignal, L.DivIcon>;
@@ -133,7 +133,7 @@ function MarkerKey() {
   </details>;
 }
 
-function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureDismiss, showDistance, distanceOrigin, compactMobile }: FixtureVenueMarkerProps) {
+function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureDismiss, showDistance, distanceOrigin, compactMobile, interestedFixtureIds, updatingFixtureIds, onToggleInterested }: FixtureVenueMarkerProps) {
   const map = useMap();
   const decision = fixtureGroupDecision(group.fixtures);
   const [fixtureIndex, setFixtureIndex] = useState(decision.initialFixtureIndex);
@@ -174,7 +174,7 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
         <span>{fixtureIndex + 1} of {fixtureCount}</span>
         <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="min-h-11 px-2 text-lg">→</button>
       </div>}
-      <div><Link href={card.href} className="mt-2 inline-flex min-h-10 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">View match →</Link></div>
+      <MapFixtureActions fixtureId={fixture.fixture_id} interestedFixtureIds={interestedFixtureIds} updatingFixtureIds={updatingFixtureIds} onToggleInterested={onToggleInterested} />
     </Popup>}
   </Marker>;
 }
@@ -184,7 +184,8 @@ function MobileFixtureCard({
   group,
   onFixtureSelect,
   onFixtureDismiss,
-}: {
+  interestedFixtureIds, updatingFixtureIds, onToggleInterested,
+}: MapSaveActions & {
   fixture: Fixture;
   group: FixtureVenueGroup;
   onFixtureSelect: (fixtureId: number) => void;
@@ -214,13 +215,13 @@ function MobileFixtureCard({
       <button type="button" onClick={() => onFixtureDismiss(fixture.fixture_id)} aria-label="Dismiss selected fixture" className="grid h-11 w-11 place-items-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-2xl font-bold leading-none">×</button>
     </div>
     <div className="mt-1.5 flex min-w-0 items-center justify-between gap-3">
-      <Link href={`/fixture/${fixture.fixture_id}`} className="inline-flex min-h-11 min-w-0 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">View match →</Link>
       {group.fixtures.length > 1 && <div className="flex shrink-0 items-center gap-1" aria-label="Fixtures at this stadium">
         <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="grid h-10 w-10 place-items-center text-lg">←</button>
         <span className="text-xs font-bold">{fixtureIndex + 1}/{group.fixtures.length}</span>
         <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="grid h-10 w-10 place-items-center text-lg">→</button>
       </div>}
     </div>
+    <MapFixtureActions fixtureId={fixture.fixture_id} interestedFixtureIds={interestedFixtureIds} updatingFixtureIds={updatingFixtureIds} onToggleInterested={onToggleInterested} />
   </article>;
 }
 
@@ -307,6 +308,7 @@ export default function FixtureMap({
   onFixtureDismiss,
   showDistance,
   distanceOrigin,
+  interestedFixtureIds, updatingFixtureIds, onToggleInterested,
 }: Props) {
   const fixtureGroups = useMemo(() => groupFixturesByVenue(fixtures), [fixtures]);
   const tileLayer = useMemo(() => configuredDiscoverTileLayer(), []);
@@ -483,7 +485,7 @@ export default function FixtureMap({
             createGroundMarkerIcon(visited, selected, markerSignal, fixtureGroupDecision(group.fixtures).highlighted),
           ]),
         ) as Record<MarkerSignal, L.DivIcon>;
-        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icons={icons} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} showDistance={showDistance} distanceOrigin={distanceOrigin} compactMobile={compactMobile} />;
+        return <FixtureVenueMarker key={group.key} group={group} visited={visited} icons={icons} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} showDistance={showDistance} distanceOrigin={distanceOrigin} compactMobile={compactMobile} interestedFixtureIds={interestedFixtureIds} updatingFixtureIds={updatingFixtureIds} onToggleInterested={onToggleInterested} />;
       })}
 
     </MapContainer>
@@ -499,7 +501,7 @@ export default function FixtureMap({
       setAreaSearchAvailable(false);
     }} className="tt-action tt-map-search-action absolute left-1/2 top-3 z-[1000] -translate-x-1/2 shadow-[2px_2px_0_var(--tt-ink)] disabled:opacity-60">{searchingArea ? "Searching…" : "Search this area"}</button>}
     {compactMobile && selectedFixture && selectedFixtureGroup && <div className="tt-mobile-fixture-safe-area">
-      <MobileFixtureCard fixture={selectedFixture} group={selectedFixtureGroup} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} />
+      <MobileFixtureCard interestedFixtureIds={interestedFixtureIds} updatingFixtureIds={updatingFixtureIds} onToggleInterested={onToggleInterested} fixture={selectedFixture} group={selectedFixtureGroup} onFixtureSelect={onFixtureSelect} onFixtureDismiss={onFixtureDismiss} />
     </div>}
     {tileError && <p role="status" className="absolute bottom-3 left-3 right-3 z-[1000] border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3 text-sm font-semibold">The map background could not load. Fixture cards and ground links are still available below.</p>}
 </div>

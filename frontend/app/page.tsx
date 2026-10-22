@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "./components/AuthProvider";
 import TerracePublicGallery from "./components/TerracePublicGallery";
 
 import {
@@ -93,6 +94,11 @@ type DiscoveryRequestContext = {
 };
 
 export default function Home() {
+  const { accountKey } = useAuth();
+  return <DiscoverContent key={accountKey} />;
+}
+
+function DiscoverContent() {
   // -------------------------
   // State
   // -------------------------
@@ -235,11 +241,13 @@ const loadVisitedStadiums = () => {
 
   const [saveError, setSaveError] = useState("");
 
+  const pendingSaves = useRef(new Set<number>());
   const toggleInterested = (fixtureId: number) => {
-    if (updatingInterestedFixtureIds.includes(fixtureId)) {
+    if (!sessionReady || pendingSaves.current.has(fixtureId)) {
       return;
     }
 
+    pendingSaves.current.add(fixtureId);
     setSaveError("");
     const isInterested = interestedFixtureIds.includes(fixtureId);
     setUpdatingInterestedFixtureIds((current) => [...current, fixtureId]);
@@ -271,6 +279,7 @@ const loadVisitedStadiums = () => {
         setSaveError("Could not update My Matchdays. Please try again.");
       })
       .finally(() => {
+        pendingSaves.current.delete(fixtureId);
         setUpdatingInterestedFixtureIds((current) =>
           current.filter((id) => id !== fixtureId)
         );
@@ -816,6 +825,9 @@ const loadVisitedStadiums = () => {
             </div>
             <div className="border-y-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] py-1">
 <FixtureMap
+  interestedFixtureIds={interestedFixtureIds}
+  updatingFixtureIds={updatingInterestedFixtureIds}
+  onToggleInterested={toggleInterested}
   fixtures={visibleFixtures}
   venues={venues}
   latitude={appliedSearch.latitude}

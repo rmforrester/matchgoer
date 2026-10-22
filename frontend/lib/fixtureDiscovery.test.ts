@@ -134,23 +134,23 @@ test("fixture popup keeps required match details, accessible dismiss, and View m
   assert.match(fixtureMapSource, /formatFixtureDistance\(fixture\.distance_miles, distanceOrigin\)/);
   assert.match(fixtureMapSource, /aria-label="Dismiss selected fixture"/);
   assert.match(fixtureMapSource, /min-h-11 min-w-11/);
-  assert.match(fixtureMapSource, /View match/);
+  assert.match(fixtureMapSource, /<MapFixtureActions/);
   assert.match(fixtureMapSource, /tt-fixture-popup/);
 });
 
 test("mobile fixture overlay stays in a control-safe area and preserves core match fields", () => {
-  assert.match(globalStylesSource, /\.tt-map \{ height: 17\.5rem; \}/);
-  assert.match(globalStylesSource, /\.tt-mobile-fixture-safe-area \{[\s\S]*bottom: 0\.75rem;[\s\S]*top: 4rem;/);
-  assert.match(globalStylesSource, /\.tt-mobile-fixture-card \{[\s\S]*max-height: 100%;[\s\S]*overflow: hidden;/);
+  assert.match(globalStylesSource, /\.tt-map \{ height: 18\.5rem; \}/);
+  assert.match(globalStylesSource, /\.tt-mobile-fixture-safe-area \{[\s\S]*bottom: 0\.75rem;[\s\S]*top: 5rem;/);
+  assert.match(globalStylesSource, /\.tt-mobile-fixture-card \{[\s\S]*max-height: 100%;[\s\S]*overflow-y: auto;/);
   assert.match(fixtureMapSource, /tt-mobile-fixture-card/);
   assert.match(fixtureMapSource, /fixture\.home_team} v \{fixture\.away_team/);
   assert.match(fixtureMapSource, /fixture\.fixture_date/);
   assert.match(fixtureMapSource, /fixture\.league_name/);
   assert.match(fixtureMapSource, /fixture\.venue_name/);
-  assert.match(fixtureMapSource, /View match/);
+  assert.match(fixtureMapSource, /<MapFixtureActions/);
   assert.match(fixtureMapSource, /grid-cols-\[minmax\(0,1fr\)_2\.75rem\]/);
   assert.match(fixtureMapSource, /flex min-w-0 items-start gap-1 break-words text-sm leading-tight/);
-  assert.match(fixtureMapSource, /inline-flex min-h-11[^\n]*View match/);
+  assert.match(readFileSync(new URL("../app/components/MapFixtureActions.module.css", import.meta.url), "utf8"), /min-height: 44px/);
 });
 
 test("mobile selection does not own the viewport and dismiss only clears that fixture", () => {

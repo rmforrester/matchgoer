@@ -1,0 +1,8 @@
+.container { container-type: inline-size; margin-top: 8px; }
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.view, .save { display: flex; align-items: center; justify-content: center; min-height: 44px; min-width: 0; padding: 6px 8px; border: 2px solid #174a32; font-size: 11px; font-weight: 800; line-height: 14px; text-align: center; text-decoration: none; }
+.view { background: #174a32; color: #fff !important; }
+.save { background: var(--tt-paper); color: #174a32; cursor: pointer; }
+.save:disabled { opacity: .6; cursor: default; }
+.view:focus-visible, .save:focus-visible { outline: 2px solid var(--tt-ink); outline-offset: 2px; }
+
