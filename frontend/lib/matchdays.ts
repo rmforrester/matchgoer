@@ -1,3 +1,4 @@
+import { eligibleAttendanceFixture } from "./attendance-eligibility.ts";
 import { formatKickoffTime } from "./fixture-format.ts";
 
 export const UPCOMING_PREVIEW_LIMIT = 3;
@@ -52,13 +53,9 @@ export function previewItems<T>(items: T[], limit: number, expanded: boolean): T
   return expanded ? items : items.slice(0, limit);
 }
 
-type SavedMatch = { fixture_id: number; fixture_date: string; status?: string | null; going?: boolean };
-const excludedConfirmation = new Set(["PST", "CANC", "ABD", "AWD", "WO", "1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE"]);
-
+type SavedMatch = { fixture_id: number; fixture_date: string; status?: string | null; going?: boolean; venue_id?: number | null };
 export function canConfirmAttendance(fixture: SavedMatch, now: Date): boolean {
-  const kickoff = new Date(fixture.fixture_date).getTime();
-  return Number.isFinite(kickoff) && now.getTime() >= kickoff + 3 * 60 * 60 * 1000
-    && !excludedConfirmation.has((fixture.status ?? "").toUpperCase());
+  return fixture.venue_id != null && eligibleAttendanceFixture(fixture, fixture.venue_id, now);
 }
 
 export function partitionMatchdays<T extends SavedMatch>(saved: T[], attendedIds: Set<number>, now: Date) {

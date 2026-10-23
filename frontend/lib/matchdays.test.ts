@@ -29,7 +29,7 @@ test("mobile wordmark is calibrated without changing its desktop width", () => {
 });
 
 const kickoff = "2026-10-10T14:00:00Z";
-const saved = (id: number, going = false, status = "NS") => ({ fixture_id: id, fixture_date: kickoff, going, status });
+const saved = (id: number, going = false, status = "NS") => ({ fixture_id: id, fixture_date: kickoff, going, status, venue_id: 9 });
 test("Going acknowledgement protects one conflicting read then confirms a fresh matching read", () => {
   const fixture = saved(1);
   const confirmations = new Map<number, ConfirmedGoing<typeof fixture>>([[1, { fixture, going: true, checked: false }]]);
@@ -52,16 +52,17 @@ test("missing stale row is protected once but a confirmed removal is not masked 
   assert.equal(reconcileGoingRead([], confirmations).rows[0].fixture_id, 1);
   assert.deepEqual(reconcileGoingRead([], confirmations).rows, []);
 });
-test("three hour check-in does not require FT and excludes likely live or non-played matches", () => {
-  assert.equal(canConfirmAttendance(saved(1), new Date("2026-10-10T16:59:59Z")), false);
-  assert.equal(canConfirmAttendance(saved(1), new Date("2026-10-10T17:00:00Z")), true);
-  for (const status of ["PST", "CANC", "ABD", "AWD", "WO", "1H", "HT", "2H", "ET", "P", "LIVE", "SUSP", "INT"])
-    assert.equal(canConfirmAttendance(saved(1, false, status), new Date("2026-10-11T17:00:00Z")), false);
-  assert.equal(canConfirmAttendance({ ...saved(1), fixture_date: "2026-10-10T10:00:00-04:00" }, new Date("2026-10-10T17:00:00Z")), true);
-  assert.equal(canConfirmAttendance({ ...saved(1), fixture_date: "invalid" }, new Date()), false);
+test("attendance confirmation requires completed status, a canonical venue and a past kickoff", () => {
+  const now = new Date("2026-10-10T17:00:00Z");
+  for (const status of ["FT", "AET", "PEN"]) assert.equal(canConfirmAttendance(saved(1, false, status), now), true);
+  for (const status of ["NS", "TBD", "", "PST", "CANC", "ABD", "AWD", "WO", "1H", "HT", "2H", "ET", "P", "LIVE", "SUSP", "INT"]) assert.equal(canConfirmAttendance(saved(1, false, status), now), false);
+  assert.equal(canConfirmAttendance(saved(1, false, "FT"), new Date("2026-10-10T13:59:59Z")), false);
+  assert.equal(canConfirmAttendance({ ...saved(1, false, "FT"), fixture_date: "invalid" }, now), false);
+  assert.equal(canConfirmAttendance({ ...saved(1, false, "FT"), venue_id: null }, now), false);
 });
+
 test("sections are exclusive, Went wins, Going is prioritized and retained plans remain accessible", () => {
-  const result = partitionMatchdays([saved(1), saved(2, true), saved(3, true), saved(4, true, "PST"), saved(1)], new Set([3]), new Date("2026-10-10T17:00:00Z"));
+  const result = partitionMatchdays([saved(1, false, "FT"), saved(2, true, "FT"), saved(3, true, "FT"), saved(4, true, "PST"), saved(1, false, "FT")], new Set([3]), new Date("2026-10-10T17:00:00Z"));
   assert.deepEqual(result.awaiting.map(f => f.fixture_id), [2, 1]);
   assert.deepEqual(result.going.map(f => f.fixture_id), [4]);
   assert.equal(result.interested.length, 0);
@@ -87,4 +88,17 @@ test("My Matchdays keeps the same instant across timezones and daylight-saving c
   assert.equal(formatMatchdayKickoff("2026-11-01T06:30:00Z", "America/New_York").time, "1:30 AM");
   assert.equal(formatMatchdayKickoff("2026-03-08T06:30:00Z", "America/New_York").time, "1:30 AM");
   assert.equal(formatMatchdayKickoff("2026-03-08T07:30:00Z", "America/New_York").time, "3:30 AM");
+});
+
+test("unconfirmed old saves stay in plans; completed and attended fixtures never duplicate sections", () => {
+ const rows = [saved(1), saved(2, true), saved(3, false, "FT"), saved(4, true, "FT"), saved(5, true, "FT"), saved(3, false, "FT")];
+ const groups = partitionMatchdays(rows, new Set([5]), new Date("2026-10-12T00:00:00Z"));
+ assert.deepEqual(groups.interested.map(f => f.fixture_id), [1]);
+ assert.deepEqual(groups.going.map(f => f.fixture_id), [2]);
+ assert.deepEqual(groups.awaiting.map(f => f.fixture_id), [4,3]);
+ const all = [...groups.going, ...groups.interested, ...groups.awaiting];
+ assert.equal(all.length, new Set(all.map(f => f.fixture_id)).size);
+ const completed = partitionMatchdays([{ ...saved(1), status: "FT" }], new Set(), new Date("2026-10-12T00:00:00Z"));
+ assert.equal(completed.interested.length, 0);assert.equal(completed.awaiting.length, 1);
+ assert.equal(partitionMatchdays(rows, new Set([3,4,5]), new Date("2026-10-12T00:00:00Z")).awaiting.length, 0);
 });
