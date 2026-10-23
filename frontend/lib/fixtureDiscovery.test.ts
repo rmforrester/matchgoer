@@ -232,8 +232,7 @@ test("My Matchdays separates upcoming, confirmation, and attended history", () =
   assert.match(matchdaysSource, /api\.delete\(`\/fixtures\/\$\{fixture\.fixture_id\}\/interested`\)/);
   assert.match(matchdaysSource, /api\.get\("\/my-grounds"\)/);
   assert.match(matchdaysSource, /sectionHeading\("went"/);
-  assert.match(matchdaysSource, /UPCOMING_PREVIEW_LIMIT/);
-  assert.match(matchdaysSource, /PAST_PREVIEW_LIMIT/);
+  assert.doesNotMatch(matchdaysSource, /UPCOMING_PREVIEW_LIMIT|PAST_PREVIEW_LIMIT|ExpandButton/);
   assert.doesNotMatch(matchdaysSource, /Who&apos;s Going|Open to meeting supporters/);
 });
 

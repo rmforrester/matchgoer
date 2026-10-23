@@ -1,9 +1,6 @@
 import { eligibleAttendanceFixture } from "./attendance-eligibility.ts";
 import { formatKickoffTime } from "./fixture-format.ts";
 
-export const UPCOMING_PREVIEW_LIMIT = 3;
-export const ANSWER_PREVIEW_LIMIT = 2;
-export const PAST_PREVIEW_LIMIT = 6;
 
 export type ConfirmedGoing<T> = { fixture: T; going: boolean; checked: boolean };
 
@@ -49,9 +46,6 @@ export function trustworthyScore(fixture: ResultFields): string | null {
     : null;
 }
 
-export function previewItems<T>(items: T[], limit: number, expanded: boolean): T[] {
-  return expanded ? items : items.slice(0, limit);
-}
 
 type SavedMatch = { fixture_id: number; fixture_date: string; status?: string | null; going?: boolean; venue_id?: number | null };
 export function canConfirmAttendance(fixture: SavedMatch, now: Date): boolean {

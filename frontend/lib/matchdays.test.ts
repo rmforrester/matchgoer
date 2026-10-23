@@ -1,15 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { previewItems, trustworthyScore, canConfirmAttendance, partitionMatchdays, formatMatchdayKickoff, reconcileGoingRead, type ConfirmedGoing } from "./matchdays.ts";
+import { trustworthyScore, canConfirmAttendance, partitionMatchdays, formatMatchdayKickoff, reconcileGoingRead, type ConfirmedGoing } from "./matchdays.ts";
 
 const matchdaysPage = readFileSync(new URL("../app/components/InterestedTab.tsx", import.meta.url), "utf8");
 const navigation = readFileSync(new URL("../app/components/Navigation.tsx", import.meta.url), "utf8");
-
-test("bounds and expands matchday lists", () => {
-  assert.deepEqual(previewItems([1, 2, 3, 4], 2, false), [1, 2]);
-  assert.deepEqual(previewItems([1, 2, 3, 4], 2, true), [1, 2, 3, 4]);
-});
 
 test("shows only complete final scores", () => {
   assert.equal(trustworthyScore({ status: "FT", home_goals: 2, away_goals: 1 }), "2–1");
@@ -17,11 +12,10 @@ test("shows only complete final scores", () => {
   assert.equal(trustworthyScore({ status: "FT", home_goals: 2, away_goals: null }), null);
 });
 
-test("matchday occasions use bounded editorial cards with a graceful score fallback", () => {
+test("matchday occasions use editorial cards with a graceful score fallback", () => {
   assert.match(matchdaysPage, /tt-panel min-w-0 p-4 sm:p-5/);
   assert.match(matchdaysPage, /FixtureTeams compact/);
-  assert.match(matchdaysPage, /UPCOMING_PREVIEW_LIMIT/);
-  assert.match(matchdaysPage, /PAST_PREVIEW_LIMIT/);
+  assert.doesNotMatch(matchdaysPage, /previewItems|PREVIEW_LIMIT|ExpandButton|showAll/);
 });
 
 test("mobile wordmark is calibrated without changing its desktop width", () => {
