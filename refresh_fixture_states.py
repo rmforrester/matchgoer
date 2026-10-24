@@ -37,6 +37,7 @@ CLASSIFICATIONS = (
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description="Reconcile existing Matchgoer fixtures from API-Football")
     result.add_argument("--nightly", action="store_true")
+    result.add_argument("--enrich-highlights", action="store_true", help="Opt-in bounded post-commit event stage; disabled by default")
     result.add_argument("--lookback-days", type=int, default=30)
     result.add_argument("--lookahead-days", type=int, default=30)
     result.add_argument("--max-requests", type=int, default=int(os.getenv("FIXTURE_REFRESH_MAX_REQUESTS", "750")))
@@ -389,6 +390,19 @@ def main() -> int:
         write_requested=write_requested, commit_confirmed=commit_confirmed,
         expanded=expanded, incomplete=incomplete, write_error=write_error,
         provider_failures=client.failures, validation=validation, manifest=manifest)
+    lifecycle_requests = client.requests_made
+    lifecycle_failures = list(client.failures)
+    highlights = None
+    if args.enrich_highlights and execution_success and commit_confirmed:
+        # Existing lifecycle commit is authoritative and remains independent of event coverage.
+        try:
+            from ingestion.matchday_highlights import run_demand_enrichment
+            retained = [responses[key][0] for key in updates
+                        if len(responses[key]) == 1 and provider_values(responses[key][0])["status"] == "FT"]
+            highlights = run_demand_enrichment(engine, client, enabled=True, provider_rows=retained,
+                                               held_ids=REVIEW_HOLDS, max_requests=args.max_requests)
+        except Exception as error:
+            highlights = {"enabled": True, "errors": [type(error).__name__]}
     report = {
         "execution_success": execution_success, "commit_confirmed": commit_confirmed,
         "exit_code": exit_code,
@@ -398,15 +412,18 @@ def main() -> int:
                               else "DRY RUN PASSED" if execution_success else "DRY RUN INCOMPLETE OR FAILED"),
         "coverage_outcome": "COVERAGE INCOMPLETE — EXCLUSIONS RECORDED" if incomplete else "COVERAGE COMPLETE",
         "generated_at": datetime.now(timezone.utc).isoformat(), "mode": "write" if args.write else "dry-run", "policy": "nightly",
-        "expanded_refresh_enabled": expanded, "write_error": write_error, "complete": not incomplete and not client.failures and not write_error and validation["passed"], "window_start": start.isoformat(), "window_end_exclusive": end.isoformat(), "lookahead_days": args.lookahead_days if expanded else 0, "max_requests": args.max_requests,
+        "expanded_refresh_enabled": expanded, "write_error": write_error, "complete": not incomplete and not lifecycle_failures and not write_error and validation["passed"], "window_start": start.isoformat(), "window_end_exclusive": end.isoformat(), "lookahead_days": args.lookahead_days if expanded else 0, "max_requests": args.max_requests,
         "as_of": cutoff_day.isoformat(), "lookback_days": args.lookback_days, "country": args.country,
-        "candidates": len(candidates), "provider_requests": client.requests_made,
+        "candidates": len(candidates), "provider_requests": lifecycle_requests,
         "classification_counts": {key: counts[key] for key in CLASSIFICATIONS}, "proposed_fixture_rows_changed": len(updates),
         "field_change_counts": {field: field_counts[field] for field in ALLOWED_FIELDS},
         "expected_remaining_stale_cohort": sum(row["provider_status"] in RETRYABLE_STATUSES or row["classification"] in {"PROVIDER_MISSING", "PROVIDER_DUPLICATE", "IDENTITY_MISMATCH"} for row in manifest),
         "older_unresolved_outside_lookback": {"total": len(older_rows), "by_status": dict(sorted(Counter(row.status for row in older_rows).items()))},
-        "provider_failures": client.failures, "validation": validation, "manifest": manifest,
+        "provider_failures": lifecycle_failures, "validation": validation, "manifest": manifest,
     }
+    if highlights is not None:
+        report["matchday_highlights"] = highlights
+        report["total_provider_requests"] = client.requests_made
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key != "manifest"}, indent=2))

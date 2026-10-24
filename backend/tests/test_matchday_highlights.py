@@ -226,3 +226,136 @@ class PostgresSnapshotTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+class DemandEnrichmentTests(unittest.TestCase):
+    def setUp(self):
+        from models import User, VenueVisit, InterestedFixture
+        self.User,self.Visit,self.Saved=User,VenueVisit,InterestedFixture
+        self.engine=create_engine('sqlite://')
+        for table in [User.__table__,Venue.__table__,Fixture.__table__,VenueVisit.__table__,InterestedFixture.__table__,FixtureEventSnapshot.__table__]:table.create(self.engine)
+        self.now=datetime(2026,10,24,12,tzinfo=timezone.utc)
+        self.db=Session(self.engine)
+        self.db.add_all([User(user_id=1,is_anonymous=False,account_status='registered'),User(user_id=2,is_anonymous=True,account_status='anonymous'),User(user_id=3,is_anonymous=False,account_status='deleted')])
+        self.db.add(Venue(venue_id=1,name='Synthetic ground'));self.db.commit()
+        self.client=Mock();self.client.requests_made=0;self.client.quota_is_fresh.return_value=True;self.client.highlights_quota_available.return_value=True
+        def fetch(ids):self.client.requests_made+=1;return [self.row(i) for i in ids]
+        self.client.fixtures_by_ids.side_effect=fetch
+
+    def tearDown(self):self.db.close();self.engine.dispose()
+
+    def add(self,fid=1,*,went=True,owner=1,age=1,demand_age=None,**changes):
+        f=Fixture(**vars(fixture(**(dict(fixture_id=fid,fixture_date=self.now-timedelta(days=age),venue_id=1)|changes))))
+        self.db.add(f);self.db.flush()
+        self.demand(fid,went=went,owner=owner,age=age if demand_age is None else demand_age)
+        return f
+
+    def demand(self,fid,*,went=True,owner=1,age=1):
+        if went:self.db.add(self.Visit(visit_id=fid*10+owner,user_id=owner,fixture_id=fid,venue_id=1,source='manual',created_at=self.now-timedelta(days=age)))
+        else:self.db.add(self.Saved(interested_id=fid*10+owner,user_id=owner,fixture_id=fid,going=False,created_at=self.now-timedelta(days=age)))
+        self.db.commit()
+
+    def row(self,fid=1,**changes):
+        p=payload();p['fixture']['id']=fid;return p|changes
+
+    def select(self,**kw):
+        from ingestion.matchday_highlights import select_demand
+        return [r['fixture_id'] for r in select_demand(self.db,now=self.now,**kw)]
+
+    def run_stage(self,**kw):
+        from ingestion.matchday_highlights import run_demand_enrichment
+        return run_demand_enrichment(self.engine,self.client,enabled=True,now=self.now,**kw)
+
+    def test_went_priority_and_cross_supporter_dedup(self):
+        self.add(2,went=False);self.add(1);self.demand(1,owner=2);self.demand(1,went=False,owner=2)
+        self.assertEqual(self.select(),[1,2])
+        r=self.run_stage();self.assertEqual(r['inserted_or_updated'],[1,2]);self.assertEqual(self.client.requests_made,1)
+        self.assertEqual(self.db.query(self.Visit).count(),2);self.assertEqual(self.db.query(self.Saved).count(),2)
+
+    def test_ineligible_status_date_score_identity_and_holds(self):
+        self.add(1,status='NS');self.add(2,status='AET');self.add(3,status='PEN');self.add(4,age=-1);self.add(5,home_goals=None);self.add(6,away_team_id=10);self.add(7);self.add(8,owner=3)
+        self.assertEqual(self.select(held_ids=[7]),[])
+
+    def test_did_you_go_requires_venue(self):
+        self.add(1,went=False,venue_id=None);self.assertEqual(self.select(),[])
+
+    def test_retrospective_new_demand_and_historical_manifest(self):
+        self.add(1,age=150,demand_age=0);self.add(2,age=150)
+        self.assertEqual(self.select(),[1]);self.assertEqual(self.select(historical=True),[1,2])
+        self.assertEqual(self.select(retained_ids=[2]),[1,2])
+
+    def test_retry_day7_weekday_and_day30(self):
+        self.add(1,age=7);self.add(2,age=30)
+        self.assertEqual(self.select(),[1] if self.now.weekday()==1 else [])
+        from ingestion.matchday_highlights import select_demand
+        monday=self.now+timedelta(days=(1-self.now.weekday())%7)
+        self.assertEqual([r['fixture_id'] for r in select_demand(self.db,now=monday)],[1])
+
+    def test_old_valid_snapshot_is_preserved_and_repeat_fetch_is_zero(self):
+        f=self.add();save_snapshot(self.db,1,payload(),self.now-timedelta(days=60));self.db.commit()
+        self.assertEqual(self.select(),[]);self.assertEqual(self.run_stage()['extra_requests'],0)
+        self.assertEqual(enrich_batch(self.db,self.client,[1],enabled=True),{1:False});self.client.fixtures_by_ids.assert_not_called()
+
+    def test_repeated_run_skips_new_snapshot(self):
+        self.add();self.assertEqual(self.run_stage()['extra_requests'],1);self.assertEqual(self.run_stage()['extra_requests'],0)
+
+    def test_retained_payload_uses_no_provider_even_without_quota(self):
+        self.add(age=90);self.client.highlights_quota_available.return_value=False
+        self.assertEqual(self.run_stage(provider_rows=[payload()])['inserted_or_updated'],[1]);self.client.fixtures_by_ids.assert_not_called();self.client.get.assert_not_called()
+
+    def test_disabled_has_no_connections_or_requests(self):
+        from ingestion.matchday_highlights import run_demand_enrichment
+        r=run_demand_enrichment(None,self.client);self.assertFalse(r['enabled']);self.client.fixtures_by_ids.assert_not_called()
+
+    def test_provider_error_missing_coverage_and_invalid_rows(self):
+        self.add()
+        for mode in ['error','missing','score','identity']:
+            def fetch(ids):
+                self.client.requests_made+=1
+                if mode=='error':raise RuntimeError('synthetic')
+                if mode=='missing':return []
+                p=payload()
+                if mode=='score':p['goals']['home']=2
+                if mode=='identity':p['teams']['home']['id']=999
+                return [p]
+            self.client.fixtures_by_ids.side_effect=fetch;r=self.run_stage();self.assertEqual(self.db.query(FixtureEventSnapshot).count(),0)
+            self.assertEqual(self.db.get(Fixture,1).home_goals,1)
+            self.assertTrue(r['errors'] if mode=='error' else r['unavailable'])
+
+    def test_invalid_previous_snapshot_is_not_overwritten_on_bad_coverage(self):
+        f=self.add();save_snapshot(self.db,1,payload(),self.now-timedelta(days=1));self.db.commit();old=self.db.get(FixtureEventSnapshot,1).source_sha256
+        f.home_goals=2;self.db.commit();self.client.fixtures_by_ids.side_effect=lambda ids:[]
+        self.run_stage();self.db.expire_all();self.assertEqual(self.db.get(FixtureEventSnapshot,1).source_sha256,old)
+
+    def test_two_requests_and_global_budget(self):
+        for i in range(1,54):self.add(i)
+        self.assertEqual(self.run_stage()['extra_requests'],2);self.assertEqual(self.db.query(FixtureEventSnapshot).count(),40)
+        self.client.requests_made=749;self.assertEqual(self.run_stage(max_requests=750)['extra_requests'],1)
+
+    def test_probe_counts_within_two_calls(self):
+        for i in range(1,22):self.add(i)
+        self.client.quota_is_fresh.return_value=False
+        def probe(*a,**k):self.client.requests_made+=1
+        self.client.get.side_effect=probe
+        r=self.run_stage();self.assertEqual(r['extra_requests'],2);self.assertEqual(len(r['inserted_or_updated']),20)
+
+    def test_quota_denied_or_exhausted_budget_never_fetch(self):
+        self.add();self.client.highlights_quota_available.return_value=False;self.assertEqual(self.run_stage()['extra_requests'],0)
+        self.client.highlights_quota_available.return_value=True;self.assertEqual(self.run_stage(max_requests=0)['extra_requests'],0)
+
+    def test_duplicate_retained_rows_roll_back_batch(self):
+        self.add();r=self.run_stage(provider_rows=[payload(),payload()]);self.assertTrue(r['errors']);self.assertEqual(self.db.query(FixtureEventSnapshot).count(),0)
+
+    def test_preserves_five_existing_acceptance_snapshots(self):
+        old={}
+        for i in range(1,6):
+            self.add(i);save_snapshot(self.db,i,self.row(i),self.now-timedelta(days=60));self.db.commit();old[i]=self.db.get(FixtureEventSnapshot,i).source_sha256
+        self.add(6);self.assertEqual(self.run_stage()['inserted_or_updated'],[6]);self.client.fixtures_by_ids.assert_called_once_with([6])
+        self.db.expire_all();self.assertEqual({i:self.db.get(FixtureEventSnapshot,i).source_sha256 for i in old},old)
+
+    def test_quota_exhausted_by_first_batch_stops_second(self):
+        for i in range(1,22):self.add(i)
+        def fetch(ids):
+            self.client.requests_made+=1;self.client.highlights_quota_available.return_value=False
+            return [self.row(i) for i in ids]
+        self.client.fixtures_by_ids.side_effect=fetch
+        r=self.run_stage();self.assertEqual(r['extra_requests'],1);self.assertEqual(len(r['inserted_or_updated']),20);self.assertEqual(r['deferred'],1)

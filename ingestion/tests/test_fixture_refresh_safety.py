@@ -136,3 +136,85 @@ class RefreshSafetyTests(unittest.TestCase):
         i1=provider();i2=provider(fixture_id=101)
         m1,v1=classify_candidate(r1,[i1],self.context());m2,v2=classify_candidate(r2,[i2],self.context())
         self.assertFalse(validate_plan([r1,r2],[m1,m2],{100:v1,101:v2},{})['passed'])
+
+class HighlightsRefreshIntegrationTests(unittest.TestCase):
+    def test_flag_default_and_commit_gate_and_independent_failure(self):
+        from sqlalchemy import create_engine, text
+        from unittest.mock import patch
+        import refresh_fixture_states as refresh
+        import json
+        engine=create_engine('sqlite://')
+        with engine.begin() as c:
+            c.exec_driver_sql('CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY, fixture_date DATETIME, status TEXT, home_goals INTEGER, away_goals INTEGER, league_id INTEGER, season INTEGER, home_team_id INTEGER, away_team_id INTEGER, home_team TEXT, away_team TEXT, venue_id INTEGER, country TEXT)')
+            c.exec_driver_sql("INSERT INTO fixtures VALUES (100,'2026-09-01 19:45:00.000000','NS',NULL,NULL,39,2026,1,2,'Home','Away',3,'England')")
+        client=Mock();client.requests_made=1;client.failures=[];client.fixtures_by_ids.return_value=[provider()]
+        with tempfile.TemporaryDirectory() as d, patch.object(refresh,'create_engine',return_value=engine),patch.object(refresh,'ApiFootballClient',return_value=client),patch.dict('os.environ',{'DATABASE_URL':'local-only','API_FOOTBALL_KEY':'synthetic','ENABLE_EXPANDED_FIXTURE_REFRESH':'false'}):
+            base=['refresh','--nightly','--as-of','2026-09-02','--report',str(Path(d)/'report.json')]
+            for mode in ['disabled','dry','enabled','stage_error','primary_error']:
+                with engine.begin() as c:c.exec_driver_sql("UPDATE fixtures SET status='NS',home_goals=NULL,away_goals=NULL")
+                client.failures=[];client.fixtures_by_ids.side_effect=None
+                if mode=='primary_error':client.failures=['synthetic failure'];client.fixtures_by_ids.side_effect=RuntimeError('synthetic failure')
+                args=base+([] if mode=='dry' else ['--write','--confirm-write'])+([] if mode=='disabled' else ['--enrich-highlights'])
+                def stage(e,provider_client,**kw):
+                    with e.connect() as c:self.assertEqual(c.exec_driver_sql('SELECT status FROM fixtures').scalar(),'FT')
+                    self.assertEqual(len(kw['provider_rows']),1);self.assertEqual(kw['max_requests'],750)
+                    if mode=='stage_error':raise RuntimeError('synthetic event failure')
+                    return {'enabled':True,'extra_requests':0}
+                with patch('ingestion.matchday_highlights.run_demand_enrichment',side_effect=stage) as event_stage,patch('sys.argv',args):code=refresh.main()
+                receipt=json.loads((Path(d)/'report.json').read_text())
+                if mode in ['enabled','stage_error']:
+                    event_stage.assert_called_once();self.assertEqual(code,0);self.assertTrue(receipt['commit_confirmed']);self.assertIn('matchday_highlights',receipt)
+                    if mode=='stage_error':self.assertEqual(receipt['matchday_highlights']['errors'],['RuntimeError'])
+                else:event_stage.assert_not_called();self.assertNotIn('matchday_highlights',receipt)
+                if mode=='primary_error':self.assertEqual(code,1);self.assertFalse(receipt['commit_confirmed'])
+        engine.dispose()
+
+    def test_quota_observation_and_fail_closed(self):
+        import time
+        from requests.structures import CaseInsensitiveDict
+        with tempfile.TemporaryDirectory() as d:
+            client=ApiFootballClient('synthetic',Path(d),min_request_interval=0)
+            for daily,minute,expected in [('101','1',True),('100','1',False),('500','0',False),('invalid','2',False),('-1','2',False)]:
+                response=Mock(status_code=200,headers=CaseInsensitiveDict({'x-ratelimit-requests-remaining':daily,'x-ratelimit-remaining':minute}));client._observe_quota(response)
+                self.assertEqual(client.highlights_quota_available(),expected)
+            client._observe_quota(Mock(status_code=200,headers=CaseInsensitiveDict({'x-ratelimit-requests-remaining':'500','x-ratelimit-remaining':'2'})))
+            client.quota_observed_at=time.monotonic()-121;self.assertFalse(client.highlights_quota_available())
+            client._observe_quota(Mock(status_code=200,headers=CaseInsensitiveDict()));self.assertFalse(client.highlights_quota_available())
+
+    def test_status_dictionary_and_429_no_retry(self):
+        from requests.structures import CaseInsensitiveDict
+        with tempfile.TemporaryDirectory() as d:
+            client=ApiFootballClient('synthetic',Path(d),min_request_interval=0)
+            response=Mock(status_code=200,headers=CaseInsensitiveDict({'x-ratelimit-requests-remaining':'500','x-ratelimit-remaining':'2'}));response.json.return_value={'response':{'requests':{'current':1,'limit_day':7500}}}
+            client.session.get=Mock(return_value=response);client.get('/status',use_cache=False);self.assertTrue(client.highlights_quota_available());self.assertEqual(client.requests_made,1)
+            response=Mock(status_code=429,headers=CaseInsensitiveDict({'Retry-After':'60'}));response.raise_for_status.side_effect=requests.HTTPError('synthetic429')
+            client.session.get=Mock(return_value=response)
+            with self.assertRaises(RuntimeError):client.fixtures_by_ids([1])
+            client.session.get.assert_called_once();self.assertEqual(client.requests_made,2);self.assertEqual(client.last_status_code,429);self.assertFalse(client.highlights_quota_available())
+
+    def test_real_event_stage_after_lifecycle_commit_and_replay(self):
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import Session
+        from unittest.mock import patch
+        from models import User, Venue, Fixture, VenueVisit, InterestedFixture, FixtureEventSnapshot
+        from datetime import datetime, timezone
+        import refresh_fixture_states as refresh
+        import json
+        engine=create_engine('sqlite://')
+        for t in [User.__table__,Venue.__table__,Fixture.__table__,VenueVisit.__table__,InterestedFixture.__table__,FixtureEventSnapshot.__table__]:t.create(engine)
+        with Session(engine) as db:
+            db.add(User(user_id=1,is_anonymous=False,account_status='registered'));db.add(Venue(venue_id=3,name='Synthetic'));db.flush()
+            db.add(Fixture(fixture_id=100,fixture_date=KICKOFF,status='NS',home_goals=None,away_goals=None,league_id=39,season=2026,home_team_id=1,away_team_id=2,home_team='Home',away_team='Away',venue_id=3,country='England'));db.flush()
+            db.add(VenueVisit(visit_id=1,user_id=1,venue_id=3,fixture_id=100,visit_date=KICKOFF.date(),source='manual',created_at=KICKOFF));db.commit()
+        row=provider();row['score']={'fulltime':{'home':2,'away':1}};row['events']=[dict(time=dict(elapsed=m,extra=None),team=dict(id=t),player=dict(id=m,name='Synthetic'),assist=dict(id=None,name=None),type='Goal',detail='Normal Goal') for m,t in [(10,1),(20,2),(30,1)]]
+        client=Mock();client.requests_made=1;client.failures=[];client.fixtures_by_ids.return_value=[row]
+        with tempfile.TemporaryDirectory() as d,patch.object(refresh,'create_engine',return_value=engine),patch.object(refresh,'ApiFootballClient',return_value=client),patch.dict('os.environ',{'DATABASE_URL':'local-only','API_FOOTBALL_KEY':'synthetic','ENABLE_EXPANDED_FIXTURE_REFRESH':'false'}):
+            args=['refresh','--nightly','--as-of','2026-09-02','--write','--confirm-write','--enrich-highlights','--report',str(Path(d)/'report.json')]
+            for i in range(2):
+                with patch('sys.argv',args):self.assertEqual(refresh.main(),0)
+                receipt=json.loads((Path(d)/'report.json').read_text());self.assertEqual(receipt['matchday_highlights']['extra_requests'],0)
+                self.assertEqual(receipt['matchday_highlights']['inserted_or_updated'],[100] if i==0 else [])
+            self.assertEqual(client.fixtures_by_ids.call_count,1);client.get.assert_not_called()
+        with Session(engine) as db:
+            self.assertEqual(db.query(FixtureEventSnapshot).count(),1);self.assertEqual(db.get(Fixture,100).status,'FT');self.assertEqual(db.get(Fixture,100).home_goals,2);self.assertEqual(db.query(VenueVisit).count(),1);self.assertEqual(db.query(User).count(),1)
+        engine.dispose()

@@ -21,6 +21,31 @@ class ApiFootballClient:
         self.min_request_interval, self.last_request_at = min_request_interval, 0.0
         self.requests_made = self.cache_hits = 0
         self.failures: list[str] = []
+        self.quota = None
+        self.quota_observed_at = None
+        self.last_status_code = None
+        self.retry_after = None
+
+    def quota_is_fresh(self) -> bool:
+        return self.quota_observed_at is not None and 0 <= time.monotonic() - self.quota_observed_at <= 120
+
+    def highlights_quota_available(self) -> bool:
+        return bool(self.quota_is_fresh() and self.quota is not None
+                    and self.quota['daily_remaining'] > 100 and self.quota['minute_remaining'] > 0
+                    and self.last_status_code not in {401, 403, 429} and not self.retry_after)
+
+    def _observe_quota(self, response) -> None:
+        self.last_status_code = response.status_code
+        self.retry_after = response.headers.get('Retry-After')
+        self.quota_observed_at = time.monotonic()
+        self.quota = None
+        try:
+            daily = int(response.headers['x-ratelimit-requests-remaining'])
+            minute = int(response.headers['x-ratelimit-remaining'])
+            if daily >= 0 and minute >= 0:
+                self.quota = dict(daily_remaining=daily, minute_remaining=minute)
+        except (KeyError, TypeError, ValueError):
+            pass
 
     def _cache_path(self, endpoint: str, params: dict[str, Any]) -> Path:
         identity = json.dumps([endpoint, sorted(params.items())], separators=(",", ":"))
@@ -40,13 +65,15 @@ class ApiFootballClient:
         try:
             response = self.session.get(f"{BASE_URL}{endpoint}", params=params, timeout=self.timeout)
             self.last_request_at = time.monotonic()
+            self._observe_quota(response)
             response.raise_for_status()
             payload = response.json()
         except (requests.RequestException, ValueError) as error:
             message = f"{endpoint} {params}: {error}"
             self.failures.append(message)
             raise RuntimeError(message) from error
-        if not isinstance(payload, dict) or not isinstance(payload.get("response", []), list):
+        if not isinstance(payload, dict) or not (isinstance(payload.get("response", []), list) or
+                                                   endpoint == "/status" and isinstance(payload.get("response"), dict)):
             message = f"{endpoint}: malformed provider response"
             self.failures.append(message)
             raise RuntimeError(message)
