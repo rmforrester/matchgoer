@@ -245,6 +245,15 @@ class Fixture(Base):
     away_goals = Column(Integer)
 
 
+class FixtureEventSnapshot(Base):
+    """Public sporting events only; no supporter identity or attendance."""
+    __tablename__ = "fixture_event_snapshots"
+    fixture_id = Column(Integer, ForeignKey("fixtures.fixture_id", ondelete="CASCADE"), primary_key=True)
+    payload = Column(JSON, nullable=False)
+    source_sha256 = Column(String(64), nullable=False)
+    fetched_at = Column(DateTime(timezone=True), nullable=False)
+
+
 class DecisionFact(Base):
     """A reviewed reason to consider a team pairing or canonical venue."""
 

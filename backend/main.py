@@ -1,4 +1,5 @@
 from venue_timezone import venue_timezone
+from matchday_highlights import fixture_highlights
 from venue_resolution import resolution, resolve_venue, lock_ground, personal_review, unique_owner_reviews, canonical_venues, community_summaries, canonical_fixtures, canonical_row
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import date, datetime, timedelta, timezone
@@ -2771,6 +2772,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
             "ticket_action": ticket_action,
             "official_channels": official_channels(home_club),
             "ticket_guidance": ticket_guidance,
+            "matchday_highlights": fixture_highlights(db, fixture),
             **decision,
             "interested": interested, "open_to_meet": open_to_meet,
             "open_to_meet_count": open_count, "profile": ({"username": profile.username, "display_name": profile.display_name, "supported_club": profile.supported_club} if profile else None),

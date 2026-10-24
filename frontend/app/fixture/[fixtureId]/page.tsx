@@ -22,6 +22,7 @@ import type { OfficialChannels } from "../../../lib/official-channels";
 import { trackEvent } from "../../../lib/analytics";
 import AnalyticsExposure from "../../components/AnalyticsExposure";
 import FixturePhotoSharing from "../../components/FixturePhotoSharing";
+import MatchdayHighlights, { type MatchdayHighlightsData } from "../../components/MatchdayHighlights";
 
 type BoardPost = {
   post_id: number; parent_post_id: number | null; body: string; deleted: boolean;
@@ -35,6 +36,7 @@ type DecisionReason = {
 };
 
 type SocialFixture = {
+  matchday_highlights?: MatchdayHighlightsData | null;
   fixture: { fixture_id: number; fixture_date: string; venue_timezone?: string | null; home_team: string; home_team_id: number | null; home_team_badge_url: string | null; away_team: string; away_team_id: number | null; away_team_badge_url: string | null; league_name: string; venue_id: number | null; venue_name: string | null; venue_city: string | null; status: string | null; home_goals: number | null; away_goals: number | null };
   terrace_rating: number | null; recommend_percentage: number | null;
   decision_reasons: DecisionReason[]; highlight_eligible: boolean;
@@ -255,6 +257,7 @@ function FixturePageContent({ params, searchParams }: FixturePageProps) {
           <h1 id="fixture-heading" className="sr-only">{data.fixture.home_team} versus {data.fixture.away_team}</h1>
           <FixtureTeams homeTeam={data.fixture.home_team} awayTeam={data.fixture.away_team} homeBadgeSrc={apiAssetUrl(data.fixture.home_team_badge_url)} awayBadgeSrc={apiAssetUrl(data.fixture.away_team_badge_url)} compact className="w-full" teamClassName="text-[clamp(1.5rem,4vw,2.75rem)] leading-[1.05]" badgeClassName="h-12 w-12" separatorClassName="text-xs tracking-[0.12em]" />
           {hasResult && <p className="mg-display-section mt-6 text-[var(--mg-green)]" aria-label={`Final score ${data.fixture.home_goals} to ${data.fixture.away_goals}`}>{data.fixture.home_goals}–{data.fixture.away_goals}</p>}
+          {hasResult && <MatchdayHighlights data={data.matchday_highlights} homeTeam={data.fixture.home_team} awayTeam={data.fixture.away_team} />}
         </div>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[var(--mg-rule)] pt-3 text-sm">
           <div><dt className="mg-meta font-bold">Date</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? kickoff.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "To be confirmed"}</dd></div>
