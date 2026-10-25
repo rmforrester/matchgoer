@@ -217,6 +217,17 @@ class PostgresSnapshotTests(unittest.TestCase):
             self.assertEqual(responses[0]['matchday_highlights'],responses[1]['matchday_highlights'])
             self.assertEqual(responses[1]['matchday_highlights'],responses[2]['matchday_highlights'])
             with Session(engine) as db:self.assertEqual(db.query(VenueVisit).count(),1)
+            # Empty outcomes persist privately but remain null in the existing API contract.
+            with Session(engine) as db:
+                current=db.get(Fixture,1);current.home_goals=0;db.commit()
+                empty=payload([goal(type='Card',detail='Yellow Card')])
+                empty['goals']['home']=empty['score']['fulltime']['home']=0
+                self.assertTrue(save_snapshot(db,1,empty,now+timedelta(days=1)));db.commit()
+            with patch.object(main,'SessionLocal',lambda:Session(engine)):
+                self.assertIsNone(main.get_fixture_social(1,None)['matchday_highlights'])
+            with Session(engine) as db:
+                self.assertEqual(db.query(FixtureEventSnapshot).count(),1)
+                self.assertEqual(db.query(VenueVisit).count(),1)
             rollback=migration.with_name('20261022_fixture_event_snapshots_rollback.sql')
             with engine.connect() as c:c.exec_driver_sql(rollback.read_text());c.commit()
             with Session(engine) as db:self.assertEqual(db.get(Fixture,1).status,'FT')
@@ -359,3 +370,98 @@ class DemandEnrichmentTests(unittest.TestCase):
             return [self.row(i) for i in ids]
         self.client.fixtures_by_ids.side_effect=fetch
         r=self.run_stage();self.assertEqual(r['extra_requests'],1);self.assertEqual(len(r['inserted_or_updated']),20);self.assertEqual(r['deferred'],1)
+
+    def empty_row(self,fid=1):
+        p=self.row(fid);p['goals']={'home':0,'away':0};p['score']['fulltime']={'home':0,'away':0}
+        p['events']=[goal(type='Card',detail='Yellow Card'),goal(type='subst',detail='Substitution 1')]
+        return p
+
+    def test_empty_persists_hidden_and_later_runs_make_no_requests(self):
+        from matchday_highlights import snapshot_is_valid
+        from ingestion.matchday_highlights import run_demand_enrichment
+        f=self.add(home_goals=0);p=self.empty_row();self.client.fixtures_by_ids.side_effect=None;self.client.fixtures_by_ids.return_value=[p]
+        self.assertEqual(self.run_stage()['inserted_or_updated'],[1]);self.db.expire_all();s=self.db.get(FixtureEventSnapshot,1)
+        self.assertEqual(s.payload['events'],p['events']);old=(s.source_sha256,s.fetched_at)
+        self.assertTrue(snapshot_is_valid(f,s.payload));self.assertIsNone(project_highlights(f,s.payload));self.assertIsNone(fixture_highlights(self.db,f))
+        r=run_demand_enrichment(self.engine,self.client,enabled=True,now=self.now+timedelta(days=9));self.assertEqual(r['extra_requests'],0);self.assertEqual(r['selected'],0)
+        self.assertEqual(enrich_batch(self.db,self.client,[1],enabled=True),{1:False});self.client.fixtures_by_ids.assert_called_once_with([1]);self.client.get.assert_not_called()
+        self.db.expire_all();s=self.db.get(FixtureEventSnapshot,1);self.assertEqual((s.source_sha256,s.fetched_at),old)
+
+    def test_missing_empty_arrays_are_not_settled(self):
+        from matchday_highlights import snapshot_is_valid
+        self.add(home_goals=0)
+        for missing in [[],None,'missing']:
+            p=self.empty_row()
+            if missing=='missing':p.pop('events')
+            else:p['events']=missing
+            self.assertFalse(snapshot_is_valid(self.db.get(Fixture,1),p));self.assertFalse(save_snapshot(self.db,1,p,self.now));self.db.commit()
+        self.assertEqual(self.db.query(FixtureEventSnapshot).count(),0);self.assertEqual(self.select(),[1])
+
+    def test_excluded_routine_types_can_settle_individually(self):
+        from matchday_highlights import snapshot_is_valid
+        f=self.add(home_goals=0)
+        for event in self.empty_row()['events']:
+            p=self.empty_row();p['events']=[event];self.assertTrue(snapshot_is_valid(f,p));self.assertIsNone(project_highlights(f,p))
+
+    def test_unknown_var_and_ambiguous_dismissal_are_not_empty_evidence(self):
+        from matchday_highlights import snapshot_is_valid
+        f=self.add(home_goals=0)
+        cases=[[goal(type='Var',detail='Goal cancelled')],[goal(type='Card',detail='Unknown card')],[goal(type='unknown',detail='unknown')],
+               [goal(type='Card',detail='Second Yellow card'),goal(type='Card',detail='Red Card')],
+               [goal(type='Card',detail='Yellow Card'),goal(type='Card',detail='Yellow Card')]]
+        for events in cases:
+            p=self.empty_row();p['events']=events;self.assertFalse(snapshot_is_valid(f,p));self.assertFalse(save_snapshot(self.db,1,p,self.now))
+        self.assertEqual(self.db.query(FixtureEventSnapshot).count(),0)
+
+    def test_malformed_empty_evidence_fails_closed(self):
+        from matchday_highlights import snapshot_is_valid
+        f=self.add(home_goals=0)
+        cases=[goal(type='Card',detail='Yellow Card',time=dict(elapsed=None,extra=None)),goal(type='Card',detail='Yellow Card',team=dict(id=999)),
+               goal(type='Card',detail='Yellow Card',time=dict(elapsed=45,extra=-1)),goal(type='subst',detail='Substitution unknown'),
+               goal(type='Card',detail='Yellow Card',time=dict(elapsed=151,extra=None))]
+        for event in cases:
+            p=self.empty_row();p['events']=[event];self.assertFalse(snapshot_is_valid(f,p))
+
+    def test_empty_identity_score_status_and_unknown_goal_rejected(self):
+        from copy import deepcopy
+        from matchday_highlights import snapshot_is_valid
+        f=self.add(home_goals=0)
+        for change in ['identity','score','fulltime','status','goal']:
+            p=self.empty_row()
+            if change=='identity':p['teams']['home']['id']=999
+            if change=='score':p['goals']['home']=1
+            if change=='fulltime':p['score']['fulltime']['away']=1
+            if change=='status':p['fixture']['status']['short']='AET'
+            if change=='goal':p['events'].append(goal())
+            self.assertFalse(snapshot_is_valid(f,p));self.assertFalse(save_snapshot(self.db,1,p,self.now))
+
+    def test_existing_red_snapshot_cannot_be_erased_by_empty(self):
+        f=self.add(home_goals=0);p=self.empty_row();p['events']=[goal(type='Card',detail='Red Card')]
+        self.assertTrue(save_snapshot(self.db,1,p,self.now));self.db.commit();s=self.db.get(FixtureEventSnapshot,1);old=(s.source_sha256,s.fetched_at,s.payload)
+        self.assertFalse(save_snapshot(self.db,1,self.empty_row(),self.now+timedelta(days=1)));self.db.commit();s=self.db.get(FixtureEventSnapshot,1);self.assertEqual((s.source_sha256,s.fetched_at,s.payload),old)
+        self.assertEqual(len(fixture_highlights(self.db,f)['events']),1)
+
+    def test_empty_cache_revalidates_when_canonical_score_changes(self):
+        f=self.add(home_goals=0);self.assertTrue(save_snapshot(self.db,1,self.empty_row(),self.now));self.db.commit();f.home_goals=1;self.db.commit()
+        self.assertEqual(self.select(),[1]);self.assertIsNone(fixture_highlights(self.db,f));self.assertEqual(self.run_stage()['inserted_or_updated'],[1])
+        self.db.expire_all();self.assertEqual(len(fixture_highlights(self.db,self.db.get(Fixture,1))['events']),1)
+
+    def test_empty_cache_fails_closed_after_identity_or_status_drift(self):
+        from matchday_highlights import snapshot_is_valid
+        f=self.add(home_goals=0);p=self.empty_row();self.assertTrue(save_snapshot(self.db,1,p,self.now));self.db.commit()
+        f.league_id=999;self.db.commit();self.assertFalse(snapshot_is_valid(f,p));self.assertEqual(self.select(),[1]);f.status='NS';self.db.commit();self.assertEqual(self.select(),[])
+
+    def test_empty_provider_failure_retains_bounded_retry(self):
+        from ingestion.matchday_highlights import run_demand_enrichment
+        self.add(home_goals=0);self.client.fixtures_by_ids.side_effect=RuntimeError('synthetic failure')
+        self.assertTrue(self.run_stage()['errors']);self.assertEqual(self.db.query(FixtureEventSnapshot).count(),0);self.assertEqual(self.select(),[1])
+        self.assertEqual(run_demand_enrichment(self.engine,self.client,enabled=True,now=self.now+timedelta(days=31))['extra_requests'],0)
+
+    def test_empty_payload_from_retained_real_0_0(self):
+        from matchday_highlights import snapshot_is_valid
+        root=Path(__file__).resolve().parents[4]
+        source=root/'reports/highlights-historical-backfill-20261024/retrieved-rows.json'
+        if not source.exists():self.skipTest('Optional retained public provider corpus')
+        p=next(r for r in json.loads(source.read_text(encoding='utf-8')) if r['fixture']['id']==1555521)
+        f=fixture(fixture_id=p['fixture']['id'],league_id=p['league']['id'],season=p['league']['season'],home_team_id=p['teams']['home']['id'],away_team_id=p['teams']['away']['id'],home_goals=0,away_goals=0)
+        self.assertTrue(snapshot_is_valid(f,p));self.assertIsNone(project_highlights(f,p))

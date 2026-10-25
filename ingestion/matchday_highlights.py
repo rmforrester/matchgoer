@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from backend.matchday_highlights import save_snapshot, project_highlights
+from backend.matchday_highlights import save_snapshot, snapshot_is_valid
 from models import Fixture, FixtureEventSnapshot, InterestedFixture, User, VenueVisit
 
 
@@ -23,7 +23,7 @@ def enrich_batch(db, client, fixture_ids, *, enabled=False, provider_rows=None, 
         raise ValueError("fetched_at must be timezone aware")
     stale = [f.fixture_id for f in eligible
              if (snapshot := db.get(FixtureEventSnapshot, f.fixture_id)) is None
-             or project_highlights(f, snapshot.payload) is None]
+             or not snapshot_is_valid(f, snapshot.payload)]
     if not stale:
         return dict.fromkeys(ids, False)
     rows = client.fixtures_by_ids(sorted(stale)) if provider_rows is None else provider_rows
@@ -71,7 +71,7 @@ def select_demand(db, *, now=None, historical=False, retained_ids=(), held_ids=(
         if priority == 1 and fixture.venue_id is None:
             continue
         snapshot = db.get(FixtureEventSnapshot, fixture.fixture_id)
-        if snapshot and project_highlights(fixture, snapshot.payload) is not None:
+        if snapshot and snapshot_is_valid(fixture, snapshot.payload):
             continue
         dates = [_utc(fixture.fixture_date)] + [_utc(d[fixture.fixture_id]) for d in (visits, saved)
                                                 if d.get(fixture.fixture_id) is not None]

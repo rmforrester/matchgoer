@@ -25,7 +25,7 @@ def snapshot_payload(row):
     return {key: row.get(key) for key in ("fixture", "league", "teams", "goals", "score", "events")}
 
 
-def project_highlights(fixture, payload):
+def _validated_highlights(fixture, payload):
     """Fail closed on identity, score or unsupported period semantics; nulls remain null."""
     try:
         if fixture.status != "FT" or payload["fixture"]["status"]["short"] != "FT":
@@ -94,13 +94,43 @@ def project_highlights(fixture, payload):
             events.append(dict(kind=KINDS[detail], minute=minute, extra=extra, player=player,
                                team=fixture.home_team if side == "home" else fixture.away_team,
                                assist=assist, order=index))
-        if counts != scores or not events:
+        if counts != scores:
             return None
+        if not events:
+            # An absent event array is not evidence of coverage. Only a reconciled
+            # 0-0 with explicit, well-formed routine events can settle as empty.
+            if scores != {"home": 0, "away": 0} or not source or deferred:
+                return None
+            for event in source:
+                category, detail = event.get("type"), event.get("detail")
+                routine = category == "Card" and detail == "Yellow Card"
+                if category == "subst" and isinstance(detail, str):
+                    parts = detail.split()
+                    routine = len(parts) == 2 and parts[0] == "Substitution" and parts[1].isdigit() and 1 <= int(parts[1]) <= 30
+                team_id = event.get("team", {}).get("id")
+                if not routine or not _nonnegative(team_id) or team_id not in (actual["home_team_id"], actual["away_team_id"]):
+                    return None
+                minute = event.get("time", {}).get("elapsed")
+                extra = event.get("time", {}).get("extra")
+                if not _nonnegative(minute) or minute > 150 or (extra is not None and (not _nonnegative(extra) or extra > 60)):
+                    return None
+            return {"events": [], "partial": False, "score_reconciled": True}
         events.sort(key=lambda e: (e["minute"] if e["minute"] is not None else 1000, e["extra"] or 0, e["order"]))
         return {"events": [{k: v for k, v in e.items() if k != "order"} for e in events],
                 "partial": bool(partial), "score_reconciled": True}
     except (KeyError, TypeError, ValueError, AttributeError):
         return None
+
+
+def snapshot_is_valid(fixture, payload):
+    """A usable timeline OR positively validated empty outcome; recheck canonical state."""
+    return _validated_highlights(fixture, payload) is not None
+
+
+def project_highlights(fixture, payload):
+    """Public contract remains null for empty or unreliable coverage."""
+    result = _validated_highlights(fixture, payload)
+    return result if result and result["events"] else None
 
 
 def save_snapshot(db, fixture_id, row, fetched_at):
@@ -111,11 +141,14 @@ def save_snapshot(db, fixture_id, row, fetched_at):
     if fixture is None:
         return False
     payload = snapshot_payload(row)
-    if project_highlights(fixture, payload) is None:
+    validated = _validated_highlights(fixture, payload)
+    if validated is None:
         return False  # Preserve an earlier valid snapshot on incomplete/mismatched fetch.
     fingerprint = hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     existing = db.get(FixtureEventSnapshot, fixture_id)
     if existing:
+        if not validated["events"] and project_highlights(fixture, existing.payload) is not None:
+            return False  # An empty refresh cannot erase already validated events.
         previous = existing.fetched_at
         if previous.tzinfo is None:  # SQLite tests; production is timestamptz.
             previous = previous.replace(tzinfo=timezone.utc)
