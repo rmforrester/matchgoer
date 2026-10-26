@@ -14,7 +14,7 @@ export default function AccountConversionPrompt({ open, kind, onDismiss, returnT
   return (
     <aside role="dialog" aria-modal="false" aria-labelledby="account-prompt-title" className="tt-panel fixed inset-x-3 bottom-3 z-50 mx-auto max-w-lg border-l-[8px] border-l-[var(--brand-interactive)] p-5 text-[var(--tt-ink)] sm:bottom-6">
       <h2 id="account-prompt-title" className="tt-display text-2xl">{mate ? "Who's Going?" : board ? "Join the Match Board" : "Added to My Matchdays"}</h2>
-      <p className="mt-2 text-[var(--tt-muted)]">{mate ? "Create a Matchgoer account to connect with other supporters going to this match. Account setup takes about a minute." : board ? "Create a Matchgoer account to join the conversation for this match. Account setup takes about a minute." : "Find it in Interested in My Matchdays. Create an account if you want to keep your saved matches across devices."}</p>
+      <p className="mt-2 text-[var(--tt-muted)]">{mate ? "Create a Matchgoer account to connect with other supporters going to this match. Account setup takes about a minute." : board ? "Create a Matchgoer account to join the conversation for this match. Account setup takes about a minute." : "Find it in Interested in My Matchdays. Your guest history is linked to this browser until you transfer it to your account. Clearing browser data or closing a private session can lose access."}</p>
       <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button type="button" onClick={onDismiss} className="tt-action tt-action-secondary px-4">Maybe later</button>
         <Link href={signinRoute(returnTo ?? pathname, null, true)} className="tt-action tt-action-secondary inline-flex items-center justify-center px-4">Sign in</Link>
