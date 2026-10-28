@@ -1,4 +1,4 @@
-name: Matchgoer unsigned iOS Release device archive
+name: Matchgoer iOS archive and internal TestFlight
 on:
   push:
     branches: [validation/ios-native-compilation-20261028]
@@ -9,6 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   compile:
+    if: ${{ !contains(github.event.head_commit.message, '[internal-testflight]') }}
     # Standard public-repository runner, not a paid larger runner/custom image.
     runs-on: macos-15
     timeout-minutes: 20
@@ -30,5 +31,41 @@ jobs:
         with:
           name: unsigned-ios-release-device-archive-evidence
           path: validation/ios-native/evidence/
+          retention-days: 1
+          if-no-files-found: warn
+  internal-testflight:
+    if: ${{ github.ref == 'refs/heads/validation/ios-native-compilation-20261028' && contains(github.event.head_commit.message, '[internal-testflight]') }}
+    runs-on: macos-15
+    timeout-minutes: 30
+    environment: ios-internal-testflight
+    defaults:
+      run:
+        working-directory: validation/ios-native
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Sign and upload the approved internal TestFlight build
+        shell: bash
+        env:
+          IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+          IOS_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          IOS_PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
+          IOS_ASC_P8_BASE64: ${{ secrets.IOS_ASC_P8_BASE64 }}
+          IOS_ASC_KEY_ID: ${{ secrets.IOS_ASC_KEY_ID }}
+          IOS_ASC_ISSUER_ID: ${{ secrets.IOS_ASC_ISSUER_ID }}
+        run: bash sign-testflight.sh
+      - name: Retain only non-secret signing and upload receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: internal-testflight-receipts
+          path: |
+            validation/ios-native/evidence/*receipt.json
+            validation/ios-native/evidence/outcome.txt
+            validation/ios-native/evidence/xcode-version.txt
+            validation/ios-native/evidence/device-sdk.txt
           retention-days: 1
           if-no-files-found: warn
