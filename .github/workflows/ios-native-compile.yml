@@ -1,4 +1,4 @@
-name: Matchgoer unsigned iOS compilation gate
+name: Matchgoer unsigned iOS Release device archive
 on:
   push:
     branches: [validation/ios-native-compilation-20261028]
@@ -12,6 +12,8 @@ jobs:
     # Standard public-repository runner, not a paid larger runner/custom image.
     runs-on: macos-15
     timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     defaults:
       run:
         working-directory: validation/ios-native
@@ -19,14 +21,14 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - name: Compile existing bundled project without signing or running the app
+      - name: Archive existing bundled project for iOS devices without signing
         shell: bash
-        run: bash compile-simulator.sh native-input.zip
+        run: bash archive-device.sh native-input.zip
       - name: Retain compiler evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: unsigned-ios-compilation-evidence
+          name: unsigned-ios-release-device-archive-evidence
           path: validation/ios-native/evidence/
           retention-days: 1
           if-no-files-found: warn
