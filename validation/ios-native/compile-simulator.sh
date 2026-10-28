@@ -18,10 +18,10 @@ xcodebuild -version | tee evidence/xcode-version.txt
 xcrun --sdk iphonesimulator --show-sdk-version | tee evidence/simulator-sdk.txt
 xcodebuild -list -project "$project" 2>&1 | tee evidence/project-schemes.log
 xcodebuild -resolvePackageDependencies -project "$project" -scheme App \
-  -clonedSourcePackagesDir "$PWD/SourcePackages" 2>&1 | tee evidence/package-resolution.log
+  -clonedSourcePackagesDirPath "$PWD/SourcePackages" 2>&1 | tee evidence/package-resolution.log
 xcodebuild -project "$project" -scheme App -configuration Debug \
   -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath "$PWD/DerivedData" -clonedSourcePackagesDir "$PWD/SourcePackages" \
+  -derivedDataPath "$PWD/DerivedData" -clonedSourcePackagesDirPath "$PWD/SourcePackages" \
   -resultBundlePath "$PWD/evidence/NativeBuild.xcresult" \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build 2>&1 | tee evidence/native-build.log
 app="$PWD/DerivedData/Build/Products/Debug-iphonesimulator/App.app"
