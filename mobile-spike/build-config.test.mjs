@@ -1,0 +1,11 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {buildDefines} from "./build-config.mjs";
+const beta = { MATCHGOER_NATIVE_TARGET: "beta", NEXT_PUBLIC_API_BASE_URL: "https://api.beta.matchgoer.com", NEXT_PUBLIC_SUPABASE_URL: "https://xqnjayincslrlyfuvdys.supabase.co", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_testfixture", NEXT_PUBLIC_GEOAPIFY_API_KEY: "testfixture" };
+test("explicit target required",()=>assert.throws(()=>buildDefines({})));
+test("synthetic fixtures remain opt-in",()=>assert.equal(buildDefines({MATCHGOER_NATIVE_TARGET:"synthetic"})["process.env.NEXT_PUBLIC_API_BASE_URL"],JSON.stringify("https://api.example.test")));
+test("beta has all public services with OAuth and analytics disabled",()=>{const d=buildDefines(beta);assert.equal(d["process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY"],JSON.stringify("testfixture"));assert.equal(d["process.env.NEXT_PUBLIC_GOOGLE_SIGNIN_ENABLED"],JSON.stringify("false"));assert.equal(d["process.env"],"{}");});
+test("every required configuration fails closed",()=>{for(const k of Object.keys(beta).filter(k=>k.startsWith("NEXT_PUBLIC"))) {const e={...beta};delete e[k];assert.throws(()=>buildDefines(e));}});
+test("synthetic and wrong origins cannot ship as beta",()=>{for(const value of ["https://api.example.test","http://api.beta.matchgoer.com","https://other.test"])assert.throws(()=>buildDefines({...beta,NEXT_PUBLIC_API_BASE_URL:value}));});
+test("server secrets and service-role JWTs rejected",()=>{for(const value of ["sb_secret_testfixture", "a."+Buffer.from(JSON.stringify({role:"service_role"})).toString("base64url")+".b"])assert.throws(()=>buildDefines({...beta,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:value}));});
+test("unrelated private environment never included",()=>assert.ok(!JSON.stringify(buildDefines({...beta,DATABASE_URL:"private-sentinel",SUPABASE_SECRET_KEY:"private-sentinel"})).includes("private-sentinel")));
