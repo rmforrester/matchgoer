@@ -26,6 +26,7 @@ import DiscoverShortlist from "./components/DiscoverShortlist";
 import AccountConversionPrompt from "./components/AccountConversionPrompt";
 import type { Fixture } from "./types/fixture";
 import type { InterestedFixture } from "./types/interested";
+import { readDiscoverState, writeDiscoverState, DISCOVER_FRESH_MS, type AppliedSearch, type DiscoverState } from "../lib/discover-state";
 import type { MapSearchArea } from "./components/FixtureMap";
 import {
   bufferedApiDateBound,
@@ -66,20 +67,6 @@ type GeocodingResult = {
   display_name: string;
 };
 
-type AppliedSearch = {
-  latitude: number;
-  longitude: number;
-  locationName: string;
-  radius: number;
-  startDate: string;
-  endDate: string;
-  leagueIds: number[];
-  showAllStadiums: boolean;
-  mode: "radius" | "viewport";
-  totalMatches: number;
-  resultsLimited: boolean;
-};
-
 type DiscoveryRequestContext = {
   requestVersion: number;
   controller: AbortController;
@@ -91,6 +78,7 @@ type DiscoveryRequestContext = {
   leagueIds: number[];
   showAllStadiums: boolean;
   source: "location" | "map";
+  restoring?: boolean;
 };
 
 export default function Home() {
@@ -145,6 +133,15 @@ function DiscoverContent() {
   const [appliedSearch, setAppliedSearch] =
     useState<AppliedSearch | null>(null);
 
+  const [restored, setRestored] = useState(false);
+  const [mapPosition, setMapPosition] = useState<DiscoverState["mapPosition"]>(null);
+  const [restorePosition, setRestorePosition] = useState<DiscoverState["mapPosition"]>(null);
+  const searchArea = useRef<MapSearchArea | null>(null);
+  const [restoreArea, setRestoreArea] = useState<MapSearchArea | null>(null);
+  const resultsAt = useRef(0);
+  const stateToKeep = useRef<DiscoverState | null>(null);
+  const restoreScroll = useRef<number | null>(null);
+  const leavingDiscover = useRef(false);
   const [editingSearch, setEditingSearch] =
     useState(true);
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
@@ -242,48 +239,38 @@ const loadVisitedStadiums = () => {
   const [saveError, setSaveError] = useState("");
 
   const pendingSaves = useRef(new Set<number>());
-  const toggleInterested = (fixtureId: number) => {
-    if (!sessionReady || pendingSaves.current.has(fixtureId)) {
-      return;
-    }
-
+  const saveOwnerActive = useRef(true);
+  useEffect(() => { saveOwnerActive.current = true; return () => { saveOwnerActive.current = false; }; }, []);
+  const toggleInterested = async (fixtureId: number) => {
+    if (!sessionReady || pendingSaves.current.has(fixtureId)) return;
     pendingSaves.current.add(fixtureId);
-    setSaveError("");
+    setSaveError(""); setShowAccountPrompt(false);
     const isInterested = interestedFixtureIds.includes(fixtureId);
-    setUpdatingInterestedFixtureIds((current) => [...current, fixtureId]);
-
-    const request = isInterested
-      ? api.delete(`/fixtures/${fixtureId}/interested`)
-      : api.post(`/fixtures/${fixtureId}/interested`);
-
-    request
-      .then((response) => {
-        if (response.data?.error) throw new Error("Save failed");
-        if (isInterested) {
-          setInterestedFixtures((current) => current.filter((fixture) => fixture.fixture_id !== fixtureId));
-        } else {
-          trackEvent("fixture_saved", { surface: "discover" });
-          loadInterestedFixtures();
-        }
-        setInterestedFixtureIds((current) =>
-          isInterested
-            ? current.filter((id) => id !== fixtureId)
-            : [...current, fixtureId]
-        );
-        if (!isInterested && isAnonymous) {
-          setShowAccountPrompt(true);
-        }
-      })
-      .catch((error) => {
-        console.error("Interested update error:", error);
-        setSaveError("Could not update My Matchdays. Please try again.");
-      })
-      .finally(() => {
-        pendingSaves.current.delete(fixtureId);
-        setUpdatingInterestedFixtureIds((current) =>
-          current.filter((id) => id !== fixtureId)
-        );
-      });
+    setUpdatingInterestedFixtureIds(current => [...current, fixtureId]);
+    try {
+      const response = isInterested
+        ? await api.delete(`/fixtures/${fixtureId}/interested`)
+        : await api.post(`/fixtures/${fixtureId}/interested`);
+      if (!saveOwnerActive.current) return;
+      if (response.data?.error) throw new Error("Save failed");
+      const latest = await api.get<InterestedFixture[]>("/interested");
+      if (!saveOwnerActive.current) return;
+      if (!Array.isArray(latest.data) || latest.data.some(row => row.fixture_id === fixtureId) === isInterested) {
+        throw new Error("Saved state not confirmed");
+      }
+      setInterestedFixtures(latest.data);
+      setInterestedFixtureIds(latest.data.map(row => row.fixture_id));
+      if (!isInterested) {
+        trackEvent("fixture_saved", { surface: "discover" });
+        if (isAnonymous) setShowAccountPrompt(true);
+      }
+    } catch {
+      if (!saveOwnerActive.current) return;
+      setSaveError("We couldn't confirm your saved matchdays. Try again to check before making another change.");
+    } finally {
+      pendingSaves.current.delete(fixtureId);
+      setUpdatingInterestedFixtureIds(current => current.filter(id => id !== fixtureId));
+    }
   };
 
   const loadViewportDiscovery = useCallback(async (area: MapSearchArea, context: DiscoveryRequestContext) => {
@@ -325,9 +312,11 @@ const loadVisitedStadiums = () => {
         totalMatches: Number(response.headers["x-total-matches"] ?? response.data.length),
         resultsLimited: response.headers["x-results-limited"] === "true",
       };
+      searchArea.current = area;
+      resultsAt.current = Date.now();
       setFixtures(response.data);
-      trackEvent("location_search", { search_method: source, result_count_bucket: resultBucket(Number(response.headers["x-total-matches"] ?? response.data.length)) });
-      setSelectedFixtureId(null);
+      if (!context.restoring) trackEvent("location_search", { search_method: source, result_count_bucket: resultBucket(Number(response.headers["x-total-matches"] ?? response.data.length)) });
+      if (!context.restoring) setSelectedFixtureId(null);
       setAppliedSearch(nextSearch);
       setLocationQuery(nextSearch.locationName);
       if (source === "map") setManualLocationSelected(false);
@@ -357,6 +346,7 @@ const loadVisitedStadiums = () => {
       }
     } catch (error) {
       if (controller.signal.aborted || axios.isCancel(error) || !isCurrentDiscoveryRequest(discoveryRequestVersion.current, requestVersion)) return;
+      resultsAt.current = 0;
       console.error(source === "location" ? "Location discovery error:" : "Map-area discovery error:", error);
       setFixtures([]);
       setHasCompletedDiscovery(false);
@@ -528,6 +518,91 @@ const loadVisitedStadiums = () => {
     discoveryRequest.current?.controller.abort();
     pendingResolvedSearch.current = null;
   }, []);
+
+  // Public discovery state survives route/account remounts; identity state never does.
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+    leavingDiscover.current = false;
+    const saved = readDiscoverState();
+    if (saved) {
+      setAppliedSearch(saved.appliedSearch); setFixtures(saved.fixtures); setVenues(saved.venues);
+      setLocationQuery(saved.locationQuery); setDraftCoordinates(saved.draftCoordinates);
+      setRadius(saved.radius); setSelectedStartDate(saved.startDate); setEndDate(saved.endDate);
+      setSelectedLeagueIds(saved.leagueIds); setShowAllStadiums(saved.showAllStadiums);
+      setEditingSearch(saved.editingSearch); setMapPosition(saved.mapPosition); setRestorePosition(saved.mapPosition); setRestoreArea(saved.searchArea);
+      setHasCompletedDiscovery(saved.resultsAt > 0);
+      setSelectedFixtureId(saved.fixtures.some(row => row.fixture_id === saved.selectedFixtureId) ? saved.selectedFixtureId : null);
+      resultsAt.current = saved.resultsAt; searchArea.current = saved.searchArea;
+      restoreScroll.current = saved.scrollY;
+    }
+    setRestored(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    if (!restored) return;
+    const snapshot: DiscoverState = { appliedSearch, fixtures, venues, locationQuery,
+      draftCoordinates, radius, startDate: selectedStartDate, endDate: selectedEndDate,
+      leagueIds: selectedLeagueIds, showAllStadiums, editingSearch, mapPosition,
+      selectedFixtureId, searchArea: searchArea.current, resultsAt: resultsAt.current,
+      scrollY: restoreScroll.current ?? window.scrollY };
+    stateToKeep.current = snapshot;
+    // Never replace the last completed search with a half-resolved request.
+    if (!loading && !locationLoading && !leavingDiscover.current) writeDiscoverState(snapshot);
+  }, [restored, appliedSearch, fixtures, venues, locationQuery, draftCoordinates, radius,
+    selectedStartDate, selectedEndDate, selectedLeagueIds, showAllStadiums, editingSearch,
+    mapPosition, selectedFixtureId, loading, locationLoading]);
+
+  useEffect(() => {
+    const capture = () => {
+      if (stateToKeep.current && !discoveryRequest.current && !leavingDiscover.current) {
+        stateToKeep.current.scrollY = window.scrollY;
+        writeDiscoverState(stateToKeep.current);
+      }
+    };
+    let timer: number | undefined;
+    const onScroll = () => {
+      if (stateToKeep.current && !discoveryRequest.current && !leavingDiscover.current && restoreScroll.current === null) stateToKeep.current.scrollY = window.scrollY;
+      window.clearTimeout(timer); timer = window.setTimeout(() => { if (stateToKeep.current && !discoveryRequest.current) writeDiscoverState(stateToKeep.current); }, 100);
+    };
+    // Capture before the router resets scroll, and ignore that reset as user input.
+    const leaving = () => { capture(); leavingDiscover.current = true; window.clearTimeout(timer); };
+    const navigationClick = (event: MouseEvent) => {
+      const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+      if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.getAttribute("target") === "_blank") return;
+      const destination = new URL(link.getAttribute("href")!, window.location.href);
+      if (destination.origin === window.location.origin && destination.pathname !== "/") leaving();
+    };
+    const backNavigation = () => { if (window.location.pathname !== "/") leaving(); };
+    document.addEventListener("click", navigationClick, true);
+    window.addEventListener("popstate", backNavigation);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pagehide", capture);
+    return () => { window.clearTimeout(timer); window.removeEventListener("scroll", onScroll); window.removeEventListener("pagehide", capture); document.removeEventListener("click", navigationClick, true); window.removeEventListener("popstate", backNavigation); if (stateToKeep.current && !discoveryRequest.current) writeDiscoverState(stateToKeep.current); };
+  }, []);
+
+  useEffect(() => {
+    if (!restored || !appliedSearch) return;
+    let lastAttempt = 0;
+    const refresh = () => {
+      if (document.visibilityState === "hidden" || discoveryRequest.current || !searchArea.current ||
+        Date.now() - resultsAt.current < DISCOVER_FRESH_MS || Date.now() - lastAttempt < 60_000) return;
+      lastAttempt = Date.now();
+      const requestVersion = ++discoveryRequestVersion.current;
+      const controller = new AbortController();
+      discoveryRequest.current = { version: requestVersion, controller }; setLoading(true);
+      void loadViewportDiscovery(searchArea.current, { requestVersion, controller,
+        origin: { latitude: appliedSearch.latitude, longitude: appliedSearch.longitude },
+        locationName: appliedSearch.locationName, radius: appliedSearch.radius,
+        startDate: appliedSearch.startDate, endDate: appliedSearch.endDate,
+        leagueIds: appliedSearch.leagueIds, showAllStadiums: appliedSearch.showAllStadiums,
+        source: appliedSearch.mode === "radius" ? "location" : "map", restoring: true });
+    };
+    refresh(); const timer = window.setInterval(refresh, 60_000);
+    window.addEventListener("focus", refresh); document.addEventListener("visibilitychange", refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [restored, appliedSearch, loadViewportDiscovery]);
 
   // -------------------------
   // Establish anonymous session
@@ -841,6 +916,10 @@ const loadVisitedStadiums = () => {
   searchingArea={loading}
   onSearchArea={searchMapArea}
   onViewportReady={handleResolvedViewport}
+  initialPosition={restorePosition}
+  searchedArea={restoreArea}
+  onPositionChange={setMapPosition}
+  onMapReady={() => { if (restoreScroll.current !== null) { window.scrollTo(0, restoreScroll.current); restoreScroll.current = null; } }}
   userLocation={userLocation}
   selectedFixtureId={selectedFixtureId}
   onFixtureSelect={setSelectedFixtureId}
@@ -849,7 +928,7 @@ const loadVisitedStadiums = () => {
   distanceOrigin={appliedSearch.locationName}
 />
             </div>
-            {saveError && <p role="alert" className="mt-3 text-sm font-bold text-[var(--brand-interactive)]">{saveError}</p>}
+            {saveError && <p role="alert" className="mt-3 text-sm font-bold text-[var(--brand-interactive)]">{saveError} <button type="button" onClick={() => { setSaveError(""); void api.get<InterestedFixture[]>("/interested").then(response => { if (!Array.isArray(response.data)) throw new Error("Invalid saved list"); setInterestedFixtures(response.data); setInterestedFixtureIds(response.data.map(row => row.fixture_id)); }).catch(() => setSaveError("Your saved matchdays could not be checked. Please try again.")); }} className="min-h-11 underline">Try again</button></p>}
             <NearbyFixtureCarousel
               fixtures={visibleFixtures}
               showDistance={appliedSearch.mode !== "viewport"}

@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { apiErrorMessage } from "../../lib/api-error";
+import { apiErrorMessage, emptyGuestHistory, historyLoadError } from "../../lib/api-error";
 import api, { apiAssetUrl } from "../../lib/api";
 import FixtureTeams from "./FixtureTeams";
 import { eligibleAttendanceFixture } from "../../lib/attendance-eligibility";
@@ -42,7 +42,8 @@ export default function InterestedTab() {
 }
 
 function InterestedTabContent() {
-  const { email } = useAuth();
+  const { email, authenticated, loading: authLoading, issue: authIssue } = useAuth();
+  const historySeen = useRef(false);
   const [photoAttendances, setPhotoAttendances] = useState<PhotoAttendance[]>([]);
   const [fixtures, setFixtures] = useState<InterestedFixture[]>([]);
   const [attendedFixtures, setAttendedFixtures] = useState<AttendedMatch[]>([]);
@@ -59,13 +60,20 @@ function InterestedTabContent() {
   const loadMatchdays = useCallback(async (confirmedAttendance?: PhotoAttendance) => {
     // One bounded retry; overlapping/older loads cannot replace newer state.
     for (let attempt = 0; attempt < 2; attempt++) {
-      if (!active.current) return;
+      if (!active.current || authLoading) return;
       const generation = ++requestGeneration.current;
       try {
-        await api.get("/session");
+        const session = await api.get("/session");
+        if (!active.current || generation !== requestGeneration.current) return;
+        if (emptyGuestHistory(session.data, authenticated, authIssue)
+          && !historySeen.current && !confirmedAttendance && !confirmedGoing.current.size) {
+          setError(""); setLoading(false); return;
+        }
         const [interestedResponse, groundsResponse] = await Promise.all([api.get("/interested"), api.get("/my-grounds")]);
         if (!active.current || generation !== requestGeneration.current) return;
         const grounds = groundsResponse.data as MyGround[];
+        if (grounds.length || interestedResponse.data.length) historySeen.current = true;
+        setError("");
         const ownedPhotos = recordedPhotoAttendance(grounds);
         const attendanceReadBack = !confirmedAttendance || ownedPhotos.some(visit => visit.visit_id === confirmedAttendance.visit_id);
         setPhotoAttendances(attendanceReadBack ? ownedPhotos : [...ownedPhotos, confirmedAttendance]);
@@ -92,7 +100,7 @@ function InterestedTabContent() {
         return;
       } catch (requestError) {
         if (!active.current || generation !== requestGeneration.current) return;
-        const message = apiErrorMessage(requestError, "We couldn't refresh your matchdays. Please try again.");
+        const message = historyLoadError(requestError, "We couldn't refresh your matchdays. Please try again.");
         if (confirmedGoing.current.size) setPlanFeedback(current => {
           const next = { ...current };
           for (const [id, confirmation] of confirmedGoing.current) next[id] = { error: true, expectedGoing: confirmation.going, message: `Your change was saved, but we couldn't refresh it. ${message}` };
@@ -103,7 +111,7 @@ function InterestedTabContent() {
         return;
       }
     }
-  }, []);
+  }, [authLoading, authenticated, authIssue]);
 
   useEffect(() => { void loadMatchdays(); }, [loadMatchdays]);
   useEffect(() => {
@@ -192,7 +200,7 @@ function InterestedTabContent() {
   const unlinkedAttendances = photoAttendances.filter(visit => !attendedFixtures.some(fixture => fixture.fixture_id === visit.fixture_id));
   return <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10">
     <header className="border-b-[3px] border-[var(--tt-ink)] pb-4"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My Matchdays</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">The occasions you&apos;re looking forward to and the matches you remember.</p><p className="mt-1 text-xs text-[var(--tt-muted)]">Times shown in your current timezone.</p></header>
-    {loading && <p className="mt-8 font-semibold text-[var(--tt-muted)]">Loading your matchdays…</p>}{error && <p role="alert" className="mt-6 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}{attendanceResolution && <section role="status" className="mt-5 border border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-4">
+    {loading && <p className="mt-8 font-semibold text-[var(--tt-muted)]">Loading your matchdays…</p>}{error && <p role="alert" className="mt-6 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error} <button type="button" onClick={() => void loadMatchdays()} className="min-h-11 underline">Try again</button></p>}{attendanceResolution && <section role="status" className="mt-5 border border-[var(--brand-interactive)] bg-[var(--tt-paper)] p-4">
       <h2 className="tt-display text-2xl leading-none text-[var(--brand-interactive)]">✓ Matchday recorded</h2>
       <p className="mt-2 break-words font-bold">{attendanceResolution.home_team} vs {attendanceResolution.away_team}</p>
       <p className="mt-1 text-sm text-[var(--tt-muted)]">Added to your football history.</p>

@@ -2,7 +2,7 @@
 # Unsigned physical-device archive only. No signing, installation or upload.
 set -euo pipefail
 archive="${1:-native-input.zip}"
-expected="0b4b24eb369626e1a0379afaa9f74b4f50606445978152be049e10a00f656ced"
+expected="b1169fd21e4773ea26517cb544b01ce7a34b8adc13a991e947137f41bdaf34d7"
 [[ "$(uname -s)" == Darwin ]] || { echo 'BLOCKED: macOS/Xcode required'; exit 2; }
 [[ "${DEVELOPER_DIR:-}" == /Applications/Xcode_26.3.app/Contents/Developer ]] || { echo 'STOP: explicit Xcode 26.3 selection required'; exit 2; }
 [[ -x "$DEVELOPER_DIR/usr/bin/xcodebuild" ]] || { echo 'BLOCKED: Xcode 26.3 unavailable'; exit 2; }

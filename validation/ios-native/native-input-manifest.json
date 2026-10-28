@@ -1,12 +1,20 @@
 {
-  "baseline": "ae102fa452e13267c09155f7230640637d9f69d4",
+  "baseline": "2f3a109dbb658c089c38eb4f5a16447e6c496dd4",
   "capacitor_version": "8.5.3",
-  "archive_sha256": "17daadc73fbd843cb6748990b6ee0b4caa819ebe5a0325fc531601914c265204",
-  "archive_bytes": 1252754,
+  "archive_sha256": "b1169fd21e4773ea26517cb544b01ce7a34b8adc13a991e947137f41bdaf34d7",
+  "archive_bytes": 1243112,
   "archive_files": [
     {
       "path": "ios/.gitignore",
       "sha256": "2b7132a9943d2622e51e656897ca5162f56b121b40b423dedce1fbc699dba88a"
+    },
+    {
+      "path": "ios/App/App.xcodeproj/project.pbxproj",
+      "sha256": "2d6422271c3719ec40969ed57b7da9aa3d1a42a42f576726f02d747a4862099b"
+    },
+    {
+      "path": "ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
+      "sha256": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
     },
     {
       "path": "ios/App/App/AppDelegate.swift",
@@ -49,20 +57,24 @@
       "sha256": "7b7dc7acc67134bfaa80e5ce9c9068ba53db5369b9b70248aa7439fc2b09daae"
     },
     {
+      "path": "ios/App/App/Info.plist",
+      "sha256": "6dc92021142f0e3eba9b718b789e60f31fdf52f270363ff7aa993b048d50bbd8"
+    },
+    {
+      "path": "ios/App/App/SceneDelegate.swift",
+      "sha256": "738b9b96bb71d34d80cd8c1183cf7f8f6f2e789c64e46fb5fe6777a35ae12dfd"
+    },
+    {
       "path": "ios/App/App/capacitor.config.json",
-      "sha256": "fdf46ac76ac809a3d428965a6f00a8fbb9eefce8a5c42ec9bf17d1841dab991f"
+      "sha256": "de7cb4f3cb68fe82727eeb698eb2f62d4fd154c70f24a75a277d7bf9e0ed28b4"
     },
     {
       "path": "ios/App/App/config.xml",
       "sha256": "e9dcda493e663c5c4db9e3cb3bd968477a6e90aa8840bcbba40d72ed54b767ce"
     },
     {
-      "path": "ios/App/App/Info.plist",
-      "sha256": "48849c67914d1de71b15f6ad33ec192a5a65c82368eb5785176fbd1f71a3274b"
-    },
-    {
       "path": "ios/App/App/public/app.css",
-      "sha256": "181e78593add2618a30b0219dae4b217cd41e4e2dce36e0c5e6fccb2dc9fdf53"
+      "sha256": "6f09b958c1277da5b9dbb0faeda1f6a82c84773288f7f984fea271c5ac8d0b27"
     },
     {
       "path": "ios/App/App/public/brand/matchgoer-ball-mark-512.png",
@@ -90,11 +102,11 @@
     },
     {
       "path": "ios/App/App/public/bundle.css",
-      "sha256": "5a7861c6ac38aa2ecf75db53503c4b9749d02be3c2fff94828b8d039dfec3ed1"
+      "sha256": "acc4e8ac649e33c765e35fe6a6539416a4e33b53faa73eba548cb988bc310706"
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "1d892e0680a578abefb7c0deeb47353930b6988bd7f7e9bf7119b971fe51422a"
+      "sha256": "521b9bd132c93f3fb69ba576892a73f6b848c4771063c81923f636549fccff23"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -145,18 +157,6 @@
       "sha256": "644768c4aaeb4767bce293344eeb0c125fb804a94d801440424072202d85e3a1"
     },
     {
-      "path": "ios/App/App/SceneDelegate.swift",
-      "sha256": "738b9b96bb71d34d80cd8c1183cf7f8f6f2e789c64e46fb5fe6777a35ae12dfd"
-    },
-    {
-      "path": "ios/App/App.xcodeproj/project.pbxproj",
-      "sha256": "2d6422271c3719ec40969ed57b7da9aa3d1a42a42f576726f02d747a4862099b"
-    },
-    {
-      "path": "ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
-      "sha256": "dfa0f9bb85b95ccba9c6811adadf8cb407fb5d52088e89db83ebc308ec448542"
-    },
-    {
       "path": "ios/App/CapApp-SPM/.gitignore",
       "sha256": "4b958e2b4dd57319aadef2551153c74b9cb5ffe9f89d6e3e491122a94913f016"
     },
@@ -188,5 +188,7 @@
       "path": "ios/debug.xcconfig",
       "sha256": "4838938a72b913b99cfda54a43bbe73f05893071dc6e3702b0adc44794b64272"
     }
-  ]
+  ],
+  "version": "0.1.0",
+  "build": "3"
 }

@@ -1,0 +1,14 @@
+{
+  "appId": "com.matchgoer.spike",
+  "appName": "Matchgoer Spike",
+  "webDir": "dist",
+  "packageClassList": [],
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "CapacitorCookies": {
+      "enabled": false
+    }
+  }
+}

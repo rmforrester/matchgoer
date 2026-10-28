@@ -11,3 +11,19 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
   if (!error.response) return "Matchgoer is unavailable right now. Check your connection and try again.";
   return fallback;
 }
+
+// Only an explicit successful guest-session response proves an empty guest.
+// Missing fields and authenticated/session-error states must still load or fail.
+export function emptyGuestHistory(session: unknown, authenticated: boolean, sessionIssue: unknown): boolean {
+  if (authenticated || sessionIssue || !session || typeof session !== "object") return false;
+  const value = session as { anonymous?: unknown; anonymous_activity?: unknown };
+  return value.anonymous === true && value.anonymous_activity === false;
+}
+
+export function historyLoadError(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error) && error.response?.status === 401
+    && error.response.data?.detail?.code === "NO_ACTIVE_IDENTITY") {
+    return "We couldn't access your saved history. Please try again.";
+  }
+  return apiErrorMessage(error, fallback);
+}

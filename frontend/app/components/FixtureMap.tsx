@@ -50,6 +50,10 @@ type Props = MapSaveActions & {
   visitedVenueIds: number[];
   showAllStadiums: boolean;
   radius: number;
+  searchedArea?: MapSearchArea | null;
+  initialPosition?: { latitude: number; longitude: number; zoom: number } | null;
+  onPositionChange?: (position: { latitude: number; longitude: number; zoom: number }) => void;
+  onMapReady?: () => void;
   viewportLatitude: number;
   viewportLongitude: number;
   viewportRevision: number;
@@ -263,6 +267,14 @@ function ViewportController({
   return null;
 }
 
+function RememberMap({ onPositionChange, onReady }: { onPositionChange: Props["onPositionChange"]; onReady: Props["onMapReady"] }) {
+  const map = useMapEvents({ moveend: () => record(), zoomend: () => record() });
+  function record() { const center = map.getCenter(); onPositionChange?.({ latitude: center.lat, longitude: center.lng, zoom: map.getZoom() }); }
+  const ready = useRef(onReady);
+  useEffect(() => { const frame = requestAnimationFrame(() => ready.current?.()); return () => cancelAnimationFrame(frame); }, []);
+  return null;
+}
+
 function MapMovementMonitor({
   appliedCenter,
   radius,
@@ -296,6 +308,7 @@ export default function FixtureMap({
   visitedVenueIds = [],
   showAllStadiums,
   radius,
+  initialPosition, searchedArea, onPositionChange, onMapReady,
   viewportLatitude,
   viewportLongitude,
   viewportRevision,
@@ -367,14 +380,21 @@ export default function FixtureMap({
 
   return (
 <div>
-<div className="relative">
+<div className="relative isolate z-0">
 <MapContainer
   ref={mapRef}
-  center={[latitude, longitude]}
-  zoom={discoveryZoomForRadius(radius)}
+  center={initialPosition ? [initialPosition.latitude, initialPosition.longitude] : [latitude, longitude]}
+  zoom={initialPosition?.zoom ?? discoveryZoomForRadius(radius)}
   closePopupOnClick
       className="tt-map"
     >
+      <RememberMap onPositionChange={onPositionChange} onReady={() => {
+        if (initialPosition && searchedArea && mapRef.current) {
+          const live = currentMapArea(mapRef.current);
+          setAreaSearchAvailable((["north", "south", "east", "west"] as const).some(edge => Math.abs(live[edge] - searchedArea[edge]) > 0.00001));
+        }
+        onMapReady?.();
+      }} />
       <ViewportController latitude={viewportLatitude} longitude={viewportLongitude} radius={radius} revision={viewportRevision} suppressMovementRef={suppressMovementRef} onViewportReady={onViewportReady} />
       <MapMovementMonitor appliedCenter={{ latitude, longitude }} radius={radius} suppressMovementRef={suppressMovementRef} onCandidateChange={setAreaSearchAvailable} />
 

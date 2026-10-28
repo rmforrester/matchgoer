@@ -4,7 +4,7 @@ import axios from "axios";
 import { useAuth } from "./AuthProvider";
 import { accountRoute, signinRoute } from "../../lib/auth-flow";
 import { eligibleAttendanceFixture, isFutureAttendanceDate, localAttendanceToday } from "../../lib/attendance-eligibility";
-import { apiErrorMessage } from "../../lib/api-error";
+import { apiErrorMessage, emptyGuestHistory, historyLoadError } from "../../lib/api-error";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -46,6 +46,8 @@ function VisitedTabContent() {
   const [footprint, setFootprint] = useState<FootprintSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const historySeen = useRef(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<VenueResult[]>([]);
@@ -96,14 +98,19 @@ function VisitedTabContent() {
   const [scores, setScores] = useState({ atmosphere: null as number | null, pubs: null as number | null, travel: null as number | null, facilities: null as number | null, recommend: null as boolean | null });
 
   const loadGrounds = useCallback(async () => {
-    await api.get("/session");
+    const session = await api.get("/session");
+    if (emptyGuestHistory(session.data, authenticated, authIssue) && !historySeen.current) {
+      setError(""); return [];
+    }
     const response = await api.get<MyGroundFootprint | MyGround[]>("/my-grounds", { params: { footprint: true } });
     // Old-backend compatibility: keep Lifetime usable without inventing seasons.
     const loaded = Array.isArray(response.data) ? response.data : response.data.grounds;
     setFootprint(Array.isArray(response.data) ? null : response.data.footprint);
     setGrounds(loaded);
+    if (loaded.length) historySeen.current = true;
+    setError("");
     return loaded;
-  }, []);
+  }, [authenticated, authIssue]);
 
   const showReview = (ground: MyGround) => {
     setRatingMessage(""); setError("");
@@ -133,8 +140,8 @@ function VisitedTabContent() {
   }, [loadGrounds]);
 
   useEffect(() => {
+    if (authLoading) return;
     // The state update happens after the session/API promises resolve.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadGrounds().then((loaded) => {
       const ground = loaded.find((item) => item.venue_id === Number(requestedReview));
       if (requestedReview && ground) {
@@ -146,8 +153,8 @@ function VisitedTabContent() {
           summary?.scrollIntoView({ block: "start", behavior: "instant" });
         });
       }
-    }).catch(() => setError("Unable to load My Grounds.")).finally(() => setLoading(false));
-  }, [loadGrounds, openReview, requestedReview]);
+    }).catch((requestError) => setError(historyLoadError(requestError, "Unable to load My Grounds. Please try again."))).finally(() => setLoading(false));
+  }, [loadGrounds, openReview, requestedReview, authLoading, loadAttempt]);
 
   useEffect(() => {
     if (!requestedVenue) return;
@@ -174,8 +181,14 @@ function VisitedTabContent() {
   const addVisit = async (venueId: number, date: string, done: () => void) => {
     if (saving || isFutureAttendanceDate(date)) return;
     setSaving(true); setError("");
-    try { await api.post(`/venues/${venueId}/visits`, { visit_date: date || null, calendar_utc_offset_minutes: -new Date().getTimezoneOffset() }); await loadGrounds(); done(); }
-    catch (requestError) { setError(apiErrorMessage(requestError, "Unable to record this visit.")); }
+    try {
+      const saved = await api.post<{ visit_id: number }>(`/venues/${venueId}/visits`, { visit_date: date || null, calendar_utc_offset_minutes: -new Date().getTimezoneOffset() });
+      historySeen.current = true;
+      const loaded = await loadGrounds();
+      if (!Number.isInteger(saved.data.visit_id) || !loaded.some(ground => ground.venue_id === venueId && ground.visits.some(visit => visit.visit_id === saved.data.visit_id))) throw new Error("Visit persistence not confirmed");
+      done();
+    }
+    catch (requestError) { setError(historyLoadError(requestError, "Your matchday could not be confirmed. Check your history before trying again.")); }
     finally { setSaving(false); }
   };
 
@@ -223,9 +236,12 @@ function VisitedTabContent() {
     if (!selected || saving || isFutureAttendanceDate(visitDate)) return;
     setSaving(true); setError("");
     try {
-      await api.post(`/venues/${selected.venue_id}/visits`, { visit_date: visitDate || null, fixture_id: fixtureId });
-      await loadGrounds(); setSelected(null); setVisitDate(""); setQuery(""); setResults([]); setFixtureCandidates([]);
-    } catch (requestError) { setError(apiErrorMessage(requestError, "Unable to add this matchday.")); }
+      const saved = await api.post<{ visit_id: number }>(`/venues/${selected.venue_id}/visits`, { visit_date: visitDate || null, fixture_id: fixtureId });
+      historySeen.current = true;
+      const loaded = await loadGrounds();
+      if (!Number.isInteger(saved.data.visit_id) || !loaded.some(ground => ground.venue_id === selected.venue_id && ground.visits.some(visit => visit.visit_id === saved.data.visit_id && visit.fixture_id === fixtureId))) throw new Error("Visit persistence not confirmed");
+      setSelected(null); setVisitDate(""); setQuery(""); setResults([]); setFixtureCandidates([]);
+    } catch (requestError) { setError(historyLoadError(requestError, "Your matchday could not be confirmed. Check your history before trying again.")); }
     finally { setSaving(false); }
   };
 
@@ -309,12 +325,12 @@ function VisitedTabContent() {
   return <main className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
     <header className="border-b-2 border-[var(--tt-ink)] pb-3"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My grounds</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Football takes you places.</p></header>
     {!loading && requestedReview && grounds.filter(ground => ground.venue_id === Number(requestedReview)).map(ground => <div key={ground.venue_id}>{renderPersonalReview(ground)}</div>)}
-    {!loading && (grounds.length === 0 || showAddGround) && recordForm}
+    {!loading && (selected !== null || grounds.length === 0 || showAddGround) && recordForm}
     {!loading && grounds.length > 0 && <button type="button" onClick={() => setShowAddGround((current) => !current)} aria-expanded={showAddGround} aria-controls="add-ground" className="tt-action tt-action-secondary mt-4 inline-flex h-11 items-center justify-center whitespace-nowrap px-4 text-xs">{showAddGround ? "Close add ground" : "+ Add a ground"}</button>}
     {!loading && !selected && grounds.length > 0 && showAddGround && <section id="add-ground" className="mt-8 border-t-2 border-[var(--tt-ink)] pt-3" aria-labelledby="add-ground-heading"><h2 id="add-ground-heading" className="tt-display text-3xl leading-none sm:text-4xl">Add a ground</h2>{grounds.length > 0 && <p className="mt-1 text-sm text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>}<div className="mt-4 flex flex-wrap gap-2"><label htmlFor="ground-search" className="sr-only">Search for a ground or city</label><input id="ground-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} placeholder="Search ground or city" className="tt-control min-w-0 flex-1 px-4"/><button type="button" disabled={searching || query.trim().length < 2} onClick={() => void search()} className="tt-action px-5">{searching ? "Searching…" : "Search"}</button></div>
       {!selected && results.length > 0 && <div className="tt-panel mt-4 divide-y divide-[var(--tt-rule)]">{results.map((venue) => <button key={venue.venue_id} type="button" onClick={() => { setSelected(venue); setSelectedFixtureId(null); setFixtureCandidates([]); }} className="block min-h-12 w-full px-4 py-3 text-left hover:bg-[var(--tt-paper)]"><strong>{venue.name}</strong>{venue.city && <span className="ml-2 text-[var(--tt-muted)]">{venue.city}</span>}{grounds.some((ground) => ground.venue_id === venue.venue_id) && <span className="ml-2 text-xs font-bold uppercase text-[var(--brand-interactive)]">Already visited</span>}</button>)}</div>}
     </section>}
-    {error && reviewingId === null && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error}</p>}
+    {error && reviewingId === null && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-[var(--tt-paper)] px-4 py-3 font-semibold text-red-800">{error} <button type="button" onClick={() => { setLoading(true); setError(""); setLoadAttempt(value => value + 1); }} className="min-h-11 underline">Try again</button></p>}
     {loading && <p className="mt-6 font-semibold">Loading your ground history…</p>}
     {!loading && !selected && grounds.length === 0 && <section className="mt-8 border-y-2 border-[var(--tt-ink)] py-8"><p className="tt-display text-3xl">Your football story starts here.</p><p className="mt-2 text-[var(--tt-muted)]">Add somewhere you&apos;ve been.</p>{authenticated && <a href="#add-ground" className="tt-action mt-4 inline-flex min-h-11 items-center justify-center px-4">Add a ground →</a>}</section>}
 

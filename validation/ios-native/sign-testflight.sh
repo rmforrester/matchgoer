@@ -8,7 +8,7 @@ umask 077
 for name in IOS_P12_BASE64 IOS_P12_PASSWORD IOS_PROFILE_BASE64 IOS_ASC_P8_BASE64 IOS_ASC_KEY_ID IOS_ASC_ISSUER_ID; do
   [[ -n "${!name:-}" ]] || { echo "STOP: missing $name"; exit 2; }
 done
-[[ "$(shasum -a 256 native-input.zip | awk '{print $1}')" == 0b4b24eb369626e1a0379afaa9f74b4f50606445978152be049e10a00f656ced ]] || { echo 'STOP: input drift'; exit 2; }
+[[ "$(shasum -a 256 native-input.zip | awk '{print $1}')" == b1169fd21e4773ea26517cb544b01ce7a34b8adc13a991e947137f41bdaf34d7 ]] || { echo 'STOP: input drift'; exit 2; }
 private_dir="$RUNNER_TEMP/matchgoer-signing"
 mkdir -p "$private_dir" evidence
 keychain="$private_dir/signing.keychain-db"
@@ -81,7 +81,7 @@ xcodebuild -resolvePackageDependencies -project "$project" -scheme App -clonedSo
 xcodebuild -project "$project" -scheme App -configuration Release -sdk iphoneos \
   -destination 'generic/platform=iOS' -archivePath "$private_dir/Matchgoer.xcarchive" \
   -derivedDataPath "$PWD/DerivedData-signed" -clonedSourcePackagesDirPath "$PWD/SourcePackages" \
-  PRODUCT_BUNDLE_IDENTIFIER=com.matchgoer.app MARKETING_VERSION=0.1.0 CURRENT_PROJECT_VERSION=2 \
+  PRODUCT_BUNDLE_IDENTIFIER=com.matchgoer.app MARKETING_VERSION=0.1.0 CURRENT_PROJECT_VERSION=3 \
   DEVELOPMENT_TEAM=R58JW38U27 CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$cert_sha1" \
   PROVISIONING_PROFILE_SPECIFIER="$profile_name" archive
 app="$private_dir/Matchgoer.xcarchive/Products/Applications/App.app"
@@ -91,11 +91,12 @@ python3 - <<'PY'
 import pathlib,os,plistlib,json
 p=pathlib.Path(os.environ['SIGNING_APP_PATH']);d=plistlib.loads((p/'Info.plist').read_bytes())
 assert d['CFBundleIdentifier']=='com.matchgoer.app' and d['CFBundleDisplayName']=='Matchgoer'
-assert d['CFBundleShortVersionString']=='0.1.0' and d['CFBundleVersion']=='2'
+assert d['CFBundleShortVersionString']=='0.1.0' and d['CFBundleVersion']=='3'
+config=json.loads((p/'capacitor.config.json').read_text());assert config['plugins']['CapacitorHttp']['enabled'] is True and config['plugins']['CapacitorCookies']['enabled'] is False
 assert d['CFBundleSupportedPlatforms']==['iPhoneOS'] and (p/'embedded.mobileprovision').is_file()
 options={'method':'app-store-connect','destination':'export','teamID':'R58JW38U27','signingStyle':'manual','signingCertificate':os.environ['SIGNING_CERT_SHA1'],'provisioningProfiles':{'com.matchgoer.app':plistlib.loads((pathlib.Path(os.environ['SIGNING_PRIVATE_DIR'])/'profile.plist').read_bytes())['Name']},'manageAppVersionAndBuildNumber':False}
 (pathlib.Path(os.environ['SIGNING_PRIVATE_DIR'])/'ExportOptions.plist').write_bytes(plistlib.dumps(options))
-pathlib.Path('evidence/signing-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.0','build':'2','commit':os.environ['GITHUB_SHA'],'signed_archive':'PASS','codesign_verification':'PASS','upload':'NOT YET ATTEMPTED'},indent=2)+'\n')
+pathlib.Path('evidence/signing-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.0','build':'3','commit':os.environ['GITHUB_SHA'],'signed_archive':'PASS','codesign_verification':'PASS','upload':'NOT YET ATTEMPTED'},indent=2)+'\n')
 PY
 xcodebuild -exportArchive -archivePath "$private_dir/Matchgoer.xcarchive" -exportOptionsPlist "$private_dir/ExportOptions.plist" -exportPath "$private_dir/export"
 ipa_count="$(find "$private_dir/export" -maxdepth 1 -name '*.ipa' | wc -l | tr -d ' ')"
@@ -128,7 +129,7 @@ PY
 python3 - <<'PY'
 import os,pathlib,json,hashlib
 p=pathlib.Path(os.environ['SIGNING_PRIVATE_DIR']);result=json.loads((p/'upload-result.json').read_text());assert not result.get('product-errors'), 'STOP: upload returned errors'
-ipa=next((p/'export').glob('*.ipa'));r={'bundle_id':'com.matchgoer.app','version':'0.1.0','build':'2','commit':os.environ['GITHUB_SHA'],'signed_archive':'PASS','ipa_sha256':hashlib.sha256(ipa.read_bytes()).hexdigest(),'upload':'PASS','apple_processing':'PENDING','physical_installation':'PENDING FOUNDER TEST'}
+ipa=next((p/'export').glob('*.ipa'));r={'bundle_id':'com.matchgoer.app','version':'0.1.0','build':'3','commit':os.environ['GITHUB_SHA'],'signed_archive':'PASS','ipa_sha256':hashlib.sha256(ipa.read_bytes()).hexdigest(),'upload':'PASS','apple_processing':'PENDING','physical_installation':'PENDING FOUNDER TEST'}
 pathlib.Path('evidence/upload-receipt.json').write_text(json.dumps(r,indent=2)+'\n')
 PY
 printf 'PASS: signed archive exported and uploaded; Apple processing and physical installation still require verification\n' | tee "$evidence/outcome.txt"
