@@ -1,0 +1,2 @@
+import type {AnchorHTMLAttributes,MouseEvent} from "react";import {navigate} from "./navigation";
+export default function Link({href,onClick,...props}:AnchorHTMLAttributes<HTMLAnchorElement> & {href:string}){return <a {...props} href={href} onClick={(e:MouseEvent<HTMLAnchorElement>)=>{onClick?.(e);if(e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||props.target==="_blank"||props.download)return;const u=new URL(href,location.href);if(u.origin===location.origin){e.preventDefault();navigate(href)}}}/>}

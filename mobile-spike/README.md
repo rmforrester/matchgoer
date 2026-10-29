@@ -1,3 +1,29 @@
+## Build 4 native authentication/navigation candidate (29 October 2026)
+
+This section supersedes historical spike limitations below. The native entry now
+reuses the shared post-login result and recovery screens. Google uses Apple's
+ASWebAuthenticationSession through an app-local Capacitor bridge, Supabase PKCE,
+and the exact owner-approved com.matchgoer.app://auth/callback return. Both warm
+and cold email-recovery returns use the same code-only boundary; shared provider
+verification and guarded account claims remain authoritative. No implicit URL
+access tokens or account linking by email are accepted by the native adapter.
+Actual Google/recovery success still requires physical-iPhone acceptance.
+
+Native-only navigation supplies the compact centred logo and four-tab pill;
+shared web navigation remains unchanged. Existing Discover state restoration,
+CapacitorHttp cookie transport and local Supabase session storage are retained.
+The existing public API/Supabase/Geoapify values are supplied to build-config.mjs
+from protected local configuration, never a server secret. No new dependency.
+
+Reproduce frontend assets with the existing frontend and mobile-spike lockfiles,
+then MATCHGOER_NATIVE_TARGET=beta and the four validated public service variables
+with node build.mjs. The existing validation pipeline consumes the reviewed
+native-input.zip, pins Xcode 26.3 and signs only on the isolated validation branch.
+Reports/receipts under reports/ios-build4-20261029 describe the exact source scope,
+checksums and acceptance limits. Never put signing material in the archive.
+
+---
+
 ï»¿# Matchgoer iOS feasibility spike
 
 Local proof only; do not ship or enable hosted configuration from this directory.

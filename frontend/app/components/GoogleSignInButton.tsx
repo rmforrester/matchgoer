@@ -6,7 +6,7 @@ import localFont from "next/font/local";
 import styles from "./GoogleSignInButton.module.css";
 import { useAuth } from "@/app/components/AuthProvider";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
-import { beginGoogleSignin, googleSigninEnabled } from "@/lib/google-signin";
+import { beginGoogleSignin, googleSigninEnabled, googleCallbackError } from "@/lib/google-signin";
 
 const googleSans = localFont({ src: "../fonts/google-sans-medium.ttf", weight: "500", style: "normal", display: "swap" });
 
@@ -31,7 +31,7 @@ export default function GoogleSignInButton({ returnTo, handoffToken, convertAnon
     if (!client) { setError("Account services are unavailable right now."); return; }
     setBusy(true); onBusyChange(true); setError("");
     try { await beginGoogleSignin(client, window.location.origin, returnTo, handoffToken, convertAnonymous); }
-    catch { setBusy(false); onBusyChange(false); setError("We couldn't start Google sign-in. Try again or use email and password. Your saved history remains unchanged."); }
+    catch (requestError) { setBusy(false); onBusyChange(false); setError((requestError as { code?: string })?.code === "USER_CANCELLED" ? googleCallbackError("access_denied") : "We couldn't start Google sign-in. Try again or use email and password. Your saved history remains unchanged."); }
   }
 
   return <div className="mt-6 grid gap-3 border-t border-[var(--tt-rule)] pt-5">

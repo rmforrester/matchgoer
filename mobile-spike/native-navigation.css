@@ -1,0 +1,17 @@
+/* Bundled only by the native entry; shared web navigation is untouched. */
+body{padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}
+.native-header{display:flex;justify-content:center;align-items:center;background:#F4F0E5;border-bottom:1px solid #174A32;padding:10px 16px}
+.native-header a{display:flex;align-items:center;min-height:32px}
+.native-header img{width:140px;height:auto}
+.native-tabs{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));max-width:440px;margin-inline:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;padding:5px;background:#174A32;color:#F4F0E5;border-radius:40px;z-index:20}
+.native-tabs[hidden]{display:none}
+.native-tabs a{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:32px;font-size:10px;font-weight:700;text-decoration:none;line-height:1.2;transition:background-color .15s,color .15s}
+.native-tabs a[aria-current=page]{background:#F4F0E5;color:#174A32}
+.native-tabs a:focus-visible{outline:2px solid #F4F0E5;outline-offset:2px}
+.native-tabs a[aria-current=page]:focus-visible{outline-color:#174A32;outline-offset:-4px}
+.leaflet-container{isolation:isolate;z-index:0}
+html{scroll-padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+@media(prefers-reduced-motion:reduce){.native-tabs a{transition:none}}
+
+@font-face{font-family:"Native Google Sans";src:url("../frontend/app/fonts/google-sans-medium.ttf") format("truetype");font-weight:500;font-style:normal;font-display:swap}
+.spike-google-font{font-family:"Native Google Sans",Arial,sans-serif}

@@ -29,8 +29,8 @@ export function buildDefines(env = process.env) {
       if (role !== "anon") throw new Error("Only a public Supabase publishable/anon key may enter the app");
     }
   }
-  // Native Google return handling is not yet implemented; analytics stays off.
-  Object.assign(values, {NEXT_PUBLIC_GOOGLE_SIGNIN_ENABLED: "false", NEXT_PUBLIC_GA_MEASUREMENT_ID: ""});
+  // Native PKCE return is handled by the system authentication bridge; analytics stays off.
+  Object.assign(values, {NEXT_PUBLIC_NATIVE_AUTH: "true", NEXT_PUBLIC_GOOGLE_SIGNIN_ENABLED: "true", NEXT_PUBLIC_GA_MEASUREMENT_ID: ""});
   return {"process.env": "{}", "process.env.NODE_ENV": JSON.stringify("production"),
     ...Object.fromEntries(Object.entries(values).map(([key,value]) => [`process.env.${key}`, JSON.stringify(value)]))};
 }

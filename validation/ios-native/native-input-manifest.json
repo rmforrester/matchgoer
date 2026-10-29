@@ -1,8 +1,8 @@
 {
-  "baseline": "2f3a109dbb658c089c38eb4f5a16447e6c496dd4",
+  "baseline": "222fd657d786e3f0bc3f9dc8e1c89fead48891fe",
   "capacitor_version": "8.5.3",
-  "archive_sha256": "b1169fd21e4773ea26517cb544b01ce7a34b8adc13a991e947137f41bdaf34d7",
-  "archive_bytes": 1243112,
+  "archive_sha256": "c28835be49357a2d3df0be7d6af664d8a9281ed67ce8fdc1acf885897739d181",
+  "archive_bytes": 2169772,
   "archive_files": [
     {
       "path": "ios/.gitignore",
@@ -10,7 +10,7 @@
     },
     {
       "path": "ios/App/App.xcodeproj/project.pbxproj",
-      "sha256": "2d6422271c3719ec40969ed57b7da9aa3d1a42a42f576726f02d747a4862099b"
+      "sha256": "f4b9e1092deb662ac7ad73f083c6caa0441040a5f7d8a6d5adad1be53e4e56d9"
     },
     {
       "path": "ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
@@ -18,11 +18,11 @@
     },
     {
       "path": "ios/App/App/AppDelegate.swift",
-      "sha256": "481e2ad8672b14acbd3e3df65acdc6d046526ae542b7bec903cf842fc68d9e49"
+      "sha256": "cc983cd113a6771c7e4136c439f1bb0af9ac6295562c08807cb42f638f07a714"
     },
     {
       "path": "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png",
-      "sha256": "29e4777e319de3ee5a52c3a8004ec19d0568414004257e36d7c94a077d71c93b"
+      "sha256": "9f84db601194b140efbdca77e3f3c0cd3b8f293361fdd69c415546900db29d73"
     },
     {
       "path": "ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json",
@@ -54,15 +54,19 @@
     },
     {
       "path": "ios/App/App/Base.lproj/Main.storyboard",
-      "sha256": "7b7dc7acc67134bfaa80e5ce9c9068ba53db5369b9b70248aa7439fc2b09daae"
+      "sha256": "7c96fe8e4700a170547019513443951aa47c87dfd1eeea139f6c63262fdc0b00"
     },
     {
       "path": "ios/App/App/Info.plist",
-      "sha256": "6dc92021142f0e3eba9b718b789e60f31fdf52f270363ff7aa993b048d50bbd8"
+      "sha256": "61c5f49f12673f1b56ad92b7e8f3a674276da5ef1f8f6d1c6eb4efa02dff213b"
+    },
+    {
+      "path": "ios/App/App/MatchgoerAuth.swift",
+      "sha256": "d9b36c454a86d455a7e7f682dba6966ed9830e68ba997537a642bc7fb680b762"
     },
     {
       "path": "ios/App/App/SceneDelegate.swift",
-      "sha256": "738b9b96bb71d34d80cd8c1183cf7f8f6f2e789c64e46fb5fe6777a35ae12dfd"
+      "sha256": "8da2703dd7565f86dd45b69f48f7661b220fe58d22f31dbdec7d267bf41a9163"
     },
     {
       "path": "ios/App/App/capacitor.config.json",
@@ -102,11 +106,11 @@
     },
     {
       "path": "ios/App/App/public/bundle.css",
-      "sha256": "acc4e8ac649e33c765e35fe6a6539416a4e33b53faa73eba548cb988bc310706"
+      "sha256": "ea85b4ce7ce6425456ecb184469f8295850ca0ee9af6169403e25de7359c1cad"
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "521b9bd132c93f3fb69ba576892a73f6b848c4771063c81923f636549fccff23"
+      "sha256": "2e9b3d3747486388edef4d514ae5bdcf38f1209986283086db03beb158ace967"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -127,6 +131,10 @@
     {
       "path": "ios/App/App/public/google-g.png",
       "sha256": "d1ce9c2af0b10a7333abc99bc706f9a6a199e5b65bf3e3009624f076b8638e6a"
+    },
+    {
+      "path": "ios/App/App/public/google-sans-medium-JHCVSTAD.ttf",
+      "sha256": "81af36b42b8c5f66fb29fe04995d43ba3c6589b62ad34e9fe428fb2c162715a5"
     },
     {
       "path": "ios/App/App/public/index.html",
@@ -190,5 +198,5 @@
     }
   ],
   "version": "0.1.0",
-  "build": "3"
+  "build": "4"
 }

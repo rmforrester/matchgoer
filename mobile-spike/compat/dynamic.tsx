@@ -1,0 +1,1 @@
+import {lazy,Suspense,type ComponentType} from "react";export default function dynamic(loader:()=>Promise<{default:ComponentType<any>}>,options?:any){const C=lazy(loader);return function Dynamic(props:any){return <Suspense fallback={options?.loading?<options.loading/>:null}><C {...props}/></Suspense>}}
