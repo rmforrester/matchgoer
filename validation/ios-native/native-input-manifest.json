@@ -1,8 +1,8 @@
 {
-  "baseline": "222fd657d786e3f0bc3f9dc8e1c89fead48891fe",
+  "baseline": "1db414d6671933507b7619aabab0528553f99c8d",
   "capacitor_version": "8.5.3",
-  "archive_sha256": "c28835be49357a2d3df0be7d6af664d8a9281ed67ce8fdc1acf885897739d181",
-  "archive_bytes": 2169772,
+  "archive_sha256": "3bdff72e03b58211cdf209c94af097582dc978f81273b3856e7e7ce6b78ddb48",
+  "archive_bytes": 2169806,
   "archive_files": [
     {
       "path": "ios/.gitignore",
@@ -110,7 +110,7 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "2e9b3d3747486388edef4d514ae5bdcf38f1209986283086db03beb158ace967"
+      "sha256": "9e373360ade378aab4f48b55e5e1275a5d5a8b4f4aa10d828c9698f6eb84afdc"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -198,5 +198,5 @@
     }
   ],
   "version": "0.1.0",
-  "build": "4"
+  "build": "5"
 }
