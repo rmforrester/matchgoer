@@ -33,7 +33,7 @@ export default function AccountPage() {
     finally { setBusy(false); }
   }
   const section = "border-t border-[var(--tt-rule)] py-5 first:border-t-0";
-  return <AccountShell kicker="Your Matchgoer" title="My Account" intro="Your account, preferences and a way to get in touch.">
+  return <AccountShell kicker="Your Matchgoer" title="My Account" intro="Your account, preferences and a way to get in touch." showBrand={process.env.NEXT_PUBLIC_NATIVE_AUTH !== "true"}>
     <section aria-labelledby="your-account" className={section}><h2 id="your-account" className="tt-display text-2xl uppercase text-[var(--brand-interactive)]">Your Account</h2>
       {issue && <div role="status" className="mt-3 text-sm"><p>{issue === "expired" ? "Your session has ended. Sign in again to continue." : issue === "unlinked" ? "Finish confirming your email and signing in to connect your account." : "Matchgoer is temporarily unavailable. Your saved history has not been discarded."}</p>{issue === "unavailable" && <button className="min-h-11 font-bold underline" type="button" onClick={() => void refreshAccount()}>Try again</button>}</div>}
       {loading ? <p role="status" className="mt-3">Checking your account…</p> : authenticated ? <>
@@ -42,7 +42,7 @@ export default function AccountPage() {
           {error && <p role="alert" className="text-sm font-bold text-red-800">{error}</p>}{saved && <p role="status" className="text-sm font-bold text-[var(--brand-interactive)]">{saved}</p>}
           <button disabled={busy} className="tt-action px-4">{busy ? "Saving…" : "Save display name"}</button></form>
         <details className="mt-4 border-t border-[var(--tt-rule)] pt-2"><summary className="min-h-11 cursor-pointer list-none content-center font-bold focus-visible:outline-2 [&::-webkit-details-marker]:hidden">Change password</summary><PasswordUpdateForm /></details>
-      </> : !loading && issue !== "unavailable" && <Link href={signinRoute("/account")} className="tt-action mt-3 inline-flex min-h-11 items-center justify-center px-4">Sign in to your account</Link>}
+      </> : !loading && issue !== "unavailable" && <Link href={signinRoute(process.env.NEXT_PUBLIC_NATIVE_AUTH === "true" ? "/my-football?tab=interested" : "/account")} className="tt-action mt-3 inline-flex min-h-11 items-center justify-center px-4">Sign in to your account</Link>}
     </section>
     <section aria-labelledby="preferences" className={section}><h2 id="preferences" className="tt-display mb-3 text-2xl uppercase text-[var(--brand-interactive)]">Preferences</h2><AnalyticsPreferences /></section>
     <section aria-labelledby="privacy-data" className={section}><h2 id="privacy-data" className="tt-display mb-3 text-2xl uppercase text-[var(--brand-interactive)]">Privacy &amp; Data</h2>

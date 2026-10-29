@@ -3,6 +3,7 @@ import Link from "./compat/link";
 import Image from "next/image";
 import {useLocation} from "./compat/navigation";
 import {useAuth} from "../frontend/app/components/AuthProvider";
+import {signinRoute} from "../frontend/lib/auth-flow";
 import "./native-navigation.css";
 const tabs=[
  {label:"Discover",href:"/",icon:<><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>},
@@ -12,7 +13,7 @@ const tabs=[
 ];
 export default function NativeNavigation(){
  const url=useLocation();const path=url.split("?")[0];const query=new URLSearchParams(url.split("?")[1]);
- const {logoutError}=useAuth();const [keyboard,setKeyboard]=useState(false);
+ const {logoutError,authenticated}=useAuth();const [keyboard,setKeyboard]=useState(false);
  useEffect(()=>{const viewport=window.visualViewport;if(!viewport)return;
   let fullHeight=viewport.height;
   const update=()=>{const editing=document.activeElement?.matches("input,textarea,select")==true;if(!editing)fullHeight=Math.max(fullHeight,viewport.height);setKeyboard(editing&&fullHeight-viewport.height>150);};
@@ -21,5 +22,5 @@ export default function NativeNavigation(){
  const active=path==="/"?"Discover":path==="/my-stadiums"||(path==="/my-football"&&query.get("tab")!=="interested")?"Grounds":path==="/interested"||path==="/my-football"||path.startsWith("/fixture/")?"Matchdays":"Account";
  return <><header className="native-header"><Link href="/" aria-label="Matchgoer home"><Image src="/brand/matchgoer-wordmark-primary.png" alt="Matchgoer" width="4202" height="714"/></Link></header>
  {logoutError&&path!=="/account"&&<p role="alert">{logoutError}</p>}
- <nav className="native-tabs" aria-label="Primary navigation" hidden={keyboard}>{tabs.map(tab=><Link key={tab.label} href={tab.href} aria-label={tab.label} aria-current={active===tab.label?"page":undefined}><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{tab.icon}</svg><span>{tab.label}</span></Link>)}</nav></>;
+ <nav className="native-tabs" aria-label="Primary navigation" hidden={keyboard}>{tabs.map(tab=><Link key={tab.label} href={tab.label === "Account" && !authenticated ? signinRoute() : tab.href} aria-label={tab.label} aria-current={active===tab.label?"page":undefined}><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{tab.icon}</svg><span>{tab.label}</span></Link>)}</nav></>;
 }

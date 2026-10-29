@@ -2,12 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-export default function AccountShell({ kicker, title, intro, children }: { kicker: string; title: string; intro: string; children: ReactNode }) {
+export default function AccountShell({ kicker, title, intro, children, showBrand = true }: { kicker: string; title: string; intro: string; children: ReactNode; showBrand?: boolean }) {
   return <main className="mx-auto w-full max-w-xl px-4 py-8 sm:px-6 sm:py-12">
-    <Link href="/" aria-label="Matchgoer home" className="inline-flex">
+    {showBrand && <Link href="/" aria-label="Matchgoer home" className="inline-flex">
       <Image src="/brand/matchgoer-wordmark-primary.png" alt="Matchgoer" width={4202} height={714} className="h-auto w-36" priority />
-    </Link>
-    <section className="tt-panel mt-5 overflow-hidden">
+    </Link>}
+    <section className={`tt-panel ${showBrand ? "mt-5 " : ""}overflow-hidden`}>
       <div className="border-b-2 border-[var(--tt-ink)] bg-[var(--brand-interactive)] px-5 py-3 text-[var(--tt-paper)]"><p className="text-xs font-extrabold uppercase tracking-[0.14em]">{kicker}</p></div>
       <div className="p-5 sm:p-7">
         <h1 className="tt-display text-4xl leading-none sm:text-5xl">{title}</h1>

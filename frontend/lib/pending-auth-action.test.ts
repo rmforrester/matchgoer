@@ -9,6 +9,7 @@ import {
 } from "./pending-auth-action.ts";
 import {
   applyPendingWhosGoing,
+  prepareSigninConversion,
   clearConversionHandoff,
   clearPendingWhosGoing,
   loadConversionHandoff,
@@ -94,3 +95,27 @@ test("applies Who's Going once and verifies authoritative Interested state", asy
   assert.equal(reads, 1);
 });
 
+
+
+test("native sign-in keeps the current destination without changing the transfer credential", async () => {
+  const previous = process.env.NEXT_PUBLIC_NATIVE_AUTH;
+  try {
+    for (const native of ["true", "false"]) {
+      process.env.NEXT_PUBLIC_NATIVE_AUTH = native;
+      for (const handoffToken of [undefined, "e".repeat(40)]) {
+        const target = memoryStorage();
+        const original = { token: "h".repeat(40), expiresAt: "2099-01-01T00:00:00Z", returnTo: "/account" };
+        saveConversionHandoff(original, target);
+        const actual = await prepareSigninConversion("/my-football?tab=visited", false, handoffToken, target, {
+          getAnonymousSession: async () => { throw new Error("Must reuse existing checkpoint"); },
+          issueHandoff: async () => { throw new Error("Must not replace the transfer credential"); },
+        });
+        assert.deepEqual(actual, { ...original, returnTo: native === "true" ? "/my-football?tab=visited" : "/account" });
+        assert.deepEqual(loadConversionHandoff(Date.now(), target), actual);
+      }
+    }
+  } finally {
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_NATIVE_AUTH;
+    else process.env.NEXT_PUBLIC_NATIVE_AUTH = previous;
+  }
+});

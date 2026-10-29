@@ -1,3 +1,4 @@
+import { safeReturnTo } from "./auth-flow.ts";
 import { parsePendingWhosGoingAction, type PendingWhosGoingAction } from "./pending-auth-action.ts";
 import { anonymousApi } from "./api.ts";
 
@@ -58,6 +59,13 @@ export async function prepareSigninConversion(
   } = {},
 ) {
   let checkpoint = loadConversionHandoff(Date.now(), target);
+  // Native navigation intent belongs to this sign-in attempt, not an older
+  // transfer checkpoint. Keep its credential and expiry unchanged; the server
+  // still validates ownership, expiry and one-time transfer.
+  if (process.env.NEXT_PUBLIC_NATIVE_AUTH === "true" && checkpoint) {
+    checkpoint = { ...checkpoint, returnTo: safeReturnTo(returnTo) };
+    saveConversionHandoff(checkpoint, target);
+  }
   if (handoffToken) return checkpoint;
 
   // A conversion explicitly initiated from an anonymous product action must be

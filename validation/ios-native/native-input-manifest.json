@@ -1,8 +1,8 @@
 {
-  "baseline": "1db414d6671933507b7619aabab0528553f99c8d",
+  "baseline": "fa2c9d0d831fbf7431abb6b3da8f40382c8b1edf",
   "capacitor_version": "8.5.3",
-  "archive_sha256": "3bdff72e03b58211cdf209c94af097582dc978f81273b3856e7e7ce6b78ddb48",
-  "archive_bytes": 2169806,
+  "archive_sha256": "aef29fe825736d8a8352e08e7a7552b06fa571b50cfc06d7199fc54ab4790829",
+  "archive_bytes": 2181957,
   "archive_files": [
     {
       "path": "ios/.gitignore",
@@ -22,7 +22,7 @@
     },
     {
       "path": "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png",
-      "sha256": "9f84db601194b140efbdca77e3f3c0cd3b8f293361fdd69c415546900db29d73"
+      "sha256": "7871149414fcdf5bed97f6ca9c38a443eac8ed1103e99c835799297ce1dcce95"
     },
     {
       "path": "ios/App/App/Assets.xcassets/AppIcon.appiconset/Contents.json",
@@ -110,7 +110,7 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "9e373360ade378aab4f48b55e5e1275a5d5a8b4f4aa10d828c9698f6eb84afdc"
+      "sha256": "862da875576d26077cb7ba5b187f376de00188a446dffc832d7ff6d71ad51a92"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -198,5 +198,5 @@
     }
   ],
   "version": "0.1.0",
-  "build": "5"
+  "build": "6"
 }
