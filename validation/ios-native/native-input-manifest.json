@@ -1,8 +1,8 @@
 {
-  "baseline": "fa2c9d0d831fbf7431abb6b3da8f40382c8b1edf",
+  "baseline": "c47c4ddaf845b2349ce9e3314b08609a294b9004",
   "capacitor_version": "8.5.3",
-  "archive_sha256": "aef29fe825736d8a8352e08e7a7552b06fa571b50cfc06d7199fc54ab4790829",
-  "archive_bytes": 2181957,
+  "archive_sha256": "23d9d9d68bdd6b18333769aaf049b088c66a6f60aa28b8ff419889dcb36bd773",
+  "archive_bytes": 2184734,
   "archive_files": [
     {
       "path": "ios/.gitignore",
@@ -78,7 +78,7 @@
     },
     {
       "path": "ios/App/App/public/app.css",
-      "sha256": "6f09b958c1277da5b9dbb0faeda1f6a82c84773288f7f984fea271c5ac8d0b27"
+      "sha256": "989edfcb4dce99972431357606b85644a2192eea4082ad0498867c56eef6e8d7"
     },
     {
       "path": "ios/App/App/public/brand/matchgoer-ball-mark-512.png",
@@ -110,7 +110,7 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "862da875576d26077cb7ba5b187f376de00188a446dffc832d7ff6d71ad51a92"
+      "sha256": "5bc62ea1881485a84c77f2353bbc073f72cb392d2f101b1495d8a5157ecfd4be"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -198,5 +198,5 @@
     }
   ],
   "version": "0.1.0",
-  "build": "6"
+  "build": "7"
 }
