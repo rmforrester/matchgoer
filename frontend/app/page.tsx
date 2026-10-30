@@ -26,7 +26,7 @@ import DiscoverShortlist from "./components/DiscoverShortlist";
 import AccountConversionPrompt from "./components/AccountConversionPrompt";
 import type { Fixture } from "./types/fixture";
 import type { InterestedFixture } from "./types/interested";
-import { readDiscoverState, writeDiscoverState, DISCOVER_FRESH_MS, type AppliedSearch, type DiscoverState } from "../lib/discover-state";
+import { expireDiscoverIfInactive, discoverExpiredEvent, discoverCacheRevision, readDiscoverState, writeDiscoverState, DISCOVER_FRESH_MS, type AppliedSearch, type DiscoverState } from "../lib/discover-state";
 import type { MapSearchArea } from "./components/FixtureMap";
 import {
   bufferedApiDateBound,
@@ -45,6 +45,7 @@ import {
   normalizeDiscoveryStartDate,
   resolvedLocationTransition,
   selectDiscoveryFixtures,
+  orderFixturesByProximity,
   upcomingWeekendDateRange,
 } from "../lib/fixtureDiscovery";
 
@@ -83,7 +84,9 @@ type DiscoveryRequestContext = {
 
 export default function Home() {
   const { accountKey } = useAuth();
-  return <DiscoverContent key={accountKey} />;
+  const [reset, setReset] = useState(0);
+  useEffect(() => { const expired = () => setReset(value => value + 1); window.addEventListener(discoverExpiredEvent, expired); return () => window.removeEventListener(discoverExpiredEvent, expired); }, []);
+  return <DiscoverContent key={`${accountKey}:${reset}`} />;
 }
 
 function DiscoverContent() {
@@ -140,7 +143,9 @@ function DiscoverContent() {
   const [restoreArea, setRestoreArea] = useState<MapSearchArea | null>(null);
   const resultsAt = useRef(0);
   const stateToKeep = useRef<DiscoverState | null>(null);
-  const restoreScroll = useRef<number | null>(null);
+  const cacheRevision = useRef(discoverCacheRevision());
+  const [whatsOnExpanded, setWhatsOnExpanded] = useState(false);
+  const [shortlistExpanded, setShortlistExpanded] = useState(false);
   const leavingDiscover = useRef(false);
   const [editingSearch, setEditingSearch] =
     useState(true);
@@ -316,7 +321,7 @@ const loadVisitedStadiums = () => {
       resultsAt.current = Date.now();
       setFixtures(response.data);
       if (!context.restoring) trackEvent("location_search", { search_method: source, result_count_bucket: resultBucket(Number(response.headers["x-total-matches"] ?? response.data.length)) });
-      if (!context.restoring) setSelectedFixtureId(null);
+      if (!context.restoring) { setSelectedFixtureId(null); setWhatsOnExpanded(false); setShortlistExpanded(false); }
       setAppliedSearch(nextSearch);
       setLocationQuery(nextSearch.locationName);
       if (source === "map") setManualLocationSelected(false);
@@ -524,6 +529,7 @@ const loadVisitedStadiums = () => {
     const frame = window.requestAnimationFrame(() => {
     leavingDiscover.current = false;
     const saved = readDiscoverState();
+    cacheRevision.current = discoverCacheRevision();
     if (saved) {
       setAppliedSearch(saved.appliedSearch); setFixtures(saved.fixtures); setVenues(saved.venues);
       setLocationQuery(saved.locationQuery); setDraftCoordinates(saved.draftCoordinates);
@@ -533,7 +539,7 @@ const loadVisitedStadiums = () => {
       setHasCompletedDiscovery(saved.resultsAt > 0);
       setSelectedFixtureId(saved.fixtures.some(row => row.fixture_id === saved.selectedFixtureId) ? saved.selectedFixtureId : null);
       resultsAt.current = saved.resultsAt; searchArea.current = saved.searchArea;
-      restoreScroll.current = saved.scrollY;
+      setWhatsOnExpanded(saved.whatsOnExpanded ?? false); setShortlistExpanded(saved.shortlistExpanded ?? false);
     }
     setRestored(true);
     });
@@ -546,28 +552,23 @@ const loadVisitedStadiums = () => {
       draftCoordinates, radius, startDate: selectedStartDate, endDate: selectedEndDate,
       leagueIds: selectedLeagueIds, showAllStadiums, editingSearch, mapPosition,
       selectedFixtureId, searchArea: searchArea.current, resultsAt: resultsAt.current,
-      scrollY: restoreScroll.current ?? window.scrollY };
+      scrollY: 0, whatsOnExpanded, shortlistExpanded };
     stateToKeep.current = snapshot;
     // Never replace the last completed search with a half-resolved request.
-    if (!loading && !locationLoading && !leavingDiscover.current) writeDiscoverState(snapshot);
+    if (!loading && !locationLoading && !leavingDiscover.current) writeDiscoverState(snapshot, undefined, cacheRevision.current);
   }, [restored, appliedSearch, fixtures, venues, locationQuery, draftCoordinates, radius,
     selectedStartDate, selectedEndDate, selectedLeagueIds, showAllStadiums, editingSearch,
-    mapPosition, selectedFixtureId, loading, locationLoading]);
+    mapPosition, selectedFixtureId, loading, locationLoading, whatsOnExpanded, shortlistExpanded]);
 
   useEffect(() => {
     const capture = () => {
       if (stateToKeep.current && !discoveryRequest.current && !leavingDiscover.current) {
-        stateToKeep.current.scrollY = window.scrollY;
-        writeDiscoverState(stateToKeep.current);
+        stateToKeep.current.scrollY = 0;
+        writeDiscoverState(stateToKeep.current, undefined, cacheRevision.current);
       }
     };
-    let timer: number | undefined;
-    const onScroll = () => {
-      if (stateToKeep.current && !discoveryRequest.current && !leavingDiscover.current && restoreScroll.current === null) stateToKeep.current.scrollY = window.scrollY;
-      window.clearTimeout(timer); timer = window.setTimeout(() => { if (stateToKeep.current && !discoveryRequest.current) writeDiscoverState(stateToKeep.current); }, 100);
-    };
     // Capture before the router resets scroll, and ignore that reset as user input.
-    const leaving = () => { capture(); leavingDiscover.current = true; window.clearTimeout(timer); };
+    const leaving = () => { capture(); leavingDiscover.current = true; };
     const navigationClick = (event: MouseEvent) => {
       const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
       if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.getAttribute("target") === "_blank") return;
@@ -577,15 +578,15 @@ const loadVisitedStadiums = () => {
     const backNavigation = () => { if (window.location.pathname !== "/") leaving(); };
     document.addEventListener("click", navigationClick, true);
     window.addEventListener("popstate", backNavigation);
-    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pagehide", capture);
-    return () => { window.clearTimeout(timer); window.removeEventListener("scroll", onScroll); window.removeEventListener("pagehide", capture); document.removeEventListener("click", navigationClick, true); window.removeEventListener("popstate", backNavigation); if (stateToKeep.current && !discoveryRequest.current) writeDiscoverState(stateToKeep.current); };
+    return () => { window.removeEventListener("pagehide", capture); document.removeEventListener("click", navigationClick, true); window.removeEventListener("popstate", backNavigation); if (stateToKeep.current && !discoveryRequest.current) writeDiscoverState(stateToKeep.current, undefined, cacheRevision.current); };
   }, []);
 
   useEffect(() => {
     if (!restored || !appliedSearch) return;
     let lastAttempt = 0;
     const refresh = () => {
+      if (expireDiscoverIfInactive() || cacheRevision.current !== discoverCacheRevision()) return;
       if (document.visibilityState === "hidden" || discoveryRequest.current || !searchArea.current ||
         Date.now() - resultsAt.current < DISCOVER_FRESH_MS || Date.now() - lastAttempt < 60_000) return;
       lastAttempt = Date.now();
@@ -787,6 +788,8 @@ const loadVisitedStadiums = () => {
     [appliedSearch, discoveryNow, endDate, fixtures, radius, startDate]
   );
 
+  const proximityFixtures = useMemo(() => orderFixturesByProximity(visibleFixtures, appliedSearch), [visibleFixtures, appliedSearch]);
+
   const shortlistFixtures = useMemo(() => discoveryNow ? interestedFixtures
     .filter((fixture) => !fixture.kickoff_passed && new Date(fixture.fixture_date).getTime() > discoveryNow.getTime())
     .sort((left, right) => new Date(left.fixture_date).getTime() - new Date(right.fixture_date).getTime()) : [], [discoveryNow, interestedFixtures]);
@@ -888,7 +891,6 @@ const loadVisitedStadiums = () => {
         )}
       </section>
 
-      {!appliedSearch && <TerracePublicGallery mode="preview" />}
 
       {/* Map */}
 
@@ -919,7 +921,6 @@ const loadVisitedStadiums = () => {
   initialPosition={restorePosition}
   searchedArea={restoreArea}
   onPositionChange={setMapPosition}
-  onMapReady={() => { if (restoreScroll.current !== null) { window.scrollTo(0, restoreScroll.current); restoreScroll.current = null; } }}
   userLocation={userLocation}
   selectedFixtureId={selectedFixtureId}
   onFixtureSelect={setSelectedFixtureId}
@@ -930,10 +931,12 @@ const loadVisitedStadiums = () => {
             </div>
             {saveError && <p role="alert" className="mt-3 text-sm font-bold text-[var(--brand-interactive)]">{saveError} <button type="button" onClick={() => { setSaveError(""); void api.get<InterestedFixture[]>("/interested").then(response => { if (!Array.isArray(response.data)) throw new Error("Invalid saved list"); setInterestedFixtures(response.data); setInterestedFixtureIds(response.data.map(row => row.fixture_id)); }).catch(() => setSaveError("Your saved matchdays could not be checked. Please try again.")); }} className="min-h-11 underline">Try again</button></p>}
             <NearbyFixtureCarousel
-              fixtures={visibleFixtures}
+              fixtures={proximityFixtures}
+              expanded={whatsOnExpanded}
+              onExpandedChange={setWhatsOnExpanded}
               showDistance={appliedSearch.mode !== "viewport"}
   distanceOrigin={appliedSearch.locationName}
-              totalMatches={appliedSearch.totalMatches}
+              totalMatches={appliedSearch.resultsLimited ? appliedSearch.totalMatches : visibleFixtures.length}
               resultsLimited={appliedSearch.resultsLimited}
               interestedFixtureIds={interestedFixtureIds}
               updatingFixtureIds={updatingInterestedFixtureIds}
@@ -960,8 +963,8 @@ const loadVisitedStadiums = () => {
         <p className="tt-kicker py-4" aria-live="polite">Loading fixtures...</p>
       )}
 
-      <DiscoverShortlist fixtures={shortlistFixtures} discoveredFixtures={fixtures} updatingFixtureIds={updatingInterestedFixtureIds} onRemove={toggleInterested} />
-      {appliedSearch && <TerracePublicGallery mode="preview" />}
+      <TerracePublicGallery mode="preview" />
+      <DiscoverShortlist fixtures={shortlistFixtures} discoveredFixtures={fixtures} expanded={shortlistExpanded} onExpandedChange={setShortlistExpanded} updatingFixtureIds={updatingInterestedFixtureIds} onRemove={toggleInterested} />
 
     </main>
   );

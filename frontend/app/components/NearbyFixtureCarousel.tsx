@@ -11,6 +11,8 @@ import FixtureTeams from "./FixtureTeams";
 
 type Props = {
   fixtures: Fixture[];
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
   showDistance: boolean;
   distanceOrigin?: string;
   totalMatches: number;
@@ -22,7 +24,7 @@ type Props = {
   onToggleInterested: (fixtureId: number) => void;
 };
 
-export default function NearbyFixtureCarousel({ fixtures, showDistance, distanceOrigin, totalMatches, resultsLimited, interestedFixtureIds, updatingFixtureIds, selectedFixtureId, onFixtureSelect, onToggleInterested }: Props) {
+export default function NearbyFixtureCarousel({ fixtures, expanded, onExpandedChange, showDistance, distanceOrigin, totalMatches, resultsLimited, interestedFixtureIds, updatingFixtureIds, selectedFixtureId, onFixtureSelect, onToggleInterested }: Props) {
   if (fixtures.length === 0) return null;
 
   return (
@@ -35,11 +37,11 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, distance
           {resultsLimited ? `${fixtures.length} of ${totalMatches}` : totalMatches} {totalMatches === 1 ? "match" : "matches"}
         </span>
         </div>
-        <p className="mt-1 text-[11px] leading-4 text-[var(--mg-muted)]">Earliest kick-off first · Times shown in your timezone</p>
+        <p className="mt-1 text-[11px] leading-4 text-[var(--mg-muted)]">Nearest to your searched map centre first · Times shown in your timezone</p>
       </div>
 
-      <div className="grid min-w-0 items-start gap-2 md:grid-cols-2 xl:grid-cols-3" aria-label="Nearby fixtures">
-        {fixtures.map((fixture) => {
+      <div className="grid min-w-0 items-start gap-2 md:grid-cols-2 xl:grid-cols-3" id="nearby-fixtures-list" aria-label="Nearby fixtures">
+        {(expanded ? fixtures : fixtures.slice(0, 5)).map((fixture) => {
           const kickoff = new Date(fixture.fixture_date);
           const statusGroup = fixtureStatusGroup(fixture.status);
           const hasResult = statusGroup === "finished" && fixture.home_goals !== null && fixture.away_goals !== null;
@@ -103,6 +105,7 @@ export default function NearbyFixtureCarousel({ fixtures, showDistance, distance
           );
         })}
       </div>
+      {fixtures.length > 5 && <button type="button" aria-expanded={expanded} aria-controls="nearby-fixtures-list" className="tt-action tt-action-secondary mt-4 min-h-11 px-4" onClick={() => onExpandedChange(!expanded)}>{expanded ? "SHOW LESS" : "SHOW MORE MATCHES"}</button>}
     </section>
   );
 }

@@ -2431,34 +2431,57 @@ def update_venue_visit_fixture(
         ).with_for_update().first()
         if visit is None:
             raise HTTPException(status_code=404, detail="Visit not found")
-        if data.fixture_id is None:
-            visit.fixture_id = None
-            visit.source = "manual"
-        else:
-            fixture = db.query(Fixture).filter(Fixture.fixture_id == data.fixture_id).first()
+        fields = data.model_fields_set
+        editing_date = "visit_date" in fields
+        if editing_date and visit.fixture_id is not None:
+            raise HTTPException(status_code=409, detail="Only manual visits can have their date edited")
+        next_date = data.visit_date if editing_date else visit.visit_date
+        next_fixture = data.fixture_id if "fixture_id" in fields else visit.fixture_id
+        if editing_date:
+            _validate_attendance_date(next_date, data.calendar_utc_offset_minutes)
+        if "fixture_id" in fields and next_fixture is not None:
+            fixture = db.query(Fixture).filter(Fixture.fixture_id == next_fixture).first()
             if fixture is None:
                 raise HTTPException(status_code=404, detail="Fixture not found")
             if resolution(db).canonical(fixture.venue_id) != venue_id:
                 raise HTTPException(status_code=400, detail="Fixture was not played at this venue")
-            _validate_attendance_date(visit.visit_date)
+            _validate_attendance_date(next_date)
             _validate_attendance_fixture(fixture)
             duplicate = db.query(VenueVisit.visit_id).filter(
                 VenueVisit.user_id == identity.user_id,
-                VenueVisit.fixture_id == data.fixture_id,
+                VenueVisit.fixture_id == next_fixture,
                 VenueVisit.visit_id != visit_id,
             ).first()
             if duplicate is not None:
                 raise HTTPException(status_code=409, detail="That match is already in your history")
-            visit.fixture_id = fixture.fixture_id
-            visit.source = "fixture_confirmation"
-            if visit.visit_date is None:
-                visit.visit_date = fixture_datetime_utc(fixture.fixture_date).date()
+            if next_date is None:
+                next_date = fixture_datetime_utc(fixture.fixture_date).date()
+        if (editing_date or "fixture_id" in fields) and next_fixture is None:
+            duplicate = db.query(VenueVisit.visit_id).filter(
+                VenueVisit.user_id == identity.user_id,
+                VenueVisit.venue_id.in_(resolution(db).equivalents(venue_id)),
+                VenueVisit.fixture_id.is_(None),
+                VenueVisit.visit_date == next_date,
+                VenueVisit.visit_id != visit_id,
+            ).first()
+            if duplicate is not None:
+                raise HTTPException(status_code=409, detail="Another visit already has this date, or is undated. Your visits have not been combined.")
+        # Validate the whole edit before touching the row. Save Changes is one
+        # transaction, including an explicitly selected optional fixture.
+        if editing_date or "fixture_id" in fields:
+            visit.visit_date = next_date
+        if "fixture_id" in fields:
+            visit.fixture_id = next_fixture
+            visit.source = "fixture_confirmation" if next_fixture is not None else "manual"
         db.commit()
         db.refresh(visit)
         return canonical_row(db, visit)
     except HTTPException:
         db.rollback()
         raise
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="A conflicting visit already exists. Your visits have not been combined.")
     except Exception:
         db.rollback()
         raise

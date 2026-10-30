@@ -1,3 +1,4 @@
+import { watchDiscoverActivity } from "../frontend/lib/discover-state";
 import {useEffect,useState} from "react";
 import Link from "./compat/link";
 import Image from "next/image";
@@ -5,6 +6,7 @@ import {useLocation} from "./compat/navigation";
 import {useAuth} from "../frontend/app/components/AuthProvider";
 import {signinRoute} from "../frontend/lib/auth-flow";
 import "./native-navigation.css";
+import {scrollPageToTop} from "../frontend/lib/navigation-scroll";
 const tabs=[
  {label:"Discover",href:"/",icon:<><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>},
  {label:"Matchdays",href:"/my-football?tab=interested",icon:<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6m10-6v6M3 11h18m-13 4h2m4 0h2"/></>},
@@ -12,7 +14,10 @@ const tabs=[
  {label:"Account",href:"/account",icon:<><circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></>},
 ];
 export default function NativeNavigation(){
+ useEffect(()=>watchDiscoverActivity(),[]);
  const url=useLocation();const path=url.split("?")[0];const query=new URLSearchParams(url.split("?")[1]);
+ useEffect(()=>scrollPageToTop(),[url]);
+ useEffect(()=>{const previous=history.scrollRestoration;history.scrollRestoration="manual";return ()=>{history.scrollRestoration=previous;};},[]);
  const {logoutError,authenticated}=useAuth();const [keyboard,setKeyboard]=useState(false);
  useEffect(()=>{const viewport=window.visualViewport;if(!viewport)return;
   let fullHeight=viewport.height;

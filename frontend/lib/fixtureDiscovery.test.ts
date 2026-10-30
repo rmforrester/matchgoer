@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  orderFixturesByProximity,
   applyMapAreaOrigin,
   applyUserLocationEvent,
   beginGeolocationTransition,
@@ -270,7 +271,7 @@ test("My Grounds keeps Add a ground secondary and visited dots light but tappabl
 test("visits can attach, change, or remove an optional fixture without another model", () => {
   assert.match(groundsSource, /visits\/\$\{visitId\}/);
   assert.match(groundsSource, /fixture_id: fixtureId/);
-  assert.match(groundsSource, /Find match/);
+  assert.match(groundsSource, /MATCHES AROUND YOUR DATE/);
   assert.match(groundsSource, /Change match/);
   assert.match(groundsSource, /Remove link/);
   assert.match(groundsSource, /visit\.visit_date \? knownDate\(visit\.visit_date\) : "Date not recorded"/);
@@ -727,4 +728,16 @@ test("TIMEOUT does not claim permission was denied", () => {
 test("unsupported and insecure-context fallbacks remain distinct", () => {
   assert.equal(GEOLOCATION_UNSUPPORTED_MESSAGE, "Location isn’t available in this browser. Search for a city.");
   assert.equal(GEOLOCATION_INSECURE_MESSAGE, "Use HTTPS for current location, or search for a city.");
+});
+
+
+test("Discover proximity uses canonical coordinates, keeps ties stable and leaves source untouched", () => {
+  const fixtures = [decisionFixture({fixture_id: 1, latitude: 52, longitude: 0, distance_miles: 0}),
+    decisionFixture({fixture_id: 2, latitude: 51, longitude: 0, distance_miles: 999}),
+    decisionFixture({fixture_id: 3, latitude: 51, longitude: 0}),
+    decisionFixture({fixture_id: 4, latitude: Number.NaN})];
+  assert.deepEqual(orderFixturesByProximity(fixtures, {latitude:51,longitude:0}).map(f => f.fixture_id), [2,3,1,4]);
+  assert.deepEqual(fixtures.map(f => f.fixture_id), [1,2,3,4]);
+  assert.deepEqual(orderFixturesByProximity(fixtures, {latitude:52,longitude:0}).map(f => f.fixture_id), [1,2,3,4]);
+  assert.deepEqual(orderFixturesByProximity(fixtures, null), fixtures);
 });

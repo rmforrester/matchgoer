@@ -349,3 +349,12 @@ export function selectDiscoveryFixtures(
         || left.fixture_id - right.fixture_id
     );
 }
+
+
+export function orderFixturesByProximity(fixtures: Fixture[], center: { latitude: number; longitude: number } | null) {
+  const valid = (p: { latitude: number; longitude: number }) => Number.isFinite(p.latitude) && Math.abs(p.latitude) <= 90 && Number.isFinite(p.longitude) && Math.abs(p.longitude) <= 180;
+  if (!center || !valid(center)) return [...fixtures];
+  return fixtures.map((fixture, index) => ({ fixture, index,
+    distance: valid(fixture) ? coordinateDistanceMiles(center, fixture) : Infinity,
+  })).sort((a, b) => a.distance - b.distance || a.index - b.index).map(row => row.fixture);
+}

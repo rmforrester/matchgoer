@@ -1,10 +1,12 @@
 "use client";
+import { watchDiscoverActivity } from "../../lib/discover-state";
 
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "./AuthProvider";
+import { scrollPageToTop } from "../../lib/navigation-scroll";
 import ModeratorAttentionDot from "./ModeratorAttentionDot";
 
 const subscribeToHydration = () => () => {};
@@ -12,8 +14,12 @@ const clientHydrationSnapshot = () => true;
 const serverHydrationSnapshot = () => false;
 
 export default function Navigation() {
+  useEffect(() => watchDiscoverActivity(), []);
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const route = `${pathname}?${searchParams.toString()}`;
+  useEffect(() => scrollPageToTop(), [route]);
+  useEffect(() => { const previous = history.scrollRestoration; history.scrollRestoration = "manual"; return () => { history.scrollRestoration = previous; }; }, []);
   const { authenticated, loading, issue, logoutError, profile, email } = useAuth();
   const [accountOpen, setAccountOpen] = useState(false);
   const accountControl = useRef<HTMLDivElement>(null);

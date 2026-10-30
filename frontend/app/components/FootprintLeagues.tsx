@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { scrollExpandedHeading } from "../../lib/navigation-scroll";
 import GroundMatchdays from "./GroundMatchdays";
 import type { FootprintSummary, MyGround } from "../types/grounds";
 import { competitionsForGrounds, type FootprintPeriod } from "../../lib/football-footprint";
@@ -14,11 +15,11 @@ export default function FootprintLeagues({ grounds, footprint, period }: {
   const otherGrounds = grounds.filter(ground => !classified.has(ground.venue_id));
   return <div className="py-2">
     {seasons.map(season => <details key={season} open className="border-b border-[var(--tt-rule)]">
-      <summary className="tt-display min-h-11 cursor-pointer py-3 text-xl leading-none text-[var(--tt-ink)]">{season}</summary>
+      <summary onClick={event => { if (!(event.currentTarget.parentElement as HTMLDetailsElement).open) scrollExpandedHeading(event.currentTarget); }} className="tt-display min-h-11 cursor-pointer py-3 text-xl leading-none text-[var(--tt-ink)]">{season}</summary>
       <ul className="pb-2 pl-2">{competitions.filter(competition => competition.season_label === season).map(competition => {
         const count = period === "lifetime" ? competition.lifetime_clubs : competition.season_clubs;
         return <li key={`${competition.competition_id}-${competition.season}`}><details>
-          <summary className="min-h-11 cursor-pointer py-3 text-sm marker:text-[var(--brand-interactive)]">
+          <summary onClick={event => { if (!(event.currentTarget.parentElement as HTMLDetailsElement).open) scrollExpandedHeading(event.currentTarget); }} className="min-h-11 cursor-pointer py-3 text-sm marker:text-[var(--brand-interactive)]">
             <span className="inline-flex w-[calc(100%-1.25rem)] items-start justify-between gap-2 align-top">
               <span className="min-w-0 break-words font-bold">{competition.name}</span>
               <span className="shrink-0 text-right text-xs font-bold text-[var(--brand-interactive)]">{competition.coverage === "ready" && count !== null ? <>{count} / {competition.total_clubs}<span className="sr-only"> clubs covered across the league</span></> : <>Coverage<br/>incomplete</>}</span>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-export default function AccountShell({ kicker, title, intro, children, showBrand = true }: { kicker: string; title: string; intro: string; children: ReactNode; showBrand?: boolean }) {
+export default function AccountShell({ kicker, title, intro, children, showBrand = process.env.NEXT_PUBLIC_NATIVE_AUTH !== "true" }: { kicker: string; title: string; intro: string; children: ReactNode; showBrand?: boolean }) {
   return <main className="mx-auto w-full max-w-xl px-4 py-8 sm:px-6 sm:py-12">
     {showBrand && <Link href="/" aria-label="Matchgoer home" className="inline-flex">
       <Image src="/brand/matchgoer-wordmark-primary.png" alt="Matchgoer" width={4202} height={714} className="h-auto w-36" priority />

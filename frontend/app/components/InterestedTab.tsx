@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { scrollExpandedHeading } from "../../lib/navigation-scroll";
 import { apiErrorMessage, emptyGuestHistory, historyLoadError } from "../../lib/api-error";
 import api, { apiAssetUrl } from "../../lib/api";
 import FixtureTeams from "./FixtureTeams";
@@ -196,7 +197,7 @@ function InterestedTabContent() {
     const eligible = fixture.venue_id !== null && eligibleAttendanceFixture(fixture, fixture.venue_id, matchdayNow);
     return <div><div className="grid grid-cols-1 gap-2 sm:grid-cols-3">{eligible && <button type="button" disabled={updatingFixtureIds.includes(fixture.fixture_id)} onClick={() => void resolveCompletedFixture(fixture, true)} className="tt-action flex min-w-0 items-center justify-center px-3 text-center">Yes, I was there</button>}<button type="button" disabled={updatingFixtureIds.includes(fixture.fixture_id)} onClick={() => void resolveCompletedFixture(fixture, false)} className="tt-action tt-action-secondary flex min-w-0 items-center justify-center px-3 text-center">{eligible ? "Didn't go" : "Remove from My Matchdays"}</button><Link href={`/fixture/${fixture.fixture_id}`} className="tt-action tt-action-secondary flex min-w-0 items-center justify-center px-3 text-center">View match</Link></div></div>;
   };
-  const sectionHeading = (section: "going" | "interested" | "awaiting" | "went", count: number) => <h2><button id={`${section}-heading`} type="button" aria-expanded={openSection === section} aria-controls={`${section}-content`} onClick={() => setOpenSection(current => current === section ? null : section)} className="tt-display flex min-h-14 w-full items-center justify-between py-3 text-left text-2xl text-[var(--brand-interactive)] focus-visible:outline-2 focus-visible:outline-offset-2"><span>{section === "awaiting" ? "DID YOU GO?" : section.toUpperCase()} ({count})</span><span aria-hidden="true">{openSection === section ? "−" : "+"}</span></button></h2>;
+  const sectionHeading = (section: "going" | "interested" | "awaiting" | "went", count: number) => <h2><button id={`${section}-heading`} type="button" aria-expanded={openSection === section} aria-controls={`${section}-content`} onClick={event => { if (openSection !== section) scrollExpandedHeading(event.currentTarget); setOpenSection(current => current === section ? null : section); }} className="tt-display flex min-h-14 w-full items-center justify-between py-3 text-left text-2xl text-[var(--brand-interactive)] focus-visible:outline-2 focus-visible:outline-offset-2"><span>{section === "awaiting" ? "DID YOU GO?" : section.toUpperCase()} ({count})</span><span aria-hidden="true">{openSection === section ? "−" : "+"}</span></button></h2>;
   const unlinkedAttendances = photoAttendances.filter(visit => !attendedFixtures.some(fixture => fixture.fixture_id === visit.fixture_id));
   return <main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10">
     <header className="border-b-[3px] border-[var(--tt-ink)] pb-4"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My Matchdays</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">The occasions you&apos;re looking forward to and the matches you remember.</p><p className="mt-1 text-xs text-[var(--tt-muted)]">Times shown in your current timezone.</p></header>

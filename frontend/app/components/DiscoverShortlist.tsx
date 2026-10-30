@@ -9,8 +9,10 @@ import FixtureTeams from "./FixtureTeams";
 
 import type { InterestedFixture } from "../types/interested";
 
-export default function DiscoverShortlist({ fixtures, discoveredFixtures, updatingFixtureIds, onRemove }: {
+export default function DiscoverShortlist({ fixtures, discoveredFixtures, expanded, onExpandedChange, updatingFixtureIds, onRemove }: {
   fixtures: InterestedFixture[];
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
   discoveredFixtures: Fixture[];
   updatingFixtureIds: number[];
   onRemove: (fixtureId: number) => void;
@@ -20,8 +22,9 @@ export default function DiscoverShortlist({ fixtures, discoveredFixtures, updati
   return <section className="tt-section-rule mt-8 pt-4" aria-labelledby="shortlist-heading">
     <p className="tt-kicker">Your shortlist</p>
     <h2 id="shortlist-heading" className="tt-display mt-1 text-3xl leading-none sm:text-4xl">Matches you&apos;re considering.</h2>
-    <div className="mt-4 grid min-w-0 items-start gap-2 md:grid-cols-2 xl:grid-cols-3">
-      {fixtures.map((fixture) => {
+    <p className="mt-2 text-xs font-bold">{fixtures.length} {fixtures.length === 1 ? "match" : "matches"}</p>
+    <div id="discover-shortlist" className="mt-4 grid min-w-0 items-start gap-2 md:grid-cols-2 xl:grid-cols-3">
+      {(expanded ? fixtures : fixtures.slice(0, 5)).map((fixture) => {
         const kickoff = new Date(fixture.fixture_date);
         const updating = updatingFixtureIds.includes(fixture.fixture_id);
         const competition = discoveredFixtures.find((item) => item.fixture_id === fixture.fixture_id)?.league_name;
@@ -51,5 +54,6 @@ export default function DiscoverShortlist({ fixtures, discoveredFixtures, updati
         </article>;
       })}
     </div>
+    {fixtures.length > 5 && <button type="button" aria-expanded={expanded} aria-controls="discover-shortlist" className="tt-action tt-action-secondary mt-4 min-h-11 px-4" onClick={() => onExpandedChange(!expanded)}>{expanded ? "SHOW LESS" : "SHOW MORE MATCHES"}</button>}
   </section>;
 }
