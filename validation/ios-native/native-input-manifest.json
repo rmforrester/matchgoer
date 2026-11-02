@@ -1,8 +1,8 @@
 {
-  "baseline": "b5db255b38821b720e73f46922100c624cd7a5b7",
+  "baseline": "dc35f2775153831decdabc92b19a3a378c8ae897",
   "capacitor_version": "8.5.3",
-  "archive_sha256": "fddaa25315f5ceae817959be369e3f2887fb0ed14deae23f874bacb8796f4798",
-  "archive_bytes": 2196379,
+  "archive_sha256": "a7f0e5d0d87e8e66cc8ba252e23d6e8c55ba0c4c107c7a5499b2be535f4accf9",
+  "archive_bytes": 2196907,
   "archive_files": [
     {
       "path": "ios/.gitignore",
@@ -86,7 +86,7 @@
     },
     {
       "path": "ios/App/App/public/app.css",
-      "sha256": "0e3cf371bc4f4a19a094652ac4f2fc430bee33b55983754297b69f736ed81c0a"
+      "sha256": "b1fd5b849f2f925cc404fab925e750f491844255e3936a174b14007f913dd522"
     },
     {
       "path": "ios/App/App/public/apple-signin-logo.png",
@@ -122,7 +122,7 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "dc85abfc2d5504b46bd7f434ff8608276467367b502f0a698b263dfca84e3cc4"
+      "sha256": "84b694c50bef8298eb73321803abc8b89495ada338659178147cfb87c7b00093"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -210,8 +210,8 @@
     }
   ],
   "version": "0.1.0",
-  "build": "10",
-  "gate": "Approved Build 10 internal TestFlight: Football Footprint presentation only",
+  "build": "11",
+  "gate": "Approved Build 11 internal TestFlight: accepted compact Football Footprint redesign",
   "candidate_source_files": [
     {
       "path": "backend/account_claim.py",
@@ -343,8 +343,8 @@
       "path": "frontend/app/components/FootprintLeagues.tsx",
       "status": "modified",
       "before_sha256": "b3f3765eb4f3366f2d841ab040f6ae442ebe6edaf14fc8c1bf71fd6ebac18575",
-      "sha256": "8724c28148ceec9c0a11ad3eceac1a95d03ba083458b0993e04a59f6e44c9683",
-      "lf_sha256": "9a77cd0256bea935e6e563fd7dd24212ea527eaba1a2589ce6195ed0950a6c24"
+      "sha256": "85ca0e2bfa1df728fd0af47545a5ee4a450544254908a1b9159023ed529eeeac",
+      "lf_sha256": "bdba564321e949cb13003c22f65654b5b8ae7750d9cedcc30dc278dc3d75f930"
     },
     {
       "path": "frontend/app/components/InterestedTab.tsx",
@@ -385,8 +385,8 @@
       "path": "frontend/app/components/VisitedTab.tsx",
       "status": "modified",
       "before_sha256": "816d451ef464f50a6db51b472dae1807e06e968a37d99a068f934020cddf3495",
-      "sha256": "fe4e4cfbdd2d35b893861b216c213f3b40de7695e969c1a7053e2f2041c71f31",
-      "lf_sha256": "5c966f73c6e70196179bd7d932110b174e8933ff0d3d286d94280e19763dfe1b"
+      "sha256": "ba05ca1b43cbea66a527199a2f89f920c20f31f8358a7d89005077d2ea949e07",
+      "lf_sha256": "983f9251ccad6f739f0add90f3f154ddcb6da30e9a5d99d96f6418a031dde0dd"
     },
     {
       "path": "frontend/app/fixture/[fixtureId]/page.tsx",
@@ -492,7 +492,12 @@
       "before_sha256": null,
       "sha256": "5b76b9a1aaba7b9b36887f958e170fc8a8d35bd0ab9a1663613477cd7e0fcd7d",
       "lf_sha256": "df3efdf388f09f7f411bf3dce20bfd74b37f6f122a7adba47b70c8c499ee98b8"
+    },
+    {
+      "path": "frontend/lib/fixtureDiscovery.test.ts",
+      "sha256": "9565af4aae87de1242790e95e18e7877b5e60d0ebdf2ca0a69fab60197340f03",
+      "lf_sha256": "67913d4402eb7921f1418b45c7b2866903e40a7886b48783936f94ca562f27ed"
     }
   ],
-  "reviewed_application_commit": "ad3c78d742780d88d9f8eccafa522e44dc51bd6d"
+  "reviewed_application_commit": "5247d5ddcf33a2abf7c936868a0f1446f3ee28b6"
 }
