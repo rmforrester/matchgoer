@@ -17,6 +17,7 @@ import GroundPhotograph from "./GroundPhotograph";
 import { footballCountry, footballPassport } from "../../lib/my-grounds";
 
 import FootprintLeagues from "./FootprintLeagues";
+import GroundMatchdays from "./GroundMatchdays";
 import { footprintGrounds, type FootprintPeriod } from "../../lib/football-footprint";
 
 const PersonalGroundMap = dynamic(() => import("./PersonalGroundMap"), { ssr: false });
@@ -362,6 +363,7 @@ function VisitedTabContent() {
     const singleManual = ground.visits.length === 1 && ground.visits[0].fixture_id === null ? ground.visits[0] : null;
     const open = expandedId === ground.venue_id && footprintVisitContext === context;
     return <div className="mt-2">
+      {!open && <GroundMatchdays key={projected.visits.map(visit => visit.visit_id).join(",")} ground={projected} />}
       <button type="button" aria-expanded={open} aria-controls={`ground-visits-${ground.venue_id}`} onClick={event => {
         if (open) { setExpandedId(null); matchSearch.current += 1; setEditingVisitId(null); setFixtureCandidates([]); setFindingMatches(false); }
         else {
@@ -369,7 +371,7 @@ function VisitedTabContent() {
           if (singleManual) editVisit(ground.venue_id, singleManual.visit_id);
           scrollExpandedHeading(event.currentTarget);
         }
-      }} className="min-h-11 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{open ? "Hide visits" : singleManual ? singleManual.visit_date ? "Edit visit date" : "Add visit date" : "Visit details"}</button>
+      }} className="tt-action tt-action-secondary mt-2 min-h-11 px-3 text-xs">{open ? "HIDE VISITS" : "VIEW VISITS"}</button>
       {open && renderVisitList(ground)}
     </div>;
   };
