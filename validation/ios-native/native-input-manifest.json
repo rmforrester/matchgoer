@@ -1,8 +1,8 @@
 {
-  "baseline": "c75c9b60aac6f8acfb24dda30e9eb4c3994f6e5b",
+  "baseline": "b5db255b38821b720e73f46922100c624cd7a5b7",
   "capacitor_version": "8.5.3",
-  "archive_sha256": "a78e48770829991f4d90100e57c7a6165d7d98409689abf6eca3c4ae22696c65",
-  "archive_bytes": 2196335,
+  "archive_sha256": "fddaa25315f5ceae817959be369e3f2887fb0ed14deae23f874bacb8796f4798",
+  "archive_bytes": 2196379,
   "archive_files": [
     {
       "path": "ios/.gitignore",
@@ -122,7 +122,7 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "8c3654c15d3336d5b79df4e03720750cd678109b0b3422677c4e81302f55081b"
+      "sha256": "dc85abfc2d5504b46bd7f434ff8608276467367b502f0a698b263dfca84e3cc4"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -210,8 +210,8 @@
     }
   ],
   "version": "0.1.0",
-  "build": "9",
-  "gate": "Approved Build 9 internal TestFlight: two UX corrections only",
+  "build": "10",
+  "gate": "Approved Build 10 internal TestFlight: Football Footprint presentation only",
   "candidate_source_files": [
     {
       "path": "backend/account_claim.py",
@@ -343,8 +343,8 @@
       "path": "frontend/app/components/FootprintLeagues.tsx",
       "status": "modified",
       "before_sha256": "b3f3765eb4f3366f2d841ab040f6ae442ebe6edaf14fc8c1bf71fd6ebac18575",
-      "sha256": "6c0f84a8c4668ecd48c48287546a36ad2e537c1ba512cf49af6c8e9478454eac",
-      "lf_sha256": "fe71cf8ab6c860c3e023ed6e84239b74527593aa84b2315d7eec30b7e840f5aa"
+      "sha256": "8724c28148ceec9c0a11ad3eceac1a95d03ba083458b0993e04a59f6e44c9683",
+      "lf_sha256": "9a77cd0256bea935e6e563fd7dd24212ea527eaba1a2589ce6195ed0950a6c24"
     },
     {
       "path": "frontend/app/components/InterestedTab.tsx",
@@ -385,8 +385,8 @@
       "path": "frontend/app/components/VisitedTab.tsx",
       "status": "modified",
       "before_sha256": "816d451ef464f50a6db51b472dae1807e06e968a37d99a068f934020cddf3495",
-      "sha256": "c214c9cf3a145a4f9255cb7040b02fe76fee7268f9b7ade54f04553b9919319f",
-      "lf_sha256": "ec18369948a2b27ed10de28183b6f87e48b2e2d9b923450091a38234d75e9f92"
+      "sha256": "fe4e4cfbdd2d35b893861b216c213f3b40de7695e969c1a7053e2f2041c71f31",
+      "lf_sha256": "5c966f73c6e70196179bd7d932110b174e8933ff0d3d286d94280e19763dfe1b"
     },
     {
       "path": "frontend/app/fixture/[fixtureId]/page.tsx",
@@ -494,5 +494,5 @@
       "lf_sha256": "df3efdf388f09f7f411bf3dce20bfd74b37f6f122a7adba47b70c8c499ee98b8"
     }
   ],
-  "reviewed_application_commit": "e9d6ab21d20d5b08354d056f35acf178b2bdd86c"
+  "reviewed_application_commit": "ad3c78d742780d88d9f8eccafa522e44dc51bd6d"
 }
