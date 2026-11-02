@@ -1,8 +1,8 @@
 {
-  "baseline": "901dee7bab72443d7c2429da1231b139907be15b",
+  "baseline": "c75c9b60aac6f8acfb24dda30e9eb4c3994f6e5b",
   "capacitor_version": "8.5.3",
-  "archive_sha256": "b4b7716af772844e2812ac4c8811afa8a42386af898f65ecc4a07c63bf1ba5b6",
-  "archive_bytes": 2196216,
+  "archive_sha256": "a78e48770829991f4d90100e57c7a6165d7d98409689abf6eca3c4ae22696c65",
+  "archive_bytes": 2196335,
   "archive_files": [
     {
       "path": "ios/.gitignore",
@@ -86,7 +86,7 @@
     },
     {
       "path": "ios/App/App/public/app.css",
-      "sha256": "545776782a9126ee43af328899dd6c2288b01fb7956ae7d50c55a0cd7fa63a93"
+      "sha256": "0e3cf371bc4f4a19a094652ac4f2fc430bee33b55983754297b69f736ed81c0a"
     },
     {
       "path": "ios/App/App/public/apple-signin-logo.png",
@@ -122,7 +122,7 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "8d8634bb8167abbf56c6626a5c652d72544dce138dff8afcd3ac94a56f65eda6"
+      "sha256": "8c3654c15d3336d5b79df4e03720750cd678109b0b3422677c4e81302f55081b"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -210,8 +210,8 @@
     }
   ],
   "version": "0.1.0",
-  "build": "8",
-  "gate": "Approved Build 8 internal signing/upload; distribution subject to live moderator queue verification",
+  "build": "9",
+  "gate": "Approved Build 9 internal TestFlight: two UX corrections only",
   "candidate_source_files": [
     {
       "path": "backend/account_claim.py",
@@ -385,15 +385,15 @@
       "path": "frontend/app/components/VisitedTab.tsx",
       "status": "modified",
       "before_sha256": "816d451ef464f50a6db51b472dae1807e06e968a37d99a068f934020cddf3495",
-      "sha256": "3f10cf1220057c1016beb230d917400325a6fcf73c499fffc36c91e57f0a77b5",
-      "lf_sha256": "917394342ed19e47b193f10d22d0316340cf672fdec75c201803553127feb516"
+      "sha256": "c214c9cf3a145a4f9255cb7040b02fe76fee7268f9b7ade54f04553b9919319f",
+      "lf_sha256": "ec18369948a2b27ed10de28183b6f87e48b2e2d9b923450091a38234d75e9f92"
     },
     {
       "path": "frontend/app/fixture/[fixtureId]/page.tsx",
       "status": "modified",
       "before_sha256": "8c09e2058a34b9ff9909e293d952c663907e2ed60d7d4cd689f5a0a2c1ae9e43",
-      "sha256": "6445852c9795b5e8e32a4817e5d7a60245017b26157b38faeeda9293679fb864",
-      "lf_sha256": "e332baa84cbcf7437f43f3f8bb64fca605dc48946a88e3d9da173fb8ae37f8d2"
+      "sha256": "5a45b217c890d630fdd2b307ea039ebea477bcb9dea672f8b64ab20818d0b46e",
+      "lf_sha256": "febb3085a25b349f782c912df7b3fe16fe77869de0ac52217a3e771e6a5ebf65"
     },
     {
       "path": "frontend/app/privacy/page.tsx",
@@ -494,5 +494,5 @@
       "lf_sha256": "df3efdf388f09f7f411bf3dce20bfd74b37f6f122a7adba47b70c8c499ee98b8"
     }
   ],
-  "reviewed_application_commit": "49061a28728f6f5220b268ea223742fdd6c28a8b"
+  "reviewed_application_commit": "e9d6ab21d20d5b08354d056f35acf178b2bdd86c"
 }
