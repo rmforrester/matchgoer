@@ -308,13 +308,13 @@ function FixturePageContent({ params, searchParams }: FixturePageProps) {
         <p className="mg-section-label">06 / Your matchday</p>
         <h2 id="matchday-heading" className="mg-display-section mt-2">Your matchday</h2>
         {statusGroup === "postponed" && <p className="mt-3 text-[var(--tt-muted)]">{retainedMatchMessage(data.fixture.status, data.interested)}</p>}
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className={`mt-5 grid gap-3 ${boardEnabled ? "sm:grid-cols-2" : ""}`}>
           <button type="button" disabled={saving} aria-pressed={data.interested} onClick={toggleInterested} className={`${data.interested ? "mg-primary-action" : "mg-secondary-action"} px-5 py-3 text-left`}>{data.interested ? "REMOVE FROM MY MATCHDAYS" : "ADD TO MY MATCHDAYS"}</button>
-          <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`${data.open_to_meet ? "mg-primary-action" : "mg-secondary-action"} px-5 py-3 text-left`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Open to meeting supporters"}</button>
+          {boardEnabled && <button type="button" disabled={saving} aria-pressed={data.open_to_meet} onClick={toggleMeeting} className={`${data.open_to_meet ? "mg-primary-action" : "mg-secondary-action"} px-5 py-3 text-left`}>{data.open_to_meet ? "✓ Open to meeting supporters" : "Open to meeting supporters"}</button>}
         </div>
         {data.interested && <p role="status" className="mt-2 text-sm font-bold text-[var(--brand-interactive)]">Added to My Matchdays.</p>}
-        {data.open_to_meet_count > 0 && <p className="mt-3 text-xs font-bold text-[var(--tt-muted)]">{data.open_to_meet_count} {data.open_to_meet_count === 1 ? "supporter is" : "supporters are"} open to meeting.</p>}
-        <p className="mt-2 text-xs leading-5 text-[var(--tt-muted)]">Meet safely in public matchday locations and use your judgment when meeting someone new.</p>
+        {boardEnabled && data.open_to_meet_count > 0 && <p className="mt-3 text-xs font-bold text-[var(--tt-muted)]">{data.open_to_meet_count} {data.open_to_meet_count === 1 ? "supporter is" : "supporters are"} open to meeting.</p>}
+        {boardEnabled && <p className="mt-2 text-xs leading-5 text-[var(--tt-muted)]">Meet safely in public matchday locations and use your judgment when meeting someone new.</p>}
       </div>
     </section> : null}
 
