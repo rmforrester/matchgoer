@@ -1,16 +1,22 @@
 import UIKit
 import AuthenticationServices
 import Capacitor
+import CryptoKit
+import Security
 
 // App-local bridge: external system authentication, code-only PKCE return.
 @objc(MatchgoerAuthPlugin)
-public class MatchgoerAuthPlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthenticationPresentationContextProviding {
+public class MatchgoerAuthPlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthenticationPresentationContextProviding, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     public let identifier = "MatchgoerAuthPlugin"
     public let jsName = "MatchgoerAuth"
     public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "signInWithApple", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getPendingReturn", returnType: CAPPluginReturnPromise)
     ]
+    private var appleCall: CAPPluginCall?
+    private var appleNonce: String?
+    private var appleController: ASAuthorizationController?
     private var session: ASWebAuthenticationSession?
     private var anchor: UIWindow?
     private static weak var current: MatchgoerAuthPlugin?
@@ -28,6 +34,43 @@ public class MatchgoerAuthPlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthenticati
     public func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
         return anchor ?? ASPresentationAnchor()
     }
+    @objc func signInWithApple(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            guard self.appleCall == nil, self.session == nil,
+                  let window = self.bridge?.viewController?.view.window else {
+                call.reject("Authentication is not ready", "NOT_READY"); return
+            }
+            var bytes = [UInt8](repeating: 0, count: 32)
+            guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else {
+                call.reject("Secure authentication could not start", "AUTH_FAILED"); return
+            }
+            let nonce = bytes.map { String(format: "%02x", $0) }.joined()
+            let request = ASAuthorizationAppleIDProvider().createRequest()
+            request.requestedScopes = [.email]
+            request.nonce = SHA256.hash(data: Data(nonce.utf8)).map { String(format: "%02x", $0) }.joined()
+            self.anchor = window; self.appleCall = call; self.appleNonce = nonce
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = self; controller.presentationContextProvider = self
+            self.appleController = controller; controller.performRequests()
+        }
+    }
+    public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        return anchor ?? ASPresentationAnchor()
+    }
+    public func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        defer { appleCall = nil; appleNonce = nil; appleController = nil }
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+              let tokenData = credential.identityToken,
+              let token = String(data: tokenData, encoding: .utf8), let nonce = appleNonce else {
+            appleCall?.reject("Apple authentication did not return safely", "AUTH_FAILED"); return
+        }
+        appleCall?.resolve(["identityToken": token, "nonce": nonce, "authorizationCode": credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) } ?? ""])
+    }
+    public func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        let cancelled = (error as? ASAuthorizationError)?.code == .canceled
+        appleCall?.reject(cancelled ? "Authentication cancelled" : "Apple authentication failed", cancelled ? "USER_CANCELLED" : "AUTH_FAILED")
+        appleCall = nil; appleNonce = nil; appleController = nil
+    }
     @objc func authenticate(_ call: CAPPluginCall) {
         guard let raw = call.getString("url"), let url = URL(string: raw),
               let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
@@ -43,7 +86,7 @@ public class MatchgoerAuthPlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthenticati
               let challenge = query.first(where: { $0.name == "code_challenge" })?.value,
               challenge.count == 43 else { call.reject("PKCE required", "INVALID_DESTINATION"); return }
         DispatchQueue.main.async {
-            guard self.session == nil, let window = self.bridge?.viewController?.view.window else {
+            guard self.session == nil, self.appleCall == nil, let window = self.bridge?.viewController?.view.window else {
                 call.reject("Authentication is not ready", "NOT_READY"); return
             }
             self.anchor = window

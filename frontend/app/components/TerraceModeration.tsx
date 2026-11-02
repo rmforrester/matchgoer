@@ -1,4 +1,5 @@
 "use client";
+import { DeletionRequestQueue } from "./AccountDeletion";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "@/lib/api";
@@ -118,7 +119,7 @@ function TerraceModerationContent() {
   if (!authenticated) return <p className="mt-4">Sign in to manage submissions.</p>;
   return <div className="mt-5 min-w-0">
     {busy && <p role="status">One moment…</p>}{error && <p role="alert" className="mb-3 text-sm font-bold text-red-800">{error}</p>}{message && <p role="status" className="mb-3 font-bold">{message}</p>}
-    {!allowed ? <button disabled={busy} onClick={() => void load("PENDING")} className="min-h-11 font-bold underline">Try again</button> : <>
+    {!allowed ? <button disabled={busy} onClick={() => void load("PENDING")} className="min-h-11 font-bold underline">Try again</button> : <><DeletionRequestQueue />
       <nav aria-label="Submission sections" className="my-3 grid grid-cols-3 gap-1 border-b border-[var(--tt-rule)]">
         {([['PENDING', 'Pending'], ['APPROVED', 'Published'], ['REPORTS', 'Reported']] as const).map(([state, label]) => <button type="button" key={state} disabled={busy} aria-current={tab === state ? "page" : undefined} className={`min-h-11 min-w-0 text-xs font-extrabold uppercase ${tab === state ? "underline decoration-2 underline-offset-4" : ""}`} onClick={() => { selectedTab.current = state; setTab(state); setPhotos([]); setReports([]); setMessage(""); void load(state); }}>{label}{state === "PENDING" ? ` (${count})` : ""}</button>)}
       </nav>

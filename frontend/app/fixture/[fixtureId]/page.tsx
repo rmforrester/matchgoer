@@ -59,6 +59,7 @@ export default function FixturePage(props: FixturePageProps) {
 }
 
 function FixturePageContent({ params, searchParams }: FixturePageProps) {
+  const boardEnabled = process.env.NEXT_PUBLIC_NATIVE_AUTH !== "true";
   const { fixtureId } = use(params);
   const pendingSearchParams = use(searchParams);
   const router = useRouter();
@@ -194,6 +195,7 @@ function FixturePageContent({ params, searchParams }: FixturePageProps) {
   };
 
   const postMessage = async () => {
+    if (!boardEnabled) return;
     const trimmed = body.trim();
     if (!trimmed || trimmed.length > 500) { setError("Message must be 1 to 500 characters."); return; }
     setSaving(true); setError("");
@@ -205,20 +207,23 @@ function FixturePageContent({ params, searchParams }: FixturePageProps) {
   };
 
   const submitPost = async () => {
+    if (!boardEnabled) return;
     if (isAnonymous) { setAccountPrompt("board"); return; }
     if (!data?.profile?.display_name?.trim()) { router.push(accountRoute("/account/onboarding", `/fixture/${fixtureId}`)); return; }
     await postMessage();
   };
 
   const startReply = (postId: number) => {
+    if (!boardEnabled) return;
     if (isAnonymous) { setAccountPrompt("board"); return; }
     if (!data?.profile?.display_name?.trim()) { router.push(accountRoute("/account/onboarding", `/fixture/${fixtureId}`)); return; }
     setReplyingTo(postId);
     requestAnimationFrame(() => composerRef.current?.focus());
   };
 
-  const deletePost = async (postId: number) => { await api.delete(`/board/posts/${postId}`); await load(); };
+  const deletePost = async (postId: number) => { if (!boardEnabled) return; await api.delete(`/board/posts/${postId}`); await load(); };
   const reportPost = async (postId: number) => {
+    if (!boardEnabled) return;
     try { await api.post(`/board/posts/${postId}/reports`, { reason: reportReason }); setReporting(null); }
     catch (requestError: unknown) { setError(requestMessage(requestError, "We couldn't report that post. Try again.")); }
   };
@@ -318,12 +323,12 @@ function FixturePageContent({ params, searchParams }: FixturePageProps) {
       {data.own_attendance.attended ? <><p role="status" className="mt-3 font-bold text-[var(--brand-interactive)]">Added to your football history.</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-2"><Link href="/my-football?tab=interested" className="mg-tertiary-action inline-flex min-h-11 items-center">View my matchdays →</Link><Link href={`/my-football?tab=visited&review=${data.fixture.venue_id}`} className="mg-tertiary-action inline-flex min-h-11 items-center">Rate this ground →</Link>{!isAnonymous && data.own_attendance.visit_id !== null && <FixturePhotoSharing attendance={{ visit_id: data.own_attendance.visit_id, venue_id: data.own_attendance.venue_id ?? data.fixture.venue_id!, venue_name: data.fixture.venue_name ?? "Ground", fixture_id: data.fixture.fixture_id, match_date: data.own_attendance.visit_date ?? null, home_team: data.fixture.home_team, away_team: data.fixture.away_team }} />}</div></> : <><p className="mg-body mt-2">Were you at this match?</p><button type="button" disabled={saving} aria-busy={saving} onClick={() => void recordAttendance()} className="mg-primary-action mt-3 px-5">{saving ? "Saving…" : "Yes, I went"}</button></>}
     </section>}
 
-    <section className="mt-5 border-t border-[var(--mg-rule)] pt-3" aria-labelledby="board-heading">
+    {boardEnabled && <section className="mt-5 border-t border-[var(--mg-rule)] pt-3" aria-labelledby="board-heading">
       {finishedForSocial && <p className="mg-section-label">06 / Your matchday</p>}
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3"><h2 id="board-heading" className="mg-display-section">Match Board</h2>{data.posts.length > 0 && <span className="text-xs font-extrabold uppercase tracking-[0.1em] text-[var(--mg-muted)]">{data.posts.length} {data.posts.length === 1 ? "thread" : "threads"}</span>}</div>
       {data.board_closed ? <div className="mg-utility-panel mt-5 p-4 sm:p-5"><p className="mg-display-callout">The board is closed</p><p className="mt-2 text-[var(--mg-muted)]">{statusGroup === "cancelled" ? "This match was cancelled." : "This match has finished."}</p></div> : <div className="mg-utility-panel mt-5 p-4 sm:p-5">{data.posts.length === 0 && <p className="mb-4 max-w-2xl leading-7 text-[var(--mg-muted)]">Ask other supporters about the match, pubs, travel or the ground.</p>}<label htmlFor="match-board-message" className="mg-section-label">{replyingTo ? "Your reply" : "Post to the board"}</label><textarea id="match-board-message" ref={composerRef} value={body} onChange={(e) => setBody(e.target.value)} maxLength={500} rows={4} placeholder={replyingTo ? "Write a reply" : "Ask about travel, pubs, tickets or the ground…"} className="tt-control mt-2 w-full min-w-0 resize-y p-3"/><div className="mt-3 grid gap-3 sm:flex sm:items-center sm:justify-between"><span className="text-xs font-semibold text-[var(--mg-muted)]">{body.length} / 500</span><button type="button" disabled={saving || !body.trim()} onClick={submitPost} className="mg-primary-action w-full px-5 sm:w-auto">{replyingTo ? "Post reply" : "Post to board"}</button></div></div>}
       {data.posts.length > 0 && <div className="mt-6">{data.posts.map((post) => renderPost(post))}</div>}
-    </section>
+    </section>}
 
   </main>;
 }

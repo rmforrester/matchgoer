@@ -336,8 +336,10 @@ def _parse_provider_datetime(value: str) -> datetime | None:
         return None
 
 
-def _resolved_user(user: User, auth_mode: str, issuer: str | None = None, subject: str | None = None) -> ResolvedIdentity:
+def _resolved_user(user: User, auth_mode: str, issuer: str | None = None, subject: str | None = None, *, privacy_only: bool = False) -> ResolvedIdentity:
     status = user.account_status
+    if privacy_only and status == "suspended" and auth_mode == "bearer":
+        return ResolvedIdentity(user.user_id, status, True, auth_mode, issuer, subject)
     expected_legacy_anonymous = status == "anonymous"
     if user.is_anonymous != expected_legacy_anonymous and status in {"anonymous", "registered"}:
         logger.warning("Identity compatibility flag drift for internal user_id=%s", user.user_id)
@@ -369,6 +371,7 @@ def resolve_identity(
     required: bool,
     config: SupabaseAuthConfig | None = None,
     jwks_client: PyJWKClient | None = None,
+    privacy_only: bool = False,
 ) -> ResolvedIdentity | None:
     token = _bearer_token(authorization)
     if token is not None:
@@ -388,7 +391,7 @@ def resolve_identity(
         if user is None:
             logger.error("Identity mapping references a missing internal user")
             raise _auth_error(403, "IDENTITY_NOT_LINKED", "This identity is not linked to a Matchgoer account")
-        identity = _resolved_user(user, "bearer", issuer, subject)
+        identity = _resolved_user(user, "bearer", issuer, subject, privacy_only=privacy_only)
         logger.info("Identity resolved mode=bearer user_id=%s", identity.user_id)
         return identity
 
@@ -475,3 +478,13 @@ def current_or_new_anonymous_identity(
         return identity if identity is not None else create_anonymous_identity(db, response)
     finally:
         db.close()
+
+
+def required_privacy_identity(authorization: str | None = Header(default=None),
+                              session_id: str | None = Cookie(default=None, alias="terrace_session")) -> ResolvedIdentity:
+    """Verified ownership only; never used by account, posting or upload routes."""
+    with SessionLocal() as db:
+        identity = resolve_identity(db, authorization=authorization, session_id=session_id,
+                                    required=True, privacy_only=True)
+        assert identity is not None
+        return identity

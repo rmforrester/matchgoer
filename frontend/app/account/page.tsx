@@ -6,6 +6,7 @@ import AccountShell from "@/app/components/AccountShell";
 import { useAuth } from "@/app/components/AuthProvider";
 import LogoutButton from "@/app/components/LogoutButton";
 import { ManageSubmissionsLink } from "@/app/components/TerraceModeration";
+import AccountDeletion, { BlockedMatchgoers } from "@/app/components/AccountDeletion";
 import AnalyticsPreferences from "@/app/components/AnalyticsPreferences";
 import PasswordUpdateForm from "@/app/components/PasswordUpdateForm";
 import api from "@/lib/api";
@@ -13,7 +14,7 @@ import { signinRoute, userFacingAuthError } from "@/lib/auth-flow";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { authenticated, loading, profile, email, issue, logoutError, refreshAccount } = useAuth();
+  const { authenticated, loading, profile, email, issue, logoutError, refreshAccount, accountKey } = useAuth();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -48,10 +49,10 @@ export default function AccountPage() {
     <section aria-labelledby="privacy-data" className={section}><h2 id="privacy-data" className="tt-display mb-3 text-2xl uppercase text-[var(--brand-interactive)]">Privacy &amp; Data</h2>
       <Link href="/privacy" className="block min-h-11 content-center font-bold underline underline-offset-4">Privacy &amp; cookies</Link>
       <a href="mailto:privacy@matchgoer.com?subject=Matchgoer%20personal%20data%20request" className="block min-h-11 content-center font-bold underline underline-offset-4">Request your personal data</a>
-      <a href="mailto:privacy@matchgoer.com?subject=Matchgoer%20account%20deletion%20request" className="block min-h-11 content-center font-bold underline underline-offset-4">Request account deletion</a>
-      <p className="mt-2 text-sm text-[var(--tt-muted)]">These open an email request to privacy@matchgoer.com. Nothing is exported or deleted immediately.</p>
+      {authenticated && <div key={accountKey}><AccountDeletion /><BlockedMatchgoers /></div>}
+      <p className="mt-2 text-sm text-[var(--tt-muted)]">Personal-data export requests open email. Account deletion is requested directly above; nothing is deleted immediately.</p>
     </section>
-    <section aria-labelledby="help-feedback" className={section}><h2 id="help-feedback" className="tt-display mb-3 text-2xl uppercase text-[var(--brand-interactive)]">Help &amp; Feedback</h2><a href="mailto:hello@matchgoer.com?subject=Matchgoer%20feedback%20or%20problem" className="block min-h-11 content-center font-bold underline underline-offset-4">Send feedback or report a problem</a><p className="mt-2 text-sm text-[var(--tt-muted)]">Email hello@matchgoer.com.</p><ManageSubmissionsLink /></section>
+    <section aria-labelledby="help-feedback" className={section}><h2 id="help-feedback" className="tt-display mb-3 text-2xl uppercase text-[var(--brand-interactive)]">Help &amp; Feedback</h2><a href="mailto:hello@matchgoer.com?subject=Matchgoer%20feedback%20or%20problem" className="block min-h-11 content-center font-bold underline underline-offset-4">Send feedback or report a problem</a><p className="mt-2 text-sm text-[var(--tt-muted)]">Email hello@matchgoer.com.</p><Link href="/support" className="block min-h-11 content-center font-bold underline">Support and community guidelines</Link><ManageSubmissionsLink /></section>
     {(authenticated || logoutError) && <div role="region" aria-label="Log out" className={`${section} text-left`}>
       {authenticated && <LogoutButton className="block min-h-11 w-full text-left font-bold underline underline-offset-4 focus-visible:outline-2" onSuccess={() => router.replace("/")} />}
       {logoutError && <p role="alert" className="mt-3 text-sm text-red-800">{logoutError}</p>}

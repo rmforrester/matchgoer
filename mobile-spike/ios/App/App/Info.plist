@@ -24,6 +24,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Matchgoer uses your location to find football near you.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take a photograph to share from your recorded matchday.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

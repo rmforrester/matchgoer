@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { anonymousApi } from "../../lib/api";
+import { useAuth } from "./AuthProvider";
+import api, { anonymousApi } from "../../lib/api";
 import type { TerracePhoto } from "../../lib/terraces";
 import { formatMatchDate } from "../../lib/terraces-dates";
 import TerracePhotoView from "./TerracePhotoView";
@@ -10,6 +11,7 @@ import TerracePhotoView from "./TerracePhotoView";
 type Props = { photos: TerracePhoto[]; location?: string; onPhotos: (anchor: TerracePhoto, photos: TerracePhoto[]) => void; open: (photo: TerracePhoto) => void; refresh: (photo: TerracePhoto) => void };
 
 export default function TerraceFixtureGallery({ photos, location, onPhotos, open, refresh }: Props) {
+  const { authenticated } = useAuth();
   const anchor = photos[0];
   const { photo_id: anchorId, fixture_id: fixtureId, venue_id: venueId } = anchor;
   const card = useRef<HTMLElement>(null);
@@ -23,8 +25,8 @@ export default function TerraceFixtureGallery({ photos, location, onPhotos, open
         // Two bounded requests per visible gallery: existing eligible count and
         // at most four signed previews. Never crawl the fixture or global feed.
         const [{ data: detail }, { data: page }] = await Promise.all([
-          anonymousApi.get<TerracePhoto>(`/terraces/photos/${anchorId}`, { signal: controller.signal }),
-          anonymousApi.get<{ photos: TerracePhoto[] }>("/terraces/photos", { params: { limit: 4, ...(fixtureId !== null ? { fixture_id: fixtureId, venue_id: venueId } : { matchday_of: anchorId }) }, signal: controller.signal }),
+          (authenticated ? api : anonymousApi).get<TerracePhoto>(`/terraces/photos/${anchorId}`, { signal: controller.signal }),
+          (authenticated ? api : anonymousApi).get<{ photos: TerracePhoto[] }>("/terraces/photos", { params: { limit: 4, ...(fixtureId !== null ? { fixture_id: fixtureId, venue_id: venueId } : { matchday_of: anchorId }) }, signal: controller.signal }),
         ]);
         if (controller.signal.aborted) return;
         if (page.photos.some(p => p.fixture_id !== fixtureId || (fixtureId === null && p.venue_id !== venueId))) throw new Error("Unexpected matchday");
@@ -37,7 +39,7 @@ export default function TerraceFixtureGallery({ photos, location, onPhotos, open
     }, { rootMargin: "240px" });
     if (card.current) observer.observe(card.current);
     return () => { observer.disconnect(); controller.abort(); };
-  }, [anchorId, fixtureId, venueId, attempt, onPhotos]);
+  }, [authenticated, anchorId, fixtureId, venueId, attempt, onPhotos]);
 
   const shown = photos.slice(0, 4);
   const count = shown.length;

@@ -17,10 +17,11 @@ type Props = { mode?: "feed" | "preview" | "venue"; venueId?: number; personal?:
 
 export default function TerracePublicGallery(props: Props) {
   const { accountKey } = useAuth();
-  return <PublicGalleryContent key={accountKey} {...props} />;
+  const [revision, setRevision] = useState(0);
+  return <PublicGalleryContent key={`${accountKey}:${revision}`} {...props} onBlocked={() => setRevision(value => value + 1)} />;
 }
 
-function PublicGalleryContent({ mode = "feed", venueId, personal = false }: Props) {
+function PublicGalleryContent({ mode = "feed", venueId, personal = false, onBlocked }: Props & { onBlocked: () => void }) {
   const { authenticated } = useAuth();
   const [photos, setPhotos] = useState<TerracePhoto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -66,8 +67,8 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false }: Prop
     busy.current = true; setLoading(true); setError("");
     const controller = scope.current;
     try {
-      // Only the owned-attendance selection carries authentication. Public reads stay anonymous.
-      const { data } = await (personal ? api : anonymousApi).get<PhotoPage>("/terraces/photos", { params: { limit, venue_id: venueId, cursor: after, selection: personal ? "my_matchdays" : mode === "preview" ? "discover" : undefined }, signal: controller?.signal });
+      // Carry identity for personal blocking; guest public reads remain anonymous.
+      const { data } = await (authenticated ? api : anonymousApi).get<PhotoPage>("/terraces/photos", { params: { limit, venue_id: venueId, cursor: after, selection: personal ? "my_matchdays" : mode === "preview" ? "discover" : undefined }, signal: controller?.signal });
       if (controller?.signal.aborted) return;
       setPhotos(current => after ? mergePublicPhotos(current, data.photos) : data.photos);
       setCursor(data.next_cursor);
@@ -75,7 +76,7 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false }: Prop
       if (controller?.signal.aborted) return;
       setError(axios.isAxiosError(failure) && failure.response?.status === 404 ? "Photo browsing isn't available here yet." : "Can't load the photos right now. Try again in a moment.");
     } finally { if (!controller?.signal.aborted) { busy.current = false; setLoading(false); } }
-  }, [limit, venueId, mode, personal]);
+  }, [authenticated, limit, venueId, mode, personal]);
 
   useEffect(() => {
     scope.current = new AbortController();
@@ -101,7 +102,7 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false }: Prop
     if (!anchor || pageBusy.current || controller?.signal.aborted) return null;
     pageBusy.current = true; setMatchdayLoading(true); setMatchdayError("");
     try {
-      const { data } = await anonymousApi.get<PhotoPage>("/terraces/photos", { params: publicMatchdayParams(anchor, after), signal: controller?.signal });
+      const { data } = await (authenticated ? api : anonymousApi).get<PhotoPage>("/terraces/photos", { params: publicMatchdayParams(anchor, after), signal: controller?.signal });
       if (controller?.signal.aborted || run !== viewerRun.current) return null;
       setMatchdayPhotos(current => mergePublicPhotos(after ? current : [], data.photos));
       setMatchdayCursor(data.next_cursor); setMatchdayLoaded(true);
@@ -120,7 +121,7 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false }: Prop
     const controller = scope.current;
     const run = viewerRun.current;
     try {
-      const { data } = await anonymousApi.get<TerracePhoto>(`/terraces/photos/${photo.photo_id}`, { signal: controller?.signal });
+      const { data } = await (authenticated ? api : anonymousApi).get<TerracePhoto>(`/terraces/photos/${photo.photo_id}`, { signal: controller?.signal });
       if (controller?.signal.aborted) return;
       setPhotos(current => current.map(item => item.photo_id === data.photo_id ? data : item));
       if (run === viewerRun.current) setMatchdayPhotos(current => current.map(item => item.photo_id === data.photo_id ? data : item));
@@ -168,7 +169,7 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false }: Prop
       if (index === null) return;
       const next = rows[index];
       // Recheck eligibility and refresh the signed image before showing cached pages.
-      const { data } = await anonymousApi.get<TerracePhoto>(`/terraces/photos/${next.photo_id}`, { signal: controller?.signal });
+      const { data } = await (authenticated ? api : anonymousApi).get<TerracePhoto>(`/terraces/photos/${next.photo_id}`, { signal: controller?.signal });
       if (run !== viewerRun.current || controller?.signal.aborted) return;
       reportRequest.current += 1; setReporting(false);
       selectedId.current = data.photo_id; setSelected(data);
@@ -259,6 +260,7 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false }: Prop
         </>}
         <div className="mt-3">{context(selected, true)}</div>
         {detailError && <p role="alert" className="mt-2 text-sm">{detailError}</p>}
+        {authenticated && <button type="button" className="mt-3 min-h-11 text-sm font-bold underline" onClick={() => void (async () => { if (!selected) return; try { await api.post(`/terraces/photos/${selected.photo_id}/block-author`, undefined, { signal: scope.current?.signal }); if (scope.current?.signal.aborted) return; dialog.current?.close(); onBlocked(); } catch { setReportMessage("Couldn't block this matchgoer. Please try again."); } })()}>Block this matchgoer</button>}
         {authenticated ? <details className="mt-3"><summary className="min-h-11 cursor-pointer content-center text-sm underline">Report photo</summary><label className="grid gap-2 text-sm">What should we know?<textarea value={reason} onChange={event => setReason(event.target.value)} maxLength={200} className="tt-control p-2" /></label><button type="button" disabled={reporting || !reason.trim()} onClick={() => void report()} className="min-h-11 text-sm font-bold underline">{reporting ? "Sending…" : "SEND REPORT"}</button>{reportMessage && <p role="status" className="text-sm">{reportMessage}</p>}</details> : <Link href="/signin" className="mt-3 inline-flex min-h-11 items-center text-sm underline">Sign in to report a photo</Link>}
       </>}
       </div>

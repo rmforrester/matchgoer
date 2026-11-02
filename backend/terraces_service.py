@@ -1,3 +1,4 @@
+from supporter_blocks import visible_authors
 from venue_resolution import resolution
 """Photo lifecycle on existing Phase A tables. This service owns its commits."""
 import base64
@@ -169,13 +170,13 @@ def photo_payload(db,storage,row,*,private=False):
             result.update(image_state='unavailable')
     return result
 
-def public_photo_query(db):
+def public_photo_query(db, viewer_user_id=None):
     # One eligibility predicate for lists and matchday counts.
-    return db.query(Photo).filter(Photo.status=='APPROVED',Photo.approved_at.is_not(None),Photo.published_at.is_not(None),Photo.storage_deleted_at.is_(None),Photo.dispute_reason.is_(None),ready_clause())
+    return visible_authors(db.query(Photo), Photo.owner_user_id, viewer_user_id).filter(Photo.status=='APPROVED',Photo.approved_at.is_not(None),Photo.published_at.is_not(None),Photo.storage_deleted_at.is_(None),Photo.dispute_reason.is_(None),ready_clause())
 
 
-def public_matchday_query(db,row):
-    query=public_photo_query(db).filter(Photo.venue_id.in_(resolution(db).equivalents(row.venue_id)))
+def public_matchday_query(db,row,viewer_user_id=None):
+    query=public_photo_query(db,viewer_user_id).filter(Photo.venue_id.in_(resolution(db).equivalents(row.venue_id)))
     if row.fixture_id is not None:return query.filter(Photo.fixture_id==row.fixture_id)
     if row.visit_id is not None:
         # Internal recorded-visit relationship only; never infer by date/ground.
@@ -183,15 +184,15 @@ def public_matchday_query(db,row):
     return None
 
 
-def public_matchday_metadata(db,row):
-    query=public_matchday_query(db,row)
+def public_matchday_metadata(db,row,viewer_user_id=None):
+    query=public_matchday_query(db,row,viewer_user_id)
     if query is None:return {}
     total=query.with_entities(func.count(Photo.photo_id)).scalar()
     return {'matchday_photo_count':total} if total else {}
 
 
-def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,selection=None,matchday_of=None,attendance_user_id=None):
-    query=public_photo_query(db)
+def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,selection=None,matchday_of=None,attendance_user_id=None,viewer_user_id=None):
+    query=public_photo_query(db,viewer_user_id)
     if selection == 'my_matchdays':
         if attendance_user_id is None:raise HTTPException(401,'Sign in to see your matchdays')
         query=query.filter(Photo.fixture_id.is_not(None),exists(select(VenueVisit.visit_id).where(VenueVisit.user_id==attendance_user_id,VenueVisit.fixture_id==Photo.fixture_id)))
@@ -200,7 +201,7 @@ def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,
             raise HTTPException(422,'Matchday selection cannot be combined with other filters')
         anchor=query.filter(Photo.photo_id==matchday_of).first()
         if anchor is None:raise HTTPException(404,'Photograph not found')
-        related=public_matchday_query(db,anchor)
+        related=public_matchday_query(db,anchor,viewer_user_id)
         query=related if related is not None else query.filter(Photo.photo_id==anchor.photo_id)
     if venue_id is not None:query=query.filter(Photo.venue_id.in_(resolution(db).equivalents(venue_id)))
     if fixture_id is not None:query=query.filter(Photo.fixture_id==fixture_id)
@@ -218,7 +219,7 @@ def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,
             row=next((p for p in remaining if p.published_at==timestamp and p.owner_user_id not in contributors),remaining[0])
             selected.append(row);contributors.add(row.owner_user_id);remaining.remove(row)
         selected.sort(key=lambda p:(p.published_at,p.photo_id),reverse=True)
-        return {'photos':[{**photo_payload(db,storage,row),**public_matchday_metadata(db,row)} for row in selected],'next_cursor':None}
+        return {'photos':[{**photo_payload(db,storage,row),**public_matchday_metadata(db,row,viewer_user_id)} for row in selected],'next_cursor':None}
     if cursor:
         try:
             if len(cursor)>256:raise ValueError()

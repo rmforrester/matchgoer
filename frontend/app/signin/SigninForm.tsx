@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import AppleSignInButton from "@/app/components/AppleSignInButton";
 import GoogleSignInButton from "@/app/components/GoogleSignInButton";
 import AccountShell from "@/app/components/AccountShell";
 import { useAuth } from "@/app/components/AuthProvider";
@@ -52,7 +53,9 @@ export default function SigninForm({ returnTo: requestedReturnTo, handoffToken, 
       <button disabled={saving} className="tt-action px-5">{saving ? "Signing in…" : "Sign in"}</button>
     </form>
     <GoogleSignInButton returnTo={returnTo} disabled={saving} onBusyChange={setSaving} handoffToken={handoffToken} convertAnonymous={convertAnonymous} />
+<AppleSignInButton returnTo={returnTo} disabled={saving} onBusyChange={setSaving} handoffToken={handoffToken} convertAnonymous={convertAnonymous} />
     <div className="mt-4 grid gap-1 text-sm"><Link href={accountRoute("/auth/forgot-password", returnTo)} className="min-h-11 content-center font-bold underline">Forgot password?</Link><Link href={accountRoute("/auth/confirm", returnTo)} className="min-h-11 content-center underline">Need a new confirmation email?</Link></div>
     <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">New to Matchgoer? <Link className="font-extrabold uppercase text-[var(--brand-interactive)] underline decoration-2 underline-offset-4" href={accountRoute("/signup", returnTo)}>Create account →</Link></p>
+    {process.env.NEXT_PUBLIC_NATIVE_AUTH === "true" && <div className="mt-4 flex flex-wrap gap-x-5 text-sm"><Link href="/privacy" className="inline-flex min-h-11 items-center underline">Privacy and data</Link><Link href="/support" className="inline-flex min-h-11 items-center underline">Support</Link></div>}
   </AccountShell>;
 }

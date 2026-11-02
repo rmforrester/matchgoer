@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "./AuthProvider";
 import api from "../../lib/api";
 import { apiErrorMessage } from "../../lib/api-error";
 
-type Tip = { tip_id: number; venue_id: number; tip: string; helpful_votes: number; report_count: number; status: string; created_at: string };
+type Tip = { tip_id: number; author_user_id?: number | null; venue_id: number; tip: string; helpful_votes: number; report_count: number; status: string; created_at: string };
 type Props = { tips?: Tip[]; venueId: number; inline?: boolean };
 
 export default function MatchdayTips({ tips = [], venueId, inline = false }: Props) {
+  const { authenticated, accountKey } = useAuth();
+  const safetyScope = useRef<AbortController | null>(null);
+  useEffect(() => { const controller = new AbortController(); safetyScope.current = controller; return () => controller.abort(); }, [accountKey]);
+  const [safetyMessage, setSafetyMessage] = useState("");
   const [tipList, setTipList] = useState<Tip[]>(tips);
   const [showForm, setShowForm] = useState(false);
   const [newTip, setNewTip] = useState("");
@@ -34,6 +39,17 @@ export default function MatchdayTips({ tips = [], venueId, inline = false }: Pro
     try { const response = await api.post(`/tips/${tipId}/helpful`); setTipList((current) => current.map((tip) => tip.tip_id === tipId ? response.data : tip)); }
     catch (requestError) { setError(apiErrorMessage(requestError, "Could not mark that tip as helpful.")); }
   };
+  const reportTip = async (tipId: number) => {
+    try { await api.post(`/tips/${tipId}/report`, undefined, { signal: safetyScope.current?.signal }); setSafetyMessage("Tip reported for review."); }
+    catch { setError("Couldn't report this tip. Please try again."); }
+  };
+  const blockTip = async (tipId: number) => {
+    try {
+      await api.post(`/tips/${tipId}/block-author`, undefined, { signal: safetyScope.current?.signal });
+      const response = await api.get(`/venues/${venueId}/tips`, { signal: safetyScope.current?.signal });
+      setTipList(response.data); setSafetyMessage("Matchgoer blocked.");
+    } catch { setError("Couldn't block this matchgoer. Please try again."); }
+  };
   const submitTip = async () => {
     const trimmed = newTip.trim();
     if (!trimmed) { setError("Please enter a tip before submitting."); return; }
@@ -54,5 +70,5 @@ export default function MatchdayTips({ tips = [], venueId, inline = false }: Pro
 
   if (tipList.length === 0) return <section id="tips" className="mt-6 scroll-mt-6" aria-labelledby="tips-heading"><span id="tips-add" className="block scroll-mt-6" aria-hidden="true"/><h2 id="tips-heading" className="sr-only">Supporter knowledge</h2><p className="text-sm font-bold">Know something another supporter should know? <button type="button" onClick={toggleForm} className="min-h-11 text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Share it for review →</button></p>{tipForm}{saved && <p role="status" className="mt-3 text-sm font-bold uppercase tracking-[0.08em] text-[var(--brand-interactive)]">✓ Tip sent for review</p>}{error && <p role="alert" className="mt-2 text-sm font-semibold text-red-800">{error}</p>}</section>;
 
-  return <section id="tips" className="tt-section-rule mt-10 scroll-mt-6 pt-4" aria-labelledby="tips-heading"><span id="tips-add" className="block scroll-mt-6" aria-hidden="true"/><p className="tt-kicker">04 / From the terrace</p><div className="mt-1 flex flex-wrap items-end justify-between gap-3"><div><h2 id="tips-heading" className="tt-display text-4xl leading-none sm:text-5xl">Matchday tips</h2><p className="mt-2 text-sm text-[var(--tt-muted)]">Useful advice from people who&apos;ve been.</p></div><button type="button" onClick={toggleForm} className="tt-action tt-action-secondary px-5">{showForm ? "Cancel" : "Add a tip"}</button></div>{tipForm}{!showForm && error && <p role="alert" className="mt-4 border-l-4 border-red-700 px-3 py-2 text-sm font-semibold text-red-800">{error}</p>}<div className="mt-5">{tipList.map((tip) => <article key={tip.tip_id} className="border-t-2 border-[var(--tt-ink)] py-5"><p className="max-w-3xl whitespace-pre-wrap break-words leading-7">{tip.tip}</p><div className="mt-3 flex flex-wrap gap-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" onClick={() => markHelpful(tip.tip_id)} className="min-h-11 text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Helpful{tip.helpful_votes > 0 ? ` · ${tip.helpful_votes}` : ""}</button></div></article>)}</div></section>;
+  return <section id="tips" className="tt-section-rule mt-10 scroll-mt-6 pt-4" aria-labelledby="tips-heading"><span id="tips-add" className="block scroll-mt-6" aria-hidden="true"/><p className="tt-kicker">04 / From the terrace</p><div className="mt-1 flex flex-wrap items-end justify-between gap-3"><div><h2 id="tips-heading" className="tt-display text-4xl leading-none sm:text-5xl">Matchday tips</h2><p className="mt-2 text-sm text-[var(--tt-muted)]">Useful advice from people who&apos;ve been.</p></div><button type="button" onClick={toggleForm} className="tt-action tt-action-secondary px-5">{showForm ? "Cancel" : "Add a tip"}</button></div>{tipForm}{!showForm && error && <p role="alert" className="mt-4 border-l-4 border-red-700 px-3 py-2 text-sm font-semibold text-red-800">{error}</p>}{safetyMessage && <p role="status">{safetyMessage}</p>}<div className="mt-5">{tipList.map((tip) => <article key={tip.tip_id} className="border-t-2 border-[var(--tt-ink)] py-5"><p className="max-w-3xl whitespace-pre-wrap break-words leading-7">{tip.tip}</p><div className="mt-3 flex flex-wrap gap-4 text-xs font-extrabold uppercase tracking-[0.08em]"><button type="button" onClick={() => markHelpful(tip.tip_id)} className="min-h-11 text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Helpful{tip.helpful_votes > 0 ? ` · ${tip.helpful_votes}` : ""}</button><button type="button" onClick={() => void reportTip(tip.tip_id)} className="min-h-11 underline">Report tip</button>{authenticated && tip.author_user_id != null && <button type="button" onClick={() => void blockTip(tip.tip_id)} className="min-h-11 underline">Block matchgoer</button>}</div></article>)}</div></section>;
 }

@@ -94,6 +94,11 @@ app = FastAPI(
     title="Matchgoer API"
 )
 
+from account_deletion import router as account_deletion_router
+app.include_router(account_deletion_router)
+from supporter_blocks import router as supporter_blocks_router, visible_authors
+app.include_router(supporter_blocks_router)
+
 # Phase B1 remains disabled until a separately approved backend activation.
 if os.getenv("TERRACES_BACKEND_ENABLED", "false").casefold() == "true":
     from terraces_api import router as terraces_router
@@ -869,14 +874,14 @@ def create_tip(
 
 
 @app.get("/venues/{venue_id}/tips")
-def get_venue_tips(venue_id: int):
+def get_venue_tips(venue_id: int, identity: ResolvedIdentity | None = Depends(optional_current_identity)):
 
     db = SessionLocal()
     try:
         venue_id = resolve_venue(db, venue_id)
 
         tips = (
-            db.query(MatchdayTip)
+            visible_authors(db.query(MatchdayTip), MatchdayTip.author_user_id, identity.user_id if identity else None)
             .filter(
                 MatchdayTip.venue_id.in_(resolution(db).equivalents(venue_id)),
                 MatchdayTip.status == "active"

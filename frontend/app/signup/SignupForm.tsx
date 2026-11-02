@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
+import AppleSignInButton from "@/app/components/AppleSignInButton";
 import GoogleSignInButton from "@/app/components/GoogleSignInButton";
 import AccountShell from "@/app/components/AccountShell";
 import { accountRoute, authCallbackRoute, safeReturnTo, userFacingAuthError } from "@/lib/auth-flow";
@@ -90,6 +91,8 @@ export default function SignupForm({ returnTo: requestedReturnTo }: { returnTo?:
       <button disabled={saving || cooldown.remaining > 0} className="tt-action px-5">{saving ? "Creating…" : cooldown.remaining ? `Try again in ${cooldown.remaining}s` : "Create account"}</button>
     </form>
     <GoogleSignInButton returnTo={returnTo} disabled={saving} onBusyChange={setSaving} />
+<AppleSignInButton returnTo={returnTo} disabled={saving} onBusyChange={setSaving} />
     <p className="mt-6 border-t border-[var(--tt-rule)] pt-4 text-sm">Already have an account? <Link className="font-extrabold uppercase text-[var(--brand-interactive)] underline decoration-2 underline-offset-4" href={accountRoute("/signin", returnTo)}>Sign in →</Link></p>
+    {process.env.NEXT_PUBLIC_NATIVE_AUTH === "true" && <div className="mt-4 flex flex-wrap gap-x-5 text-sm"><Link href="/privacy" className="inline-flex min-h-11 items-center underline">Privacy and data</Link><Link href="/support" className="inline-flex min-h-11 items-center underline">Support</Link></div>}
   </AccountShell>;
 }

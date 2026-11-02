@@ -57,6 +57,7 @@ function VisitedTabContent() {
   const [visitDate, setVisitDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [footprintVisitContext, setFootprintVisitContext] = useState<string | null>(null);
   const [pastMatchDate, setPastMatchDate] = useState("");
   const [fixtureCandidates, setFixtureCandidates] = useState<FixtureCandidate[]>([]);
   const [findingMatches, setFindingMatches] = useState(false);
@@ -322,16 +323,15 @@ function VisitedTabContent() {
     </button>)}
   </div>;
 
-  const renderGround = (ground: MyGround, nested: boolean) => <article key={ground.venue_id} className={`${nested ? "flex min-w-0 flex-col py-4" : "tt-panel flex min-w-0 flex-col p-4"} ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>
-      <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
-      <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
-      <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not recorded"}</p>
-      {Number(requestedReview) !== ground.venue_id && renderPersonalReview(ground, true)}
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
-        <button type="button" aria-expanded={expandedId === ground.venue_id} aria-controls={`ground-visits-${ground.venue_id}`} onClick={event => { if (expandedId !== ground.venue_id) scrollExpandedHeading(event.currentTarget); setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id); }} className="tt-action tt-action-secondary min-w-0 whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button>
-      </div>
-      {expandedId === ground.venue_id && <ul id={`ground-visits-${ground.venue_id}`} className="mt-4 border-t border-[var(--tt-rule)] pt-3">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-b border-[var(--tt-rule)] py-3 last:border-0"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 font-bold">{fixture.home_team} v {fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}{fixture && <Link href={`/fixture/${fixture.fixture_id}`} className="mt-1 inline-flex min-h-10 items-center text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">View match →</Link>}{editingVisitId !== visit.visit_id && <button type="button" onClick={() => { matchSearch.current += 1; setFindingMatches(false); setMatchLookupFailed(false); setSearchedMatchDate(""); setSelected(null); setVisitDate(""); setEditingVisitId(visit.visit_id); setSelectedFixtureId(null); setPastMatchDate(visit.visit_date ?? ""); setFixtureCandidates([]); }} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{fixture ? "Change match" : "Edit visit"}</button>}{fixture && <button type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, null)} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--tt-muted)] underline">Remove link</button>}{editingVisitId === visit.visit_id && <div className="mt-3">
+  const editVisit = (venueId: number, visitId: number) => {
+    const visit = grounds.find(ground => ground.venue_id === venueId)?.visits.find(visit => visit.visit_id === visitId);
+    if (!visit) return;
+    matchSearch.current += 1; setFindingMatches(false); setMatchLookupFailed(false); setSearchedMatchDate("");
+    setSelected(null); setVisitDate(""); setEditingVisitId(visit.visit_id); setSelectedFixtureId(null);
+    setPastMatchDate(visit.visit_date ?? ""); setFixtureCandidates([]);
+  };
+
+  const renderVisitList = (ground: MyGround) => <ul id={`ground-visits-${ground.venue_id}`} className="mt-4 border-t border-[var(--tt-rule)] pt-3">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-b border-[var(--tt-rule)] py-3 last:border-0"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 font-bold">{fixture.home_team} v {fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}{fixture && <Link href={`/fixture/${fixture.fixture_id}`} className="mt-1 inline-flex min-h-10 items-center text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">View match →</Link>}{editingVisitId !== visit.visit_id && <button type="button" onClick={() => editVisit(ground.venue_id, visit.visit_id)} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{fixture ? "Change match" : "Edit visit"}</button>}{fixture && <button type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, null)} className="ml-4 min-h-10 text-xs font-extrabold uppercase text-[var(--tt-muted)] underline">Remove link</button>}{editingVisitId === visit.visit_id && <div className="mt-3">
         <h3 className="tt-kicker">{visit.fixture_id === null ? "EDIT VISIT" : "CHANGE MATCH"}</h3>
         <label className="mt-2 block text-xs font-bold" htmlFor={`edit-visit-date-${visit.visit_id}`}>Visit date</label>
         <input id={`edit-visit-date-${visit.visit_id}`} type="date" max={localAttendanceToday()} aria-label="Visit date" value={pastMatchDate} onChange={(event) => { matchSearch.current += 1; setFindingMatches(false); setMatchLookupFailed(false); setSearchedMatchDate(""); setPastMatchDate(event.target.value); setFixtureCandidates([]); setSelectedFixtureId(null); }} className="tt-control mt-1 max-w-full px-3"/>
@@ -344,7 +344,38 @@ function VisitedTabContent() {
           <button type="button" disabled={saving} onClick={() => { setEditingVisitId(null); matchSearch.current += 1; setFindingMatches(false); setMatchLookupFailed(false); setPastMatchDate(""); setFixtureCandidates([]); setSelectedFixtureId(null); }} className="min-h-11 px-2 text-sm underline">Cancel</button>
         </div>
         {visit.fixture_id === null && visit.visit_date && <button type="button" disabled={saving} onClick={() => void updateManualDate(ground, visit.visit_id, "")} className="mt-2 min-h-11 text-xs font-bold uppercase text-[var(--tt-muted)] underline">Remove date</button>}
-      </div>}</li>; })}</ul>}
+      </div>}</li>; })}</ul>;
+
+  const renderFootprintVisits = (projected: MyGround, context: string) => {
+    // Season projections can contain fewer visits: resolve the complete owned
+    // ground before deciding whether one record can be opened unambiguously.
+    const ground = grounds.find(item => item.venue_id === projected.venue_id);
+    if (!ground || !ground.visits.length) return null;
+    const singleManual = ground.visits.length === 1 && ground.visits[0].fixture_id === null ? ground.visits[0] : null;
+    const open = expandedId === ground.venue_id && footprintVisitContext === context;
+    return <div className="mt-2">
+      <button type="button" aria-expanded={open} aria-controls={`ground-visits-${ground.venue_id}`} onClick={event => {
+        if (open) { setExpandedId(null); matchSearch.current += 1; setEditingVisitId(null); setFixtureCandidates([]); setFindingMatches(false); }
+        else {
+          setFootprintVisitContext(context); setExpandedId(ground.venue_id); setEditingVisitId(null); matchSearch.current += 1; setFindingMatches(false); setFixtureCandidates([]);
+          if (singleManual) editVisit(ground.venue_id, singleManual.visit_id);
+          scrollExpandedHeading(event.currentTarget);
+        }
+      }} className="min-h-11 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">{open ? "Hide visits" : singleManual ? singleManual.visit_date ? "Edit visit date" : "Add visit date" : "Visit details"}</button>
+      {open && renderVisitList(ground)}
+    </div>;
+  };
+
+  const renderGround = (ground: MyGround, nested: boolean) => <article key={ground.venue_id} className={`${nested ? "flex min-w-0 flex-col py-4" : "tt-panel flex min-w-0 flex-col p-4"} ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>
+      <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
+      <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
+      <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not recorded"}</p>
+      {Number(requestedReview) !== ground.venue_id && renderPersonalReview(ground, true)}
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
+        <button type="button" aria-expanded={expandedId === ground.venue_id} aria-controls={`ground-visits-${ground.venue_id}`} onClick={event => { if (expandedId !== ground.venue_id) scrollExpandedHeading(event.currentTarget); setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id); }} className="tt-action tt-action-secondary min-w-0 whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button>
+      </div>
+      {expandedId === ground.venue_id && renderVisitList(ground)}
     </article>;
 
   const recordForm = selected && <section id="record-matchday" aria-labelledby="record-matchday-heading" className="tt-panel mt-4 p-5">
@@ -405,7 +436,7 @@ function VisitedTabContent() {
               <span className="flex items-start justify-between gap-3"><span className="tt-display min-w-0 break-words text-2xl leading-none text-[var(--brand-interactive)]">{country.name}</span><span aria-hidden="true" className="shrink-0 text-[var(--brand-interactive)]">{isOpen ? "⌃" : "⌄"}</span></span>
               <span className="mt-2 block text-xs font-extrabold uppercase tracking-[0.04em]">{country.groundCount} {country.groundCount === 1 ? "ground" : "grounds"} · {country.matchdayCount} {country.matchdayCount === 1 ? "matchday" : "matchdays"}</span>
             </button></h3>
-            {isOpen && <div id={panelId} className="mx-3 border-t border-[var(--tt-rule)] divide-y divide-[var(--tt-rule)]">{<FootprintLeagues key={`${country.key}-${timeframe}`} grounds={visibleGrounds.filter((ground) => footballCountry(ground.venue_country)?.key === country.key)} footprint={footprint} period={timeframe} />}</div>}
+            {isOpen && <div id={panelId} className="mx-3 border-t border-[var(--tt-rule)] divide-y divide-[var(--tt-rule)]">{<FootprintLeagues key={`${country.key}-${timeframe}`} grounds={visibleGrounds.filter((ground) => footballCountry(ground.venue_country)?.key === country.key)} footprint={footprint} period={timeframe} renderVisits={renderFootprintVisits} />}</div>}
           </li>;
         })}
       </ul>

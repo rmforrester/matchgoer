@@ -10,5 +10,6 @@ export default function AnalyticsPreferences() {
     window.addEventListener(analyticsChoiceEvent, update); window.addEventListener("storage", update);
     return () => { window.clearTimeout(timer); window.removeEventListener(analyticsChoiceEvent, update); window.removeEventListener("storage", update); };
   }, []);
+  if (process.env.NEXT_PUBLIC_NATIVE_AUTH === "true") return <p className="text-sm">Google Analytics is off in this iPhone app. Existing first-party activity records are explained in Privacy &amp; Data.</p>;
   return <div><p className="mb-2 text-sm">Analytics: <strong>{choice === "accepted" ? "Allowed" : choice === "rejected" ? "Off" : "Not chosen"}</strong>. Your choice does not affect using Matchgoer.</p><button type="button" onClick={() => choice === "accepted" ? withdrawAnalytics() : openAnalyticsPreferences(true)} className="block min-h-11 w-full text-left font-bold underline underline-offset-4 focus-visible:outline-2">{choice === "accepted" ? "WITHDRAW CONSENT" : "ALLOW ANALYTICS"}</button></div>;
 }
