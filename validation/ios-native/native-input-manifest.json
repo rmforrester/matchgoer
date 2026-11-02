@@ -210,8 +210,8 @@
     }
   ],
   "version": "0.1.0",
-  "build": "7",
-  "gate": "Build 8 unsigned device compilation only",
+  "build": "8",
+  "gate": "Approved Build 8 internal signing/upload; distribution subject to live moderator queue verification",
   "candidate_source_files": [
     {
       "path": "backend/account_claim.py",
@@ -493,5 +493,6 @@
       "sha256": "5b76b9a1aaba7b9b36887f958e170fc8a8d35bd0ab9a1663613477cd7e0fcd7d",
       "lf_sha256": "df3efdf388f09f7f411bf3dce20bfd74b37f6f122a7adba47b70c8c499ee98b8"
     }
-  ]
+  ],
+  "reviewed_application_commit": "49061a28728f6f5220b268ea223742fdd6c28a8b"
 }
