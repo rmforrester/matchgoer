@@ -273,9 +273,9 @@ test("visits can attach, change, or remove an optional fixture without another m
   assert.match(groundsSource, /fixture_id: fixtureId/);
   assert.match(groundsSource, /MATCHES AROUND YOUR DATE/);
   assert.match(groundsSource, /Change match/);
-  assert.match(groundsSource, /Remove link/);
+  assert.match(groundsSource, /UNLINK MATCH/);
   assert.match(groundsSource, /visit\.visit_date \? knownDate\(visit\.visit_date\) : "Date not recorded"/);
-  assert.match(groundsSource, /fixture\.home_team} v \{fixture\.away_team/);
+  assert.match(groundsSource, /TeamBadge src=\{fixture\.home_team_badge_url\}/);
   assert.match(groundsSource, /fixture\.league_name/);
 });
 

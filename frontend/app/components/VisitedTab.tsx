@@ -17,7 +17,7 @@ import GroundPhotograph from "./GroundPhotograph";
 import { footballCountry, footballPassport } from "../../lib/my-grounds";
 
 import FootprintLeagues from "./FootprintLeagues";
-import GroundMatchdays from "./GroundMatchdays";
+import TeamBadge from "./TeamBadge";
 import { footprintGrounds, type FootprintPeriod } from "../../lib/football-footprint";
 
 const PersonalGroundMap = dynamic(() => import("./PersonalGroundMap"), { ssr: false });
@@ -58,7 +58,6 @@ function VisitedTabContent() {
   const [visitDate, setVisitDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [footprintVisitContext, setFootprintVisitContext] = useState<string | null>(null);
   const [pastMatchDate, setPastMatchDate] = useState("");
   const [fixtureCandidates, setFixtureCandidates] = useState<FixtureCandidate[]>([]);
   const [findingMatches, setFindingMatches] = useState(false);
@@ -332,12 +331,12 @@ function VisitedTabContent() {
     setPastMatchDate(visit.visit_date ?? ""); setFixtureCandidates([]);
   };
 
-  const renderVisitList = (ground: MyGround) => <ul id={`ground-visits-${ground.venue_id}`} className="mt-4 border-t border-[var(--tt-rule)] pt-3">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-b border-[var(--tt-rule)] py-3 last:border-0"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 font-bold">{fixture.home_team} v {fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}<div className="mt-3 grid gap-2">{visit.fixture_id !== null ? <>
+  const renderVisitList = (ground: MyGround) => <ul id={`ground-visits-${ground.venue_id}`} className="space-y-2">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-t border-[var(--tt-rule)] py-2"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 flex flex-wrap items-center gap-1 text-sm font-bold"><TeamBadge src={fixture.home_team_badge_url} className="h-5 w-5"/>{fixture.home_team}<span className="font-normal">v</span><TeamBadge src={fixture.away_team_badge_url} className="h-5 w-5"/>{fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}<div className="mt-2 grid gap-2 sm:grid-cols-2">{visit.fixture_id !== null ? <>
         <Link href={`/fixture/${visit.fixture_id}`} className="tt-action inline-flex min-h-11 items-center justify-center px-3 text-xs">VIEW MATCH</Link>
         <details><summary className="tt-action tt-action-secondary flex min-h-11 cursor-pointer list-none items-center justify-center px-3 text-xs [&::-webkit-details-marker]:hidden">MANAGE VISIT</summary>
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1"><p className="w-full text-xs text-[var(--tt-muted)]">Unlinking removes the match association, not your recorded ground visit.</p>
             {editingVisitId !== visit.visit_id && <button type="button" onClick={() => editVisit(ground.venue_id, visit.visit_id)} className="min-h-11 text-xs font-extrabold uppercase text-[var(--brand-interactive)] underline">Change match</button>}
-            <button type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, null)} className="min-h-11 text-xs font-extrabold uppercase text-[var(--tt-muted)] underline">Remove link</button>
+            <button type="button" disabled={saving} onClick={() => void updateVisitFixture(ground, visit.visit_id, null)} className="min-h-11 text-xs font-extrabold uppercase text-[var(--tt-muted)] underline">UNLINK MATCH</button>
           </div>
         </details>
       </> : editingVisitId !== visit.visit_id && <button type="button" onClick={() => editVisit(ground.venue_id, visit.visit_id)} className="tt-action tt-action-secondary min-h-11 px-3 text-xs">EDIT VISIT</button>}</div>{editingVisitId === visit.visit_id && <div className="mt-3">
@@ -355,25 +354,12 @@ function VisitedTabContent() {
         {visit.fixture_id === null && visit.visit_date && <button type="button" disabled={saving} onClick={() => void updateManualDate(ground, visit.visit_id, "")} className="mt-2 min-h-11 text-xs font-bold uppercase text-[var(--tt-muted)] underline">Remove date</button>}
       </div>}</li>; })}</ul>;
 
-  const renderFootprintVisits = (projected: MyGround, context: string) => {
-    // Season projections can contain fewer visits: resolve the complete owned
-    // ground before deciding whether one record can be opened unambiguously.
-    const ground = grounds.find(item => item.venue_id === projected.venue_id);
-    if (!ground || !ground.visits.length) return null;
-    const singleManual = ground.visits.length === 1 && ground.visits[0].fixture_id === null ? ground.visits[0] : null;
-    const open = expandedId === ground.venue_id && footprintVisitContext === context;
-    return <div className="mt-2">
-      {!open && <GroundMatchdays key={projected.visits.map(visit => visit.visit_id).join(",")} ground={projected} />}
-      <button type="button" aria-expanded={open} aria-controls={`ground-visits-${ground.venue_id}`} onClick={event => {
-        if (open) { setExpandedId(null); matchSearch.current += 1; setEditingVisitId(null); setFixtureCandidates([]); setFindingMatches(false); }
-        else {
-          setFootprintVisitContext(context); setExpandedId(ground.venue_id); setEditingVisitId(null); matchSearch.current += 1; setFindingMatches(false); setFixtureCandidates([]);
-          if (singleManual) editVisit(ground.venue_id, singleManual.visit_id);
-          scrollExpandedHeading(event.currentTarget);
-        }
-      }} className="tt-action tt-action-secondary mt-2 min-h-11 px-3 text-xs">{open ? "HIDE VISITS" : "VIEW VISITS"}</button>
-      {open && renderVisitList(ground)}
-    </div>;
+  const renderFootprintVisits = (projected: MyGround) => {
+    // Use only original, owned records represented by this season projection.
+    const owned = grounds.find(item => item.venue_id === projected.venue_id);
+    if (!owned) return null;
+    const ids = new Set(projected.visits.map(visit => visit.visit_id));
+    return renderVisitList({ ...owned, visits: owned.visits.filter(visit => ids.has(visit.visit_id)) });
   };
 
   const renderGround = (ground: MyGround, nested: boolean) => <article key={ground.venue_id} className={`${nested ? "flex min-w-0 flex-col py-4" : "tt-panel flex min-w-0 flex-col p-4"} ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>
