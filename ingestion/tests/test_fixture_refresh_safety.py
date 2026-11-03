@@ -9,6 +9,73 @@ from test_fixture_reconciliation import candidate, provider, KICKOFF
 from refresh_fixture_states import classify_candidate, resolve_venue, refresh_window, validate_plan, ALLOWED_FIELDS
 from ingestion.api_football import ApiFootballClient
 
+
+class NewDiscoveryIntegrationTests(unittest.TestCase):
+    def test_discovery_failure_does_not_suppress_committed_lifecycle_highlights(self):
+        import io
+        import json
+        from contextlib import redirect_stdout
+        from unittest.mock import patch
+        import refresh_fixture_states as refresh
+        from test_fixture_discovery import database, Client
+        engine=database()
+        self.addCleanup(engine.dispose)
+        client=Client();client.fixtures_by_ids=Mock(return_value=[])
+        for failure in ('CANDIDATE_OVERFLOW_NO_DISCOVERY_WRITE','QUOTA_HEADROOM_UNAVAILABLE'):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as folder:
+                receipt=Path(folder)/'receipt.json'
+                env={'DATABASE_URL':'synthetic','API_FOOTBALL_KEY':'synthetic',
+                     'ENABLE_EXPANDED_FIXTURE_REFRESH':'false','ENABLE_NEW_FIXTURE_DISCOVERY':'true'}
+                with patch.object(refresh,'create_engine',return_value=engine), \
+                     patch.object(refresh,'ApiFootballClient',return_value=client), \
+                     patch.object(refresh,'run_fixture_discovery',return_value=dict(passed=False,errors=[failure],inserted=0)), \
+                     patch('ingestion.matchday_highlights.run_demand_enrichment',return_value=dict(enabled=True,extra_requests=0)) as highlights, \
+                     patch.dict('os.environ',env), \
+                     patch('sys.argv',['refresh','--nightly','--as-of','2026-11-03','--write','--confirm-write','--enrich-highlights','--report',str(receipt)]), \
+                     redirect_stdout(io.StringIO()):
+                    self.assertEqual(refresh.main(),1)
+                report=json.loads(receipt.read_text())
+                self.assertTrue(report['commit_confirmed'])
+                self.assertTrue(report['lifecycle_execution_success'])
+                self.assertFalse(report['execution_success'])
+                highlights.assert_called_once()
+                self.assertEqual(highlights.call_args.kwargs['max_requests'],750)
+                self.assertEqual(report['matchday_highlights']['extra_requests'],0)
+
+    def test_optional_stage_and_existing_commit_boundary(self):
+        import io
+        import json
+        from contextlib import redirect_stdout
+        from unittest.mock import patch
+        import refresh_fixture_states as refresh
+        from test_fixture_discovery import database, Client
+        for enabled, write, stage_passed in ((False, True, True), (True, False, True),
+                                             (True, True, True), (True, True, False)):
+            engine = database()
+            fake = Client()
+            fake.fixtures_by_ids = Mock(return_value=[])
+            with tempfile.TemporaryDirectory() as d:
+                receipt = Path(d) / 'receipt.json'
+                args = ['refresh', '--nightly', '--as-of', '2026-11-03', '--report', str(receipt)]
+                if write: args += ['--write', '--confirm-write']
+                stage = dict(passed=stage_passed, inserted=0)
+                env = {'DATABASE_URL': 'synthetic', 'API_FOOTBALL_KEY': 'synthetic',
+                       'ENABLE_EXPANDED_FIXTURE_REFRESH': 'false',
+                       'ENABLE_NEW_FIXTURE_DISCOVERY': str(enabled).lower()}
+                with patch.object(refresh, 'create_engine', return_value=engine), \
+                     patch.object(refresh, 'ApiFootballClient', return_value=fake), \
+                     patch.object(refresh, 'run_fixture_discovery', return_value=stage) as discovery, \
+                     patch.dict('os.environ', env), patch('sys.argv', args), redirect_stdout(io.StringIO()):
+                    code = refresh.main()
+                report = json.loads(receipt.read_text())
+                self.assertEqual(discovery.call_count, int(enabled))
+                self.assertEqual(report['commit_confirmed'], write)
+                self.assertEqual(code, 0 if stage_passed or not enabled else 1)
+                if enabled:
+                    self.assertEqual(discovery.call_args.kwargs['write'], write)
+            engine.dispose()
+
+
 class RefreshSafetyTests(unittest.TestCase):
     def context(self):
         return ([dict(venue_id=7,provider_venue_id=70,name="Stadium Example",city="Town",country="England",latitude=1,longitude=2)], [dict(venue_id=7,provider="api_football",provider_venue_id=70,valid_to=None)], [])

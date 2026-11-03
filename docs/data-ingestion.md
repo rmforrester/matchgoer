@@ -222,6 +222,36 @@ Generate the current non-mutating renamed-stadium candidate report with:
 
 ## Mutable fixture refresh
 
+### Optional new-ID discovery (default disabled)
+
+`ENABLE_NEW_FIXTURE_DISCOVERY=true` opts the existing nightly reconciliation
+into a separate insert-only stage, after successful lifecycle reconciliation.
+No cron or command change is required. Leave it absent/false until publication
+and activation are separately approved. Existing reconciliation is unchanged
+when disabled.
+
+The initial allowlist is USA men's 2026: 253, 255, 489, 257 and 1095. The window
+is seven days back through thirty days ahead, using UTC calendar dates. More
+than fifty distinct absent IDs withholds the entire discovery write; it never
+truncates. Five uncached date-window requests share the existing request budget;
+one additional status request may be needed for fresh quota evidence. Unknown
+or exhausted quota fails closed. Partial/paginated inventories are rejected.
+
+Only existing, identity-compatible canonical teams can be used. No teams or venues
+are created or updated. Missing event identity may be stored with a null venue;
+known grounds without coordinates retain their canonical link but remain absent
+from location serving. Invalid points are left unlinked. Ambiguous or contradictory
+event mappings are held; no usual-home-ground fallback is used. Reviewed event
+exceptions pin fixture, league, season, both teams and UTC
+kickoff. Reports include candidate rows, holds, overflow, inserts and quota.
+
+Discovery uses a separate transaction after the existing lifecycle commit. A
+discovery failure does not undo that commit and makes the overall run incomplete.
+Before an approved hosted write, retain exact public-row preimages, the candidate
+manifest, recovery backup and protected-data fingerprints. Disable only this
+flag to stop discovery. Remove inserted fixtures only after checking dependent
+supporter records; never cascade-delete history or restore unrelated tables.
+
 Full-season imports use cached provider responses for safe repeatability, so they are not the operational refresh for scores and statuses. During beta, run `refresh_fixture_states.py` at least daily over the recent-past/current/future window. It deliberately bypasses provider cache and updates only existing fixture kickoff, status, score and raw venue-label fields.
 
 ```powershell

@@ -81,6 +81,16 @@ class ApiFootballClient:
             message = f"{endpoint} {params}: {payload['errors']}"
             self.failures.append(message)
             raise RuntimeError(message)
+        if endpoint == "/fixtures" and "from" in params:
+            # Discovery cannot mistake a truncated response for a complete inventory.
+            paging = payload.get("paging") or {}
+            if (not isinstance(payload.get("response"), list)
+                    or type(payload.get("results")) is not int
+                    or payload["results"] != len(payload.get("response", []))
+                    or paging.get("current") != 1 or paging.get("total") != 1):
+                message = "/fixtures: incomplete date-window inventory; discovery withheld"
+                self.failures.append(message)
+                raise RuntimeError(message)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         cache_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return payload.get("response", [])

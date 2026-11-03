@@ -6,7 +6,7 @@ import json
 import re
 import unicodedata
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -764,3 +764,248 @@ class TerraceTalkImporter:
                 else:
                     connection.execute(self.fixtures.update().where(where).values(**values))
         return report
+
+
+def plan_fixture_discovery(connection, payloads, start, end, *, max_candidates=50):
+    """Read-only, insert-only plan. Reuse canonical resolvers; allocate no identities."""
+    from datetime import timezone
+    from config.leagues import NEW_FIXTURE_DISCOVERY_SCOPES
+    from config.venue_overrides import DISCOVERY_EVENT_VENUES
+
+    scopes = {(s.league_id, s.provider_season): s for s in NEW_FIXTURE_DISCOVERY_SCOPES}
+    metadata = MetaData()
+    tables = {name: Table(name, metadata, autoload_with=connection) for name in
+              ("fixtures", "teams", "venues", "venue_provider_refs", "venue_names")}
+    existing = {r["fixture_id"]: dict(r) for r in connection.execute(select(tables["fixtures"])).mappings()}
+    venues = {r["venue_id"]: dict(r) for r in connection.execute(select(tables["venues"])).mappings()}
+    refs = list(connection.execute(select(tables["venue_provider_refs"])).mappings())
+    aliases = list(connection.execute(select(tables["venue_names"])).mappings())
+    team_ids = set(connection.execute(select(tables["teams"].c.team_id)).scalars())
+    normalize = TerraceTalkImporter._normalize_venue_identity_name
+
+    def utc(value):
+        parsed = value if isinstance(value, datetime) else datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            # Reflected SQLite timestamps are naive; provider timestamps are not.
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+
+    grouped, held, errors = {}, [], []
+    for scope_key, items in payloads.items():
+        if scope_key not in scopes:
+            errors.append("UNAPPROVED_SCOPE")
+            continue
+        for item in items:
+            try:
+                fid = item["fixture"]["id"]
+                if type(fid) is not int or fid <= 0:
+                    raise ValueError()
+                grouped.setdefault(fid, []).append((scope_key, item))
+            except (KeyError, TypeError, ValueError):
+                errors.append("MALFORMED_FIXTURE_ID")
+    candidate_ids = set(grouped) - set(existing)
+    report = dict(candidates=len(candidate_ids), inserted=0, held=held, errors=errors,
+                  overflow=len(candidate_ids) > max_candidates, rows=[], existing=0, location_outcomes={})
+    if report["overflow"]:
+        report["errors"].append("CANDIDATE_OVERFLOW_NO_DISCOVERY_WRITE")
+        return report
+    natural = {(utc(r["fixture_date"]), r["home_team_id"], r["away_team_id"]): fid
+               for fid, r in existing.items()}
+    for fid, observations in sorted(grouped.items()):
+        try:
+            scope_key, item = observations[0]
+            if any(other != observations[0] for other in observations[1:]):
+                raise ValueError("CONTRADICTORY_DUPLICATE")
+            league, raw, teams = item["league"], item["fixture"], item["teams"]
+            if (type(league["id"]) is not int or type(league["season"]) is not int
+                    or (league["id"], league["season"]) != scope_key or league.get("country") != "USA"):
+                raise ValueError("IDENTITY_SCOPE_MISMATCH")
+            kickoff = datetime.fromisoformat(raw["date"].replace("Z", "+00:00"))
+            if kickoff.tzinfo is None:
+                raise ValueError("NAIVE_PROVIDER_KICKOFF")
+            kickoff = utc(kickoff)
+            if not start <= kickoff < end:
+                raise ValueError("OUTSIDE_DISCOVERY_WINDOW")
+            observations_team = []
+            for side in ("home", "away"):
+                team = teams[side]
+                if type(team["id"]) is not int or team["id"] <= 0 or not str(team["name"] or "").strip():
+                    raise ValueError("MALFORMED_TEAM")
+                observations_team.append(ProviderTeamObservation("api_football", team["id"], team["name"], *scope_key, "USA"))
+            receipts = resolve_provider_team_batch(connection, observations_team)
+            resolved = [receipts[o.key] for o in observations_team]
+            if any(r.identity_resolution not in {"IDENTITY_COMPATIBLE", "REVIEWED_SCOPED_OVERRIDE"}
+                   or r.canonical_team_id not in team_ids for r in resolved):
+                raise ValueError("TEAM_IDENTITY_REVIEW")
+            home, away = (r.canonical_team_id for r in resolved)
+            if home == away:
+                raise ValueError("IDENTICAL_TEAMS")
+            if fid in existing:
+                current = existing[fid]
+                if any(current[k] != v for k, v in dict(league_id=scope_key[0], season=scope_key[1],
+                                                       home_team_id=home, away_team_id=away).items()):
+                    raise ValueError("EXISTING_IDENTITY_CONFLICT")
+                report["existing"] += 1
+                continue
+            status = raw["status"]["short"]
+            if status not in {"NS", "TBD", "1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "PST",
+                              "FT", "AET", "PEN", "CANC", "ABD", "AWD", "WO"}:
+                raise ValueError("UNSUPPORTED_STATUS")
+            goals = item["goals"]
+            if any(v is not None and (type(v) is not int or v < 0) for v in (goals["home"], goals["away"])):
+                raise ValueError("INVALID_SCORE")
+            completion_cutoff = min(datetime.now(timezone.utc), end - timedelta(days=30))
+            if status in {"FT", "AET", "PEN"} and (None in (goals["home"], goals["away"]) or kickoff >= completion_cutoff):
+                raise ValueError("INVALID_COMPLETED_FIXTURE")
+            event = raw.get("venue") or {}
+            pid = event.get("id")
+            names = {vid: {normalize(v["name"] or "")} for vid, v in venues.items()}
+            for alias in aliases:
+                if not alias.get("valid_to") and alias["venue_id"] in names:
+                    names[alias["venue_id"]].add(normalize(alias["name"] or ""))
+            proof = DISCOVERY_EVENT_VENUES.get((fid, *scope_key, teams["home"]["id"], teams["away"]["id"], kickoff.isoformat()))
+            if proof and event.get("name") and normalize(event["name"]) not in names.get(proof["venue_id"], set()):
+                raise ValueError("REVIEWED_EVENT_VENUE_CONFLICT")
+            if type(pid) is int and pid > 0:
+                ids = {r["venue_id"] for r in refs if r["provider"] == "api_football"
+                       and r["provider_venue_id"] == pid and not r.get("valid_to")}
+                ids.update(vid for vid, v in venues.items() if v.get("provider_venue_id") == pid)
+            elif pid is not None:
+                raise ValueError("INVALID_PROVIDER_VENUE_ID")
+            elif proof:
+                ids = {proof["venue_id"]}
+            elif event.get("name"):
+                ids = {vid for vid in names if normalize(event["name"]) in names[vid]}
+            else:
+                ids = set()
+            if len(ids) > 1:
+                raise ValueError("AMBIGUOUS_OR_UNKNOWN_VENUE")
+            vid = next(iter(ids)) if ids else None
+            venue = venues.get(vid, {})
+            location = "UNRESOLVED_EVENT_VENUE"
+            if vid is not None:
+                if not venue:
+                    raise ValueError("UNKNOWN_CANONICAL_VENUE")
+                if proof and vid != proof["venue_id"]:
+                    raise ValueError("REVIEWED_EVENT_VENUE_CONFLICT")
+                if venue.get("canonical_venue_id") not in (None, vid):
+                    raise ValueError("VENUE_EQUIVALENCE_REVIEW")
+                expected_name = event.get("name") or (proof or {}).get("venue_name")
+                expected_city = event.get("city") or (proof or {}).get("city")
+                if expected_name and normalize(expected_name) not in names[vid]:
+                    raise ValueError("VENUE_NAME_CONFLICT")
+                if expected_city and normalize(expected_city) != normalize(venue.get("city") or ""):
+                    raise ValueError("VENUE_CITY_CONFLICT")
+                if venue.get("country") not in ({"USA", "Canada"} if scope_key[0] == 253 else {"USA"}):
+                    raise ValueError("VENUE_COUNTRY_CONFLICT")
+                lat, lon = venue.get("latitude"), venue.get("longitude")
+                location = "MAP_READY"
+                if lat is None or lon is None:
+                    location = "KNOWN_VENUE_MISSING_COORDINATES"
+                elif not valid_coordinates(lat, lon) or (float(lat), float(lon)) == (0, 0):
+                    # Do not expose invalid existing points through location serving.
+                    vid, location = None, "INVALID_COORDINATES_UNLINKED"
+            key = (kickoff, home, away)
+            if key in natural:
+                prior = natural[key]
+                if any(row["fixture_id"] == prior for row in report["rows"]):
+                    report["rows"] = [row for row in report["rows"] if row["fixture_id"] != prior]
+                    held.append(dict(fixture_id=prior, reason="NATURAL_IDENTITY_CONFLICT"))
+                raise ValueError("NATURAL_IDENTITY_CONFLICT")
+            natural[key] = fid
+            report["location_outcomes"][fid] = location
+            report["rows"].append(dict(fixture_id=fid, fixture_date=kickoff, venue_id=vid,
+                venue_name=event.get("name") or venue.get("name"), venue_city=event.get("city") or venue.get("city"),
+                league_id=scope_key[0], league_name=scopes[scope_key].display_name, country="USA", season=scope_key[1],
+                round=league.get("round"), status=status, home_team_id=home, home_team=resolved[0].canonical_name,
+                away_team_id=away, away_team=resolved[1].canonical_name, home_goals=goals["home"], away_goals=goals["away"]))
+        except (KeyError, TypeError, ValueError, RuntimeError, AttributeError) as error:
+            # Only categorical, non-secret diagnostics; no provider exception bodies.
+            reason = str(error) if type(error) is ValueError and str(error).isupper() else type(error).__name__
+            held.append(dict(fixture_id=fid, reason=reason))
+    return report
+
+
+def run_fixture_discovery(engine, client, day, *, write=False, max_requests=750, expected_rows=None):
+    """At most five inventory calls plus one quota bootstrap; no automatic retries."""
+    from datetime import timedelta, timezone
+    from config.leagues import NEW_FIXTURE_DISCOVERY_SCOPES
+
+    start = datetime.combine(day - timedelta(days=7), datetime.min.time(), tzinfo=timezone.utc)
+    end = datetime.combine(day + timedelta(days=31), datetime.min.time(), tzinfo=timezone.utc)
+    initial = client.requests_made
+    result = dict(enabled=True, passed=False, candidates=0, inserted=0, held=[], overflow=False,
+                  errors=[], rows=[], window_start=start.isoformat(), window_end_exclusive=end.isoformat())
+    try:
+        if client.failures:
+            raise ValueError("PRIOR_PROVIDER_FAILURE")
+        bootstrap = not client.quota_is_fresh()
+        if client.requests_made + len(NEW_FIXTURE_DISCOVERY_SCOPES) + int(bootstrap) > max_requests:
+            raise ValueError("SHARED_REQUEST_BUDGET_EXHAUSTED")
+        if bootstrap:
+            client.get("/status", use_cache=False)
+        payloads = {}
+        for scope in NEW_FIXTURE_DISCOVERY_SCOPES:
+            if not client.highlights_quota_available():
+                raise ValueError("QUOTA_HEADROOM_UNAVAILABLE")
+            payloads[(scope.league_id, scope.provider_season)] = client.fixtures_between(
+                scope.league_id, scope.provider_season, start.date().isoformat(), (end - timedelta(days=1)).date().isoformat())
+        with engine.connect() as connection:
+            plan = plan_fixture_discovery(connection, payloads, start, end)
+        result.update(plan)
+        if plan["errors"] or plan["overflow"]:
+            return result
+        if expected_rows is not None:
+            def frozen(rows):
+                return sorted(json.dumps(dict(row, fixture_date=datetime.fromisoformat(
+                    str(row["fixture_date"]).replace("Z", "+00:00")).astimezone(timezone.utc).isoformat()),
+                    sort_keys=True) for row in rows)
+            if frozen(plan["rows"]) != frozen(expected_rows):
+                raise ValueError("APPROVED_DISCOVERY_MANIFEST_CHANGED")
+        if write:
+            with engine.begin() as connection:
+                if connection.dialect.name == "postgresql":
+                    connection.exec_driver_sql("SET LOCAL lock_timeout = '10s'")
+                    connection.exec_driver_sql("SET LOCAL statement_timeout = '120s'")
+                    # Serialize discovery and existing ingestion; protect resolver inputs too.
+                    connection.exec_driver_sql("LOCK TABLE fixtures IN SHARE ROW EXCLUSIVE MODE")
+                    connection.exec_driver_sql("LOCK TABLE teams, venues, venue_provider_refs, venue_names, team_identity_overrides IN SHARE MODE")
+                locked = plan_fixture_discovery(connection, payloads, start, end)
+                if locked["errors"] or locked["overflow"]:
+                    raise ValueError("DISCOVERY_REVALIDATION_FAILED")
+                # A concurrent identical insertion is a no-op; any other drift aborts.
+                planned = {r["fixture_id"]: r for r in plan["rows"]}
+                if locked["held"] != plan["held"] or any(planned.get(r["fixture_id"]) != r for r in locked["rows"]):
+                    raise ValueError("DISCOVERY_PREIMAGE_CHANGED")
+                fixtures = Table("fixtures", MetaData(), autoload_with=connection)
+                before = {r["fixture_id"]: dict(r) for r in connection.execute(select(fixtures)).mappings()}
+                for row in locked["rows"]:
+                    connection.execute(fixtures.insert().values(**row))
+                after = {r["fixture_id"]: dict(r) for r in connection.execute(select(fixtures)).mappings()}
+                if any(after.get(fid) != row for fid, row in before.items()) or set(after) - set(before) != {r["fixture_id"] for r in locked["rows"]}:
+                    raise ValueError("DISCOVERY_INSERT_ONLY_GUARD_FAILED")
+                for row in locked["rows"]:
+                    actual = after[row["fixture_id"]]
+                    for field, value in row.items():
+                        observed = actual[field]
+                        if field == "fixture_date" and observed.tzinfo is None:
+                            observed = observed.replace(tzinfo=timezone.utc)
+                        if observed != value:
+                            raise ValueError("DISCOVERY_READBACK_FAILED")
+                count = len(locked["rows"])
+            result["inserted"] = count  # Only after confirmed commit.
+        result["passed"] = True
+    except Exception as error:
+        result["errors"].append(str(error) if type(error) is ValueError and str(error).isupper() else type(error).__name__)
+    finally:
+        result["provider_requests"] = client.requests_made - initial
+        result["quota"] = client.quota
+        result["quota_fresh"] = client.quota_is_fresh()
+        result["provider_http_status"] = getattr(client, "last_status_code", None)
+        result["retry_after_present"] = bool(getattr(client, "retry_after", None))
+        result["shared_request_budget"] = max_requests
+        result["would_insert"] = len(result["rows"])
+        result["held_count"] = len(result["held"])
+        result["coverage_complete"] = not result["held"] and not result["errors"] and not result["overflow"]
+        result["rows"] = [dict(row, fixture_date=row["fixture_date"].isoformat()) for row in result["rows"]]
+    return result

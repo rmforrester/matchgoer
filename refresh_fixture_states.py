@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from sqlalchemy import MetaData, Table, and_, create_engine, select, update
 
 from ingestion.api_football import ApiFootballClient
-from ingestion.pipeline import TerraceTalkImporter
+from ingestion.pipeline import TerraceTalkImporter, run_fixture_discovery
 
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / "backend" / ".env")
@@ -63,6 +63,13 @@ def expanded_refresh_enabled():
     value = os.getenv("ENABLE_EXPANDED_FIXTURE_REFRESH", "false").strip().lower()
     if value not in {"true", "false", ""}:
         raise SystemExit("ENABLE_EXPANDED_FIXTURE_REFRESH must be TRUE or FALSE; refusing execution")
+    return value == "true"
+
+
+def fixture_discovery_enabled():
+    value = os.getenv("ENABLE_NEW_FIXTURE_DISCOVERY", "false").strip().lower()
+    if value not in {"true", "false", ""}:
+        raise SystemExit("ENABLE_NEW_FIXTURE_DISCOVERY must be TRUE or FALSE; refusing execution")
     return value == "true"
 
 
@@ -278,6 +285,7 @@ def execution_outcome(*, write_requested, commit_confirmed, expanded, incomplete
 def main() -> int:
     args = parser().parse_args()
     expanded = expanded_refresh_enabled()
+    discovery_enabled = fixture_discovery_enabled()
     if not args.nightly:
         raise SystemExit("Use --nightly for bounded reconciliation")
     if args.lookahead_days < 0 or args.max_requests < 1:
@@ -392,8 +400,22 @@ def main() -> int:
         provider_failures=client.failures, validation=validation, manifest=manifest)
     lifecycle_requests = client.requests_made
     lifecycle_failures = list(client.failures)
+    lifecycle_success = execution_success
+    discovery = None
+    if discovery_enabled:
+        if args.country not in (None, "USA"):
+            discovery = {"enabled": True, "passed": True, "inserted": 0,
+                         "skipped": "COUNTRY_SCOPE_EXCLUDED"}
+        elif execution_success and (not write_requested or commit_confirmed):
+            discovery = run_fixture_discovery(engine, client, cutoff_day,
+                write=write_requested and commit_confirmed, max_requests=args.max_requests)
+            if not discovery["passed"]:
+                execution_success, exit_code = False, 1
+        else:
+            discovery = {"enabled": True, "passed": False, "inserted": 0,
+                         "errors": ["RECONCILIATION_FAILED_OR_COUNTRY_EXCLUDED"]}
     highlights = None
-    if args.enrich_highlights and execution_success and commit_confirmed:
+    if args.enrich_highlights and lifecycle_success and commit_confirmed:
         # Existing lifecycle commit is authoritative and remains independent of event coverage.
         try:
             from ingestion.matchday_highlights import run_demand_enrichment
@@ -424,6 +446,11 @@ def main() -> int:
     if highlights is not None:
         report["matchday_highlights"] = highlights
         report["total_provider_requests"] = client.requests_made
+    if discovery is not None:
+        report["fixture_discovery"] = discovery
+        report["lifecycle_execution_success"] = lifecycle_success
+        report["total_provider_requests"] = client.requests_made
+        report["complete"] = report["complete"] and discovery["passed"]
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key != "manifest"}, indent=2))

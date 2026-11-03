@@ -35,6 +35,15 @@ ENGLAND_PYRAMID_2026 = (
     LeagueScope("England", 56, "Non League Div One - Southern South", 2026, "2026/27"),
 )
 
+NEW_FIXTURE_DISCOVERY_SCOPES = (
+    LeagueScope("USA", 253, "Major League Soccer", 2026, "2026"),
+    LeagueScope("USA", 255, "USL Championship", 2026, "2026"),
+    LeagueScope("USA", 489, "USL League One", 2026, "2026"),
+    LeagueScope("USA", 257, "US Open Cup", 2026, "2026"),
+    LeagueScope("USA", 1095, "USL Cup", 2026, "2026"),
+)
+
+
 USA_PRIORITY_2026 = (
     LeagueScope("USA", None, "Major League Soccer", 2026, "2026", ("MLS",)),
     LeagueScope("USA", None, "USL Championship", 2026, "2026"),
