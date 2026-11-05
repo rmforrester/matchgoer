@@ -99,9 +99,9 @@ class RefreshSafetyTests(unittest.TestCase):
     def test_ambiguous(self):
         v,r,a=self.context();r.append(dict(venue_id=8,provider="api_football",provider_venue_id=70));self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Example")),v,r,a),(3,"AMBIGUOUS"))
     def test_disputed(self):
-        self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Wrong")),*self.context()),(3,"DISPUTED"))
+        self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Example",city="Another city")),*self.context()),(3,"DISPUTED"))
     def test_no_directions(self):
-        v,r,a=self.context();v[0]["latitude"]=None;self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Example")),v,r,a),(3,"UNRESOLVED_DIRECTIONS"))
+        v,r,a=self.context();v[0]["latitude"]=None;self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Example")),v,r,a),(7,"UNRESOLVED_DIRECTIONS"))
     def test_lifecycle(self):
         for status in ("PST","CANC","ABD","FT"):
             v=classify_candidate(self.row(),[provider(status=status)],self.context())[1];self.assertEqual(v["status"],status)

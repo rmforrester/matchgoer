@@ -13,6 +13,30 @@ class LeagueScope:
     aliases: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True)
+class SeasonWatch:
+    """Reporting only: never an ingestion or discovery activation."""
+    country: str
+    league_id: int
+    display_name: str
+    previous_season: int
+    # Real-world phase windows, not assumptions about provider season keys.
+    phases: tuple[tuple[str, str, str], ...] = ()
+
+
+SEASON_READINESS_WATCHLIST = (
+    SeasonWatch("USA", 253, "MLS", 2026, (
+        ("2027 Sprint", "2027-02-01", "2027-06-01"),
+        ("2027/28", "2027-07-01", "2028-06-01"),
+    )),
+    SeasonWatch("USA", 255, "USL Championship", 2026),
+    SeasonWatch("USA", 489, "USL League One", 2026),
+    SeasonWatch("USA", 256, "USL League Two", 2026),
+    SeasonWatch("USA", 257, "US Open Cup", 2026),
+    SeasonWatch("USA", 1095, "USL Cup", 2026),
+)
+
+
 ENGLAND_PYRAMID_2026 = (
     LeagueScope("England", 39, "Premier League", 2026, "2026/27"),
     LeagueScope("England", 40, "Championship", 2026, "2026/27"),

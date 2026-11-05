@@ -78,32 +78,40 @@ def refresh_window(day, lookback=30, lookahead=30):
     return today - timedelta(days=lookback), today + timedelta(days=lookahead + 1)
 
 
-def resolve_venue(candidate, item, venues, refs, aliases):
-    """Read-only mapping: no speculative venues or canonical metadata changes."""
+def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
+    """Reuse discovery's canonical physical resolver; never mutate ground records."""
+    from types import SimpleNamespace
+    from ingestion.discovery_venues import resolve_event_venue, reviewed_home_proof
     old = getattr(candidate, "venue_id", None)
     raw = (item.get("fixture") or {}).get("venue") or {}
-    pid = raw.get("id")
-    if not pid:
-        return old, "MISSING"
-    ids = {r["venue_id"] for r in refs if r["provider"] == "api_football" and r["provider_venue_id"] == pid and not r.get("valid_to")}
-    ids.update(v["venue_id"] for v in venues if v.get("provider_venue_id") == pid)
-    if len(ids) != 1:
-        return old, "AMBIGUOUS" if ids else "UNKNOWN"
-    target = next((v for v in venues if v["venue_id"] in ids), None)
-    if target is None:
-        return old, "UNKNOWN"
-    normalize = TerraceTalkImporter._normalize_venue_identity_name
-    names = {normalize(target.get("name") or "")}
-    names.update(normalize(a["name"]) for a in aliases if a["venue_id"] == target["venue_id"] and not a.get("valid_to"))
-    if not raw.get("name") or normalize(raw["name"]) not in names:
+    context = review_context or {}
+    country = getattr(candidate, "country", None)
+    by_id = {v["venue_id"]: v for v in venues}
+    scope = SimpleNamespace(country=country,
+        venue_countries=context.get("venue_countries", ()),
+        venue_reviews=tuple(r for r in context.get("venue_reviews", ()) if r["venue_id"] in by_id))
+    identity = provider_identity(item)
+    key = (*identity.values(), utc_datetime(item["fixture"]["date"]).isoformat())
+    proof = context.get("event_proofs", {}).get(key)
+    fallback = False
+    try:
+        if proof is None and old is None:
+            proof = reviewed_home_proof(item, context.get("home_ground_reviews", ()))
+            fallback = proof is not None
+        if raw.get("id") is None and not raw.get("name") and proof is None:
+            return old, "MISSING"
+        vid, location = resolve_event_venue(raw, scope,
+            by_id, refs, aliases, proof)
+    except ValueError as error:
+        reason = str(error)
+        if reason in {"AMBIGUOUS_EVENT_VENUE", "AMBIGUOUS_REVIEWED_HOME_GROUND"}:
+            return old, "AMBIGUOUS"
         return old, "DISPUTED"
-    if raw.get("city") and target.get("city") and normalize(raw["city"]) != normalize(target["city"]):
-        return old, "DISPUTED"
-    if getattr(candidate, "country", None) and target.get("country") and normalize(candidate.country) != normalize(target["country"]):
-        return old, "DISPUTED"
-    if target.get("latitude") is None or target.get("longitude") is None:
-        return old, "UNRESOLVED_DIRECTIONS"
-    return target["venue_id"], "MATCHED"
+    if vid is None:
+        return old, "UNKNOWN" if location == "UNRESOLVED_EVENT_VENUE" else "DISPUTED"
+    if location == "KNOWN_VENUE_MISSING_COORDINATES":
+        return vid, "UNRESOLVED_DIRECTIONS"
+    return vid, "MATCHED_HOME_REVIEW" if fallback else "MATCHED"
 
 
 def provider_values(item: dict[str, Any]) -> dict[str, Any]:
@@ -117,6 +125,7 @@ def provider_values(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def provider_identity(item: dict[str, Any]) -> dict[str, Any]:
+    """Stable event identity; kickoff/status are mutable lifecycle values, not keys."""
     return {
         "fixture_id": (item.get("fixture") or {}).get("id"),
         "league_id": (item.get("league") or {}).get("id"),
@@ -163,6 +172,10 @@ def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venu
         result.update(classification="PROVIDER_MALFORMED", reason="Malformed provider goals or venue")
         return result, None
     result.update(stored_venue_id=getattr(candidate, "venue_id", None), provider_venue_id=values["venue_id"], venue_mapping=venue_result, raw_provider_venue=(item.get("fixture") or {}).get("venue"))
+    labels=(item.get('fixture') or {}).get('venue') or {}
+    result['venue_label_changes']={field:dict(stored=getattr(candidate,'venue_'+field),provider=labels.get(field))
+        for field in ('name','city') if hasattr(candidate,'venue_'+field) and labels.get(field) is not None
+        and labels.get(field)!=getattr(candidate,'venue_'+field)}
     result.update(
         provider_fixture_date=values["fixture_date"].isoformat(), provider_status=values["status"],
         provider_home_goals=values["home_goals"], provider_away_goals=values["away_goals"],
@@ -181,13 +194,15 @@ def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venu
         values.pop("venue_id")
     changed = [field for field in values if (utc_datetime(getattr(candidate, field)) if field == "fixture_date" else getattr(candidate, field, None)) != values[field]]
     result["proposed_changed_fields"] = changed
-    if candidate.status in TERMINAL_STATUSES and changed:
+    if candidate.status in TERMINAL_STATUSES and changed and not (
+            candidate.status in DURABLE_COMPLETED_STATUSES and changed == ["venue_id"]
+            and getattr(candidate, "venue_id", None) is None and values["venue_id"] is not None):
         result.update(classification="TERMINAL_CONFLICT_REVIEW", reason="Stored terminal fixture disagrees with provider")
         return result, None
     if values["status"] not in RETRYABLE_STATUSES | TERMINAL_STATUSES:
         result.update(classification="PROVIDER_MALFORMED", reason=f"Unsupported provider status {values['status']!r}; no mutation proposed", proposed_changed_fields=[])
         return result, None
-    if candidate.status in TERMINAL_STATUSES:
+    if candidate.status in TERMINAL_STATUSES and not changed:
         result.update(classification="NO_CHANGE", reason="Stored terminal fixture agrees with provider")
         return result, None
     if not changed:
@@ -286,6 +301,12 @@ def main() -> int:
     args = parser().parse_args()
     expanded = expanded_refresh_enabled()
     discovery_enabled = fixture_discovery_enabled()
+    global_value = os.getenv("ENABLE_GLOBAL_FIXTURE_DISCOVERY", "false").strip().lower()
+    if global_value not in {"true", "false", ""}:
+        raise SystemExit("ENABLE_GLOBAL_FIXTURE_DISCOVERY must be TRUE or FALSE")
+    global_enabled = global_value == "true"
+    args.max_requests=min(args.max_requests,750)
+    discovery_enabled = discovery_enabled or global_enabled
     if not args.nightly:
         raise SystemExit("Use --nightly for bounded reconciliation")
     if args.lookahead_days < 0 or args.max_requests < 1:
@@ -305,10 +326,15 @@ def main() -> int:
     start, end = refresh_window(cutoff_day, args.lookback_days, args.lookahead_days)
     if not expanded:
         end = cutoff
+    eligible_status = fixtures.c.status.in_(sorted(RETRYABLE_STATUSES))
+    if expanded:
+        # A completed row with a missing venue still needs a later provider retry.
+        eligible_status = eligible_status | (fixtures.c.status.in_(sorted(DURABLE_COMPLETED_STATUSES)) & fixtures.c.venue_id.is_(None))
     query = select(
         fixtures.c.fixture_id, fixtures.c.fixture_date, fixtures.c.status, fixtures.c.home_goals, fixtures.c.away_goals,
         fixtures.c.league_id, fixtures.c.season, fixtures.c.home_team_id, fixtures.c.away_team_id, fixtures.c.home_team, fixtures.c.away_team, fixtures.c.venue_id, fixtures.c.country,
-    ).where(fixtures.c.fixture_date >= start, fixtures.c.fixture_date < end, fixtures.c.status.in_(sorted(RETRYABLE_STATUSES)))
+        *(fixtures.c[name] for name in ('venue_name','venue_city') if name in fixtures.c),
+    ).where(fixtures.c.fixture_date >= start, fixtures.c.fixture_date < end, eligible_status)
     if args.country:
         query = query.where(fixtures.c.country == args.country)
     with engine.connect() as connection:
@@ -320,6 +346,18 @@ def main() -> int:
         older_rows = connection.execute(
             select(fixtures.c.status).where(fixtures.c.fixture_date < start, fixtures.c.status.in_(sorted(RETRYABLE_STATUSES)))
         ).all()
+    review_data = {}
+    scope_reviews = {}
+    if expanded:
+        from ingestion.global_discovery import load_registry, event_proofs
+        review_data = load_registry()
+        proof_map = event_proofs(review_data)
+        for scope in review_data['scopes']:
+            scope_reviews[(scope['league_id'],scope['provider_season'])] = dict(
+                venue_countries=scope.get('venue_countries', ()),
+                venue_reviews=review_data.get('venue_reviews', ()),
+                home_ground_reviews=review_data.get('home_ground_reviews', ()),
+                event_proofs=proof_map)
     natural_keys: dict[tuple[Any, int, int], set[int]] = {}
     for row in natural_rows:
         natural_keys.setdefault((utc_datetime(row.fixture_date), row.home_team_id, row.away_team_id), set()).add(row.fixture_id)
@@ -343,7 +381,7 @@ def main() -> int:
                 responses[fixture_id].append(item)
     manifest, updates = [], {}
     for candidate in candidates:
-        item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases), expanded=expanded)
+        item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases, scope_reviews.get((candidate.league_id,candidate.season), {})), expanded=expanded)
         manifest.append(item)
         if values is not None:
             updates[candidate.fixture_id] = values
@@ -351,7 +389,7 @@ def main() -> int:
     if budget_exceeded:
         validation["passed"] = False
         validation["problems"].append("Request ceiling exceeded; no provider calls made")
-    incomplete = any(row["venue_mapping"] not in {"MATCHED", "MISSING", "DISABLED"} for row in manifest if "venue_mapping" in row) or any(row["classification"] in {"PROVIDER_MISSING", "PROVIDER_DUPLICATE", "IDENTITY_MISMATCH", "PROVIDER_MALFORMED", "TERMINAL_CONFLICT_REVIEW", "MANUAL_REVIEW_HOLD"} for row in manifest)
+    incomplete = any(row["venue_mapping"] not in {"MATCHED", "MATCHED_HOME_REVIEW", "MISSING", "DISABLED"} for row in manifest if "venue_mapping" in row) or any(row["classification"] in {"PROVIDER_MISSING", "PROVIDER_DUPLICATE", "IDENTITY_MISMATCH", "PROVIDER_MALFORMED", "TERMINAL_CONFLICT_REVIEW", "MANUAL_REVIEW_HOLD"} for row in manifest)
     write_requested = args.write
     commit_confirmed = False
     if args.write:
@@ -368,6 +406,15 @@ def main() -> int:
                         connection.exec_driver_sql("SET LOCAL statement_timeout = '120s'")
                         connection.exec_driver_sql("SET LOCAL idle_in_transaction_session_timeout = '120s'")
                         connection.exec_driver_sql("LOCK TABLE fixtures IN SHARE ROW EXCLUSIVE MODE")
+                    if expanded:
+                        if connection.dialect.name == "postgresql":
+                            connection.exec_driver_sql("LOCK TABLE venues, venue_provider_refs, venue_names IN SHARE MODE")
+                        def stable(rows):
+                            return sorted(json.dumps(dict(r),sort_keys=True,default=str) for r in rows)
+                        for name, baseline in [('venues',venues),('venue_provider_refs',refs),('venue_names',aliases)]:
+                            current_context=list(connection.execute(select(Table(name,MetaData(),autoload_with=connection))).mappings())
+                            if stable(current_context)!=stable(baseline):
+                                raise RuntimeError("Venue mapping preimage changed: "+name)
                     preimage = fixture_snapshot(connection, fixtures)
                     for candidate in candidates:
                         current = preimage.get(candidate.fixture_id)
@@ -402,18 +449,33 @@ def main() -> int:
     lifecycle_failures = list(client.failures)
     lifecycle_success = execution_success
     discovery = None
+    discovery_started_at = client.requests_made
     if discovery_enabled:
         if args.country not in (None, "USA"):
             discovery = {"enabled": True, "passed": True, "inserted": 0,
                          "skipped": "COUNTRY_SCOPE_EXCLUDED"}
         elif execution_success and (not write_requested or commit_confirmed):
             discovery = run_fixture_discovery(engine, client, cutoff_day,
-                write=write_requested and commit_confirmed, max_requests=args.max_requests)
+                write=write_requested and commit_confirmed, max_requests=(min(args.max_requests-2,discovery_started_at+100) if global_enabled else args.max_requests))
             if not discovery["passed"]:
                 execution_success, exit_code = False, 1
         else:
             discovery = {"enabled": True, "passed": False, "inserted": 0,
                          "errors": ["RECONCILIATION_FAILED_OR_COUNTRY_EXCLUDED"]}
+    global_discovery = None
+    if global_enabled:
+        if lifecycle_success and (not write_requested or commit_confirmed):
+            try:
+                from ingestion.global_discovery import run_global_discovery
+                global_discovery = run_global_discovery(engine,client,cutoff_day,
+                    write=write_requested and commit_confirmed,max_requests=args.max_requests,
+                    discovery_started_at=discovery_started_at,country=args.country)
+            except Exception as error:
+                global_discovery = dict(enabled=True,passed=False,errors=[type(error).__name__])
+            if not global_discovery['passed']:
+                execution_success,exit_code=False,1
+        else:
+            global_discovery = dict(enabled=True,passed=False,errors=['RECONCILIATION_FAILED'])
     highlights = None
     if args.enrich_highlights and lifecycle_success and commit_confirmed:
         # Existing lifecycle commit is authoritative and remains independent of event coverage.
@@ -425,7 +487,16 @@ def main() -> int:
                                                held_ids=REVIEW_HOLDS, max_requests=args.max_requests)
         except Exception as error:
             highlights = {"enabled": True, "errors": [type(error).__name__]}
+    venue_exceptions = [dict(fixture_id=r['fixture_id'],outcome=r.get('venue_mapping'),
+        stored_venue_id=r.get('stored_venue_id'),proposed_venue_id=r.get('provider_venue_id'),
+        raw_provider_venue=r.get('raw_provider_venue'),identity_check_result=r['identity_check_result'],
+        classification=r['classification']) for r in manifest if 'venue_mapping' in r and
+        (r['venue_mapping'] not in {'MATCHED','MATCHED_HOME_REVIEW','DISABLED'} or r.get('stored_venue_id')!=r.get('provider_venue_id'))]
     report = {
+        "venue_reconciliation": dict(mapping_counts=dict(Counter(r.get('venue_mapping','NOT_CHECKED') for r in manifest)),
+            changed_assignments=[r['fixture_id'] for r in manifest if 'venue_id' in r['proposed_changed_fields']],
+            label_changes=[dict(fixture_id=r['fixture_id'],changes=r['venue_label_changes']) for r in manifest if r.get('venue_label_changes')],
+            unresolved_or_conflicting=venue_exceptions,automatic_ground_creations=0,extra_provider_requests=0),
         "execution_success": execution_success, "commit_confirmed": commit_confirmed,
         "exit_code": exit_code,
         "execution_outcome": ("FIXTURE REFRESH COMMITTED" if execution_success and commit_confirmed
@@ -451,6 +522,10 @@ def main() -> int:
         report["lifecycle_execution_success"] = lifecycle_success
         report["total_provider_requests"] = client.requests_made
         report["complete"] = report["complete"] and discovery["passed"]
+    if global_discovery is not None:
+        report["global_fixture_discovery"] = global_discovery
+        report["total_provider_requests"] = client.requests_made
+        report["complete"] = report["complete"] and global_discovery.get("coverage_complete",False)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key != "manifest"}, indent=2))

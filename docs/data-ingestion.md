@@ -29,6 +29,65 @@ flowchart LR
 
 ## Configuration and safety
 
+### Weekly season readiness (manual, read-only)
+
+Run from the repository root with the existing credentials configured, once a
+week during normal operator review:
+
+```powershell
+.\.venv\Scripts\python.exe -m ingestion.season_readiness --max-requests 13 --output reports/ingestion/season-readiness.json
+```
+
+This writes only local JSON/text reports. PostgreSQL transactions are explicitly
+read-only; no imports, canonical allocation, activation or scheduling occurs.
+`SEASON_READINESS_WATCHLIST` is separate from ingestion profiles and active
+discovery scopes. The initial watchlist contains only the six approved USA men's
+competitions. Reuse existing explicit-ID European profiles with, for example,
+`--profile europe-approved-2026`; the same total request cap applies, so a larger
+profile can return an incomplete report requiring another bounded operator run.
+Profiles containing unresolved/name-only IDs are rejected rather than guessed.
+
+The report always bypasses provider caches and checks response counts/pagination.
+An unavailable next season normally costs one country-metadata request; six
+new seasons with fixtures/rosters cost up to 13 requests. Additional advertised
+keys consume the same capped budget. Provider failures, missing metadata,
+incomplete inventories and quota exhaustion remain unverified errors (exit 1),
+never evidence of empty coverage or club closure. No new-season import follows
+an alert automatically. `newly_available` means newer than the configured
+baseline, not a claim that it first appeared since last week's run.
+
+MLS phase windows identify observed Sprint/full-season dates without assigning
+provider keys. Both phases can share one key, use distinct keys or remain
+unverified. Advertised bounds can nominate a reused older key. Returned dates,
+scope identity and canonical mappings still require review. Out-of-phase
+fixtures are reported; no season/year or NYCFC event venue is reassigned.
+
+Weekly checklist: provider season available -> fixtures published -> canonical
+teams/event venues and club continuity reviewed -> separately approved initial
+season import -> coordinate audit/targeted remediation -> serving verification
+-> separately reviewed daily-discovery scope update. Keep historical scopes
+and supporter records intact. Missing venue/coordinates are distinct from an
+identity conflict: retain otherwise valid fixtures with null geographic data;
+exclude them from geographic Discover until resolved. The legacy 10% coordinate
+QA threshold is a geographic-readiness signal, not permission to invent a ground
+or silently bypass an identity hold.
+
+Roster differences classify returning and new/promoted candidates, plus prior
+clubs missing from provider inventory. They do not establish withdrawals,
+rebrands or successors. Optional `--continuity-evidence reviewed.json` accepts
+reviewed independent-source attestations with `league_id`, `season`,
+`canonical_team_id`, `classification` (`CONFIRMED_WITHDRAWN`,
+`CONFIRMED_REBRAND`, `CONFIRMED_SUCCESSOR`), `reviewed: true` and an HTTPS
+`source`. These are labelled human attestations, not automatic identity mappings
+or deletion instructions. Preserve the original evidence and review contradictory
+claims before publication. A complete API response does not prove a complete
+season schedule: compare official expected fixture totals before importing.
+
+Each report separates provider event-venue readiness from an existing imported
+fixture's stored geographic readiness. An absent event venue never falls back
+silently to the team's usual ground. No photograph, attendance, account,
+supporter-history or editorial tables are read or written by this tool.
+
 League profiles live in `config/leagues.py`. They specify country, provider league, provider season and display-season label; season is never inferred. Credentials belong in `backend/.env` or the process environment:
 
 ```text
@@ -222,7 +281,187 @@ Generate the current non-mutating renamed-stadium candidate report with:
 
 ## Mutable fixture refresh
 
+### Global recovery and recurring discovery (local preparation, 4 November 2026)
+
+`ENABLE_GLOBAL_FIXTURE_DISCOVERY` is absent/false by default. No activation,
+cron change, service, schema change or hosted publication accompanies this code.
+The existing 04:20 UTC job remains the only scheduler. When separately activated,
+the unchanged five-scope USA stage runs first. Global reviewed scopes then share
+a maximum 100 discovery requests including USA and quota bootstrap, beneath the
+existing 750 total request ceiling, reserving two requests for highlights.
+Daily cups/playoffs/developing schedules precede established weekly buckets;
+rotating daily/weekly order under pressure prevents fixed-prefix starvation.
+Weekly overflow is explicitly deferred and may extend beyond seven days under
+the initial request ceiling. Report this rather than claiming complete coverage.
+
+`config/global_fixture_discovery.json` is the proposed explicit season registry.
+Each row carries approval/review evidence, cadence and a reviewed expiry. Pending
+approval/season rows are ineligible. Provider metadata's last published round is
+not a completion boundary. A completed final with terminal provider statuses may
+retire a cup. Never derive a new season from the calendar or activate hosted IDs
+merely because they exist. Scope review and publication approval remain distinct.
+
+Each scheduled global scope group is one competition/season and retains the
+50-absent-ID fail-closed cap. No truncation occurs. The seven-day UTC lookback and
+30-day forward window are unchanged. Overflow requires an exact bounded recovery
+manifest. Empty plans do not enter a write transaction or lock the fixture table.
+
+Global event venue reuse follows existing unique provider references and reviewed
+physical equivalences, with locality/country checks and documented specific aliases.
+A stable provider reference can retain a sponsor label without renaming a canonical
+ground; a label identifying another physical ground is held. Reviewed aliases do
+not merge venues. Unknown event venues stay NULL; missing/invalid coordinates are
+reported separately. No usual-home fallback or automatic canonical allocation exists.
+Same-ID team abbreviations require exact scope/name/preimage-pinned source evidence;
+they cannot create a team, change a canonical ID or override a database identity mapping.
+The USA resolver and its event exceptions retain their original path.
+
+Controlled initial recovery reuses `apply_fixture_discovery_plan`, the same locked
+insert-only writer used by scheduled discovery. Manifests freeze <=50 raw absent
+candidates, scope keys, provider payloads, exact expected rows and explicit window
+bounds. Initial recovery can include dates outside routine discovery only through
+that approved manifest; scheduled windows cannot be widened this way automatically.
+The writer rejects expected-row drift, contradictory concurrent inserts, altered
+historical fixtures and readback differences; errors roll back. It never commits
+canonical/editorial/supporter changes. Exact manifest replay after publication must
+be re-reconciled against current absence; ordinary repeated discovery inserts zero.
+
+Before any separately approved publication: obtain an encrypted verified backup,
+fresh provider and read-only hosted revalidation, absence/preimage evidence, protected
+table fingerprints and pinned source/manifest hashes. Resolve manifest dependencies
+first (Cray requires a coordinate-only correction of existing ground 21325). Perform
+one approved group per transaction, retain inserted-ID receipts, then independently
+verify all values, duplicate absence, protected data and date-limited /nearby serving.
+NULL or missing-point rows must remain excluded from geography. Never silently
+publish a changed subset if approval is delayed. A lower-volume initial FA Cup group
+may be reviewed separately without silently changing a broader approved manifest.
+
+Recovery: keep both discovery flags off until explicitly approved. After activation,
+disable only the global flag to stop global work; preserve the existing USA flag and
+lifecycle/highlights behaviour. Reconcile exact inserted IDs and dependencies before
+any reversal. Never cascade-delete supporter history or restore unrelated tables.
+Referenced fixtures require forward correction. Coordinate reversal must use the
+exact approved venue preimage and preserve its stable venue ID.
+
+Reuse the existing read-only readiness tool for rollover, bounded by explicit IDs:
+
+```powershell
+python -m ingestion.season_readiness --profile global-discovery --league-id 45 --league-id 81 --max-requests 6 --output reports/ingestion/global-season-readiness.json
+```
+
+This reports availability only; it cannot import or activate a new season. Fixture
+publication, roster/canonical review and a new explicit registry season remain required.
+
 ### Optional new-ID discovery (default disabled)
+
+#### Automatic venue reconciliation in the existing daily job
+
+The recovery worktree keeps the existing `20 4 * * *` UTC cron and
+`refresh_fixture_states.py --nightly` entry point. No new scheduler or service is
+needed. The root checkout's older cron command does not include `--nightly`;
+integrate the reviewed recovery implementation and its existing cron definition
+together before a separately approved production deployment. Do not assume local
+files or environment flags describe the hosted service.
+
+With the existing expanded-refresh flag enabled after review, every eligible
+provider payload also passes through discovery's canonical venue resolver. Stable
+provider references and active verified aliases can fill a NULL venue or move a
+fixture to another unambiguous existing physical ground. Sponsorship/label changes
+do not rename canonical grounds. A label naming a different known ground,
+incompatible locality/country, ambiguous provider mapping or invalid playing-area
+coordinates leaves the old assignment intact and enters the exception report.
+Provider NULL/omitted venue data never erases an existing assignment. Known grounds
+without coordinates retain their canonical link and report missing directions.
+
+The job retries unresolved venues each eligible run. Recent completed `FT`/`AET`/
+`PEN` fixtures with a NULL venue also qualify within the same bounded window. Only
+a venue-only fill is automatic for these completed rows; score, status, date and
+existing-ground changes still use the established terminal-conflict safeguards.
+Older/farther-future exclusions remain visible in the existing window reports.
+
+Verified current home-ground fallback uses optional `home_ground_reviews` records
+in the existing discovery registry, shared by discovery and lifecycle refresh.
+Records require exact `league_id`, `season`, `home_team_id`, existing `venue_id`,
+`source` (HTTPS), `valid_from`/`valid_until` (ISO dates),
+`review_status: VERIFIED_CURRENT_HOME`, `competition_type: league`, and
+`no_venue_exceptions: true`. This is an evidence attestation, not a home-team guess.
+No records are automatically created or activated by the code. It applies only
+when provider ID/name are absent and the round is `Regular Season - <number>`.
+Cup/playoff/neutral/groundshare exceptions, expired/contradictory reviews and other
+round formats do not qualify. It never replaces an existing verified event ground.
+Existing exact event proofs remain kickoff-pinned; official-source fallback stays
+bounded and evidence-backed, with no scraping or AI publication stage.
+
+`venue_reconciliation` in the existing job receipt records mapping counts, proposed
+`changed_assignments`, raw label differences and per-fixture unresolved/conflicting
+outcomes. Read these with `commit_confirmed`: a proposed change is not evidence of
+a successful commit. `MISSING` with a retained non-NULL venue is an omission, not a
+lost ground. Missing geometry remains distinct from unknown physical identity.
+Discovery's existing held/deferred-scope reporting is unchanged.
+
+Writes remain one guarded lifecycle transaction. PostgreSQL locks fixtures and
+the three canonical mapping tables through precommit revalidation. Fixture and
+mapping preimage drift or failed readback rolls back the lifecycle transaction.
+Only existing allowed fixture lifecycle fields/venue ID can change; canonical,
+editorial and supporter rows are never mutated. Discovery remains a separate
+transaction and cannot undo a successful lifecycle/highlights stage.
+
+Venue resolution reuses the already fetched fixture payloads and in-memory canonical
+data: **zero extra provider requests per fixture**. Daily lifecycle requests are
+`ceil(eligible fixtures / 20)`, including recent completed NULL-venue retries.
+The shared ceiling remains **750**, USA and global discovery share at most **100**,
+each discovery group remains capped at **50 absent IDs**, and existing scope
+rotation/quota/headroom rules remain intact. Highlights retain their existing
+bounded allowance. If lifecycle capacity exceeds the ceiling, the existing job
+reports failure instead of silently truncating the candidate set.
+
+Recovery: retain the dry-run receipt, exact source preimages, fixture preimages and
+reviewed manifests. For a failed transaction, verify `commit_confirmed: false` and
+rerun the same bounded job after resolving its reported cause. For a bad committed
+assignment, use an exact provider-ID-scoped inverse under postimage/reference
+guards; restore only changed fixture fields, never delete/reinsert fixtures or
+cascade supporter data. Restoring prior source files must preserve unrelated work.
+Configuration/publication/deployment/activation all require separate approval.
+
+#### Provisional kickoff policy (global recovery and recurring discovery)
+
+A valid API-Football fixture is not withheld solely because its kickoff is
+provisional or differs from an official schedule. Preserve the provider fixture
+ID, canonical home/away teams, competition and season. Review identity separately:
+a different opponent, team category, home/away pairing, competition/round continuity
+or physical venue remains a genuine conflict. A scheduling difference alone is not.
+
+Retain the provider UTC kickoff and provider status in the existing fixture fields;
+do not substitute an official date, turn `NS` into `TBD`, or invent confirmation or
+provisional metadata. A review report may explain a known discrepancy. Display a
+provisional indicator only when the existing provider-backed UI contract supports
+it. Venue evidence is independent: never assign an unverified cup venue. Existing
+event-proof kickoff pins remain safety preimages; re-review/rebind the same verified
+event when preparing a changed payload rather than making a stale proof universal.
+
+New inserts use the ordinary `fixtures` table and enter the existing
+`refresh_fixture_states.py --nightly` candidate query on subsequent eligible runs.
+There is no insert-source exclusion or separate reconciliation queue. Expanded
+refresh must be enabled through its existing separately approved configuration to
+include future fixtures. Its default window is 30 days back and 30 ahead; farther
+future fixtures enter as that window advances. Overdue retryable rows outside the
+lookback are reported as older unresolved and require the existing bounded
+`--lookback-days` option for a later reconciliation run, not a replacement fixture.
+No scheduler, window, request ceiling, quota safeguard or activation flag changes
+are implied by this policy.
+
+Reconcile by provider fixture ID using fresh `fixtures_by_ids` responses. Date/time,
+postponement and cancellation changes update the same row under existing identity,
+preimage, terminal-state and natural-key collision guards. Keep supporter/attendance
+relationships on that stable ID. Repeated discovery skips an existing provider ID
+even after its kickoff moves; never delete/reinsert or create a new ID to reschedule.
+Known cancellation/postponement evidence is a lifecycle/status fact requiring fresh
+provider reconciliation, not permission to publish an obsolete scheduled snapshot.
+
+Recovery manifests retain exact provider preimages and mark scheduling discrepancies
+as review annotations only. Remove date-only holds after identity review; retain any
+independent team, venue, geometry, lifecycle or duplicate dependency. No hosted write
+or discovery activation follows from preparing those manifests.
 
 `ENABLE_NEW_FIXTURE_DISCOVERY=true` opts the existing nightly reconciliation
 into a separate insert-only stage, after successful lifecycle reconciliation.
