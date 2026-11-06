@@ -408,12 +408,20 @@ transaction and cannot undo a successful lifecycle/highlights stage.
 
 Venue resolution reuses the already fetched fixture payloads and in-memory canonical
 data: **zero extra provider requests per fixture**. Daily lifecycle requests are
-`ceil(eligible fixtures / 20)`, including recent completed NULL-venue retries.
+`ceil(primary-window fixtures / 20)` plus bounded outside-window batches and any
+needed quota bootstrap, including recent completed NULL-venue retries.
 The shared ceiling remains **750**, USA and global discovery share at most **100**,
 each discovery group remains capped at **50 absent IDs**, and existing scope
 rotation/quota/headroom rules remain intact. Highlights retain their existing
 bounded allowance. If lifecycle capacity exceeds the ceiling, the existing job
-reports failure instead of silently truncating the candidate set.
+reports failure instead of silently truncating that primary candidate set.
+Optional outside-window tracking uses only remaining capacity after reserving the
+unchanged discovery allowance (100 combined when global is enabled; five USA
+inventories plus possible bootstrap otherwise) and two highlights requests when
+requested. Unknown/exhausted quota defers optional IDs explicitly; it does not
+fabricate provider-missing records or suppress a safe primary commit. Receipts
+include `outside_window_tracking` eligibility, weekly bucket, selected/requested
+IDs, provider request count and due/quota deferrals.
 
 Recovery: retain the dry-run receipt, exact source preimages, fixture preimages and
 reviewed manifests. For a failed transaction, verify `commit_confirmed: false` and
@@ -443,12 +451,25 @@ New inserts use the ordinary `fixtures` table and enter the existing
 `refresh_fixture_states.py --nightly` candidate query on subsequent eligible runs.
 There is no insert-source exclusion or separate reconciliation queue. Expanded
 refresh must be enabled through its existing separately approved configuration to
-include future fixtures. Its default window is 30 days back and 30 ahead; farther
-future fixtures enter as that window advances. Overdue retryable rows outside the
-lookback are reported as older unresolved and require the existing bounded
-`--lookback-days` option for a later reconciliation run, not a replacement fixture.
-No scheduler, window, request ceiling, quota safeguard or activation flag changes
-are implied by this policy.
+include future fixtures. Its primary window remains 30 days back and 30 ahead.
+With expanded refresh, retryable statuses also remain tracked outside that window,
+by stable provider fixture ID: older unresolved fixtures are due daily; distant
+future IDs are assigned deterministic weekly buckets. Budget-limited classes
+rotate rather than retaining a fixed prefix. Terminal rows retain existing
+terminal-state safeguards; completed NULL venues retain the primary-window retry
+policy. Country filtering applies to both selections. No scheduler, request ceiling,
+scope registry or activation flag changes are needed. Far-future changes are not
+guaranteed to appear the next day: constrained quota can require multiple weekly
+visits, each advancing by its available batch; inspect due deferrals and oldest
+pending IDs.
+Discovery remains insert-only and is not the lifecycle updater for existing IDs.
+
+For the reviewed Reus–Barakaldo recovery fixture `1644373`, reuse existing main
+stadium `24196`. The registry contains a verified name/locality review and exact
+event proof; conflicting record `27736` and its existing fixture/supporter links
+are not merged or repurposed. If the kickoff later moves beyond that proof's pin,
+ordinary ambiguity handling retains an existing verified binding while lifecycle
+dates/statuses can still reconcile. It cannot assign that proof to another cup tie.
 
 Reconcile by provider fixture ID using fresh `fixtures_by_ids` responses. Date/time,
 postponement and cancellation changes update the same row under existing identity,
@@ -491,11 +512,10 @@ manifest, recovery backup and protected-data fingerprints. Disable only this
 flag to stop discovery. Remove inserted fixtures only after checking dependent
 supporter records; never cascade-delete history or restore unrelated tables.
 
-Full-season imports use cached provider responses for safe repeatability, so they are not the operational refresh for scores and statuses. During beta, run `refresh_fixture_states.py` at least daily over the recent-past/current/future window. It deliberately bypasses provider cache and updates only existing fixture kickoff, status, score and raw venue-label fields.
+Full-season imports use cached provider responses for repeatability, so they are not the operational lifecycle refresh. The existing daily `refresh_fixture_states.py --nightly` job bypasses provider cache and updates only allowed existing fixture kickoff, status, score and canonical venue-ID fields. Venue label differences are reported; canonical, editorial and supporter records are not rewritten. Use the same entry point for an approved dry run, retaining its exact selection and preimages.
 
 ```powershell
-.\backend\venv\Scripts\python.exe refresh_fixture_states.py --from-date 2026-08-13 --to-date 2026-10-19
-.\backend\venv\Scripts\python.exe refresh_fixture_states.py --from-date 2026-08-13 --to-date 2026-10-19 --write --confirm-write
+python refresh_fixture_states.py --nightly --report reports/fixture-refresh-review.json
 ```
 
 Review the dry-run report before the transactional write. Never infer `FT` from a past kickoff. The beta preflight fails past `NS` beyond the agreed grace window and future `FT`/`AET`/`PEN` rows.

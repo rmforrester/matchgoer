@@ -11746,6 +11746,20 @@
         "Roschino"
       ],
       "source": "https://fc-leningradec.ru/roshhino-arena/"
+    },
+    {
+      "venue_id": 24196,
+      "names": [
+        "Estadio Camp Nou Municipal",
+        "Estadi Municipal de Reus",
+        "Estadi Camp Nou Municipal"
+      ],
+      "localities": [
+        "Reus"
+      ],
+      "physical_country": "Spain",
+      "source": "https://www.reusesport.cat/instalacio/estadi-municipal",
+      "reason": "Existing main stadium24196 is the official municipal football stadium. Record27736 has a conflicting annex-pitch point and must not replace this fixture-specific reviewed binding. No canonical merge or club identity change."
     }
   ],
   "team_reviews": [
@@ -11774,6 +11788,20 @@
       "city": "London",
       "source": "https://www.cray-wanderers.com/fa-cup-1st-round-cray-wanderers-vs-stockport-county-sunday-8th-november-2-15-pm/",
       "corroboration": "https://www.stockportcounty.com/news/2026/october/22/fa-cup-tie-to-be-televised/"
+    },
+    {
+      "fixture_id": 1644373,
+      "league_id": 143,
+      "season": 2026,
+      "home_team_id": 22136,
+      "away_team_id": 5251,
+      "kickoff": "2026-11-18T19:30:00+00:00",
+      "venue_id": 24196,
+      "venue_name": "Estadio Camp Nou Municipal",
+      "city": "Reus",
+      "source": "https://reusfcreddis.com/estadi/",
+      "corroboration": "https://www.reusesport.cat/instalacio/estadi-municipal",
+      "resolution_method": "REVIEWED_EXISTING_MAIN_STADIUM_REUSE_NOT_ANNEX"
     }
   ]
 }

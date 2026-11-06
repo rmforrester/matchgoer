@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -76,6 +77,49 @@ def fixture_discovery_enabled():
 def refresh_window(day, lookback=30, lookahead=30):
     today = datetime.combine(day, datetime.min.time(), tzinfo=timezone.utc)
     return today - timedelta(days=lookback), today + timedelta(days=lookahead + 1)
+
+
+def select_outside_window(rows, day, start, end, capacity):
+    """Retain date-independent tracking without fetching every distant fixture daily.
+
+    Older unresolved records are due daily; distant future IDs have stable weekly
+    buckets. Advance by the available batch on repeat visits, including when the
+    budget covers less than half a bucket, rather than retaining a fixed prefix. No cursor,
+    schema or scheduler is required. Terminal records retain the existing policy.
+    """
+    eligible = [r for r in rows if r.status in RETRYABLE_STATUSES
+                and not start <= utc_datetime(r.fixture_date) < end]
+    older = sorted((r for r in eligible if utc_datetime(r.fixture_date) < start), key=lambda r: r.fixture_id)
+    future = [r for r in eligible if utc_datetime(r.fixture_date) >= end]
+    due = sorted((r for r in future if int(hashlib.sha256(str(r.fixture_id).encode()).hexdigest(), 16) % 7
+                  == day.toordinal() % 7), key=lambda r: r.fixture_id)
+
+    def rotate(items, visit, take):
+        if not items:
+            return items
+        offset = (visit * take) % len(items)
+        return items[offset:] + items[:offset]
+
+    capacity = max(0, capacity)
+    if older and due:
+        old_count = min(len(older), (capacity + int(day.toordinal() % 2 == 0)) // 2)
+        future_count = min(len(due), capacity - old_count)
+        old_count += min(len(older) - old_count, capacity - old_count - future_count)
+        future_count += min(len(due) - future_count, capacity - old_count - future_count)
+    else:
+        old_count, future_count = min(len(older), capacity), min(len(due), capacity)
+    alternating_single_slot = capacity == 1 and older and due
+    older = rotate(older, day.toordinal() // 2 if alternating_single_slot else day.toordinal(), old_count)
+    due = rotate(due, day.toordinal() // (14 if alternating_single_slot else 7), future_count)
+    selected = older[:old_count] + due[:future_count]
+    report = dict(enabled=True, eligible=len(eligible), older_due=len(older), future_total=len(future),
+                  future_due=len(due), future_not_due=len(future) - len(due), future_bucket_days=7,
+                  capacity=capacity, selected_ids=[r.fixture_id for r in selected],
+                  selected_older=old_count, selected_future=future_count,
+                  older_deferred=len(older) - old_count, future_due_deferred=len(due) - future_count,
+                  oldest_unresolved_stored_kickoff=min((utc_datetime(r.fixture_date).isoformat() for r in older), default=None),
+                  due_deferred=len(older) + len(due) - len(selected))
+    return selected, report
 
 
 def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
@@ -339,6 +383,13 @@ def main() -> int:
         query = query.where(fixtures.c.country == args.country)
     with engine.connect() as connection:
         candidates = list(connection.execute(query.order_by(fixtures.c.fixture_id)))
+        # Membership depends on unresolved status, not a mutable stored kickoff.
+        outside_query = select(*query.selected_columns).where(
+            fixtures.c.status.in_(sorted(RETRYABLE_STATUSES)),
+            (fixtures.c.fixture_date < start) | (fixtures.c.fixture_date >= end))
+        if args.country:
+            outside_query = outside_query.where(fixtures.c.country == args.country)
+        outside_rows = list(connection.execute(outside_query)) if expanded else []
         venues = list(connection.execute(select(Table("venues", MetaData(), autoload_with=connection))).mappings()) if expanded else []
         refs = list(connection.execute(select(Table("venue_provider_refs", MetaData(), autoload_with=connection))).mappings()) if expanded else []
         aliases = list(connection.execute(select(Table("venue_names", MetaData(), autoload_with=connection))).mappings()) if expanded else []
@@ -362,9 +413,38 @@ def main() -> int:
     for row in natural_rows:
         natural_keys.setdefault((utc_datetime(row.fixture_date), row.home_team_id, row.away_team_id), set()).add(row.fixture_id)
     client = ApiFootballClient(api_key, ROOT / ".cache" / "api-football-refresh")
+    primary_candidates = list(candidates)
+    primary_requests = (len(primary_candidates) + 19) // 20
+    # Preserve the existing stages' budgets before optional tracking work. USA
+    # needs five inventories and a possible quota bootstrap; global shares100.
+    downstream_reserve = (100 if global_enabled else 6 if discovery_enabled else 0) + (2 if args.enrich_highlights else 0)
+    tracking_requests = max(0, args.max_requests - client.requests_made - primary_requests
+                            - downstream_reserve - int(not primary_candidates))
+    selected, tracking = select_outside_window(outside_rows, cutoff_day, start, end,
+                                               tracking_requests * 20) if expanded else ([], dict(enabled=False))
+    candidates += selected
+    tracking.update(reserved_downstream_requests=downstream_reserve, requested_ids=[], quota_deferred_ids=[])
     responses: dict[int, list[dict[str, Any]]] = {row.fixture_id: [] for row in candidates}
-    budget_exceeded = (len(candidates) + 19) // 20 > args.max_requests
-    for batch in ([] if budget_exceeded else chunks(list(responses))):
+    budget_exceeded = primary_requests + client.requests_made > args.max_requests
+    batches = ([(False, b) for b in chunks([r.fixture_id for r in primary_candidates])]
+               + [(True, b) for b in chunks([r.fixture_id for r in selected])])
+    tracking_started_at = None
+    for outside, batch in ([] if budget_exceeded else batches):
+        if outside:
+            if tracking_started_at is None:
+                tracking_started_at = client.requests_made
+            if not client.failures and not client.quota_is_fresh() and client.requests_made + downstream_reserve + 1 < args.max_requests:
+                try:
+                    client.get('/status', use_cache=False)
+                except (RuntimeError, ValueError, TypeError):
+                    pass
+            if (client.failures or not client.highlights_quota_available()
+                    or client.quota['daily_remaining'] <= 100 + downstream_reserve
+                    or client.requests_made + downstream_reserve + 1 > args.max_requests):
+                requested = set(tracking['requested_ids'])
+                tracking['quota_deferred_ids'] = [r.fixture_id for r in selected if r.fixture_id not in requested]
+                break
+            tracking['requested_ids'].extend(batch)
         try:
             items = client.fixtures_by_ids(batch)
         except (RuntimeError, ValueError, TypeError):
@@ -379,6 +459,13 @@ def main() -> int:
             fixture_id = item["fixture"].get("id")
             if fixture_id in responses:
                 responses[fixture_id].append(item)
+    if tracking['quota_deferred_ids']:
+        # Unfetched optional records are a recorded deferral, not a fabricated
+        # provider-missing result or a reason to suppress a safe primary commit.
+        deferred = set(tracking['quota_deferred_ids'])
+        candidates = [r for r in candidates if r.fixture_id not in deferred]
+        responses = {fid: items for fid, items in responses.items() if fid not in deferred}
+    tracking['provider_requests'] = 0 if tracking_started_at is None else client.requests_made - tracking_started_at
     manifest, updates = [], {}
     for candidate in candidates:
         item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases, scope_reviews.get((candidate.league_id,candidate.season), {})), expanded=expanded)
@@ -493,6 +580,7 @@ def main() -> int:
         classification=r['classification']) for r in manifest if 'venue_mapping' in r and
         (r['venue_mapping'] not in {'MATCHED','MATCHED_HOME_REVIEW','DISABLED'} or r.get('stored_venue_id')!=r.get('provider_venue_id'))]
     report = {
+        "outside_window_tracking": tracking,
         "venue_reconciliation": dict(mapping_counts=dict(Counter(r.get('venue_mapping','NOT_CHECKED') for r in manifest)),
             changed_assignments=[r['fixture_id'] for r in manifest if 'venue_id' in r['proposed_changed_fields']],
             label_changes=[dict(fixture_id=r['fixture_id'],changes=r['venue_label_changes']) for r in manifest if r.get('venue_label_changes')],
@@ -526,6 +614,9 @@ def main() -> int:
         report["global_fixture_discovery"] = global_discovery
         report["total_provider_requests"] = client.requests_made
         report["complete"] = report["complete"] and global_discovery.get("coverage_complete",False)
+    if tracking.get('due_deferred') or tracking['quota_deferred_ids']:
+        report['complete'] = False
+        report['coverage_outcome'] = "COVERAGE INCOMPLETE — OUTSIDE-WINDOW RETRIES DEFERRED"
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key != "manifest"}, indent=2))
