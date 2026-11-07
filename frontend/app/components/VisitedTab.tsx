@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import HistoryConfirmation from "./HistoryConfirmation";
+import PassportGroundRating from "./PassportGroundRating";
 import HistoryActionIcon from "./HistoryActionIcon";
 import { PERSONAL_HISTORY_CHANGED } from "../../lib/personal-history";
 import { localCalendarDateValue } from "../../lib/fixtureDiscovery";
@@ -81,6 +82,7 @@ function VisitedTabContent() {
   const [editingVisitId, setEditingVisitId] = useState<number | null>(null);
   const [timeframe, setTimeframe] = useState<FootprintPeriod>("lifetime");
   const [reviewingId, setReviewingId] = useState<number | null>(null);
+  const [passportReviewContext, setPassportReviewContext] = useState<string | null>(null);
   const [ratingMessage, setRatingMessage] = useState("");
   const savingReview = useRef(false);
   const [savedVenueId, setSavedVenueId] = useState<number | null>(null);
@@ -365,7 +367,7 @@ function VisitedTabContent() {
   const renderPersonalReview = (ground: MyGround, contained = false) => {
     const review = ground.review;
     const hasRating = review && (review.overall_score !== null || review.recommend !== null);
-    const editing = reviewingId === ground.venue_id;
+    const editing = reviewingId === ground.venue_id && passportReviewContext === null;
     if (!hasRating && !editing) return null;
     return <section id={`personal-review-${ground.venue_id}`} tabIndex={-1} aria-label={`Your verdict for ${ground.venue_name}`} className={`${contained ? "mt-2" : "tt-panel mt-4 p-3 sm:p-4"} scroll-mt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]`}>
       <div className="flex items-start gap-3">
@@ -380,7 +382,7 @@ function VisitedTabContent() {
           {savedVenueId === ground.venue_id && ratingMessage && <p role="status" className="mt-2 text-sm font-bold text-[var(--brand-interactive)]">{ratingMessage}</p>}
           <button type="button" disabled={saving} aria-expanded={editing} aria-controls={`review-form-${ground.venue_id}`} onClick={() => {
             if (editing) { showReview(ground); returnFocusVenue.current = ground.venue_id; setReviewingId(null); setError(""); }
-            else void openReview(ground);
+            else { setPassportReviewContext(null); void openReview(ground); }
           }} className="min-h-11 text-xs font-extrabold underline focus-visible:outline-2 focus-visible:outline-offset-2">{editing ? "HIDE REVIEW ↑" : "EDIT MY REVIEW →"}</button>
         </div>
       </div>
@@ -406,11 +408,19 @@ function VisitedTabContent() {
     setPastMatchDate(fixture ? localCalendarDateValue(new Date(fixture.fixture_date)) : visit.visit_date ?? ""); setFixtureCandidates([]);
   };
 
-  const renderVisitList = (ground: MyGround) => <><ul id={`ground-visits-${ground.venue_id}`} className="space-y-2">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-t border-[var(--tt-rule)] py-2"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{fixture ? knownDate(localCalendarDateValue(new Date(fixture.fixture_date))) : visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 flex flex-wrap items-center gap-1 text-sm font-bold"><TeamBadge src={fixture.home_team_badge_url} className="h-5 w-5"/>{fixture.home_team}<span className="font-normal">v</span><TeamBadge src={fixture.away_team_badge_url} className="h-5 w-5"/>{fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}<div className="mt-2 grid gap-2">{visit.fixture_id !== null ? <>
+  const renderPassportRating = (ground: MyGround, context: string) => <>
+    <PassportGroundRating review={ground.review} busy={saving} editing={reviewingId === ground.venue_id && passportReviewContext === context} onRate={() => { setPassportReviewContext(context); void openReview(ground); }} />
+    {savedVenueId === ground.venue_id && ratingMessage && <p role="status" className="text-xs font-bold text-[var(--brand-interactive)]">{ratingMessage}</p>}
+    {reviewingId === ground.venue_id && passportReviewContext === context && renderReviewPanel(ground)}
+  </>;
+  const removeGroundButton = (ground: MyGround) => <button type="button" disabled={saving} onClick={() => void beginGroundRemoval(ground.venue_id)} className="tt-action tt-action-secondary inline-flex items-center justify-center gap-1"><HistoryActionIcon action="ground"/>Remove Ground</button>;
+  const renderVisitList = (ground: MyGround, context = `all-${ground.venue_id}`) => <><ul id={`ground-visits-${ground.venue_id}`} className="space-y-2">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-t border-[var(--tt-rule)] py-2"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{fixture ? knownDate(localCalendarDateValue(new Date(fixture.fixture_date))) : visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 flex flex-wrap items-center gap-1 text-sm font-bold"><TeamBadge src={fixture.home_team_badge_url} className="h-5 w-5"/>{fixture.home_team}<span className="font-normal">v</span><TeamBadge src={fixture.away_team_badge_url} className="h-5 w-5"/>{fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}<div className="passport-actions mt-2 grid gap-2">{visit.fixture_id !== null ? <>
         <Link href={`/fixture/${visit.fixture_id}`} className="tt-action inline-flex min-h-11 items-center justify-center px-3 text-xs">VIEW MATCH</Link>
         {editingVisitId !== visit.visit_id && <button type="button" disabled={saving} onClick={() => editVisit(ground.venue_id, visit.visit_id)} className="tt-action tt-action-secondary inline-flex min-h-11 items-center justify-center gap-2 px-3 text-xs"><HistoryActionIcon action="change"/>Change Match</button>}
       </> : editingVisitId !== visit.visit_id && <button type="button" onClick={() => editVisit(ground.venue_id, visit.visit_id)} className="tt-action tt-action-secondary inline-flex min-h-11 items-center justify-center gap-2 px-3 text-xs"><HistoryActionIcon action="change"/>Change Match</button>}
-      <button type="button" disabled={saving} onClick={() => { setRemovalError(""); setRemoval({ kind: "matchday", venueId: ground.venue_id, visitId: visit.visit_id, fixtureId: visit.fixture_id, name: fixture ? `${fixture.home_team} vs ${fixture.away_team}` : ground.venue_name }); }} className="tt-action tt-action-secondary inline-flex min-h-11 items-center justify-center gap-2 px-3 text-xs"><HistoryActionIcon action="matchday"/>Remove Matchday</button>
+      {renderPassportRating(ground, `${context}-${visit.visit_id}`)}
+      <div className="passport-removals">      <button type="button" disabled={saving} onClick={() => { setRemovalError(""); setRemoval({ kind: "matchday", venueId: ground.venue_id, visitId: visit.visit_id, fixtureId: visit.fixture_id, name: fixture ? `${fixture.home_team} vs ${fixture.away_team}` : ground.venue_name }); }} className="tt-action tt-action-secondary inline-flex items-center justify-center gap-1"><HistoryActionIcon action="matchday"/>Remove Matchday</button>
+{removeGroundButton(ground)}</div>
       </div>{editingVisitId === visit.visit_id && <div className="mt-3">
         <h3 className="tt-kicker">{visit.fixture_id === null ? "EDIT VISIT" : "CHANGE MATCH"}</h3>
         <p className="mt-2 text-xs text-[var(--tt-muted)]">Changing the match keeps this matchday record. Photos attached to the old match will be unlinked.</p>
@@ -428,21 +438,21 @@ function VisitedTabContent() {
           <button type="button" disabled={saving} onClick={() => { setReplacementGround(null); setEditingVisitId(null); matchSearch.current += 1; setFindingMatches(false); setMatchLookupFailed(false); setPastMatchDate(""); setFixtureCandidates([]); setSelectedFixtureId(null); }} className="min-h-11 px-2 text-sm underline">Cancel</button>
         </div>
         {visit.fixture_id === null && visit.visit_date && <button type="button" disabled={saving} onClick={() => void updateManualDate(ground, visit.visit_id, "")} className="mt-2 min-h-11 text-xs font-bold uppercase text-[var(--tt-muted)] underline">Remove date</button>}
-      </div>}</li>; })}</ul><button type="button" disabled={saving} onClick={() => void beginGroundRemoval(ground.venue_id)} className="tt-action tt-action-secondary mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 px-3 text-xs"><HistoryActionIcon action="ground"/>Remove Ground</button><p className="mt-2 text-xs leading-relaxed text-[var(--tt-muted)]">Removing the ground will also remove all {grounds.find(item => item.venue_id === ground.venue_id)?.visits.length ?? ground.visits.length} associated matchdays from My Matchdays.</p></>;
+      </div>}</li>; })}</ul>{ground.visits.length === 0 && <div className="passport-actions">{renderPassportRating(ground, `${context}-saved`)}{removeGroundButton(ground)}</div>}<p className="mt-2 text-xs leading-relaxed text-[var(--tt-muted)]">Removing the ground will also remove all {grounds.find(item => item.venue_id === ground.venue_id)?.visits.length ?? ground.visits.length} associated matchdays from My Matchdays.</p></>;
 
-  const renderFootprintVisits = (projected: MyGround) => {
+  const renderFootprintVisits = (projected: MyGround, context: string) => {
     // Use only original, owned records represented by this season projection.
     const owned = grounds.find(item => item.venue_id === projected.venue_id);
     if (!owned) return null;
     const ids = new Set(projected.visits.map(visit => visit.visit_id));
-    return renderVisitList({ ...owned, visits: owned.visits.filter(visit => ids.has(visit.visit_id)) });
+    return renderVisitList({ ...owned, visits: owned.visits.filter(visit => ids.has(visit.visit_id)) }, context);
   };
 
   const renderGround = (ground: MyGround, nested: boolean) => <article key={ground.venue_id} className={`${nested ? "flex min-w-0 flex-col py-4" : "tt-panel flex min-w-0 flex-col p-4"} ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>
       <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
       <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
       <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not recorded"}</p>
-      {Number(requestedReview) !== ground.venue_id && renderPersonalReview(ground, true)}
+      {Number(requestedReview) !== ground.venue_id && expandedId !== ground.venue_id && renderPersonalReview(ground, true)}
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
         <button type="button" aria-expanded={expandedId === ground.venue_id} aria-controls={`ground-visits-${ground.venue_id}`} onClick={event => { if (expandedId !== ground.venue_id) scrollExpandedHeading(event.currentTarget); setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id); }} className="tt-action tt-action-secondary min-w-0 whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button>

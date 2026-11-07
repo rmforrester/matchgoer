@@ -33,6 +33,31 @@ def project(visits, scopes=None, teams=None, **kwargs):
 
 
 class FootprintTests(unittest.TestCase):
+    def test_ground_progress_deduplicates_shared_home_and_repeated_visits(self):
+        r = project([visit(1, 11, '2026-09-01', 39), visit(2, 11, '2026-09-02', 39)],
+                    [scope([member(1, 11), member(2, 11)])])['competitions'][0]
+        self.assertEqual((r['season_grounds'], r['verified_ground_total']), (1, 1))
+        self.assertEqual(r['total_clubs'], 2)
+
+    def test_ground_progress_missing_mapping_or_alternate_pitch_fails_closed(self):
+        alternate = member(1, 11); alternate['context_venue_ids'] = [11, 13]
+        r = project([visit(1, 11, '2026-09-01', 39)], [scope([alternate, member(2, 12)])])['competitions'][0]
+        self.assertIsNone(r['verified_ground_total'])
+        r = project([visit(1, 11, '2026-09-01', 39)], teams={1: Row(venue_id=11)})['competitions'][0]
+        self.assertIsNone(r['verified_ground_total'])
+
+    def test_ground_progress_known_midseason_move_does_not_inflate_total(self):
+        m = member(1, 11); m['expected_relationships'] = [dict(venue_id=11, relationship_type='PRIMARY_HOME', valid_from='2026-09-01', valid_until=None)]
+        r = project_footprint([visit(1, 11, '2026-10-01', 39)], [scope([m])], {}, {11}, {}, TODAY,
+                              guarded={(39, 1): True})['competitions'][0]
+        self.assertIsNone(r['verified_ground_total'])
+
+    def test_ground_progress_uses_actual_season_and_competition_not_manual_credit(self):
+        r = project([visit(1, 11, '2026-09-01'), visit(2, 12, '2026-09-02', 40)])['competitions'][0]
+        self.assertEqual(r['season_grounds'], 0)
+        r = project([visit(1, 13, '2026-09-01', 39)])['competitions'][0]
+        self.assertIsNone(r['verified_ground_total'])
+
     def test_reviewed_catalogue_is_bounded_and_has_exact_rosters(self):
         data = membership_catalogue()
         self.assertEqual(len(data['scopes']), 274)

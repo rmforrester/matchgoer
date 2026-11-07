@@ -386,6 +386,8 @@ class FootprintGround(BaseModel):
 
 
 class FootprintCompetition(BaseModel):
+    verified_ground_total: int | None = None
+    season_grounds: int | None = None
     competition_id: int
     tier: int | None = Field(default=None, ge=1, le=20)
     season: int | None

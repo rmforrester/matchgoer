@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+.passport-actions { container-type: inline-size; }
+.passport-rating-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .375rem; align-items: center; padding: .5rem 0; font-size: .7rem; }
+.passport-rating-copy { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; }
+.passport-rating-stars { font-size: .7rem; letter-spacing: -.1em; }
+.passport-rating-button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: .25rem; padding: .25rem .375rem; font-size: .625rem !important; letter-spacing: .025em !important; }
+.passport-removals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.passport-removals .tt-action { min-width: 0; min-height: 44px; padding: .375rem .25rem; font-size: .625rem !important; letter-spacing: .025em !important; color: #8b2525; }
+@container (max-width: 235px) { .passport-removals { grid-template-columns: 1fr; } .passport-rating-row { grid-template-columns: 1fr; } }
+
 :root {
   --mg-green: #174a32;
   --mg-green-dark: #103824;

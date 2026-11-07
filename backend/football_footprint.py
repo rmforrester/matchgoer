@@ -115,6 +115,16 @@ def project_footprint(visits, scopes, teams, venues, relationships, today, guard
         lifetime_homes = home_ids & visit_venues
         seasonal_homes = home_ids & {v.venue_id for v in dated}
         complete = scope['complete'] and len(safe_members) == scope['total']
+        # The catalogue verifies season membership, not arbitrary alternative sites.
+        # Known moves, alternate pitches or mapping drift fail closed for progress.
+        stable_grounds = complete and all(
+            set(m.get('context_venue_ids', [])) <= {m['venue_id']} and all(
+                r['venue_id'] == m['venue_id'] and
+                (not r['valid_from'] or r['valid_from'] <= scope['start']) and
+                (not r['valid_until'] or r['valid_until'] >= scope['end'])
+                for r in m['expected_relationships']) for m in safe_members)
+        linked_dated = [v for v in linked if v.visit_date is not None and start <= v.visit_date <= min(today, end)]
+        reliable_progress = stable_grounds and all(v.venue_id in home_ids and v in linked_dated for v in linked)
         start_year, end_year = start.year, end.year
         label = str(start_year) if start_year == end_year else f'{start_year}/{str(end_year)[2:]}'
         competitions.append(dict(
@@ -122,6 +132,8 @@ def project_footprint(visits, scopes, teams, venues, relationships, today, guard
             tier=scope.get('tier'),
             name=scope['name'], country=scope['country'], season_start=scope['start'], season_end=scope['end'],
             coverage='ready' if complete else 'incomplete', total_clubs=scope['total'],
+            verified_ground_total=len(home_ids) if reliable_progress else None,
+            season_grounds=len({v.venue_id for v in linked_dated}) if reliable_progress else None,
             lifetime_clubs=sum(m['venue_id'] in lifetime_homes for m in safe_members) if complete else None,
             season_clubs=sum(m['venue_id'] in seasonal_homes for m in safe_members) if complete else None,
             # Only relevant attended grounds and credited club names leave the server.

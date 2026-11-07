@@ -54,6 +54,8 @@ export type MyGround = {
 
 // Owner-only, bounded current-season projection; no complete league rosters.
 export type FootprintCompetition = {
+  verified_ground_total?: number | null;
+  season_grounds?: number | null;
   competition_id: number;
   tier?: number | null;
   season: number | null;

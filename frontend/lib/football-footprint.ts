@@ -2,6 +2,13 @@ import type { FootprintCompetition, FootprintSummary, MyGround } from "../app/ty
 
 export type FootprintPeriod = "lifetime" | "season";
 
+export function competitionGroundProgress(competition: FootprintCompetition): string | null {
+  const total = competition.verified_ground_total;
+  const count = competition.season_grounds;
+  return competition.coverage === "ready" && Number.isInteger(total) && total! > 0 &&
+    Number.isInteger(count) && count! >= 0 && count! <= total! ? `${count} / ${total} grounds` : null;
+}
+
 /** One owned-visit projection feeds map, counters, passport and ground cards. */
 export function footprintGrounds(grounds: MyGround[], period: FootprintPeriod, footprint: FootprintSummary | null): MyGround[] {
   if (period === "lifetime") return grounds;

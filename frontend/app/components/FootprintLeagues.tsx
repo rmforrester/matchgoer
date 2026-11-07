@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import GroundMatchdays from "./GroundMatchdays";
 import type { FootprintSummary, MyGround } from "../types/grounds";
-import { competitionsForGrounds, type FootprintPeriod } from "../../lib/football-footprint";
+import { competitionGroundProgress, competitionsForGrounds, type FootprintPeriod } from "../../lib/football-footprint";
 import { formatMatchdayDate, matchdayDate } from "../../lib/ground-matchdays";
 
 // Presentation state only; survives tab navigation without storing supporter data.
@@ -53,9 +53,9 @@ export default function FootprintLeagues({ grounds, footprint, period, renderVis
     {seasons.map(season => <details key={season} {...disclosure(`season-${season}`, true)} className="border-b border-[var(--tt-rule)]">
       <summary className="tt-display min-h-11 cursor-pointer py-3 text-xl leading-none">{season}</summary>
       <ul className="pb-2">{competitions.filter(competition => competition.season_label === season).map(competition => {
-        const count = period === "lifetime" ? competition.lifetime_clubs : competition.season_clubs;
+        const progress = competitionGroundProgress(competition);
         return <li key={`${competition.competition_id}-${competition.season}`}><details {...disclosure(`league-${competition.competition_id}-${competition.season}`)}>
-          <summary className="min-h-11 cursor-pointer py-3 text-sm marker:text-[var(--brand-interactive)]"><span className="inline-flex w-[calc(100%-1.25rem)] items-start justify-between gap-2 align-top"><span className="min-w-0 break-words font-bold">{competition.name}</span><span className="shrink-0 text-right text-xs font-bold text-[var(--brand-interactive)]">{competition.coverage === "ready" && count !== null ? <>{count} / {competition.total_clubs}<span className="sr-only"> clubs covered across the league</span></> : <>Attended</>}</span></span></summary>
+          <summary className="min-h-11 cursor-pointer py-3 text-sm marker:text-[var(--brand-interactive)]"><span className="inline-flex w-[calc(100%-1.25rem)] items-start justify-between gap-2 align-top"><span className="min-w-0 break-words font-bold">{competition.name}</span>{progress && <span className="shrink-0 text-right text-xs font-bold text-[var(--brand-interactive)]">{progress}</span>}</span></summary>
           <ul className="pl-2">{competition.grounds.map(item => { const ground = grounds.find(ground => ground.venue_id === item.venue_id)!; const visits = item.visit_ids ? ground.visits.filter(visit => item.visit_ids!.includes(visit.visit_id)) : ground.visits; return card({ ...ground, visits, visit_count: visits.length }, `${competition.competition_id}-${competition.season}-${item.venue_id}`); })}</ul>
         </details></li>;
       })}</ul>
