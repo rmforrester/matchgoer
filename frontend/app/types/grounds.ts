@@ -32,6 +32,7 @@ export type GroundVisit = {
 };
 
 export type MyGround = {
+  independently_saved?: boolean;
   venue_id: number;
   venue_name: string;
   venue_city: string | null;
@@ -55,19 +56,20 @@ export type MyGround = {
 export type FootprintCompetition = {
   competition_id: number;
   tier?: number | null;
-  season: number;
+  season: number | null;
   season_label: string;
   name: string;
   country: string;
-  season_start: string;
-  season_end: string;
-  coverage: "ready" | "incomplete";
+  season_start: string | null;
+  season_end: string | null;
+  coverage: "ready" | "incomplete" | "attendance";
   total_clubs: number;
   lifetime_clubs: number | null;
   season_clubs: number | null;
-  grounds: { venue_id: number; clubs: string[]; season_visit_ids: number[] }[];
+  grounds: { venue_id: number; clubs: string[]; season_visit_ids: number[]; visit_ids?: number[] | null }[];
 };
 export type FootprintSummary = {
+  attendance_competitions?: FootprintCompetition[] | null;
   reviewed_on: string;
   season_visit_ids: number[];
   unclassified_dated_visits: number;

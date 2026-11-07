@@ -23,11 +23,15 @@ function AttentionForAccount() {
       request = current;
       try {
         // The protected queue is the capability check; never trust a client ID list.
-        const pending = await api.get<{ pending_count: number }>("/terraces/moderator/photos", { params: { limit: 1 }, signal: current.signal });
+        const [pending, reports, tips] = await Promise.allSettled([
+          api.get<{ pending_count: number }>("/terraces/moderator/photos", { params: { limit: 1 }, signal: current.signal }),
+          api.get<{ reports: unknown[] }>("/terraces/moderator/reports", { params: { limit: 1 }, signal: current.signal }),
+          api.get<{ pending_count: number }>("/moderator/tips", { params: { limit: 1 }, signal: current.signal }),
+        ]);
         if (disposed || current.signal.aborted) return;
-        const reports = await api.get<{ reports: unknown[] }>("/terraces/moderator/reports", { params: { limit: 1 }, signal: current.signal });
-        if (disposed || current.signal.aborted) return;
-        setAttention(pending.data.pending_count > 0 || reports.data.reports.length > 0);
+        setAttention((pending.status === "fulfilled" && pending.value.data.pending_count > 0) ||
+          (reports.status === "fulfilled" && reports.value.data.reports.length > 0) ||
+          (tips.status === "fulfilled" && tips.value.data.pending_count > 0));
       } catch {
         // No authorised result means no moderator indicator. Retry on the next event.
         if (!disposed && !current.signal.aborted) setAttention(false);
@@ -45,5 +49,5 @@ function AttentionForAccount() {
       window.removeEventListener(MODERATION_CHANGED, returned);
     };
   }, []);
-  return attention ? <span role="status" aria-label="Photo moderation needs attention" className="inline-flex shrink-0"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-[var(--brand-interactive)]" /><span className="sr-only">Photo moderation needs attention</span></span> : null;
+  return attention ? <span role="status" aria-label="Submissions need attention" className="inline-flex shrink-0"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-[var(--brand-interactive)]" /><span className="sr-only">Submissions need attention</span></span> : null;
 }

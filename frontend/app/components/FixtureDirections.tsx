@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "../../lib/api";
-import { googleMapsDirectionsUrl } from "../../lib/venue-guide";
+import { coordinatePlaceUrl, mapPlatform } from "../../lib/map-destination";
 
 export default function FixtureDirections({ venueId }: { venueId: number | null }) {
   const [destination, setDestination] = useState<{ venueId: number; url: string } | null>(null);
@@ -12,12 +12,13 @@ export default function FixtureDirections({ venueId }: { venueId: number | null 
     api.get(`/venue/${venueId}`, { signal: controller.signal }).then(({ data }) => {
       const { latitude, longitude } = data ?? {};
       if (!controller.signal.aborted && Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
-        setDestination({ venueId, url: googleMapsDirectionsUrl(latitude, longitude) });
+        const url = coordinatePlaceUrl(latitude, longitude, data.name ?? "", mapPlatform());
+        if (url) setDestination({ venueId, url });
       }
     }).catch(() => { /* No valid canonical destination: omit directions. */ });
     return () => controller.abort();
   }, [venueId]);
   const directionsUrl = destination?.venueId === venueId ? destination?.url : null;
   if (!directionsUrl) return null;
-  return <a href={directionsUrl} target="_blank" rel="noopener noreferrer" aria-label="Directions to the match ground (opens in a new tab)" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 border border-[var(--mg-green)] px-3 py-2 text-xs font-extrabold uppercase text-[var(--mg-green)] hover:bg-[var(--mg-paper)] focus-visible:-outline-offset-4">DIRECTIONS <span aria-hidden="true">&rarr;</span></a>;
+  return <a href={directionsUrl} target="_blank" rel="noopener noreferrer" aria-label="View the match ground on a map (opens in a new tab)" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 border border-[var(--mg-green)] px-3 py-2 text-xs font-extrabold uppercase text-[var(--mg-green)] hover:bg-[var(--mg-paper)] focus-visible:-outline-offset-4">VIEW ON MAP <span aria-hidden="true">&rarr;</span></a>;
 }

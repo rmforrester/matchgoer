@@ -14,6 +14,8 @@ class VenueVisitContractTests(unittest.TestCase):
         # These original tests isolate attendance reconciliation, not DB locks.
         locks = patch('main.lock_ground', side_effect=lambda db, key: key)
         identities = patch('main.resolution', return_value=VenueResolution({}))
+        roots = patch('main.resolve_venue', side_effect=lambda db, key: key)
+        roots.start(); self.addCleanup(roots.stop)
         locks.start(); identities.start()
         self.addCleanup(locks.stop); self.addCleanup(identities.stop)
 
@@ -22,6 +24,7 @@ class VenueVisitContractTests(unittest.TestCase):
     def db_with(self, visits, *, fixture_venue_id=11, fixture_id=99):
         fixture = Fixture(fixture_id=fixture_id, venue_id=fixture_venue_id, fixture_date=self.fixture_date, status="FT")
         fixture_query = MagicMock()
+        fixture_query.with_for_update.return_value = fixture_query
         fixture_query.filter.return_value = fixture_query
         fixture_query.first.return_value = fixture
         visits_query = MagicMock()
@@ -276,7 +279,7 @@ class VenueVisitContractTests(unittest.TestCase):
         owned.filter.return_value=owned;owned.with_for_update.return_value=owned
         owned.first.return_value=None if missing else visit
         other.filter.return_value=other;other.first.return_value=duplicate
-        fixture_query=MagicMock();fixture_query.filter.return_value=fixture_query;fixture_query.first.return_value=fixture
+        fixture_query=MagicMock();fixture_query.filter.return_value=fixture_query;fixture_query.with_for_update.return_value=fixture_query;fixture_query.first.return_value=fixture
         db.query.side_effect=lambda model: owned if model is VenueVisit else fixture_query if model is Fixture else other
         with patch('main.SessionLocal',return_value=db),patch('main.canonical_row',side_effect=lambda db,row:row):
             result=update_venue_visit_fixture(11,visit.visit_id,VenueVisitUpdate(**payload),SimpleNamespace(user_id=user_id))

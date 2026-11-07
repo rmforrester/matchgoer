@@ -1,4 +1,5 @@
-import { googleMapsDirectionsUrl } from "../../lib/venue-guide";
+import { coordinatePlaceUrl } from "../../lib/map-destination";
+import DestinationLink from "./DestinationLink";
 import GroundPhotograph from "./GroundPhotograph";
 import type { ReactNode } from "react";
 
@@ -18,7 +19,7 @@ export default function VenueHeader({ venue, clubName, children }: Props) {
           <p className="mt-5 font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">{venue.city}{venue.country ? ` · ${venue.country}` : ""}</p>
           <GroundPhotograph venueId={venue.venue_id} />
           {venue.address && <p className="mt-2 font-bold">{venue.address}</p>}
-          {venue.latitude != null && venue.longitude != null && <a id="directions" className="mt-4 inline-flex min-h-11 items-center bg-[var(--brand-interactive)] px-4 text-xs font-extrabold uppercase tracking-[0.08em] text-white" href={googleMapsDirectionsUrl(venue.latitude, venue.longitude)} target="_blank" rel="noreferrer">Directions →</a>}
+          {venue.latitude != null && venue.longitude != null && <DestinationLink destinationName={venue.name} id="directions" className="mt-4 inline-flex min-h-11 items-center bg-[var(--brand-interactive)] px-4 text-xs font-extrabold uppercase tracking-[0.08em] text-white" url={coordinatePlaceUrl(venue.latitude, venue.longitude, venue.name)}>View on map</DestinationLink>}
           {venue.capacity !== null && venue.capacity > 0 && <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">Capacity · {venue.capacity.toLocaleString()}</p>}
         </div>
       </div>

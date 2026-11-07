@@ -293,13 +293,13 @@ api
           <button type="button" onClick={openReview} className="tt-action px-5">{reviewState === "completed" ? "Edit my review" : reviewState === "partial" ? "Continue review" : "Rate this ground"}</button>
         </div>
       </section>
-        <MatchdayTips tips={tips} venueId={Number(venueId)} />
+        <MatchdayTips tips={tips} venueId={venue?.venue_id ?? Number(venueId)} />
       </>}
 
       {guide && <VenueGuide guide={guide} />}
 
       <AwayDayScore reviewCount={awayDayScore?.review_count} recommendPercentage={awayDayScore?.recommend_percentage} categoryScores={awayDayScore?.category_scores} />
-      <TerracePublicGallery key={venueId} mode="venue" venueId={Number(venueId)} />
+      <TerracePublicGallery key={venueId} mode="venue" venueId={venue?.venue_id ?? Number(venueId)} />
 
       {!hasVisited && <section className="tt-section-rule mt-10 pt-4" aria-labelledby="visit-heading">
         <p className="tt-kicker">Your visit</p>
@@ -309,7 +309,7 @@ api
         </div>
       </section>}
 
-      {!hasVisited && <MatchdayTips tips={tips} venueId={Number(venueId)} />}
+      {!hasVisited && <MatchdayTips tips={tips} venueId={venue?.venue_id ?? Number(venueId)} />}
 
       <section className="tt-section-rule mt-10 pt-4" aria-labelledby="fixtures-heading">
         <p className="tt-kicker">05 / What&apos;s on</p>

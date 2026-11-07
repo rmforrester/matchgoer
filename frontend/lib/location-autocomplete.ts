@@ -12,7 +12,7 @@ export type LocationSuggestion = {
 
 export function autocompleteParameters(query: string): URLSearchParams | null {
   const text = query.trim();
-  if (text.length < 2) return null;
+  if (text.length < 2 || text.toLowerCase() === "map area") return null;
   return new URLSearchParams({ text, format: "json", lang: "en", type: "city", limit: "6", bias: EUROPE_LOCATION_BIAS });
 }
 

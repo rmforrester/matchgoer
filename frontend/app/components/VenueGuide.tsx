@@ -1,3 +1,4 @@
+import DestinationLink from "./DestinationLink";
 import { primaryGuideSections, secondaryGuideSections, supporterFacingFactContent, supporterFacingFactTopic, type VenueGuide as VenueGuideData, type VenueGuideFact } from "../../lib/venue-guide";
 
 type Props = { guide: VenueGuideData };
@@ -32,7 +33,7 @@ export default function VenueGuide({ guide }: Props) {
           {guide.before_match.map((spot) => <article key={spot.pre_match_spot_id} className="tt-panel p-4">
             <h4 className="tt-display text-2xl leading-none">{spot.display_name}</h4>
             {spot.supporting_line && <p className="mt-2 leading-6">{spot.supporting_line}</p>}
-            {spot.directions_url && <a href={spot.directions_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4">Directions →</a>}
+            {spot.directions_url && <DestinationLink url={spot.directions_url} className="mt-3 inline-flex min-h-11 items-center text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)] underline decoration-2 underline-offset-4"/>}
           </article>)}
         </div>
       </section>}

@@ -38,8 +38,9 @@ class ProfileGroundCountTests(unittest.TestCase):
         self.db.query(VenueVisit).filter(VenueVisit.user_id.in_(ids)).delete(synchronize_session=False)
         self.db.query(UserProfile).filter(UserProfile.user_id.in_(ids)).delete(synchronize_session=False)
         self.db.query(User).filter(User.user_id.in_(ids)).delete(synchronize_session=False)
-        self.db.query(Venue).filter(Venue.venue_id.in_(self.venue_ids)).update(
-            {Venue.canonical_venue_id: None, Venue.equivalence_source: None}, synchronize_session=False)
+        # Remove synthetic aliases before their root; do not bypass the real
+        # production guard against reassignment of a reviewed equivalence.
+        self.db.query(Venue).filter(Venue.venue_id.in_(self.venue_ids), Venue.canonical_venue_id.is_not(None)).delete(synchronize_session=False)
         self.db.query(Venue).filter(Venue.venue_id.in_(self.venue_ids)).delete(synchronize_session=False)
         self.db.commit()
         self.db.close()

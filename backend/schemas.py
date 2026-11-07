@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from pydantic import StrictBool, StrictInt
 
 
@@ -91,6 +91,7 @@ class FixtureKnowResponse(BaseModel):
 
 
 class FixtureResponse(BaseModel):
+    venue_id: int | None = None
 
     fixture_id: int
     fixture_date: datetime
@@ -137,12 +138,21 @@ class DecisionReasonResponse(BaseModel):
 
 
 class MatchdayTipCreate(BaseModel):
+    venue_id: int = Field(gt=0)
+    tip: str = Field(min_length=1, max_length=2000)
 
-    venue_id: int
-    tip: str
+    @field_validator('tip')
+    @classmethod
+    def clean_tip(cls, value):
+        value=value.strip()
+        if not value or any(ord(c)<32 and c not in '\n\r\t' for c in value):
+            raise ValueError('Enter useful advice without control characters')
+        return value
 
 
 class MatchdayTipResponse(BaseModel):
+    created_at: datetime | None = None
+    can_block_author: bool = False
 
     tip_id: int
     venue_id: int
@@ -294,12 +304,14 @@ class MyReviewResponse(BaseModel):
 
 
 class VenueVisitCreate(BaseModel):
+    collection_only: StrictBool = False
     visit_date: date | None = None
     fixture_id: int | None = None
     calendar_utc_offset_minutes: StrictInt | None = Field(default=None, ge=-720, le=840)
 
 
 class VenueVisitUpdate(BaseModel):
+    allow_ground_change: StrictBool = False
     fixture_id: int | None = None
     visit_date: date | None = None
     calendar_utc_offset_minutes: StrictInt | None = Field(default=None, ge=-720, le=840)
@@ -346,6 +358,7 @@ class MyGroundVisitSummary(BaseModel):
 
 
 class MyGroundResponse(BaseModel):
+    independently_saved: bool = False
     venue_id: int
     venue_name: str
     venue_city: str | None = None
@@ -366,6 +379,7 @@ class MyGroundResponse(BaseModel):
 
 
 class FootprintGround(BaseModel):
+    visit_ids: list[int] | None = None
     venue_id: int
     clubs: list[str]
     season_visit_ids: list[int]
@@ -374,12 +388,12 @@ class FootprintGround(BaseModel):
 class FootprintCompetition(BaseModel):
     competition_id: int
     tier: int | None = Field(default=None, ge=1, le=20)
-    season: int
+    season: int | None
     season_label: str
     name: str
     country: str
-    season_start: date
-    season_end: date
+    season_start: date | None
+    season_end: date | None
     coverage: str
     total_clubs: int
     lifetime_clubs: int | None
@@ -388,6 +402,7 @@ class FootprintCompetition(BaseModel):
 
 
 class FootprintSummary(BaseModel):
+    attendance_competitions: list[FootprintCompetition] | None = None
     reviewed_on: date
     season_visit_ids: list[int]
     unclassified_dated_visits: int

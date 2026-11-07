@@ -4,6 +4,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import type { Session } from "@supabase/supabase-js";
 
 import api from "@/lib/api";
+import { setDiscoverIdentity } from "../../lib/discover-state.ts";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { accountIssue, logout, rememberedRecovery, rememberRecovery, type AccountIssue } from "@/lib/auth-reliability";
 import { setAnalyticsAudience, type AudienceClass } from "@/lib/analytics";
@@ -66,7 +67,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       if (generation !== refreshGeneration.current) return;
       const nextIssue = accountIssue(error);
       setIssue(nextIssue);
-      if (nextIssue === "expired") { setSession(null); setRegistered(false); setProfile(null); owner.current = null; finishPasswordRecovery(); }
+      if (nextIssue === "expired") { setDiscoverIdentity(null); setSession(null); setRegistered(false); setProfile(null); owner.current = null; finishPasswordRecovery(); }
       return;
     }
     const providerSession = current?.data.session ?? null;
@@ -74,6 +75,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     if (owner.current !== (providerSession?.user.id ?? null)) {
       setRegistered(false); setProfile(null);
     }
+    setDiscoverIdentity(providerSession?.user.id ?? null);
     owner.current = providerSession?.user.id ?? null;
     setSession(providerSession);
     if (!providerSession) {
@@ -116,6 +118,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }, 0);
     const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
       refreshGeneration.current += 1;
+      setDiscoverIdentity(nextSession?.user.id ?? null, event === "SIGNED_OUT");
       applyAudience(null);
       if (event === "PASSWORD_RECOVERY" && nextSession) { recovery.current = true; setPasswordRecovery(true); rememberRecovery(nextSession.user.id); }
       else if (event === "SIGNED_IN" && nextSession) {
@@ -148,6 +151,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   }, [applyAudience, finishPasswordRecovery, refreshAccount]);
 
   const signOut = useCallback(async () => {
+    setDiscoverIdentity(null, true);
     refreshGeneration.current += 1;
     applyAudience(null);
     const supabase = getSupabaseBrowserClient();

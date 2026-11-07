@@ -91,7 +91,7 @@ def reserve_photo(db, authorization: str | None, *, visit_id: int, photo: Saniti
     except (ValueError, TypeError, AttributeError) as error:
         raise HTTPException(422, "A valid submission retry key is required") from error
     visit = db.query(VenueVisit).filter(VenueVisit.visit_id == visit_id, VenueVisit.user_id == actor.user_id).with_for_update().first()
-    if not visit:
+    if not visit or visit.source == "ground_collection":
         raise HTTPException(404, "Owned recorded attendance was not found")
     if visit.fixture_id is not None:
         fixture = db.get(Fixture, visit.fixture_id)

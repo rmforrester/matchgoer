@@ -140,9 +140,9 @@ test("fixture popup keeps required match details, accessible dismiss, and View m
 });
 
 test("mobile fixture overlay stays in a control-safe area and preserves core match fields", () => {
-  assert.match(globalStylesSource, /\.tt-map \{ height: 18\.5rem; \}/);
-  assert.match(globalStylesSource, /\.tt-mobile-fixture-safe-area \{[\s\S]*bottom: 0\.75rem;[\s\S]*top: 5rem;/);
-  assert.match(globalStylesSource, /\.tt-mobile-fixture-card \{[\s\S]*max-height: 100%;[\s\S]*overflow-y: auto;/);
+  // The mobile browser suite measures actual overflow and action visibility.
+  assert.match(globalStylesSource, /height: clamp\(/);
+  assert.match(globalStylesSource, /\.tt-mobile-fixture-details \{[^}]*min-height: 44px;[^}]*overflow-y: auto/);
   assert.match(fixtureMapSource, /tt-mobile-fixture-card/);
   assert.match(fixtureMapSource, /fixture\.home_team} v \{fixture\.away_team/);
   assert.match(fixtureMapSource, /fixture\.fixture_date/);
@@ -226,7 +226,7 @@ test("My Matchdays separates upcoming, confirmation, and attended history", () =
   assert.match(matchdaysSource, /Going/);
   assert.match(matchdaysSource, /DID YOU GO\?/);
   assert.match(matchdaysSource, /Yes, I was there/);
-  assert.match(matchdaysSource, /Didn't go/);
+  assert.match(matchdaysSource, /Remove Matchday/);
   assert.match(matchdaysSource, /setFixtures\(\(current\) => current\.filter/);
   assert.match(matchdaysSource, /if \(attended && !attendedFixtureIds\.has/);
   assert.match(matchdaysSource, /api\.post\(`\/fixtures\/\$\{fixture\.fixture_id\}\/attendance`\)/);
@@ -272,10 +272,10 @@ test("visits can attach, change, or remove an optional fixture without another m
   assert.match(groundsSource, /visits\/\$\{visitId\}/);
   assert.match(groundsSource, /fixture_id: fixtureId/);
   assert.match(groundsSource, /MATCHES AROUND YOUR DATE/);
-  assert.match(groundsSource, /Change match/);
-  assert.match(groundsSource, /Remove link/);
+  assert.match(groundsSource, /Change Match/);
+  assert.match(groundsSource, /Remove Ground/);
   assert.match(groundsSource, /visit\.visit_date \? knownDate\(visit\.visit_date\) : "Date not recorded"/);
-  assert.match(groundsSource, /fixture\.home_team} v \{fixture\.away_team/);
+  assert.match(groundsSource, /TeamBadge src=\{fixture\.home_team_badge_url\}/);
   assert.match(groundsSource, /fixture\.league_name/);
 });
 

@@ -205,10 +205,10 @@ function MobileFixtureCard({
   };
 
   return <article className="tt-mobile-fixture-card" aria-label="Selected fixture">
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.75rem] gap-3">
+    <div className="tt-mobile-fixture-details grid min-w-0 grid-cols-[minmax(0,1fr)_2.75rem] gap-3">
       <div className="min-w-0">
         {editorialReason && <MarkerEditorialReason fixture={fixture} />}
-        <strong className="flex min-w-0 items-start gap-1 break-words text-sm leading-tight"><FixtureTypeIcon type={fixtureType} /><span>{fixture.home_team} v {fixture.away_team}</span></strong>
+        <strong className="flex min-w-0 items-start gap-1 break-words text-sm leading-tight"><FixtureTypeIcon type={fixtureType} /><span className="min-w-0 break-words">{fixture.home_team} v {fixture.away_team}</span></strong>
         <span className="mt-1 block text-xs font-bold leading-tight">
           {statusGroup === "postponed" || statusGroup === "cancelled"
             ? fixtureStatusLabel(fixture.status)
@@ -216,13 +216,13 @@ function MobileFixtureCard({
         </span>
         <span className="mt-1 block min-w-0 break-words text-xs font-bold leading-tight">{fixture.venue_name}</span>
       </div>
-      <button type="button" onClick={() => onFixtureDismiss(fixture.fixture_id)} aria-label="Dismiss selected fixture" className="grid h-11 w-11 place-items-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-2xl font-bold leading-none">×</button>
+      <button type="button" onClick={() => onFixtureDismiss(fixture.fixture_id)} aria-label="Dismiss selected fixture" className="sticky top-0 grid h-11 w-11 place-items-center border-2 border-[var(--tt-ink)] bg-[var(--tt-paper)] text-2xl font-bold leading-none">×</button>
     </div>
-    <div className="mt-1.5 flex min-w-0 items-center justify-between gap-3">
+    <div className="tt-mobile-fixture-pagination flex min-w-0 items-center justify-between">
       {group.fixtures.length > 1 && <div className="flex shrink-0 items-center gap-1" aria-label="Fixtures at this stadium">
-        <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="grid h-10 w-10 place-items-center text-lg">←</button>
+        <button type="button" onClick={() => move(-1)} aria-label="Previous fixture" className="grid h-11 w-11 place-items-center text-lg">←</button>
         <span className="text-xs font-bold">{fixtureIndex + 1}/{group.fixtures.length}</span>
-        <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="grid h-10 w-10 place-items-center text-lg">→</button>
+        <button type="button" onClick={() => move(1)} aria-label="Next fixture" className="grid h-11 w-11 place-items-center text-lg">→</button>
       </div>}
     </div>
     <MapFixtureActions fixtureId={fixture.fixture_id} interestedFixtureIds={interestedFixtureIds} updatingFixtureIds={updatingFixtureIds} onToggleInterested={onToggleInterested} />

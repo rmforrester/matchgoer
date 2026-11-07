@@ -32,6 +32,16 @@ const ACTIVITY_KEY = "matchgoer.discover-activity.v1";
 type ActivityStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 let lastActivityAt = 0;
 let revision = 0;
+let discoverOwner: string | null | undefined;
+export function resetDiscoverSession(storage = browserStorage()) {
+  memory = null; lastActivityAt = 0; revision += 1;
+  try { storage?.removeItem(KEY); storage?.removeItem(ACTIVITY_KEY); } catch { /* The revision still rejects stale writes. */ }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(discoverExpiredEvent));
+}
+export function setDiscoverIdentity(owner: string | null, force = false) {
+  if (force || (discoverOwner !== owner && (discoverOwner !== undefined || owner !== null))) resetDiscoverSession();
+  discoverOwner = owner;
+}
 export function discoverCacheRevision() { return revision; }
 function browserStorage(): ActivityStorage | null {
   try { return typeof window === "undefined" ? null : window.localStorage; } catch { return null; }

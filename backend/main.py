@@ -1,3 +1,8 @@
+import community_tips
+from typing import Literal
+from pydantic import BaseModel as TipBaseModel
+from personal_history import COLLECTION_SOURCE, lock_owner, independent, keep_ground, remove_matchday, collection_rows, collection_preview, remove_ground
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from venue_timezone import venue_timezone
 from matchday_highlights import fixture_highlights
 from venue_resolution import resolution, resolve_venue, lock_ground, personal_review, unique_owner_reviews, canonical_venues, community_summaries, canonical_fixtures, canonical_row
@@ -62,6 +67,7 @@ from schemas import (
     VenueResponse,
     VenueGuideResponse,
     MatchdayTipCreate,
+    MatchdayTipResponse,
     AwayDayReviewCreate,
     AwayDayReviewUpdate,
     AwayDayReviewResponse,
@@ -847,41 +853,32 @@ def get_nearby(
 # =========================================================
 
 
-@app.post("/tips")
+@app.post("/tips", response_model=MatchdayTipResponse)
 def create_tip(
     data: MatchdayTipCreate,
     identity: ResolvedIdentity | None = Depends(optional_current_identity),
 ):
 
     db = SessionLocal()
-
-    tip = MatchdayTip(
-        venue_id=data.venue_id,
-        tip=data.tip,
-        author_user_id=identity.user_id if identity else None,
-        status="pending",
-    )
-
-    db.add(tip)
-
-    db.commit()
-
-    db.refresh(tip)
-
-    db.close()
-
-    return tip
+    try:
+        payload=community_tips.create(db,data,identity)
+        db.commit()
+        return payload
+    except Exception:
+        db.rollback();raise
+    finally:db.close()
 
 
-@app.get("/venues/{venue_id}/tips")
-def get_venue_tips(venue_id: int, identity: ResolvedIdentity | None = Depends(optional_current_identity)):
+@app.get("/venues/{venue_id}/tips", response_model=list[MatchdayTipResponse])
+def get_venue_tips(venue_id: int, response: Response = None, identity: ResolvedIdentity | None = Depends(optional_current_identity)):
 
+    if response is not None: response.headers["Cache-Control"]="no-store"
     db = SessionLocal()
     try:
         venue_id = resolve_venue(db, venue_id)
 
         tips = (
-            visible_authors(db.query(MatchdayTip), MatchdayTip.author_user_id, identity.user_id if identity else None)
+            visible_authors(db.query(MatchdayTip), MatchdayTip.author_user_id, getattr(identity,"user_id",None))
             .filter(
                 MatchdayTip.venue_id.in_(resolution(db).equivalents(venue_id)),
                 MatchdayTip.status == "active"
@@ -895,10 +892,10 @@ def get_venue_tips(venue_id: int, identity: ResolvedIdentity | None = Depends(op
     finally:
         db.close()
 
-    return tips
+    return [community_tips.public_payload(tip,getattr(identity,"user_id",None),venue_id) for tip in tips]
 
 
-@app.post("/tips/{tip_id}/helpful")
+@app.post("/tips/{tip_id}/helpful", response_model=MatchdayTipResponse)
 def mark_tip_helpful(tip_id: int):
 
     db = SessionLocal()
@@ -906,7 +903,8 @@ def mark_tip_helpful(tip_id: int):
     tip = (
         db.query(MatchdayTip)
         .filter(
-            MatchdayTip.tip_id == tip_id
+            MatchdayTip.tip_id == tip_id,
+            MatchdayTip.status == "active"
         )
         .first()
     )
@@ -935,7 +933,8 @@ def report_tip(tip_id: int):
     tip = (
         db.query(MatchdayTip)
         .filter(
-            MatchdayTip.tip_id == tip_id
+            MatchdayTip.tip_id == tip_id,
+            MatchdayTip.status == "active"
         )
         .first()
     )
@@ -962,6 +961,29 @@ def report_tip(tip_id: int):
         "report_count": tip.report_count,
         "status": tip.status
     }
+
+
+class TipModerationDecision(TipBaseModel):
+    decision: Literal['APPROVE','REJECT']
+    expected_status: Literal['PENDING','APPROVED','REJECTED']
+
+@app.get('/moderator/tips')
+def moderator_tips(response: Response, state: str=Query('PENDING',pattern='^(PENDING|APPROVED|REJECTED)$'), limit: int=Query(24,ge=1,le=50), after_id: int=Query(0,ge=0), authorization: str | None=Header(default=None)):
+    response.headers['Cache-Control']='no-store'
+    db=SessionLocal()
+    try:return community_tips.queue(db,authorization,state,limit,after_id)
+    finally:db.close()
+
+@app.post('/moderator/tips/{tip_id}')
+def moderate_tip(tip_id: int, data: TipModerationDecision, response: Response, authorization: str | None=Header(default=None)):
+    response.headers['Cache-Control']='no-store'
+    db=SessionLocal()
+    try:
+        result=community_tips.moderate(db,authorization,tip_id,data.decision,data.expected_status)
+        db.commit();return result
+    except Exception:
+        db.rollback();raise
+    finally:db.close()
 
 
 # =========================================================
@@ -1143,6 +1165,9 @@ def _ensure_venue_visit(
         if len(existing) > 1:
             raise HTTPException(409, detail='Multiple attendance records need review')
         if existing:
+            if existing[0].source == COLLECTION_SOURCE and source != COLLECTION_SOURCE:
+                existing[0].source = source
+                db.flush()
             return existing[0]
     db.execute(
         pg_insert(VenueVisit)
@@ -1175,6 +1200,9 @@ def _ensure_venue_visit(
         raise RuntimeError("Venue visit could not be created or resolved")
     if resolution(db).canonical(visit.venue_id) != venue_id:
         raise HTTPException(status_code=409, detail="Attendance already exists for a different venue")
+    if visit.source == COLLECTION_SOURCE and source != COLLECTION_SOURCE:
+        visit.source = source
+        db.flush()
     return visit
 
 
@@ -1191,6 +1219,7 @@ def create_away_day_review(
     db = SessionLocal()
 
     try:
+        lock_owner(db, identity.user_id)
         venue_id = lock_ground(db, venue_id)
 
         # -----------------------------------------------------
@@ -1638,6 +1667,7 @@ def get_venue_fixtures(
     venue_id: int,
     search: str | None = None,
     around_date: str | None = None,
+    calendar_timezone: str = "UTC",
     days: int = Query(default=3, ge=0, le=31),
 ):
 
@@ -1682,10 +1712,13 @@ def get_venue_fixtures(
                 target_date = date.fromisoformat(around_date)
             except ValueError:
                 raise HTTPException(status_code=422, detail="around_date must be YYYY-MM-DD")
-            query = query.filter(
-                utc_date_expression(Fixture.fixture_date) >= target_date - timedelta(days=days),
-                utc_date_expression(Fixture.fixture_date) <= target_date + timedelta(days=days),
-            )
+            try:
+                calendar_zone = ZoneInfo(calendar_timezone)
+            except (ZoneInfoNotFoundError, ValueError):
+                raise HTTPException(422, detail="Choose a valid calendar timezone")
+            start = datetime.combine(target_date - timedelta(days=days), datetime.min.time(), calendar_zone).astimezone(timezone.utc)
+            end = datetime.combine(target_date + timedelta(days=days + 1), datetime.min.time(), calendar_zone).astimezone(timezone.utc)
+            query = query.filter(Fixture.fixture_date >= start, Fixture.fixture_date < end)
 
         # -----------------------------------------------------
         # Optional team/opponent search
@@ -1725,7 +1758,7 @@ def get_venue_fixtures(
 
         if target_date is not None:
             def historical_fixture_rank(fixture):
-                day_difference = abs((fixture_datetime_utc(fixture.fixture_date).date() - target_date).days)
+                day_difference = abs((fixture_datetime_utc(fixture.fixture_date).astimezone(calendar_zone).date() - target_date).days)
                 priority = 0 if day_difference == 0 else 1 if day_difference == 1 else 2 if day_difference <= 3 else 3
                 return priority, fixture.fixture_date, fixture.fixture_id
 
@@ -1754,6 +1787,7 @@ def get_venue_fixtures(
                 {
                     "fixture_id":
                         fixture.fixture_id,
+                    "venue_id": venue_id,
 
                     "fixture_date":
                         fixture_datetime_utc(fixture.fixture_date),
@@ -2292,6 +2326,7 @@ def record_fixture_attendance(
 ):
     db = SessionLocal()
     try:
+        lock_owner(db, identity.user_id)
         user_id = identity.user_id
         fixture = db.query(Fixture).filter(Fixture.fixture_id == fixture_id).first()
         if not fixture:
@@ -2332,6 +2367,7 @@ def remove_fixture_attendance(
 ):
     db = SessionLocal()
     try:
+        lock_owner(db, identity.user_id)
         user_id = identity.user_id
         visit = db.query(VenueVisit).filter(
             VenueVisit.user_id == user_id,
@@ -2339,17 +2375,9 @@ def remove_fixture_attendance(
         ).first()
         if visit is None:
             return {"fixture_id": fixture_id, "attended": False, "removed": False}
-        visit_id = visit.visit_id
-        venue_id = visit.venue_id
-        db.delete(visit)
+        result = remove_matchday(db, user_id, visit.visit_id, remove_plan=False)
         db.commit()
-        return {
-            "fixture_id": fixture_id,
-            "venue_id": venue_id,
-            "visit_id": visit_id,
-            "attended": False,
-            "removed": True,
-        }
+        return {"fixture_id": fixture_id, "attended": False, **result}
     except HTTPException:
         db.rollback()
         raise
@@ -2368,11 +2396,14 @@ def record_manual_venue_visit(
 ):
     db = SessionLocal()
     try:
+        lock_owner(db, identity.user_id)
         venue_id = lock_ground(db, venue_id)
         user_id = identity.user_id
         venue = db.query(Venue).filter(Venue.venue_id == venue_id).first()
         if not venue:
             raise HTTPException(status_code=404, detail="Venue not found")
+        if data.collection_only and (data.fixture_id is not None or data.visit_date is not None):
+            raise HTTPException(422, "A ground-only save cannot include a date or fixture")
         fixture = None
         if data.fixture_id is not None:
             fixture = db.query(Fixture).filter(Fixture.fixture_id == data.fixture_id).first()
@@ -2387,7 +2418,7 @@ def record_manual_venue_visit(
             venue_id=venue_id,
             fixture_id=data.fixture_id,
             visit_date=(data.visit_date or fixture_datetime_utc(fixture.fixture_date).date()) if fixture else data.visit_date,
-            source="fixture_confirmation" if fixture else "manual",
+            source="fixture_confirmation" if fixture else COLLECTION_SOURCE if data.collection_only else "manual",
             calendar_utc_offset_minutes=data.calendar_utc_offset_minutes if fixture is None else None,
         )
         db.commit()
@@ -2428,7 +2459,21 @@ def update_venue_visit_fixture(
 ):
     db = SessionLocal()
     try:
-        venue_id = lock_ground(db, venue_id)
+        lock_owner(db, identity.user_id)
+        venue_id = resolve_venue(db, venue_id)
+        target_venue = venue_id
+        target_fixture = None
+        if data.fixture_id is not None:
+            target_fixture = db.query(Fixture).filter(Fixture.fixture_id == data.fixture_id).with_for_update(read=True).first()
+            if target_fixture is None:
+                raise HTTPException(404, "Fixture not found")
+            if target_fixture.venue_id is None:
+                raise HTTPException(409, "The replacement match has no verified ground")
+            target_venue = resolve_venue(db, target_fixture.venue_id)
+            if target_venue != venue_id and not data.allow_ground_change:
+                raise HTTPException(400, "Fixture was not played at this venue")
+        for root in sorted({venue_id, target_venue}):
+            lock_ground(db, root)
         visit = db.query(VenueVisit).filter(
             VenueVisit.visit_id == visit_id,
             VenueVisit.user_id == identity.user_id,
@@ -2436,6 +2481,9 @@ def update_venue_visit_fixture(
         ).with_for_update().first()
         if visit is None:
             raise HTTPException(status_code=404, detail="Visit not found")
+        if visit.source == COLLECTION_SOURCE:
+            raise HTTPException(404, "Matchday not found")
+        was_independent = independent(visit)
         fields = data.model_fields_set
         editing_date = "visit_date" in fields
         if editing_date and visit.fixture_id is not None:
@@ -2448,7 +2496,7 @@ def update_venue_visit_fixture(
             fixture = db.query(Fixture).filter(Fixture.fixture_id == next_fixture).first()
             if fixture is None:
                 raise HTTPException(status_code=404, detail="Fixture not found")
-            if resolution(db).canonical(fixture.venue_id) != venue_id:
+            if resolution(db).canonical(fixture.venue_id) != target_venue:
                 raise HTTPException(status_code=400, detail="Fixture was not played at this venue")
             _validate_attendance_date(next_date)
             _validate_attendance_fixture(fixture)
@@ -2459,7 +2507,7 @@ def update_venue_visit_fixture(
             ).first()
             if duplicate is not None:
                 raise HTTPException(status_code=409, detail="That match is already in your history")
-            if next_date is None:
+            if next_date is None or data.allow_ground_change:
                 next_date = fixture_datetime_utc(fixture.fixture_date).date()
         if (editing_date or "fixture_id" in fields) and next_fixture is None:
             duplicate = db.query(VenueVisit.visit_id).filter(
@@ -2477,7 +2525,12 @@ def update_venue_visit_fixture(
             visit.visit_date = next_date
         if "fixture_id" in fields:
             visit.fixture_id = next_fixture
-            visit.source = "fixture_confirmation" if next_fixture is not None else "manual"
+            visit.source = ("manual" if was_independent and target_venue == venue_id else "fixture_confirmation") if next_fixture is not None else "manual"
+            if target_venue != venue_id:
+                visit.venue_id = target_venue
+            db.flush()
+            if was_independent and target_venue != venue_id:
+                keep_ground(db, identity.user_id, venue_id)
         db.commit()
         db.refresh(visit)
         return canonical_row(db, visit)
@@ -2487,6 +2540,50 @@ def update_venue_visit_fixture(
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="A conflicting visit already exists. Your visits have not been combined.")
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+@app.delete("/venues/{venue_id}/visits/{visit_id}")
+def delete_personal_matchday(venue_id: int, visit_id: int, expected_fixture_id: int | None = None, check_fixture: bool = False, identity: ResolvedIdentity = Depends(required_current_identity)):
+    db = SessionLocal()
+    try:
+        lock_owner(db, identity.user_id)
+        venue_id = resolve_venue(db, venue_id)
+        visit = db.query(VenueVisit).filter_by(visit_id=visit_id, user_id=identity.user_id).first()
+        if visit is not None and (resolution(db).canonical(visit.venue_id) != venue_id or (check_fixture and visit.fixture_id != expected_fixture_id)):
+            raise HTTPException(409, "This matchday changed. Refresh your history and confirm again.")
+        result = remove_matchday(db, identity.user_id, visit_id)
+        db.commit()
+        return result
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+@app.get("/venues/{venue_id}/collection-removal")
+def preview_personal_ground_removal(venue_id: int, identity: ResolvedIdentity = Depends(required_current_identity)):
+    db = SessionLocal()
+    try:
+        venue_id = resolve_venue(db, venue_id)
+        return {"venue_id": venue_id, **collection_preview(collection_rows(db, identity.user_id, venue_id))}
+    finally:
+        db.close()
+
+
+@app.delete("/venues/{venue_id}/collection")
+def delete_personal_ground(venue_id: int, expected_revision: str = Query(min_length=64, max_length=64), identity: ResolvedIdentity = Depends(required_current_identity)):
+    db = SessionLocal()
+    try:
+        venue_id = resolve_venue(db, venue_id)
+        result = remove_ground(db, identity.user_id, venue_id, expected_revision)
+        db.commit()
+        return result
     except Exception:
         db.rollback()
         raise
@@ -2526,6 +2623,8 @@ def get_my_grounds(
             grouped.setdefault(identity_map.canonical(visit.venue_id), []).append(visit)
         results = []
         for venue_id, venue_visits in grouped.items():
+            saved_independently = any(independent(visit) for visit in venue_visits)
+            venue_visits = [visit for visit in venue_visits if visit.source != COLLECTION_SOURCE]
             venue = canonical_rows[venue_id]
             dated = [visit.visit_date for visit in venue_visits if visit.visit_date is not None]
             review = personal_review(reviews.get(venue_id, []))
@@ -2542,6 +2641,7 @@ def get_my_grounds(
                 "latitude": venue.latitude,
                 "longitude": venue.longitude,
                 "visit_count": len(venue_visits),
+                "independently_saved": saved_independently,
                 "first_visit_date": min(dated) if dated else None,
                 "latest_visit_date": max(dated) if dated else None,
                 "has_undated_visit": any(visit.visit_date is None for visit in venue_visits),

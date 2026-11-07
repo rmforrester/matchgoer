@@ -16,6 +16,8 @@ const dependencies: Record<string, unknown> = {
   "next/link": (props: Record<string, unknown>) => React.createElement("a", props),
   "next/image": (props: Record<string, unknown>) => React.createElement("img", props),
   "next/navigation": { usePathname: () => "/fixture/1", useRouter: () => ({}), useSearchParams: () => new URLSearchParams() },
+  "../../lib/discover-state": { watchDiscoverActivity: () => () => {} },
+  "../../lib/navigation-scroll": { scrollPageToTop: () => {} },
   "./AuthProvider": { useAuth: () => account },
   "./ModeratorAttentionDot": () => null,
   "./LogoutButton": () => React.createElement("button", null, "Log out"),

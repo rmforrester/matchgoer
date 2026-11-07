@@ -149,7 +149,7 @@ async def submit(visit_id:int,request:Request,response:Response,authorization:st
     # Verify identity/owned attendance BEFORE reading/decoding untrusted bytes.
     def check(db):
         actor=require_photo_submitter(db,authorization)
-        if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).first():raise HTTPException(404,'Owned recorded matchday not found')
+        if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).filter(VenueVisit.source != "ground_collection").first():raise HTTPException(404,'Owned recorded matchday not found')
         return actor.user_id
     actor_user_id = await run_in_threadpool(transaction,check)
     try:
@@ -191,7 +191,7 @@ def public_photos(response:Response,selection:str|None=Query(None,pattern='^(dis
 def owned_photos(visit_id:int,response:Response,authorization:str|None=Header(default=None)):
     def action(db):
         actor=require_verified_account(db,authorization)
-        if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).first():raise HTTPException(404,'Recorded matchday not found')
+        if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).filter(VenueVisit.source != "ground_collection").first():raise HTTPException(404,'Recorded matchday not found')
         # Owner-only reconciliation: never include submission keys in public or moderator payloads.
         return {'can_submit':actor.user_id in configured_upload_user_ids(),'reconciliation_supported':True,'photos':[{**service.photo_payload(db,PrivatePhotoStorage(),row,private=True), 'submission_key':row.submission_key} for row in db.query(Photo).filter_by(visit_id=visit_id,owner_user_id=actor.user_id).order_by(Photo.submitted_at,Photo.photo_id).all()]}
     response.headers['Cache-Control']='no-store';return transaction(action)

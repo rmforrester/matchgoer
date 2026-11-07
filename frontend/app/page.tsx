@@ -323,7 +323,7 @@ const loadVisitedStadiums = () => {
       if (!context.restoring) trackEvent("location_search", { search_method: source, result_count_bucket: resultBucket(Number(response.headers["x-total-matches"] ?? response.data.length)) });
       if (!context.restoring) { setSelectedFixtureId(null); setWhatsOnExpanded(false); setShortlistExpanded(false); }
       setAppliedSearch(nextSearch);
-      setLocationQuery(nextSearch.locationName);
+      setLocationQuery(source === "map" ? "" : nextSearch.locationName);
       if (source === "map") setManualLocationSelected(false);
       setDraftCoordinates(source === "location" ? origin : area.center);
       setRadius(nextSearch.radius);
@@ -422,7 +422,7 @@ const loadVisitedStadiums = () => {
     }
 
     const query = selected?.label ?? locationQuery.trim();
-    if (!query) {
+    if (!query || query.toLowerCase() === "map area") {
       setLocationError("Enter a city or location to search.");
       return;
     }
@@ -520,11 +520,12 @@ const loadVisitedStadiums = () => {
   };
 
   useEffect(() => () => {
+    discoveryRequestVersion.current += 1;
     discoveryRequest.current?.controller.abort();
     pendingResolvedSearch.current = null;
   }, []);
 
-  // Public discovery state survives route/account remounts; identity state never does.
+  // Discover survives navigation within an identity; auth changes reset its revision.
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
     leavingDiscover.current = false;
@@ -532,7 +533,7 @@ const loadVisitedStadiums = () => {
     cacheRevision.current = discoverCacheRevision();
     if (saved) {
       setAppliedSearch(saved.appliedSearch); setFixtures(saved.fixtures); setVenues(saved.venues);
-      setLocationQuery(saved.locationQuery); setDraftCoordinates(saved.draftCoordinates);
+      setLocationQuery(saved.locationQuery.trim().toLowerCase() === "map area" ? "" : saved.locationQuery); setDraftCoordinates(saved.draftCoordinates);
       setRadius(saved.radius); setSelectedStartDate(saved.startDate); setEndDate(saved.endDate);
       setSelectedLeagueIds(saved.leagueIds); setShowAllStadiums(saved.showAllStadiums);
       setEditingSearch(saved.editingSearch); setMapPosition(saved.mapPosition); setRestorePosition(saved.mapPosition); setRestoreArea(saved.searchArea);
@@ -842,6 +843,7 @@ const loadVisitedStadiums = () => {
               Where?
               <div>
                 <LocationAutocomplete
+                  placeholder={appliedSearch?.mode === "viewport" ? "Map area" : "Search a city or location"}
                   value={locationQuery}
                   disabled={loading || locationLoading}
                   onChange={(value) => {

@@ -134,6 +134,39 @@ def project_footprint(visits, scopes, teams, venues, relationships, today, guard
                 competitions=sorted(competitions, key=competition_sort_key))
 
 
+def attended_competitions(visits, reviewed, today):
+    """Group actual owned attendance, independently of reviewed current-home credit.
+
+    Never infer membership from a club's current home or award a roster denominator
+    to a cup/international competition. Unknown season windows stay unclassified
+    in the current-season view rather than inventing a competition calendar.
+    """
+    groups = {}
+    for visit in visits:
+        fixture = visit.fixture
+        if fixture is None or not fixture.league_id or fixture.league_id < 1 or not fixture.league_name:
+            continue
+        key = (fixture.league_id, fixture.season)
+        groups.setdefault(key, []).append(visit)
+    catalogue = {(c['competition_id'], c['season']): c for c in reviewed}
+    output = []
+    for (competition_id, season), owned in groups.items():
+        fixture = max(owned, key=lambda v: (v.fixture.fixture_date, v.fixture.fixture_id)).fixture
+        base = catalogue.get((competition_id, season))
+        current_ids = set(v for g in base['grounds'] for v in g['season_visit_ids']) if base else set()
+        row = dict(base) if base else dict(competition_id=competition_id, season=season, season_label=str(season) if season is not None else 'Season not recorded',
+            name=fixture.league_name, country=fixture.country or 'Country not recorded', tier=None,
+            season_start=None, season_end=None,
+            coverage='attendance', total_clubs=0, lifetime_clubs=None, season_clubs=None)
+        row['name'] = fixture.league_name
+        row['grounds'] = [dict(venue_id=venue_id, clubs=[],
+            visit_ids=sorted(v.visit_id for v in owned if v.venue_id == venue_id),
+            season_visit_ids=sorted(v.visit_id for v in owned if v.venue_id == venue_id and v.visit_id in current_ids))
+            for venue_id in sorted({v.venue_id for v in owned})]
+        output.append(row)
+    return sorted(output, key=competition_sort_key)
+
+
 def build_footprint(db, visits, today=None):
     today = today or datetime.now(timezone.utc).date()
     catalogue = membership_catalogue()
@@ -165,4 +198,4 @@ def build_footprint(db, visits, today=None):
     # Only venue IDs normalize: role/date/club changes still fail closed.
     guarded = {(s['competition_id'], m['team_id']): _mapping_is_current(m, teams, venues, relationships, today, identity) for s in scopes for m in s['members']}
     result = project_footprint(projected_visits, projected_scopes, teams, venues | {identity.canonical(v) for v in venues}, relationships, today, guarded=guarded)
-    return dict(reviewed_on=catalogue['reviewed_on'], **result)
+    return dict(reviewed_on=catalogue['reviewed_on'], attendance_competitions=attended_competitions(projected_visits, result['competitions'], today), **result)

@@ -6,6 +6,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { placeUrlFromVerifiedUrl } from "./map-destination.ts";
 import * as knowHelpers from "./know-v1.ts";
 import type { FixtureKnow, KnowFact } from "./know-v1.ts";
 
@@ -13,7 +14,7 @@ const require = createRequire(import.meta.url);
 const compiled = { exports: {} };
 const source = readFileSync(new URL("../app/components/FixtureKnow.tsx", import.meta.url), "utf8");
 const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
-vm.runInNewContext(code, { module: compiled, exports: compiled.exports, require: (name: string) => name === "../../lib/know-v1" ? knowHelpers : require(name) });
+vm.runInNewContext(code, { module: compiled, exports: compiled.exports, require: (name: string) => name === "../../lib/know-v1" ? knowHelpers : name === "./DestinationLink" ? ({url}: {url:string}) => React.createElement("a",{href:placeUrlFromVerifiedUrl(url)},"View on map") : require(name) });
 const component = compiled.exports as { default: React.ComponentType<{ know: FixtureKnow; teamName: string }> };
 const empty: FixtureKnow = { fixture_id: 1, team_id: 68, venue_id: 10, club_venue_id: 10, club: [], supporters: [], matchday: [], dont_miss: [], good_to_know: [], before_match: [] };
 const fact = (id: number, headline: string | null): KnowFact => ({ know_fact_id: id, headline, content: `Unchanged paragraph ${id}.`, provenance: [] });
@@ -45,7 +46,7 @@ test("a headline-free identity keeps its meaningful category visible", () => {
 });
 
 test("optional places preserve names, repeated descriptions and exact Directions URLs", () => {
-  const value = { ...empty, before_match: [1, 2].map(id => ({ pre_match_spot_id: id, display_name: `Official Fan Zone ${id}`, classification: "CLUB_MATCHDAY_VENUE" as const, audience: "HOME" as const, supporting_line: `Official Fan Zone ${id} unchanged description.`, location_context: null, directions_url: `https://maps.test/?place=${id}&exact=yes` })) };
+  const value = { ...empty, before_match: [1, 2].map(id => ({ pre_match_spot_id: id, display_name: `Official Fan Zone ${id}`, classification: "CLUB_MATCHDAY_VENUE" as const, audience: "HOME" as const, supporting_line: `Official Fan Zone ${id} unchanged description.`, location_context: null, directions_url: `https://www.google.com/maps/search/?api=1&query=Official+Fan+Zone+${id}` })) };
   const html = render(value);
   assert.match(html, /04 \/ Before the match/);
   assert.doesNotMatch(html, /03 \/ Matchday guide/);

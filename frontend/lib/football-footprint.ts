@@ -21,8 +21,16 @@ export function competitionsForGrounds(competitions: FootprintCompetition[], gro
   const ids = new Set(grounds.map(ground => ground.venue_id));
   const visits = new Set(grounds.flatMap(ground => ground.visits.map(visit => visit.visit_id)));
   return competitions.flatMap(competition => {
-    const relevant = competition.grounds.filter(ground => ids.has(ground.venue_id) &&
-      (period === "lifetime" || ground.season_visit_ids.some(id => visits.has(id))));
+    const relevant = competition.grounds.flatMap(ground => {
+      if (!ids.has(ground.venue_id)) return [];
+      if (period === "season" && !ground.season_visit_ids.some(id => visits.has(id))) return [];
+      if (ground.visit_ids != null) {
+        const owned = ground.visit_ids.filter(id => visits.has(id));
+        if (!owned.length) return [];
+        return [{ ...ground, visit_ids: owned, season_visit_ids: ground.season_visit_ids.filter(id => visits.has(id)) }];
+      }
+      return [ground];
+    });
     return relevant.length ? [{ ...competition, grounds: relevant }] : [];
   });
 }

@@ -76,6 +76,8 @@ class MatchdaysGoingTests(unittest.TestCase):
 
     def test_interested_and_going_to_went_keep_saves_and_preferences(self):
         main.update_going(1,GoingUpdate(going=True),self.identity)
+        with self.sessions.begin() as db:
+            db.query(Fixture).filter(Fixture.fixture_id.in_([1,2])).update({Fixture.status:'FT'},synchronize_session=False)
         for fixture in (1,2):
             main.record_fixture_attendance(fixture,self.identity)
             main.record_fixture_attendance(fixture,self.identity)
@@ -96,6 +98,7 @@ class MatchdaysGoingTests(unittest.TestCase):
         self.assertEqual(self.counts(),(3,2,0))
 
     def test_manual_visit_reused_and_history_preserved(self):
+        with self.sessions.begin() as db:db.query(Fixture).filter_by(fixture_id=1).update({Fixture.status:'FT'})
         with self.sessions.begin() as db:
             db.add(VenueVisit(user_id=1,venue_id=1,visit_date=datetime(2026,10,8).date(),source="manual"))
             db.add(VenueVisit(user_id=1,venue_id=1,visit_date=datetime(2025,1,1).date(),source="manual"))

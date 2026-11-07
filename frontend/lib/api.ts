@@ -1,3 +1,4 @@
+import { changesPersonalHistory, notifyPersonalHistoryChanged } from "./personal-history.ts";
 import axios from "axios";
 import { getSupabaseBrowserClient } from "./supabase.ts";
 
@@ -35,3 +36,9 @@ export const anonymousApi = axios.create({
 });
 
 export default api;
+
+// Refresh both personal-history views after an acknowledged mutation only.
+api.interceptors.response.use(response => {
+  if (changesPersonalHistory(response.config.method, response.config.url)) notifyPersonalHistoryChanged();
+  return response;
+});

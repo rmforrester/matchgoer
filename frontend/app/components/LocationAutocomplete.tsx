@@ -3,10 +3,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { AUTOCOMPLETE_DELAY, autocompleteParameters, locationSuggestions, type LocationSuggestion } from "../../lib/location-autocomplete";
 
-type Props = { value: string; onChange: (value: string) => void; onSelect: (location: LocationSuggestion) => void; disabled?: boolean };
+type Props = { value: string; onChange: (value: string) => void; onSelect: (location: LocationSuggestion) => void; disabled?: boolean; placeholder?: string };
 type State = { query: string; items: LocationSuggestion[]; status: "loading" | "ready" | "error" };
 
-export default function LocationAutocomplete({ value, onChange, onSelect, disabled = false }: Props) {
+export default function LocationAutocomplete({ value, onChange, onSelect, disabled = false, placeholder = "Search a city or location" }: Props) {
   const listId = useId();
   const key = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
   const [open, setOpen] = useState(false);
@@ -75,11 +75,11 @@ export default function LocationAutocomplete({ value, onChange, onSelect, disabl
   const visible = open && !disabled && query.length >= 2;
   const current = state?.query === query ? state : null;
   const items = visible ? current?.items ?? [] : [];
-  return <div ref={container} className="min-w-0 normal-case tracking-normal">
+  return <div ref={container} className="relative min-w-0 normal-case tracking-normal">
     <input id="location-search" type="search" role="combobox" value={value} disabled={disabled}
       autoComplete="off" aria-label="Where" aria-autocomplete="list" aria-expanded={visible}
       aria-controls={visible ? listId : undefined} aria-activedescendant={active >= 0 && items[active] ? `${listId}-${active}` : undefined}
-      placeholder="Search a city or location" className="tt-control w-full min-w-0 px-4 py-2"
+      placeholder={placeholder} className="tt-control w-full min-w-0 py-2 pl-4 pr-12"
       onChange={(event) => { invalidate(); setState(null); setActive(-1); setOpen(true); onChange(event.target.value); }}
       onKeyDown={(event) => {
         if (event.key === "Tab") dismiss();
@@ -89,6 +89,7 @@ export default function LocationAutocomplete({ value, onChange, onSelect, disabl
         }
         if (event.key === "Enter" && active >= 0 && items[active]) { event.preventDefault(); select(items[active]); }
       }} />
+    {value && <button type="button" disabled={disabled} aria-label="Clear location" onClick={() => { invalidate(); setState(null); setActive(-1); setOpen(false); onChange(""); container.current?.querySelector("input")?.focus(); }} className="absolute right-0 top-0 grid h-11 w-11 place-items-center text-xl">?</button>}
     {visible && <div className="mt-1 max-h-80 overflow-y-auto border border-[var(--brand-interactive)] bg-[var(--tt-paper)]">
       <ul id={listId} role="listbox" aria-label="Location suggestions">
         {items.map((item, index) => <li id={`${listId}-${index}`} key={item.id} role="option" aria-selected={active === index}

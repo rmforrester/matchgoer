@@ -88,12 +88,12 @@ test("practical guide keeps answers primary and moves supporting facts deeper", 
   assert.equal(officialTicketUrl(hutnikGuide), "https://tickets.example.com");
   const actions = fixtureGuideActions(hutnikGuide, 22950, { latitude: 50.066111, longitude: 20.057222 });
   assert.deepEqual(actions, [
-    { label: "Directions", href: "https://www.google.com/maps/dir/?api=1&destination=50.066111%2C20.057222", external: true },
+    { label: "View on map", href: "https://www.google.com/maps/search/?api=1&query=50.066111%2C20.057222", external: true },
     { label: "Tickets", href: "https://tickets.example.com", external: true },
     { label: "Ground guide", href: "/venue/22950#venue-guide-heading", external: false },
   ]);
   const directions = new URL(actions[0].href, "https://matchgoer.app");
-  assert.equal(directions.searchParams.get("destination"), "50.066111,20.057222");
+  assert.equal(directions.searchParams.get("query"), "50.066111,20.057222");
   assert.equal(directions.searchParams.has("origin"), false);
   assert.equal(primaryGuideSections(hutnikGuide).some((section) => section.key === "before_match"), false);
   assert.equal(primaryGuideSections(hutnikGuide)[0].facts[0].provenance.label, "Official");

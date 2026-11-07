@@ -1,3 +1,4 @@
+import { coordinatePlaceUrl } from "./map-destination.ts";
 export type VenueGuideFact = {
   topic: string;
   content: string;
@@ -145,10 +146,10 @@ export function fixtureGuideActions(
 ) {
   const ticketUrl = officialTicketUrl(guide);
   const directionsUrl = coordinates?.latitude != null && coordinates.longitude != null
-    ? googleMapsDirectionsUrl(coordinates.latitude, coordinates.longitude)
+    ? coordinatePlaceUrl(coordinates.latitude, coordinates.longitude)
     : null;
   return [
-    ...(directionsUrl ? [{ label: "Directions", href: directionsUrl, external: true }] : []),
+    ...(directionsUrl ? [{ label: "View on map", href: directionsUrl, external: true }] : []),
     ...(ticketUrl ? [{ label: "Tickets", href: ticketUrl, external: true }] : []),
     { label: "Ground guide", href: `/venue/${venueId}${teamId ? `?teamId=${teamId}` : ""}#venue-guide-heading`, external: false },
   ];

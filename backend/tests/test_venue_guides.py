@@ -110,7 +110,7 @@ class VenueGuideTests(unittest.TestCase):
     def test_existing_tips_and_reviews_are_unchanged(self):
         tips = get_venue_tips(self.venue_id)
         score = get_away_day_score(self.venue_id)
-        self.assertEqual([tip.tip for tip in tips], ["Existing development supporter tip"])
+        self.assertEqual([tip["tip"] for tip in tips], ["Existing development supporter tip"])
         self.assertEqual(score["review_count"], 1)
         self.assertEqual(score["away_day_score"], 8.0)
 

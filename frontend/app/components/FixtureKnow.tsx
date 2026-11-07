@@ -1,3 +1,4 @@
+import DestinationLink from "./DestinationLink";
 import { hasKnowContent, selectFixtureKnowHighlights, type FixtureKnow as FixtureKnowData, type KnowFact } from "../../lib/know-v1";
 
 function FactList({ facts }: { facts: KnowFact[] }) {
@@ -49,7 +50,7 @@ export default function FixtureKnow({ know, teamName }: { know: FixtureKnowData 
           <h3 className="tt-display text-xl font-extrabold uppercase leading-[1.1] break-words">{spot.display_name}</h3>
           {spot.supporting_line && <p className="mt-1 max-w-2xl text-[15px] leading-6">{spot.supporting_line}</p>}
         </div>
-        {spot.directions_url && <a href={spot.directions_url} target="_blank" rel="noreferrer" className="mg-tertiary-action inline-flex items-center self-end">Directions →</a>}
+        {spot.directions_url && <DestinationLink url={spot.directions_url} className="mg-tertiary-action inline-flex items-center self-end"/>}
       </article>)}</div>
     </section>}
 
