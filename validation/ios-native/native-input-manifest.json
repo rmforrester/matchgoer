@@ -1,9 +1,42 @@
 {
-  "baseline": "dc35f2775153831decdabc92b19a3a378c8ae897",
-  "capacitor_version": "8.5.3",
-  "archive_sha256": "a7f0e5d0d87e8e66cc8ba252e23d6e8c55ba0c4c107c7a5499b2be535f4accf9",
-  "archive_bytes": 2196907,
-  "archive_files": [
+  "source_commit": "ced94da27309751a464abaac6b2329bf79a27485",
+  "version": "0.1.0",
+  "build": "12",
+  "bundle_id": "com.matchgoer.app",
+  "archive_sha256": "99ed404548dfbced22eb414ebe8839c16cc08ba23880cc306b5dfe52178c81ed",
+  "archive_bytes": 2213267,
+  "prior_build11_archive_sha256": "a7f0e5d0d87e8e66cc8ba252e23d6e8c55ba0c4c107c7a5499b2be535f4accf9",
+  "shell_identity_permissions_entitlements_swift_and_plugins_unchanged": true,
+  "changed_entries": [
+    "ios/App/App/public/app.css",
+    "ios/App/App/public/brand/matchgoer-wordmark-primary.svg",
+    "ios/App/App/public/bundle.css",
+    "ios/App/App/public/bundle.js"
+  ],
+  "configuration": {
+    "api_origin": "https://api.beta.matchgoer.com",
+    "auth_origin": "https://xqnjayincslrlyfuvdys.supabase.co",
+    "remote_frontend_server": false,
+    "native_auth": true,
+    "analytics": false
+  },
+  "required_ux_labels": [
+    "Save your visit",
+    "Change Match",
+    "Remove Matchday",
+    "Remove Ground",
+    "Rate Ground",
+    "Edit Rating",
+    "Not yet rated",
+    "Football Passport",
+    "Photo Reviews",
+    "Tip Reviews",
+    "verified_ground_total",
+    "season_grounds"
+  ],
+  "actual_privileged_secret_scan": "PASS",
+  "synthetic_payload_scan": "PASS",
+  "files": [
     {
       "path": "ios/.gitignore",
       "sha256": "2b7132a9943d2622e51e656897ca5162f56b121b40b423dedce1fbc699dba88a"
@@ -86,7 +119,7 @@
     },
     {
       "path": "ios/App/App/public/app.css",
-      "sha256": "b1fd5b849f2f925cc404fab925e750f491844255e3936a174b14007f913dd522"
+      "sha256": "b92faa2f7412477d4d18d8990d4b31d563be9ffba382eb002b5f6dc02f53c202"
     },
     {
       "path": "ios/App/App/public/apple-signin-logo.png",
@@ -114,15 +147,15 @@
     },
     {
       "path": "ios/App/App/public/brand/matchgoer-wordmark-primary.svg",
-      "sha256": "7297449a5aacfc0068acdd2216a30f677a17f7771191074bdf599017bfb83f43"
+      "sha256": "cfe13557435b9f4ac0f7d86997e52f26fe9696886b1625f985acf62952e8af02"
     },
     {
       "path": "ios/App/App/public/bundle.css",
-      "sha256": "ea85b4ce7ce6425456ecb184469f8295850ca0ee9af6169403e25de7359c1cad"
+      "sha256": "cd4b4ab2e679ab928cc1a406d329fedcfa3dcf6a1e8b7fd1ce348683fa76c733"
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "84b694c50bef8298eb73321803abc8b89495ada338659178147cfb87c7b00093"
+      "sha256": "165300b3f0688ed9376ee710eab1436ec0a82b8ce86cf38ae644c41ad6f7ca92"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -208,296 +241,5 @@
       "path": "ios/debug.xcconfig",
       "sha256": "4838938a72b913b99cfda54a43bbe73f05893071dc6e3702b0adc44794b64272"
     }
-  ],
-  "version": "0.1.0",
-  "build": "11",
-  "gate": "Approved Build 11 internal TestFlight: accepted compact Football Footprint redesign",
-  "candidate_source_files": [
-    {
-      "path": "backend/account_claim.py",
-      "status": "modified",
-      "before_sha256": "4502f042b4b1b3a7b91b60bccaedb349fa031dd50f20f9abd79144b8c9f27a90",
-      "sha256": "48c0352660c6046f117f024cee073a553f3fe28e243cbef650ede519b64fa361",
-      "lf_sha256": "6373f31559ffc616238c24d24fbc2780548faa8a82b2660b0aaf0f576d919635"
-    },
-    {
-      "path": "backend/account_deletion.py",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "953d56acc584279ac9f3ab62c53f9afb1e6d7fd85307dfac1bb7d510c23b0243",
-      "lf_sha256": "431261f78f7d03cae42c6f186af0824a6cdfce75d0681a84cb39128cf9b52c11"
-    },
-    {
-      "path": "backend/apple_deletion.py",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "7f06b3a7fc6e07adaee20e6e542fe48ab0dd09bdecb733ffa26e6e52dc827c10",
-      "lf_sha256": "85099df98cfc9e5890a4fa39513097b7f2e9a7f4847d5a2bad0daa99b5a7e481"
-    },
-    {
-      "path": "backend/identity.py",
-      "status": "modified",
-      "before_sha256": "e41cbfe99b38b1be09e7dd5083da07eaeb0f786f194f2786c6b4586e866eb054",
-      "sha256": "c0387319fd8b250cbaafe4c53753a2c99249b8d6749d77cc9ae4b138f6d8c7ee",
-      "lf_sha256": "07ec33d80c7ce613b43cb154d2d0386c5ef34f49accdebc87495af33ad9f1284"
-    },
-    {
-      "path": "backend/main.py",
-      "status": "modified",
-      "before_sha256": "e281e3e4038a98ce1dda00d2b39ff4b21e0700d5e439b26051467eb352e71b08",
-      "sha256": "e283e9f56060e51b48b708a1ebf56e29849c696fd6df0e729ff8e43df043bce7",
-      "lf_sha256": "66f96b79edeffe6162305b76880db220c7f288b2d0c39f703d9249dbac028277"
-    },
-    {
-      "path": "backend/migrations/20261101_account_deletion_requests.sql",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "3ba3a1b58f299d64594f1338e5f3ed7d52a5024a3897cbfb772874ee42561739",
-      "lf_sha256": "65748e6ed4c2e15b1f2fa81e77495d99afac8cb40827d52d36615ea5a2ac1db3"
-    },
-    {
-      "path": "backend/migrations/20261101_supporter_blocks.sql",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "e17af6605693e29c54614442ed7cab3d5b22df178e9349c8553a4f2d07c42572",
-      "lf_sha256": "e17af6605693e29c54614442ed7cab3d5b22df178e9349c8553a4f2d07c42572"
-    },
-    {
-      "path": "backend/supporter_blocks.py",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "0afd2f514f0d2878650353b7639f8da1b7493b3838129b5c5be86ac40970af9e",
-      "lf_sha256": "215ad926d117b90532178f58d56a49ba700bc18bb107f7009e2b2c449d0ede42"
-    },
-    {
-      "path": "backend/terraces_api.py",
-      "status": "modified",
-      "before_sha256": "c956ea81ea4283d25db9d9082271b52887e8c617a8ec910b71ba17b4cbf05a5d",
-      "sha256": "d9e5880f2bdf7158ac05320b188f71e3802f07d1075531891001575a8ddd9724",
-      "lf_sha256": "d2a1f3d989dd3eb4fccfc30c0ceeb452ff5e04296d77d87ec378b4b64e9e2962"
-    },
-    {
-      "path": "backend/terraces_service.py",
-      "status": "modified",
-      "before_sha256": "66abd8e733cb7cf8bf3dd7eff4caa9c0e0f1279d3206cb7072b3bbd957e8fc8e",
-      "sha256": "d7a62fd154d7219f14daffe27ed80f92c4ca2639c8886bcddd202092bb251f3f",
-      "lf_sha256": "b39c343179a6a4f015aaf26cccc25913d6c7dc769cad63d1a5218809d99f95b1"
-    },
-    {
-      "path": "backend/tests/test_account_deletion.py",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "5a3db04fa92d040fdcac58be5f18245c9233b9b9e8cf433c2a2e2b35e9efb106",
-      "lf_sha256": "2dce57518252410f92bf139e576d1918983abde846970b32b686071af70a0249"
-    },
-    {
-      "path": "backend/tests/test_build8_integration.py",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "5c97c41d5656106d194be99769744f784078d39ece205b87f168a31a0d98bd92",
-      "lf_sha256": "c9e78ef58b0ec75a5b915b05c6f684d015a7a61c52c37ff0c1d06f38b5e55452"
-    },
-    {
-      "path": "backend/tests/test_build8_safety.py",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "a75a880123129f500534fbc37e459d88d79caeea829b00040702ee11626655c8",
-      "lf_sha256": "4be7a781aeeda8bc06be901bf6ff23f214f4d757111ecea4d34644919c2a602d"
-    },
-    {
-      "path": "backend/tests/test_deletion_safeguards.py",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "e6d65bdab4895013898e435002b91361133d8569951be899c5ce5e8db302814e",
-      "lf_sha256": "f66ad258f74ac2a32a4efdfa996ea0895b6724a1ae5c1e7dc6d4e00662dbb280"
-    },
-    {
-      "path": "frontend/app/account/page.tsx",
-      "status": "modified",
-      "before_sha256": "9562e24719ef1f76a2f6ec56bf9d856788d4b7ed9a89c2e6af05bb5de34138db",
-      "sha256": "ce69a1c0312318fd7de4732b9a79aa94c6ce3b1e26225809d8f05b2c385642c0",
-      "lf_sha256": "386686b114b01170528a09da74f32a3c101963f848bf1490593593306ed40f84"
-    },
-    {
-      "path": "frontend/app/components/AccountDeletion.tsx",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "ae8310db2048ef035f6b7c90f9c1e27ea3400e4dccf8b4422883f9ccc9d954b9",
-      "lf_sha256": "5a09ee7c440598cee09dcb20bf4c1880251a2f93850711a4a15161aa723164f9"
-    },
-    {
-      "path": "frontend/app/components/AnalyticsPreferences.tsx",
-      "status": "modified",
-      "before_sha256": "74e87d806070b234864b81320fb5035c67d1dddd989ca9fd6f5c196da934c3ab",
-      "sha256": "fb592ac5e14cc5eca437985f790405b79baa9c309d28280bd90bf1caf26f8bf3",
-      "lf_sha256": "8dfa2feda2f578806cc4ec84923c308e2cd08b61f8f582265bc2479cadb18689"
-    },
-    {
-      "path": "frontend/app/components/AppleSignInButton.tsx",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "3bd10f8cba5c40044d3f66f4848e04b9eb1b919dd6d911029d2e2f02818df007",
-      "lf_sha256": "4bda87431e4807c16d14b873ae1ff84a9011b7ec5061d5391cfdec2b58ca70bb"
-    },
-    {
-      "path": "frontend/app/components/FootprintLeagues.tsx",
-      "status": "modified",
-      "before_sha256": "b3f3765eb4f3366f2d841ab040f6ae442ebe6edaf14fc8c1bf71fd6ebac18575",
-      "sha256": "85ca0e2bfa1df728fd0af47545a5ee4a450544254908a1b9159023ed529eeeac",
-      "lf_sha256": "bdba564321e949cb13003c22f65654b5b8ae7750d9cedcc30dc278dc3d75f930"
-    },
-    {
-      "path": "frontend/app/components/InterestedTab.tsx",
-      "status": "modified",
-      "before_sha256": "5e8354c6adfdae10b544704249de387d9ad2fb1ce2d378740842ffee6fc7af96",
-      "sha256": "d857285f06d289046e88ea4e4a99d9f6294cefd065ac6bc76eaac35c73e62abf",
-      "lf_sha256": "a46bf9892f76b621977f0a253a92fdd11a4dc51d0334ca84e45e1ff57c70da42"
-    },
-    {
-      "path": "frontend/app/components/MatchdayTips.tsx",
-      "status": "modified",
-      "before_sha256": "59023e51b6bb6a20a67e5532f75f871a7a2a22ccdbdd00e433711be18ead8755",
-      "sha256": "63245c0bdb57f851d6c0750cc931c4a656e979f9529181d161dcfe77e01781fd",
-      "lf_sha256": "3b0e3020fcb8eca3705ca2af02e2fcb26c4f30aeb47d3a580b2dfd190b6aab6d"
-    },
-    {
-      "path": "frontend/app/components/TerraceFixtureGallery.tsx",
-      "status": "modified",
-      "before_sha256": "ae297b205671dec2ce08e595d80d7b4fb08ca7458798fd01dd8577b9ac1dcb08",
-      "sha256": "e8601bba1b324b92f35e551c78261cedc985d5cfad3f25836a3eb1be09a7f7d7",
-      "lf_sha256": "80e2d7e5fabacad40ba5b34dce731a153c821de045b97e222d67292e3c88998f"
-    },
-    {
-      "path": "frontend/app/components/TerraceModeration.tsx",
-      "status": "modified",
-      "before_sha256": "7f23a310615757ccc10b3b03c32850efe4ef15e61b49128f601a24f78d99f1b1",
-      "sha256": "4a1c199b16dea5d27f82ad7e33d72e4a1ffa4305e736be562038f3f3b856d45f",
-      "lf_sha256": "3aaf7758aa0719a7a6d78152b5c1edd8af40f55ee79f5c13c055786e72b169ac"
-    },
-    {
-      "path": "frontend/app/components/TerracePublicGallery.tsx",
-      "status": "modified",
-      "before_sha256": "63f53ec8faf5e36e570d490ed9c4f071463e37e1f49643c1b0b80cda273287c2",
-      "sha256": "02d423b4bbabdcb62730752621b178eb96f4ebfdf75961fb162bbea48b0b2055",
-      "lf_sha256": "bd764d0826d67206ff49dd4bf302d61e0a71bd1b43e04b33b1469d61d3c34c6f"
-    },
-    {
-      "path": "frontend/app/components/VisitedTab.tsx",
-      "status": "modified",
-      "before_sha256": "816d451ef464f50a6db51b472dae1807e06e968a37d99a068f934020cddf3495",
-      "sha256": "ba05ca1b43cbea66a527199a2f89f920c20f31f8358a7d89005077d2ea949e07",
-      "lf_sha256": "983f9251ccad6f739f0add90f3f154ddcb6da30e9a5d99d96f6418a031dde0dd"
-    },
-    {
-      "path": "frontend/app/fixture/[fixtureId]/page.tsx",
-      "status": "modified",
-      "before_sha256": "8c09e2058a34b9ff9909e293d952c663907e2ed60d7d4cd689f5a0a2c1ae9e43",
-      "sha256": "5a45b217c890d630fdd2b307ea039ebea477bcb9dea672f8b64ab20818d0b46e",
-      "lf_sha256": "febb3085a25b349f782c912df7b3fe16fe77869de0ac52217a3e771e6a5ebf65"
-    },
-    {
-      "path": "frontend/app/privacy/page.tsx",
-      "status": "modified",
-      "before_sha256": "48f48a786abe78ad04665a507457be3d6e43923e3dfcbfe089b65649b0ed2049",
-      "sha256": "275908b707a5bf9b1c444b032f74e0c2674ad749b599864d8a1fb91ab57b6a49",
-      "lf_sha256": "000443e1f270197b88e16fdbd509d7941c0e5cf8d094ba24ad489fc5591c0c9f"
-    },
-    {
-      "path": "frontend/app/signin/SigninForm.tsx",
-      "status": "modified",
-      "before_sha256": "2af036184ea2b5701fb9978ea3658719906aab560a2dd0b16741f3e411e1406b",
-      "sha256": "584adc5fca6e60d99b95cfcafb17c86b056feb791c9d5ed717f4e44213b30456",
-      "lf_sha256": "38bed55fc673ee2a782165607807e0fcdd50396fe5e56e6eab5256068e932801"
-    },
-    {
-      "path": "frontend/app/signup/SignupForm.tsx",
-      "status": "modified",
-      "before_sha256": "ebd1230c0ea75aa519179a2a4aaff6beb770088705ab0437b55a57de48bce1a1",
-      "sha256": "f585a02ead7569885df715de3dc3653868dd1c7694102db3ba86db5d3f718dba",
-      "lf_sha256": "16cbbeaedf7b11c00da5cd17ff2388386ea9cc4bae14468e342241512ba8c479"
-    },
-    {
-      "path": "frontend/app/support/page.tsx",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "3e9163fff0ffddcbd62022bb0d078d8f5b62e9d6e8e1f96e8ed56bc8bf25b4ec",
-      "lf_sha256": "7f410b277d3a99ecf5a1e6a81e8da13efba136fc7bc87eef86532b5dfdaccf0c"
-    },
-    {
-      "path": "frontend/lib/apple-signin.ts",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "955b4833ffb65971ba6a315dd879a4af109bffee68fc65aff7966598d4fb6c60",
-      "lf_sha256": "bad0baec9ce5212e80fd629f1ba835c4216ce6f615a1c084f5ba0c2ce707c649"
-    },
-    {
-      "path": "frontend/public/apple-signin-logo.png",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "43c22306ee0209137630d1c5a4de504ddaefff7bf8749e0dd84841c183ff20ad",
-      "lf_sha256": "43c22306ee0209137630d1c5a4de504ddaefff7bf8749e0dd84841c183ff20ad"
-    },
-    {
-      "path": "mobile-spike/build.mjs",
-      "status": "modified",
-      "before_sha256": "bff6d54e2832001dfbfb7b55ab602811053152cb65db7814fb1c1bda99ab964f",
-      "sha256": "918ec63bc7a9d9d15e5b74ec79fedabcb127f0d1520db0d92e9f27e6b01b274b",
-      "lf_sha256": "9e162d0fd412ac48cd1928045660fd458197128532b93f2200d760e8dd53136c"
-    },
-    {
-      "path": "mobile-spike/ios/App/App.xcodeproj/project.pbxproj",
-      "status": "modified",
-      "before_sha256": "5a8b33fc84a9b2815ef9848ee6a0705f0f1a884d868ff10aa2ff1c76f7c41913",
-      "sha256": "c911bc91ea39e5bca7e510f3370a856daf6381219380676d77d7ac5dee37ceb7",
-      "lf_sha256": "96e9dc99c384d9056d13c8ac469abd09841b5ef039e7321a71a873d2b3e494b8"
-    },
-    {
-      "path": "mobile-spike/ios/App/App/App.entitlements",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "1ec37a2d083307ef0fe4040cb5f09a01b103abc88ff0517578df3d608a7bd8af",
-      "lf_sha256": "6053c58f57ac44fdbf91e077f37285b6268f5bafe79266a774c009ec8252bf11"
-    },
-    {
-      "path": "mobile-spike/ios/App/App/Info.plist",
-      "status": "modified",
-      "before_sha256": "61c5f49f12673f1b56ad92b7e8f3a674276da5ef1f8f6d1c6eb4efa02dff213b",
-      "sha256": "ab6698a8fa15e5b00c45bbc51bc8483530bba7c17f6a266c305da276e5900ffd",
-      "lf_sha256": "c475c7f6d044c02fcf365de4736adf35272b227ae2d5f9de9435ab8afcf8e5f0"
-    },
-    {
-      "path": "mobile-spike/ios/App/App/MatchgoerAuth.swift",
-      "status": "modified",
-      "before_sha256": "72667985e2a88d2e0d6034ea471d3908022db365cb73ae8fe0c028d2d372d06c",
-      "sha256": "6d49534eaa1657bccfaef8cdfccd06a14992d4ec0f0d6ede5306910e74d13f6b",
-      "lf_sha256": "46f0307f8a9b8e923c8f3f2512143753c2777c3b907dbe844341b141fd8abb24"
-    },
-    {
-      "path": "mobile-spike/ios/App/App/PrivacyInfo.xcprivacy",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "1f0039e94e4937d1c43ca185458d6c64afb6dc0d5659352fde6eb75428be19b3",
-      "lf_sha256": "1f0039e94e4937d1c43ca185458d6c64afb6dc0d5659352fde6eb75428be19b3"
-    },
-    {
-      "path": "mobile-spike/main.tsx",
-      "status": "modified",
-      "before_sha256": "697beda294da9cbb3421f6267fd8ea13ed12574e9757a6896163aa07b86da899",
-      "sha256": "67d64d53eedefe69345e646aade49b2ab138fca0143fb000cca5981b5998bf8b",
-      "lf_sha256": "203e79a8a51ce01c81f18930f6bd7d0dd99397c24a8e882c9d0059206f9d8535"
-    },
-    {
-      "path": "mobile-spike/native-apple-signin.ts",
-      "status": "new",
-      "before_sha256": null,
-      "sha256": "5b76b9a1aaba7b9b36887f958e170fc8a8d35bd0ab9a1663613477cd7e0fcd7d",
-      "lf_sha256": "df3efdf388f09f7f411bf3dce20bfd74b37f6f122a7adba47b70c8c499ee98b8"
-    },
-    {
-      "path": "frontend/lib/fixtureDiscovery.test.ts",
-      "sha256": "9565af4aae87de1242790e95e18e7877b5e60d0ebdf2ca0a69fab60197340f03",
-      "lf_sha256": "67913d4402eb7921f1418b45c7b2866903e40a7886b48783936f94ca562f27ed"
-    }
-  ],
-  "reviewed_application_commit": "5247d5ddcf33a2abf7c936868a0f1446f3ee28b6"
+  ]
 }
