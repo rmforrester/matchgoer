@@ -1,15 +1,16 @@
-"""Owned attendance projection over a versioned, reviewed current-season catalogue.
+"""Owned attendance with independent competition-season and home-credit projections.
 
-No provider calls, fixture-inventory scans, inferred homes, or historical membership.
-The catalogue is release data, not a live copy of the coverage audit. New seasons
-require another evidence review. Expired seasons fail closed automatically.
+No provider calls or inferred homes. Reviewed home credit expires independently
+of attended-fixture seasons. One owner-scoped aggregate observes begun seasons;
+partial fixture inventory never establishes season end dates or completeness.
 """
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from functools import lru_cache
 import json
 from pathlib import Path
 
-from models import ClubVenue, Team, Venue
+from sqlalchemy import func
+from models import ClubVenue, Fixture, Team, Venue
 from venue_resolution import resolution
 
 
@@ -146,12 +147,48 @@ def project_footprint(visits, scopes, teams, venues, relationships, today, guard
                 competitions=sorted(competitions, key=competition_sort_key))
 
 
-def attended_competitions(visits, reviewed, today):
+def latest_attended_seasons(visits, today, begun=None):
+    """Last season evidenced by actual play/attendance, not future publication.
+
+    Provider season identifiers are competition-specific start years. Never
+    derive them from today's year, a last fixture, or an expired roster window.
+    Without reliable start evidence, retain the latest dated attended season.
+    """
+    current = dict(begun or {})
+    for visit in visits:
+        fixture = visit.fixture
+        if (fixture is None or not fixture.league_id or fixture.league_id < 1 or
+                not fixture.league_name or visit.visit_date is None or visit.visit_date > today):
+            continue
+        season = fixture.season
+        if season is not None:
+            current[fixture.league_id] = max(season, current.get(fixture.league_id, season))
+    return current
+
+
+def begun_fixture_seasons(db, visits, today):
+    """One bounded-result SELECT for this owner's attended competitions only.
+
+    NS/TBD/PST/CANC/WO/AWD and elapsed scheduled dates do not prove play began.
+    This is positive evidence of a start, never a min/max-date season boundary.
+    """
+    leagues = {v.fixture.league_id for v in visits if v.fixture is not None and
+               v.fixture.league_id and v.fixture.league_id > 0 and v.fixture.league_name}
+    if not leagues:
+        return {}
+    played = ('FT', 'AET', 'PEN', '1H', 'HT', '2H', 'ET', 'BT', 'P', 'LIVE', 'INT', 'SUSP', 'ABD')
+    cutoff = datetime.combine(today + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc)
+    return dict(db.query(Fixture.league_id, func.max(Fixture.season)).filter(
+        Fixture.league_id.in_(leagues), Fixture.season.is_not(None), Fixture.season > 0,
+        Fixture.fixture_date < cutoff, Fixture.status.in_(played)).group_by(Fixture.league_id).all())
+
+
+def attended_competitions(visits, reviewed, today, current_seasons=None, scopes=()):
     """Group actual owned attendance, independently of reviewed current-home credit.
 
     Never infer membership from a club's current home or award a roster denominator
-    to a cup/international competition. Unknown season windows stay unclassified
-    in the current-season view rather than inventing a competition calendar.
+    to a cup/international competition. Ended seasons remain applicable until a
+    later season begins. Unknown boundaries retain the latest attended season.
     """
     groups = {}
     for visit in visits:
@@ -161,15 +198,24 @@ def attended_competitions(visits, reviewed, today):
         key = (fixture.league_id, fixture.season)
         groups.setdefault(key, []).append(visit)
     catalogue = {(c['competition_id'], c['season']): c for c in reviewed}
+    windows = {(c['competition_id'], c['season']): c for c in scopes}
+    current_seasons = latest_attended_seasons(visits, today) if current_seasons is None else current_seasons
     output = []
     for (competition_id, season), owned in groups.items():
         fixture = max(owned, key=lambda v: (v.fixture.fixture_date, v.fixture.fixture_id)).fixture
         base = catalogue.get((competition_id, season))
-        current_ids = set(v for g in base['grounds'] for v in g['season_visit_ids']) if base else set()
+        current_ids = {v.visit_id for v in owned if season is not None and
+                       season == current_seasons.get(competition_id) and
+                       v.visit_date is not None and v.visit_date <= today}
+        window = windows.get((competition_id, season))
         row = dict(base) if base else dict(competition_id=competition_id, season=season, season_label=str(season) if season is not None else 'Season not recorded',
             name=fixture.league_name, country=fixture.country or 'Country not recorded', tier=None,
             season_start=None, season_end=None,
             coverage='attendance', total_clubs=0, lifetime_clubs=None, season_clubs=None)
+        if window and not base:
+            start, end = date.fromisoformat(window['start']), date.fromisoformat(window['end'])
+            row.update(season_label=str(start.year) if start.year == end.year else f'{start.year}/{str(end.year)[2:]}',
+                       season_start=window['start'], season_end=window['end'], tier=window.get('tier'))
         row['name'] = fixture.league_name
         row['grounds'] = [dict(venue_id=venue_id, clubs=[],
             visit_ids=sorted(v.visit_id for v in owned if v.venue_id == venue_id),
@@ -210,4 +256,14 @@ def build_footprint(db, visits, today=None):
     # Only venue IDs normalize: role/date/club changes still fail closed.
     guarded = {(s['competition_id'], m['team_id']): _mapping_is_current(m, teams, venues, relationships, today, identity) for s in scopes for m in s['members']}
     result = project_footprint(projected_visits, projected_scopes, teams, venues | {identity.canonical(v) for v in venues}, relationships, today, guarded=guarded)
-    return dict(reviewed_on=catalogue['reviewed_on'], attendance_competitions=attended_competitions(projected_visits, result['competitions'], today), **result)
+    current = latest_attended_seasons(projected_visits, today, begun_fixture_seasons(db, projected_visits, today))
+    attended = attended_competitions(projected_visits, result['competitions'], today, current, catalogue['scopes'])
+    # Canonical fixture season wins over a coincident current-home date window.
+    # Leave manual dated visits and reviewed ground-progress safeguards unchanged.
+    linked_ids = {v.visit_id for v in projected_visits if v.fixture is not None and
+                  v.fixture.league_id and v.fixture.league_id > 0 and v.fixture.league_name and v.fixture.season is not None}
+    season_ids = (set(result['season_visit_ids']) - linked_ids) | {
+        key for c in attended for ground in c['grounds'] for key in ground['season_visit_ids']}
+    result['season_visit_ids'] = sorted(season_ids)
+    result['unclassified_dated_visits'] = sum(v.visit_date is not None and v.visit_id not in season_ids for v in projected_visits)
+    return dict(reviewed_on=catalogue['reviewed_on'], attendance_competitions=attended, **result)
