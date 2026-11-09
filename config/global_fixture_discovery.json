@@ -1,7 +1,7 @@
 {
   "version": 1,
   "reviewed_on": "2026-11-04",
-  "activation": "DISABLED_PENDING_APPROVAL",
+  "activation": "DISABLED_LOCAL_PUBLICATION_CONTEXT_ONLY",
   "scopes": [
     {
       "country": "England",
@@ -7158,7 +7158,7 @@
       ],
       "cadence": "daily",
       "active_from": "2026-04-05",
-      "active_until": "2026-11-08",
+      "active_until": "2026-11-14",
       "review_status": "REVIEWED",
       "approval_evidence": [
         "backend/footprint_membership.json:reviewed release catalogue",
@@ -7166,11 +7166,14 @@
       ],
       "review_evidence": [
         "coverage-matrix.json",
-        "provider-ledger.json"
+        "provider-ledger.json",
+        "reports/build12-final-global-discovery-clearance/existing2026-readiness-refresh.json: existing assessor, full2026 provider inventory/roster, all canonical teams mapped, no stored fixture identity conflict"
       ],
       "provider_metadata_end": "2026-11-14",
       "completed_final": false,
-      "season_readiness_required": false
+      "season_readiness_required": false,
+      "review_refreshed_on": "2026-11-09",
+      "review_validity_note": "Bounded readiness validity through verified provider fixture availability, capped at30 days; NOT a season-completion date or new season approval."
     },
     {
       "country": "Norway",
@@ -7181,10 +7184,10 @@
       "venue_countries": [
         "Norway"
       ],
-      "cadence": "daily",
+      "cadence": "dormant",
       "active_from": "2026-11-04",
       "active_until": "2027-06-30",
-      "review_status": "REVIEWED",
+      "review_status": "PENDING_SCOPE_OR_SEASON_REVIEW",
       "approval_evidence": [
         "Founder global recovery request 2026-11-04: approved audit gap cohort"
       ],
@@ -7194,7 +7197,8 @@
       ],
       "provider_metadata_end": "2027-03-07",
       "completed_final": false,
-      "season_readiness_required": false
+      "season_readiness_required": false,
+      "release_exclusion": "Build12 final clearance: no2027 ingestion authorised. Earlier evidence retained; no new season activated."
     },
     {
       "country": "Norway",
@@ -8457,7 +8461,7 @@
       ],
       "cadence": "daily",
       "active_from": "2026-08-28",
-      "active_until": "2026-11-08",
+      "active_until": "2026-12-09",
       "review_status": "REVIEWED",
       "approval_evidence": [
         "backend/footprint_membership.json:reviewed release catalogue",
@@ -8465,11 +8469,14 @@
       ],
       "review_evidence": [
         "coverage-matrix.json",
-        "provider-ledger.json"
+        "provider-ledger.json",
+        "reports/build12-final-global-discovery-clearance/existing2026-readiness-refresh.json: existing assessor, full2026 provider inventory/roster, all canonical teams mapped, no stored fixture identity conflict"
       ],
       "provider_metadata_end": "2026-12-20",
       "completed_final": false,
-      "season_readiness_required": false
+      "season_readiness_required": false,
+      "review_refreshed_on": "2026-11-09",
+      "review_validity_note": "Bounded readiness validity through verified provider fixture availability, capped at30 days; NOT a season-completion date or new season approval."
     },
     {
       "country": "San-Marino",
@@ -11746,20 +11753,6 @@
         "Roschino"
       ],
       "source": "https://fc-leningradec.ru/roshhino-arena/"
-    },
-    {
-      "venue_id": 24196,
-      "names": [
-        "Estadio Camp Nou Municipal",
-        "Estadi Municipal de Reus",
-        "Estadi Camp Nou Municipal"
-      ],
-      "localities": [
-        "Reus"
-      ],
-      "physical_country": "Spain",
-      "source": "https://www.reusesport.cat/instalacio/estadi-municipal",
-      "reason": "Existing main stadium24196 is the official municipal football stadium. Record27736 has a conflicting annex-pitch point and must not replace this fixture-specific reviewed binding. No canonical merge or club identity change."
     }
   ],
   "team_reviews": [
@@ -11790,18 +11783,52 @@
       "corroboration": "https://www.stockportcounty.com/news/2026/october/22/fa-cup-tie-to-be-televised/"
     },
     {
-      "fixture_id": 1644373,
-      "league_id": 143,
+      "fixture_id": 1647938,
+      "league_id": 66,
       "season": 2026,
-      "home_team_id": 22136,
-      "away_team_id": 5251,
-      "kickoff": "2026-11-18T19:30:00+00:00",
-      "venue_id": 24196,
-      "venue_name": "Estadio Camp Nou Municipal",
-      "city": "Reus",
-      "source": "https://reusfcreddis.com/estadi/",
-      "corroboration": "https://www.reusesport.cat/instalacio/estadi-municipal",
-      "resolution_method": "REVIEWED_EXISTING_MAIN_STADIUM_REUSE_NOT_ANNEX"
+      "home_team_id": 9969,
+      "away_team_id": 101,
+      "kickoff": "2026-11-12T18:00:00+00:00",
+      "venue_id": 27843,
+      "venue_name": "Chamb\u00e9ry Savoie Stadium",
+      "city": "Chamb\u00e9ry",
+      "source": "https://www.chambery.fr/actualite/1701/9-coupe-de-france-de-foot-et-rugby-international-deux-rencontres-au-chambery-savoie-stadium-en-novembre.htm"
+    },
+    {
+      "fixture_id": 1647957,
+      "league_id": 66,
+      "season": 2026,
+      "home_team_id": 28628,
+      "away_team_id": 112,
+      "kickoff": "2026-11-15T13:00:00+00:00",
+      "venue_id": 27844,
+      "venue_name": "Stade \u00c9mile Jeanpierre",
+      "city": "Saint-Di\u00e9-des-Vosges",
+      "source": "https://vosgesinfo.fr/saintdieinfo/2026/11/coupe-de-france-de-football-la-billetterie-est-ouverte-pour-le-match-sr-saint-die-kellermann-r1-fc-metz-l2/"
+    },
+    {
+      "fixture_id": 1647974,
+      "league_id": 66,
+      "season": 2026,
+      "home_team_id": 28640,
+      "away_team_id": 87,
+      "kickoff": "2026-11-14T19:00:00+00:00",
+      "venue_id": 27845,
+      "venue_name": "Stade de la Libert\u00e9",
+      "city": "Cambrai",
+      "source": "https://le11amienois.fr/om-cambrai-amerique-amiens-sc-coupe-de-france/"
+    },
+    {
+      "fixture_id": 1648005,
+      "league_id": 66,
+      "season": 2026,
+      "home_team_id": 28635,
+      "away_team_id": 22744,
+      "kickoff": "2026-11-15T13:00:00+00:00",
+      "venue_id": 27846,
+      "venue_name": "Stade Michel Farr\u00e9",
+      "city": "Mondeville",
+      "source": "https://www.ville-verson.fr/agenda/coupe-de-france-as-verson-rc-calais/"
     }
   ]
 }

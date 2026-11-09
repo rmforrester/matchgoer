@@ -131,6 +131,8 @@ class RefreshSafetyTests(unittest.TestCase):
         import json
         import refresh_fixture_states as refresh
         engine=create_engine("sqlite://")
+        with engine.begin() as identity_connection:
+            identity_connection.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
         with engine.begin() as c:
             c.execute(text("CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY, fixture_date DATETIME, status TEXT, home_goals INTEGER, away_goals INTEGER, league_id INTEGER, season INTEGER, home_team_id INTEGER, away_team_id INTEGER, home_team TEXT, away_team TEXT, venue_id INTEGER, country TEXT)"))
             c.execute(text("CREATE TABLE venues (venue_id INTEGER, provider_venue_id INTEGER, name TEXT, city TEXT, country TEXT, latitude FLOAT, longitude FLOAT)"))
@@ -211,6 +213,9 @@ class HighlightsRefreshIntegrationTests(unittest.TestCase):
         import refresh_fixture_states as refresh
         import json
         engine=create_engine('sqlite://')
+        with engine.begin() as identity_connection:
+            identity_connection.exec_driver_sql('CREATE TABLE teams(team_id INTEGER PRIMARY KEY,team_name TEXT)')
+            identity_connection.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
         with engine.begin() as c:
             c.exec_driver_sql('CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY, fixture_date DATETIME, status TEXT, home_goals INTEGER, away_goals INTEGER, league_id INTEGER, season INTEGER, home_team_id INTEGER, away_team_id INTEGER, home_team TEXT, away_team TEXT, venue_id INTEGER, country TEXT)')
             c.exec_driver_sql("INSERT INTO fixtures VALUES (100,'2026-09-01 19:45:00.000000','NS',NULL,NULL,39,2026,1,2,'Home','Away',3,'England')")
@@ -268,6 +273,9 @@ class HighlightsRefreshIntegrationTests(unittest.TestCase):
         import refresh_fixture_states as refresh
         import json
         engine=create_engine('sqlite://')
+        with engine.begin() as identity_connection:
+            identity_connection.exec_driver_sql('CREATE TABLE teams(team_id INTEGER PRIMARY KEY,team_name TEXT)')
+            identity_connection.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
         for t in [User.__table__,Venue.__table__,Fixture.__table__,VenueVisit.__table__,InterestedFixture.__table__,FixtureEventSnapshot.__table__]:t.create(engine)
         with Session(engine) as db:
             db.add(User(user_id=1,is_anonymous=False,account_status='registered'));db.add(Venue(venue_id=3,name='Synthetic'));db.flush()

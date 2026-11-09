@@ -179,6 +179,52 @@ def provider_identity(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def lifecycle_team_context(connection, candidates, responses):
+    """Reuse approved scoped identity resolution, never create or remap clubs.
+
+    Ordinary equal provider/stored IDs retain existing name/alias behaviour.
+    A differing ID or an explicit approved scope must pass the shared resolver.
+    This uses bounded database reads and no additional provider requests.
+    """
+    from ingestion.team_identity import (ProviderTeamObservation,
+        resolve_provider_team_batch, TeamIdentityError)
+    approved = set(connection.exec_driver_sql(
+        "SELECT provider_team_id,league_id,season FROM team_identity_overrides "
+        "WHERE provider='api_football' AND review_status='APPROVED'").all())
+    selected, observations = {}, []
+    for candidate in candidates:
+        rows = responses.get(candidate.fixture_id, [])
+        if len(rows) != 1:
+            continue
+        item = rows[0]
+        raw = provider_identity(item)
+        if any(type(raw[k]) is not int or raw[k] <= 0 for k in raw):
+            continue  # Existing malformed/identity guards handle this record.
+        sides = {}
+        for side in ('home', 'away'):
+            pid = raw[side + '_team_id']
+            if pid != getattr(candidate, side + '_team_id') or (pid, raw['league_id'], raw['season']) in approved:
+                name = ((item.get('teams') or {}).get(side) or {}).get('name') or ''
+                observation = ProviderTeamObservation('api_football', pid, name, raw['league_id'], raw['season'])
+                sides[side] = observation
+                observations.append(observation)
+        if sides:
+            selected[candidate.fixture_id] = sides
+    try:
+        receipts = resolve_provider_team_batch(connection, observations)
+    except (TeamIdentityError, ValueError, TypeError):
+        return {fid: dict(error='SCOPED_IDENTITY_RESOLUTION_CONFLICT') for fid in selected}
+    context = {}
+    for fid, sides in selected.items():
+        resolved = {side: receipts[o.key] for side, o in sides.items()}
+        valid = all(r.identity_resolution == 'REVIEWED_SCOPED_OVERRIDE' and r.approved_override_id is not None
+                    for r in resolved.values())
+        context[fid] = dict(error=None if valid else 'APPROVED_SCOPED_MAPPING_REQUIRED',
+            canonical_ids={side + '_team_id': r.canonical_team_id for side, r in resolved.items()},
+            receipts={side: r.serializable() for side, r in resolved.items()})
+    return context
+
+
 def manifest_base(candidate: Any) -> dict[str, Any]:
     return {
         "fixture_id": candidate.fixture_id, "league_id": candidate.league_id, "season": candidate.season,
@@ -191,7 +237,7 @@ def manifest_base(candidate: Any) -> dict[str, Any]:
     }
 
 
-def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venue_context=None, expanded=True) -> tuple[dict[str, Any], dict[str, Any] | None]:
+def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venue_context=None, expanded=True, identity_context=None) -> tuple[dict[str, Any], dict[str, Any] | None]:
     result = manifest_base(candidate)
     if candidate.fixture_id in REVIEW_HOLDS:
         result["manual_hold"] = REVIEW_HOLDS[candidate.fixture_id]
@@ -225,6 +271,15 @@ def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venu
         provider_home_goals=values["home_goals"], provider_away_goals=values["away_goals"],
     )
     identity = provider_identity(item)
+    result['raw_provider_identity'] = dict(identity)
+    if identity_context is not None:
+        result['team_identity_resolution'] = identity_context
+        if identity_context.get('error'):
+            result.update(identity_check_result='FAIL', classification='IDENTITY_MISMATCH',
+                          reason=identity_context['error'])
+            return result, None
+        identity.update(identity_context['canonical_ids'])
+        result['resolved_provider_identity'] = dict(identity)
     expected = {key: getattr(candidate, key) for key in identity}
     mismatches = {key: {"stored": expected[key], "provider": identity[key]} for key in identity if expected[key] != identity[key]}
     if mismatches:
@@ -466,9 +521,11 @@ def main() -> int:
         candidates = [r for r in candidates if r.fixture_id not in deferred]
         responses = {fid: items for fid, items in responses.items() if fid not in deferred}
     tracking['provider_requests'] = 0 if tracking_started_at is None else client.requests_made - tracking_started_at
+    with engine.connect() as connection:
+        identity_contexts = lifecycle_team_context(connection, candidates, responses)
     manifest, updates = [], {}
     for candidate in candidates:
-        item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases, scope_reviews.get((candidate.league_id,candidate.season), {})), expanded=expanded)
+        item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases, scope_reviews.get((candidate.league_id,candidate.season), {})), expanded=expanded, identity_context=identity_contexts.get(candidate.fixture_id))
         manifest.append(item)
         if values is not None:
             updates[candidate.fixture_id] = values
@@ -502,6 +559,10 @@ def main() -> int:
                             current_context=list(connection.execute(select(Table(name,MetaData(),autoload_with=connection))).mappings())
                             if stable(current_context)!=stable(baseline):
                                 raise RuntimeError("Venue mapping preimage changed: "+name)
+                    if connection.dialect.name == 'postgresql':
+                        connection.exec_driver_sql('LOCK TABLE teams, team_identity_overrides IN SHARE MODE')
+                    if lifecycle_team_context(connection, candidates, responses) != identity_contexts:
+                        raise RuntimeError('Team identity mapping preimage changed')
                     preimage = fixture_snapshot(connection, fixtures)
                     for candidate in candidates:
                         current = preimage.get(candidate.fixture_id)

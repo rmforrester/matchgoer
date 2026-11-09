@@ -16,6 +16,8 @@ class PrecommitPostgresTests(unittest.TestCase):
    db.commit()
   self.e.dispose()
   with self.e.begin() as c:
+   c.exec_driver_sql('CREATE TABLE teams(team_id INTEGER PRIMARY KEY,team_name TEXT)')
+   c.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
    c.exec_driver_sql('CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY, fixture_date TIMESTAMPTZ, status TEXT, home_goals INTEGER, away_goals INTEGER, league_id INTEGER, season INTEGER, home_team_id INTEGER, away_team_id INTEGER, home_team TEXT, away_team TEXT, venue_id INTEGER, country TEXT, editorial TEXT)')
    c.exec_driver_sql('CREATE TABLE venues (venue_id INTEGER, provider_venue_id INTEGER, name TEXT, city TEXT, country TEXT, latitude FLOAT, longitude FLOAT)')
    c.exec_driver_sql('CREATE TABLE venue_provider_refs (venue_id INTEGER, provider TEXT, provider_venue_id INTEGER, valid_to TEXT)');c.exec_driver_sql('CREATE TABLE venue_names (venue_id INTEGER, name TEXT, valid_to TEXT)')
