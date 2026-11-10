@@ -4,10 +4,19 @@ from datetime import date
 import hashlib
 import json
 from pathlib import Path
+from config.leagues import COVERAGE_PROFILES
 
 from ingestion.pipeline import run_fixture_discovery
 
 REGISTRY = Path(__file__).resolve().parents[1] / 'config/global_fixture_discovery.json'
+CONFIGURED_PROFILE_SCOPES = frozenset((s.country,s.league_id,s.provider_season)
+    for scopes in COVERAGE_PROFILES.values() for s in scopes if s.league_id is not None)
+
+
+def configured_scope(item):
+    # Existing ingestion profiles are an independent, explicit source of scope
+    # authority. Do not confuse a catalogue review flag with unsupported coverage.
+    return item.get('review_status')=='REVIEWED' or (item['country'],item['league_id'],item['provider_season']) in CONFIGURED_PROFILE_SCOPES
 
 
 @dataclass(frozen=True)
@@ -62,12 +71,15 @@ def due_scopes(data, day, country=None):
     """Stable weekly buckets; independent daily/week rotation prevents fixed-prefix starvation."""
     daily,weekly = [],[]
     for item in data['scopes']:
-        if item.get('review_status') != 'REVIEWED' or item['league_id'] in {253,255,489,257,1095}:
+        if not configured_scope(item) or item['league_id'] in {253,255,489,257,1095}:
             continue
         if country is not None and item['country'] != country:
             continue
-        if not item['active_from'] <= day.isoformat() <= item['active_until']:
-            continue
+        # Fixture-derived readiness dates do not prove a configured season is
+        # finished. Retry the same reviewed season weekly, including late draws,
+        # playoffs and future announcements. Never add an unreviewed ID/season.
+        if item['cadence']=='dormant' or not item['active_from'] <= day.isoformat() <= item['active_until']:
+            item=dict(item,cadence='weekly',configured_cadence=item['cadence'],readiness_retry=True)
         if item['cadence']=='daily': daily.append(item)
         elif item['cadence']=='weekly':
             identity=f"{item['league_id']}:{item['provider_season']}".encode()
@@ -121,14 +133,18 @@ def run_global_discovery(engine,client,day,*,write=False,max_requests=750,
         if item['league_id'] in {253,255,489,257,1095} or (country is not None and item['country']!=country):
             continue
         reason=None
-        if item.get('review_status')!='REVIEWED':reason='PENDING_SCOPE_OR_SEASON_REVIEW'
-        elif item['cadence']=='dormant':reason='DORMANT_COMPLETED_OR_UNAVAILABLE'
-        elif item['active_until']<day.isoformat():reason='EXPIRED_REGISTRY_READINESS_REQUIRED'
-        elif item['active_from']>day.isoformat():reason='FUTURE_SCOPE'
+        if not configured_scope(item):reason='PENDING_SCOPE_OR_SEASON_REVIEW'
+        # Reviewed IDs/seasons remain eligible for bounded weekly readiness
+        # retries; a date or dormant cadence alone must not lose late fixtures.
         if reason:
             report['ineligible_scopes'].append(dict(league_id=item['league_id'],season=item['provider_season'],
-                reason=reason,coverage_attention=reason=='EXPIRED_REGISTRY_READINESS_REQUIRED' or
-                reason=='PENDING_SCOPE_OR_SEASON_REVIEW' and item['cadence']!='dormant'))
+                reason=reason,coverage_attention=False))
+            # Catalogue-only, unconfigured candidates are informational. They
+            # must not make supported-scope coverage permanently INCOMPLETE.
+    report['readiness_retries']=[dict(league_id=x['league_id'],season=x['provider_season'])
+        for x in due if x.get('readiness_retry')]
+    report['existing_profile_authority']=[dict(league_id=x['league_id'],season=x['provider_season'])
+        for x in due if x.get('review_status')!='REVIEWED']
     proofs=event_proofs(data)
     for index,item in enumerate(due):
         needed=1+int(not client.quota_is_fresh())

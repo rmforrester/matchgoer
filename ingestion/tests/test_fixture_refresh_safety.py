@@ -142,6 +142,8 @@ class RefreshSafetyTests(unittest.TestCase):
             for table in ('supporter_intents','meeting_preferences','match_board','attendance','ground_visits','fixture_editorial','ticket_sources','teams','home_content'):
                 c.execute(text('CREATE TABLE '+table+' (id INTEGER, content TEXT)'))
                 c.execute(text('INSERT INTO '+table+" VALUES (1,'preserve-exactly')"))
+        from backend.fixture_integrity import META
+        META.create_all(engine)
         fake=Mock();fake.failures=[];fake.requests_made=1;fake.fixtures_by_ids.return_value=[provider()]
         with tempfile.TemporaryDirectory() as d, patch.object(refresh,'create_engine',return_value=engine), patch.object(refresh,'ApiFootballClient',return_value=fake), patch.dict('os.environ',{'DATABASE_URL':'test','API_FOOTBALL_KEY':'test','ENABLE_EXPANDED_FIXTURE_REFRESH':'TRUE'}):
             args=['refresh','--nightly','--as-of','2026-09-02','--write','--confirm-write','--report',str(Path(d)/'receipt.json')]
@@ -214,11 +216,14 @@ class HighlightsRefreshIntegrationTests(unittest.TestCase):
         import json
         engine=create_engine('sqlite://')
         with engine.begin() as identity_connection:
+            identity_connection.exec_driver_sql('CREATE TABLE venues(venue_id INTEGER PRIMARY KEY,country TEXT,latitude FLOAT,longitude FLOAT)')
             identity_connection.exec_driver_sql('CREATE TABLE teams(team_id INTEGER PRIMARY KEY,team_name TEXT)')
             identity_connection.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
         with engine.begin() as c:
             c.exec_driver_sql('CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY, fixture_date DATETIME, status TEXT, home_goals INTEGER, away_goals INTEGER, league_id INTEGER, season INTEGER, home_team_id INTEGER, away_team_id INTEGER, home_team TEXT, away_team TEXT, venue_id INTEGER, country TEXT)')
             c.exec_driver_sql("INSERT INTO fixtures VALUES (100,'2026-09-01 19:45:00.000000','NS',NULL,NULL,39,2026,1,2,'Home','Away',3,'England')")
+        from backend.fixture_integrity import META
+        META.create_all(engine)
         client=Mock();client.requests_made=1;client.failures=[];client.fixtures_by_ids.return_value=[provider()]
         with tempfile.TemporaryDirectory() as d, patch.object(refresh,'create_engine',return_value=engine),patch.object(refresh,'ApiFootballClient',return_value=client),patch.dict('os.environ',{'DATABASE_URL':'local-only','API_FOOTBALL_KEY':'synthetic','ENABLE_EXPANDED_FIXTURE_REFRESH':'false'}):
             base=['refresh','--nightly','--as-of','2026-09-02','--report',str(Path(d)/'report.json')]
@@ -283,6 +288,8 @@ class HighlightsRefreshIntegrationTests(unittest.TestCase):
             db.add(VenueVisit(visit_id=1,user_id=1,venue_id=3,fixture_id=100,visit_date=KICKOFF.date(),source='manual',created_at=KICKOFF));db.commit()
         row=provider();row['score']={'fulltime':{'home':2,'away':1}};row['events']=[dict(time=dict(elapsed=m,extra=None),team=dict(id=t),player=dict(id=m,name='Synthetic'),assist=dict(id=None,name=None),type='Goal',detail='Normal Goal') for m,t in [(10,1),(20,2),(30,1)]]
         client=Mock();client.requests_made=1;client.failures=[];client.fixtures_by_ids.return_value=[row]
+        from backend.fixture_integrity import META
+        META.create_all(engine)
         with tempfile.TemporaryDirectory() as d,patch.object(refresh,'create_engine',return_value=engine),patch.object(refresh,'ApiFootballClient',return_value=client),patch.dict('os.environ',{'DATABASE_URL':'local-only','API_FOOTBALL_KEY':'synthetic','ENABLE_EXPANDED_FIXTURE_REFRESH':'false'}):
             args=['refresh','--nightly','--as-of','2026-09-02','--write','--confirm-write','--enrich-highlights','--report',str(Path(d)/'report.json')]
             for i in range(2):

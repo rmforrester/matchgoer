@@ -520,6 +520,10 @@ python refresh_fixture_states.py --nightly --report reports/fixture-refresh-revi
 
 Review the dry-run report before the transactional write. Never infer `FT` from a past kickoff. The beta preflight fails past `NS` beyond the agreed grace window and future `FT`/`AET`/`PEN` rows.
 
+### Fixture integrity foundation
+
+See `docs/fixture-integrity.md` for the additive local implementation: durable run receipts, shared effective scheduling/venue decisions, status-aware geographic serving, reviewed fixture-specific verification, cross-competition conflict reporting, and the independent read-only missed-run checker. The migration is an explicit deployment dependency; no startup schema creation, official-source crawler, second ingestion pipeline or new provider calls are introduced. Existing 750 requests / shared100 discovery requests /50 absent candidates limits and lifecycle/highlights separation remain unchanged.
+
 ### Scoped club identities in lifecycle refresh
 
 Lifecycle refresh reuses the existing approved provider/league/season team resolver for differing provider IDs or explicit scoped mappings. It retains raw IDs in receipts and compares resolved canonical IDs to the existing fixture. An exact expected provider name and existing canonical club are required; missing, pending, revoked, duplicate or conflicting mappings hold the fixture. Ordinary matching raw IDs retain existing alias behaviour. Teams/mappings are locked and re-resolved before commit; drift rolls back. No club ID, fixture ID, supporter relationship or historical scope is rewritten. This adds bounded database reads and zero API requests. Publish reviewed scoped mappings only after this compatibility change is deployed; they are not automatically activated by local manifests.

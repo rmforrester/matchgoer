@@ -74,7 +74,7 @@ class AutomaticVenueTests(unittest.TestCase):
         proof=dict(home_team_id=505,league_id=135,season=2026,venue_id=23100,competition_type='league',no_venue_exceptions=True,
             valid_from='2026-08-01',valid_until='2027-05-31',review_status='VERIFIED_CURRENT_HOME',source='https://www.inter.it/verified-home')
         self.assertEqual(reviewed_home_proof(p,[proof]),proof)
-        rc=dict(home_ground_reviews=[proof]);self.assertEqual(refresh.resolve_venue(row(),p,*context(),rc),(23100,'MATCHED_HOME_REVIEW'))
+        rc=dict(home_ground_reviews=[proof]);self.assertEqual(refresh.resolve_venue(row(),p,*context(),rc),(None,'MISSING'))
         # Existing verified event venue is never replaced by a home fallback.
         self.assertEqual(refresh.resolve_venue(row(99),p,*context(),rc),(99,'MISSING'))
         for key,value in [('round','Play-offs'),('round','Final'),('round','Round of 16')]:
@@ -92,7 +92,7 @@ class AutomaticVenueTests(unittest.TestCase):
         proof=dict(home_team_id=505,league_id=135,season=2026,venue_id=23100,competition_type='league',no_venue_exceptions=True,
             valid_from='2026-08-01',valid_until='2027-05-31',review_status='VERIFIED_CURRENT_HOME',source='https://www.inter.it/verified-home')
         m,v=refresh.classify_candidate(r,[p],(*context(),dict(home_ground_reviews=[proof,dict(proof,venue_id=99)])))
-        self.assertEqual(m['venue_mapping'],'AMBIGUOUS');self.assertEqual(m['classification'],'WOULD_UPDATE_RESCHEDULED');self.assertIsNone(v['venue_id'])
+        self.assertEqual(m['venue_mapping'],'MISSING');self.assertEqual(m['classification'],'WOULD_UPDATE_RESCHEDULED');self.assertIsNone(v['venue_id'])
 
 class NightlyVenueIntegrationTests(unittest.TestCase):
     def setUp(self):
@@ -150,7 +150,7 @@ class NightlyVenueIntegrationTests(unittest.TestCase):
         p=item();p['fixture'].update(id=1639885,date='2026-12-04T17:00:00+00:00');p['league'].update(id=135,round='Regular Season - 9')
         with self.engine.connect() as c:
             plan=plan_fixture_discovery(c,{(135,2026):[p]},datetime(2026,12,1,tzinfo=timezone.utc),datetime(2026,12,5,tzinfo=timezone.utc),approved_scopes=(scope,))
-            self.assertEqual(plan['rows'][0]['venue_id'],23100)
+            self.assertIsNone(plan['rows'][0]['venue_id'])
             p['league']['round']='Play-offs'
             plan=plan_fixture_discovery(c,{(135,2026):[p]},datetime(2026,12,1,tzinfo=timezone.utc),datetime(2026,12,5,tzinfo=timezone.utc),approved_scopes=(scope,))
             self.assertIsNone(plan['rows'][0]['venue_id'])

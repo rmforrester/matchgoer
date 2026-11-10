@@ -12,7 +12,7 @@ from unittest.mock import patch
 from sqlalchemy import text
 
 from test_fixture_discovery import database,Client,payload
-from ingestion.global_discovery import due_scopes,run_global_discovery,DiscoveryScope
+from ingestion.global_discovery import due_scopes,run_global_discovery,DiscoveryScope,load_registry
 from ingestion.pipeline import plan_fixture_discovery,run_fixture_discovery
 from ingestion.pipeline import apply_fixture_discovery_plan
 
@@ -143,12 +143,12 @@ class GlobalDiscoveryTests(unittest.TestCase):
         self.assertEqual(self.plan(f)['rows'][0]['venue_id'],21325)
     def test_conflicting_city_remains_held(self):
         f=cray();f['fixture']['venue']=dict(id=21325,name='Flamingo Park',city='Manchester')
-        self.assertEqual(self.plan(f)['held'][0]['reason'],'VENUE_LOCALITY_CONFLICT')
+        self.assertIsNone(self.plan(f)['rows'][0]['venue_id']);self.assertEqual(self.plan(f)['location_outcomes'][1646909],'UNRESOLVED_VENUE_LOCALITY_CONFLICT')
     def test_name_only_requires_compatible_location(self):
         f=cray();f['fixture']['venue']=dict(id=None,name='Flamingo Park',city='London')
         self.assertEqual(self.plan(f)['rows'][0]['venue_id'],21325)
         f['fixture']['venue']['city']='Manchester'
-        self.assertFalse(self.plan(f)['rows'])
+        self.assertIsNone(self.plan(f)['rows'][0]['venue_id'])
     def test_existing_physical_equivalence_deduplicates_refs(self):
         with self.engine.begin() as c:
             c.execute(text("INSERT INTO venues VALUES (999,'Old Flamingo Park','London','England',51.42,.08,21325,21325)"))
@@ -156,7 +156,7 @@ class GlobalDiscoveryTests(unittest.TestCase):
         self.assertEqual(self.plan(f)['rows'][0]['venue_id'],21325)
     def test_known_other_ground_label_conflicts_with_direct_reference(self):
         f=cray();f['fixture']['venue']=dict(id=21325,name='Athletic Club Boise Soccer Stadium',city='London')
-        self.assertEqual(self.plan(f)['held'][0]['reason'],'VENUE_NAME_CONFLICT')
+        self.assertIsNone(self.plan(f)['rows'][0]['venue_id']);self.assertEqual(self.plan(f)['location_outcomes'][1646909],'UNRESOLVED_VENUE_NAME_CONFLICT')
     def test_unknown_venue_null_and_missing_point_distinguished(self):
         f=cray();f['fixture']['venue']=dict(id=123456,name='Not yet mapped',city='London')
         self.assertIsNone(self.plan(f)['rows'][0]['venue_id'])
@@ -188,7 +188,7 @@ class GlobalDiscoveryTests(unittest.TestCase):
         f=cray();f['fixture']['venue']=dict(id=21325,name='Flamingo Park',city='Chislehurst')
         self.assertEqual(self.plan(f,scopes=(scope,))['rows'][0]['venue_id'],21325)
         f['fixture']['venue']['city']='Manchester'
-        self.assertFalse(self.plan(f,scopes=(scope,))['rows'])
+        self.assertIsNone(self.plan(f,scopes=(scope,))['rows'][0]['venue_id'])
     def test_representative_european_scope_country_rules(self):
         for lid,country in [(81,'Germany'),(143,'Spain'),(66,'France')]:
             scope=DiscoveryScope(country,lid,'Reviewed cup',2026,'2026/27',(country,))
@@ -226,10 +226,17 @@ class RotationTests(unittest.TestCase):
         self.assertEqual(r['deferred_scopes'][0]['reason'],'REQUEST_BUDGET_DEFERRED')
     def test_expired_registry_is_reported_not_silently_complete(self):
         expired=scope_row(45);expired['active_until']='2026-01-01'
-        report=run_global_discovery(None,Client([]),DAY,registry={'scopes':[expired]})
-        self.assertFalse(report['coverage_complete'])
-        self.assertEqual(report['ineligible_scopes'][0]['reason'],'EXPIRED_REGISTRY_READINESS_REQUIRED')
-        self.assertEqual(report['provider_requests'],0)
+        data={'scopes':[expired]}
+        visit=next(DAY+timedelta(days=i) for i in range(7) if due_scopes(data,DAY+timedelta(days=i)))
+        client=Client([])
+        def stage(*args,**kwargs):
+            client.requests_made+=1
+            return dict(passed=True,inserted=0,held_count=0,coverage_complete=True)
+        with patch('ingestion.global_discovery.run_fixture_discovery',side_effect=stage):
+            report=run_global_discovery(None,client,visit,registry=data)
+        self.assertTrue(report['coverage_complete']);self.assertEqual(report['ineligible_scopes'],[])
+        self.assertEqual(report['readiness_retries'],[dict(league_id=45,season=2026)])
+        self.assertEqual(report['provider_requests'],1);self.assertEqual(expired['cadence'],'daily')
     def test_realistic_weekly_overflow_reappears_without_starving_daily_cups(self):
         data={'scopes':[scope_row(i) for i in range(10000,10065)]+
             [scope_row(i,'weekly') for i in range(20000,20236)]}
@@ -261,8 +268,21 @@ class RotationTests(unittest.TestCase):
         c=scope_row(253);c['country']='USA'
         d=scope_row(48);d['active_until']='2026-01-01'
         data={'scopes':[a,b,c,d]}
-        self.assertEqual([x['league_id'] for x in due_scopes(data,DAY)],[45])
+        seen={x['league_id'] for i in range(7) for x in due_scopes(data,DAY+timedelta(days=i))}
+        self.assertEqual(seen,{45,48})
         self.assertEqual(due_scopes(data,DAY,'France'),[])
+    def test_every_configured_reviewed_scope_has_a_retry_without_new_ids_or_seasons(self):
+        data=load_registry()
+        from config.leagues import COVERAGE_PROFILES
+        profiles={(s.country,s.league_id,s.provider_season) for scopes in COVERAGE_PROFILES.values() for s in scopes if s.league_id is not None}
+        allowed={(x['league_id'],x['provider_season']) for x in data['scopes'] if (x.get('review_status')=='REVIEWED' or (x['country'],x['league_id'],x['provider_season']) in profiles) and x['league_id'] not in {253,255,489,257,1095}}
+        seen={(x['league_id'],x['provider_season']) for i in range(7) for x in due_scopes(data,DAY+timedelta(days=i))}
+        self.assertEqual(seen,allowed)
+    def test_unconfigured_catalogue_entry_is_not_imported_or_a_false_run_failure(self):
+        candidate=scope_row(81);candidate['review_status']='PENDING_SCOPE_OR_SEASON_REVIEW'
+        result=run_global_discovery(None,Client([]),DAY,registry={'scopes':[candidate]})
+        self.assertEqual(result['groups'],[]);self.assertEqual(result['provider_requests'],0)
+        self.assertTrue(result['coverage_complete']);self.assertFalse(result['ineligible_scopes'][0]['coverage_attention'])
     def test_shared_100_includes_existing_usa_and_reserves_highlights(self):
         client=Client([]);client.requests_made=353+5
         registry={'scopes':[scope_row(i) for i in range(100,220)]}

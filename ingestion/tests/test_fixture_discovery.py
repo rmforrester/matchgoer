@@ -43,6 +43,8 @@ def database(url="sqlite://"):
             c.execute(text(f"CREATE TABLE {table} (id INTEGER PRIMARY KEY, content TEXT)"))
             c.execute(text(f"INSERT INTO {table} VALUES (1,'must remain unchanged')"))
         c.execute(text("INSERT INTO fixtures VALUES (42,'2026-12-01 19:00:00',NULL,'European ground',NULL,39,'Premier League','England',2026,NULL,'NS',10,'English Home',11,'English Away',NULL,NULL)"))
+    from backend.fixture_integrity import META
+    META.create_all(engine)
     return engine
 
 
@@ -97,7 +99,7 @@ class DiscoveryTests(unittest.TestCase):
         item['fixture']['venue']=dict(id=999999,name='Unmapped event ground',city='Unmapped city')
         self.assertIsNone(self.plan(item)['rows'][0]['venue_id'])
         item=payload();item['fixture']['venue']=dict(id=999999,name='Contradictory ground',city=None)
-        self.assertEqual(self.plan(item)['held'][0]['reason'],'REVIEWED_EVENT_VENUE_CONFLICT')
+        self.assertIsNone(self.plan(item)['rows'][0]['venue_id']);self.assertEqual(self.plan(item)['location_outcomes'][item['fixture']['id']],'UNRESOLVED_REVIEWED_EVENT_VENUE_CONFLICT')
 
     def test_insert_and_second_run_idempotent(self):
         first = run_fixture_discovery(self.engine, Client(), DAY, write=True)
@@ -153,7 +155,7 @@ class DiscoveryTests(unittest.TestCase):
                 c.execute(text("UPDATE venues SET " + sql))
             plan = self.plan()
             if sql == 'canonical_venue_id=999':
-                self.assertEqual(plan['rows'], [])
+                self.assertIsNone(plan['rows'][0]['venue_id'])
             else:
                 self.assertEqual(plan['rows'][0]['venue_id'], 27774 if sql == 'latitude=NULL' else None)
 
@@ -166,13 +168,13 @@ class DiscoveryTests(unittest.TestCase):
         item["fixture"]["venue"]["id"] = 123
         self.assertEqual(len(self.plan(item)["rows"]), 1)
         item["fixture"]["venue"]["name"] = "Wrong Stadium"
-        self.assertEqual(self.plan(item)["rows"], [])
+        self.assertIsNone(self.plan(item)["rows"][0]["venue_id"])
 
     def test_ambiguous_event_names(self):
         with self.engine.begin() as c:
             c.execute(text("INSERT INTO venues SELECT 999,name,city,country,latitude,longitude,NULL,NULL FROM venues WHERE venue_id=27774"))
         item = payload(1648321); item["fixture"]["venue"]["name"] = "Athletic Club Boise Soccer Stadium"
-        self.assertEqual(self.plan(item)["held"][0]["reason"], "AMBIGUOUS_OR_UNKNOWN_VENUE")
+        self.assertIsNone(self.plan(item)["rows"][0]["venue_id"]);self.assertEqual(self.plan(item)["location_outcomes"][item["fixture"]["id"]],"UNRESOLVED_AMBIGUOUS_OR_UNKNOWN_VENUE")
 
     def test_conflicting_new_natural_ids_both_held(self):
         items = [payload(1647328), payload(1647332)]

@@ -52,6 +52,22 @@ class ApiFootballClient:
         return self.cache_dir / f"{endpoint.strip('/').replace('/', '_')}-{hashlib.sha256(identity.encode()).hexdigest()}.json"
 
     def get(self, endpoint: str, *, use_cache: bool = True, **params: Any) -> list[dict[str, Any]]:
+        from backend.fixture_integrity import CURRENT_RUN
+        receipt = CURRENT_RUN.get()
+        cached = use_cache and self._cache_path(endpoint, params).exists()
+        if receipt is not None and not cached:
+            receipt.request(endpoint, params)
+        try:
+            result = self._get(endpoint, use_cache=use_cache, **params)
+        except BaseException:
+            if receipt is not None and not cached:
+                receipt.request(endpoint, params, failed=True)
+            raise
+        if receipt is not None and not cached:
+            receipt.request(endpoint, params, payload={"response": result})
+        return result
+
+    def _get(self, endpoint: str, *, use_cache: bool = True, **params: Any) -> list[dict[str, Any]]:
         cache_path = self._cache_path(endpoint, params)
         if use_cache and cache_path.exists():
             self.cache_hits += 1

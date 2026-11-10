@@ -778,6 +778,9 @@ def plan_fixture_discovery(connection, payloads, start, end, *, max_candidates=5
     tables = {name: Table(name, metadata, autoload_with=connection) for name in
               ("fixtures", "teams", "venues", "venue_provider_refs", "venue_names")}
     existing = {r["fixture_id"]: dict(r) for r in connection.execute(select(tables["fixtures"])).mappings()}
+    from backend.fixture_integrity import venue_decisions, verified_venue
+    fixture_verifications = venue_decisions(connection)
+
     venues = {r["venue_id"]: dict(r) for r in connection.execute(select(tables["venues"])).mappings()}
     refs = list(connection.execute(select(tables["venue_provider_refs"])).mappings())
     aliases = list(connection.execute(select(tables["venue_names"])).mappings())
@@ -865,6 +868,11 @@ def plan_fixture_discovery(connection, payloads, start, end, *, max_candidates=5
                     raise ValueError("EXISTING_IDENTITY_CONFLICT")
                 report["existing"] += 1
                 continue
+            if any(r['fixture_id'] != fid and r.get('league_id') == scope_key[0]
+                   and r.get('season') == scope_key[1] and r.get('home_team_id') == home
+                   and r.get('away_team_id') == away and r.get('status') == 'PST'
+                   for r in existing.values()):
+                raise ValueError('POSSIBLE_REPLACEMENT_IDENTITY_REVIEW')
             status = raw["status"]["short"]
             if status not in {"NS", "TBD", "1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "PST",
                               "FT", "AET", "PEN", "CANC", "ABD", "AWD", "WO"}:
@@ -876,62 +884,76 @@ def plan_fixture_discovery(connection, payloads, start, end, *, max_candidates=5
             if status in {"FT", "AET", "PEN"} and (None in (goals["home"], goals["away"]) or kickoff >= completion_cutoff):
                 raise ValueError("INVALID_COMPLETED_FIXTURE")
             event = raw.get("venue") or {}
-            pid = event.get("id")
-            if global_rules:
-                from ingestion.discovery_venues import resolve_event_venue, reviewed_home_proof
-                proof_key = (fid, *scope_key, teams['home']['id'], teams['away']['id'], kickoff.isoformat())
-                proof = (event_proofs or {}).get(proof_key)
-                if proof is None:
-                    proof = reviewed_home_proof(item, getattr(scopes[scope_key], 'home_ground_reviews', ()))
-                vid, location = resolve_event_venue(event, scopes[scope_key], venues, refs, aliases, proof)
-                venue = venues.get(vid, {})
-            else:
-                names = {vid: {normalize(v["name"] or "")} for vid, v in venues.items()}
-                for alias in aliases:
-                    if not alias.get("valid_to") and alias["venue_id"] in names:
-                        names[alias["venue_id"]].add(normalize(alias["name"] or ""))
-                proof = DISCOVERY_EVENT_VENUES.get((fid, *scope_key, teams["home"]["id"], teams["away"]["id"], kickoff.isoformat()))
-                if proof and event.get("name") and normalize(event["name"]) not in names.get(proof["venue_id"], set()):
-                    raise ValueError("REVIEWED_EVENT_VENUE_CONFLICT")
-                if type(pid) is int and pid > 0:
-                    ids = {r["venue_id"] for r in refs if r["provider"] == "api_football"
-                           and r["provider_venue_id"] == pid and not r.get("valid_to")}
-                    ids.update(vid for vid, v in venues.items() if v.get("provider_venue_id") == pid)
-                elif pid is not None:
-                    raise ValueError("INVALID_PROVIDER_VENUE_ID")
-                elif proof:
-                    ids = {proof["venue_id"]}
-                elif event.get("name"):
-                    ids = {vid for vid in names if normalize(event["name"]) in names[vid]}
+            try:
+                pid = event.get("id")
+                if global_rules:
+                    from ingestion.discovery_venues import resolve_event_venue, reviewed_home_proof
+                    proof_key = (fid, *scope_key, teams['home']['id'], teams['away']['id'], kickoff.isoformat())
+                    proof = (event_proofs or {}).get(proof_key)
+                    vid, location = resolve_event_venue(event, scopes[scope_key], venues, refs, aliases, proof)
+                    venue = venues.get(vid, {})
                 else:
-                    ids = set()
-                if len(ids) > 1:
-                    raise ValueError("AMBIGUOUS_OR_UNKNOWN_VENUE")
-                vid = next(iter(ids)) if ids else None
-                venue = venues.get(vid, {})
-                location = "UNRESOLVED_EVENT_VENUE"
-                if vid is not None:
-                    if not venue:
-                        raise ValueError("UNKNOWN_CANONICAL_VENUE")
-                    if proof and vid != proof["venue_id"]:
+                    names = {vid: {normalize(v["name"] or "")} for vid, v in venues.items()}
+                    for alias in aliases:
+                        if not alias.get("valid_to") and alias["venue_id"] in names:
+                            names[alias["venue_id"]].add(normalize(alias["name"] or ""))
+                    proof = DISCOVERY_EVENT_VENUES.get((fid, *scope_key, teams["home"]["id"], teams["away"]["id"], kickoff.isoformat()))
+                    if proof and event.get("name") and normalize(event["name"]) not in names.get(proof["venue_id"], set()):
                         raise ValueError("REVIEWED_EVENT_VENUE_CONFLICT")
-                    if venue.get("canonical_venue_id") not in (None, vid):
-                        raise ValueError("VENUE_EQUIVALENCE_REVIEW")
-                    expected_name = event.get("name") or (proof or {}).get("venue_name")
-                    expected_city = event.get("city") or (proof or {}).get("city")
-                    if expected_name and normalize(expected_name) not in names[vid]:
-                        raise ValueError("VENUE_NAME_CONFLICT")
-                    if expected_city and normalize(expected_city) != normalize(venue.get("city") or ""):
-                        raise ValueError("VENUE_CITY_CONFLICT")
-                    if venue.get("country") not in ({"USA", "Canada"} if scope_key[0] == 253 else {"USA"}):
-                        raise ValueError("VENUE_COUNTRY_CONFLICT")
-                    lat, lon = venue.get("latitude"), venue.get("longitude")
-                    location = "MAP_READY"
-                    if lat is None or lon is None:
-                        location = "KNOWN_VENUE_MISSING_COORDINATES"
-                    elif not valid_coordinates(lat, lon) or (float(lat), float(lon)) == (0, 0):
-                        # Do not expose invalid existing points through location serving.
-                        vid, location = None, "INVALID_COORDINATES_UNLINKED"
+                    if type(pid) is int and pid > 0:
+                        ids = {r["venue_id"] for r in refs if r["provider"] == "api_football"
+                               and r["provider_venue_id"] == pid and not r.get("valid_to")}
+                        ids.update(vid for vid, v in venues.items() if v.get("provider_venue_id") == pid)
+                    elif pid is not None:
+                        raise ValueError("INVALID_PROVIDER_VENUE_ID")
+                    elif proof:
+                        ids = {proof["venue_id"]}
+                    elif event.get("name"):
+                        ids = {vid for vid in names if normalize(event["name"]) in names[vid]}
+                    else:
+                        ids = set()
+                    if len(ids) > 1:
+                        raise ValueError("AMBIGUOUS_OR_UNKNOWN_VENUE")
+                    vid = next(iter(ids)) if ids else None
+                    venue = venues.get(vid, {})
+                    location = "UNRESOLVED_EVENT_VENUE"
+                    if vid is not None:
+                        if not venue:
+                            raise ValueError("UNKNOWN_CANONICAL_VENUE")
+                        if proof and vid != proof["venue_id"]:
+                            raise ValueError("REVIEWED_EVENT_VENUE_CONFLICT")
+                        if venue.get("canonical_venue_id") not in (None, vid):
+                            raise ValueError("VENUE_EQUIVALENCE_REVIEW")
+                        expected_name = event.get("name") or (proof or {}).get("venue_name")
+                        expected_city = event.get("city") or (proof or {}).get("city")
+                        if expected_name and normalize(expected_name) not in names[vid]:
+                            raise ValueError("VENUE_NAME_CONFLICT")
+                        if expected_city and normalize(expected_city) != normalize(venue.get("city") or ""):
+                            raise ValueError("VENUE_CITY_CONFLICT")
+                        if venue.get("country") not in ({"USA", "Canada"} if scope_key[0] == 253 else {"USA"}) and not proof:
+                            raise ValueError("VENUE_COUNTRY_CONFLICT")
+                        from backend.fixture_integrity import venue_geography
+                        if venue_geography({'country':scopes[scope_key].country},venue)['hold']:
+                            raise ValueError('VENUE_GEOGRAPHIC_CONFLICT')
+                        lat, lon = venue.get("latitude"), venue.get("longitude")
+                        location = "MAP_READY"
+                        if lat is None or lon is None:
+                            location = "KNOWN_VENUE_MISSING_COORDINATES"
+                        elif not valid_coordinates(lat, lon) or (float(lat), float(lon)) == (0, 0):
+                            # Do not expose invalid existing points through location serving.
+                            vid, location = None, "INVALID_COORDINATES_UNLINKED"
+            except ValueError as error:
+                # A location-only failure must not discard a valid event identity.
+                # Keep provider labels, withhold its ground, and retry normally.
+                if str(error) not in {'VENUE_COUNTRY_CONFLICT', 'VENUE_CITY_CONFLICT', 'VENUE_NAME_CONFLICT', 'VENUE_EQUIVALENCE_REVIEW', 'VENUE_GEOGRAPHIC_CONFLICT', 'UNKNOWN_CANONICAL_VENUE', 'AMBIGUOUS_EVENT_VENUE', 'AMBIGUOUS_OR_UNKNOWN_VENUE', 'INVALID_PROVIDER_VENUE_ID', 'VENUE_LOCALITY_CONFLICT', 'REVIEWED_EVENT_VENUE_CONFLICT'}:
+                    raise
+                vid, venue, location = None, {}, 'UNRESOLVED_' + str(error)
+            verification = fixture_verifications.get(fid)
+            if verification:
+                pinned = verified_venue(dict(fixture_id=fid, league_id=scope_key[0], season=scope_key[1], home_team_id=home, away_team_id=away), verification)
+                if pinned is not None:
+                    vid, location = pinned, 'MAP_READY'
+                    venue = venues[vid]
             key = (kickoff, home, away)
             if key in natural:
                 prior = natural[key]
@@ -1061,6 +1083,9 @@ def apply_fixture_discovery_plan(engine, payloads, start, end, *, expected_rows,
                         raise ValueError('CONCURRENT_DISCOVERY_VALUE_CONFLICT')
         for row in locked["rows"]:
             connection.execute(fixtures.insert().values(**row))
+        from backend.fixture_integrity import transaction_integrity
+        transaction_integrity(connection, [p for items in payloads.values() for p in items],
+                              preimages=before, stage='discovery')
         after = {r["fixture_id"]: dict(r) for r in connection.execute(select(fixtures)).mappings()}
         if any(after.get(fid) != row for fid, row in before.items()) or set(after) - set(before) != {r["fixture_id"] for r in locked["rows"]}:
             raise ValueError("DISCOVERY_INSERT_ONLY_GUARD_FAILED")

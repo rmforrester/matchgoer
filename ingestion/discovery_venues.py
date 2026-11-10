@@ -68,7 +68,8 @@ def resolve_event_venue(event, scope, venues, refs, aliases, proof=None):
         review=reviews.get(root,{})
         actual_country=review.get('physical_country',v.get('country') if v else None)
         allowed_city=proposed.city in {normalize_identity(c) for c in review.get('localities',())}
-        return bool(v and actual_country in countries and (allowed_city or locality_compatible(
+        event_identity = bool(proof and proof.get('venue_id')==root and proof.get('source','').startswith('https://'))
+        return bool(v and (actual_country in countries or event_identity) and (allowed_city or locality_compatible(
             proposed, VenueIdentity.from_values(name=v.get('name'),city=v.get('city')))))
     if proof:
         root = physical.canonical(proof['venue_id'])
@@ -85,7 +86,7 @@ def resolve_event_venue(event, scope, venues, refs, aliases, proof=None):
         root = next(iter(direct))
         if root not in venues:
             raise ValueError('UNKNOWN_CANONICAL_VENUE')
-        if reviews.get(root,{}).get('physical_country',venues[root].get('country')) not in countries:
+        if reviews.get(root,{}).get('physical_country',venues[root].get('country')) not in countries and not proof:
             raise ValueError('VENUE_COUNTRY_CONFLICT')
         if not compatible(root):
             raise ValueError('VENUE_LOCALITY_CONFLICT')
@@ -103,7 +104,10 @@ def resolve_event_venue(event, scope, venues, refs, aliases, proof=None):
     if not ids:
         return None, 'UNRESOLVED_EVENT_VENUE'
     vid = next(iter(ids));v=venues[vid]
-    if reviews.get(vid,{}).get('physical_country',v.get('country')) not in countries:
+    from backend.fixture_integrity import venue_geography
+    if venue_geography({'country':scope.country},v,allowed_countries=getattr(scope,'venue_countries',()))['hold']:
+        raise ValueError('VENUE_GEOGRAPHIC_CONFLICT')
+    if reviews.get(vid,{}).get('physical_country',v.get('country')) not in countries and not proof:
         raise ValueError('VENUE_COUNTRY_CONFLICT')
     if reviews.get(vid,{}).get('geographic_hold'):
         return None,'INVALID_COORDINATES_UNLINKED'

@@ -129,6 +129,17 @@ def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
     old = getattr(candidate, "venue_id", None)
     raw = (item.get("fixture") or {}).get("venue") or {}
     context = review_context or {}
+    from backend.fixture_integrity import verified_venue, venue_geography
+    by_id = {v["venue_id"]: v for v in venues}
+    def checked(vid,method):
+        result=venue_geography({'country':getattr(candidate,'country',None)},by_id.get(vid),
+                               allowed_countries=context.get('venue_countries',()))
+        return (old,'DISPUTED') if result['hold'] else (vid,method)
+    decision = context.get('fixture_verifications', {}).get(candidate.fixture_id)
+    if decision:
+        pinned = verified_venue({k: getattr(candidate, k) for k in ('fixture_id','league_id','season','home_team_id','away_team_id')}, decision)
+        if pinned is not None:
+            return checked(pinned, "MATCHED_VERIFIED_OVERRIDE")
     country = getattr(candidate, "country", None)
     by_id = {v["venue_id"]: v for v in venues}
     scope = SimpleNamespace(country=country,
@@ -139,11 +150,9 @@ def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
     proof = context.get("event_proofs", {}).get(key)
     fallback = False
     try:
-        if proof is None and old is None:
-            proof = reviewed_home_proof(item, context.get("home_ground_reviews", ()))
-            fallback = proof is not None
+        # Club home-ground reviews alone do not establish this event venue.
         if raw.get("id") is None and not raw.get("name") and proof is None:
-            return old, "MISSING"
+            return checked(old, "MISSING")
         vid, location = resolve_event_venue(raw, scope,
             by_id, refs, aliases, proof)
     except ValueError as error:
@@ -155,7 +164,7 @@ def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
         return old, "UNKNOWN" if location == "UNRESOLVED_EVENT_VENUE" else "DISPUTED"
     if location == "KNOWN_VENUE_MISSING_COORDINATES":
         return vid, "UNRESOLVED_DIRECTIONS"
-    return vid, "MATCHED_HOME_REVIEW" if fallback else "MATCHED"
+    return checked(vid, "MATCHED_HOME_REVIEW" if fallback else "MATCHED")
 
 
 def provider_values(item: dict[str, Any]) -> dict[str, Any]:
@@ -396,7 +405,7 @@ def execution_outcome(*, write_requested, commit_confirmed, expanded, incomplete
     return bool(success), 0 if success else 1
 
 
-def main() -> int:
+def run_reconciliation() -> int:
     args = parser().parse_args()
     expanded = expanded_refresh_enabled()
     discovery_enabled = fixture_discovery_enabled()
@@ -464,6 +473,11 @@ def main() -> int:
                 venue_reviews=review_data.get('venue_reviews', ()),
                 home_ground_reviews=review_data.get('home_ground_reviews', ()),
                 event_proofs=proof_map)
+    from backend.fixture_integrity import venue_decisions
+    with engine.connect() as connection:
+        fixture_verifications = venue_decisions(connection)
+    for context in scope_reviews.values():
+        context['fixture_verifications'] = fixture_verifications
     natural_keys: dict[tuple[Any, int, int], set[int]] = {}
     for row in natural_rows:
         natural_keys.setdefault((utc_datetime(row.fixture_date), row.home_team_id, row.away_team_id), set()).add(row.fixture_id)
@@ -525,7 +539,7 @@ def main() -> int:
         identity_contexts = lifecycle_team_context(connection, candidates, responses)
     manifest, updates = [], {}
     for candidate in candidates:
-        item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases, scope_reviews.get((candidate.league_id,candidate.season), {})), expanded=expanded, identity_context=identity_contexts.get(candidate.fixture_id))
+        item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases, scope_reviews.get((candidate.league_id,candidate.season), {"fixture_verifications": fixture_verifications})), expanded=expanded, identity_context=identity_contexts.get(candidate.fixture_id))
         manifest.append(item)
         if values is not None:
             updates[candidate.fixture_id] = values
@@ -533,7 +547,7 @@ def main() -> int:
     if budget_exceeded:
         validation["passed"] = False
         validation["problems"].append("Request ceiling exceeded; no provider calls made")
-    incomplete = any(row["venue_mapping"] not in {"MATCHED", "MATCHED_HOME_REVIEW", "MISSING", "DISABLED"} for row in manifest if "venue_mapping" in row) or any(row["classification"] in {"PROVIDER_MISSING", "PROVIDER_DUPLICATE", "IDENTITY_MISMATCH", "PROVIDER_MALFORMED", "TERMINAL_CONFLICT_REVIEW", "MANUAL_REVIEW_HOLD"} for row in manifest)
+    incomplete = any(row["venue_mapping"] not in {"MATCHED", "MATCHED_HOME_REVIEW", "MATCHED_VERIFIED_OVERRIDE", "MISSING", "DISABLED"} for row in manifest if "venue_mapping" in row) or any(row["classification"] in {"PROVIDER_MISSING", "PROVIDER_DUPLICATE", "IDENTITY_MISMATCH", "PROVIDER_MALFORMED", "TERMINAL_CONFLICT_REVIEW", "MANUAL_REVIEW_HOLD"} for row in manifest)
     write_requested = args.write
     commit_confirmed = False
     if args.write:
@@ -563,6 +577,8 @@ def main() -> int:
                         connection.exec_driver_sql('LOCK TABLE teams, team_identity_overrides IN SHARE MODE')
                     if lifecycle_team_context(connection, candidates, responses) != identity_contexts:
                         raise RuntimeError('Team identity mapping preimage changed')
+                    if venue_decisions(connection) != fixture_verifications:
+                        raise RuntimeError('Venue verification revision changed')
                     preimage = fixture_snapshot(connection, fixtures)
                     for candidate in candidates:
                         current = preimage.get(candidate.fixture_id)
@@ -581,6 +597,9 @@ def main() -> int:
                                      fixtures.c.away_goals.is_(None) if before.away_goals is None else fixtures.c.away_goals == before.away_goals)
                         if connection.execute(update(fixtures).where(guard).values(**values)).rowcount != 1:
                             raise RuntimeError(f"Concurrent fixture change detected for {fixture_id}; transaction rolled back")
+                    from backend.fixture_integrity import transaction_integrity
+                    transaction_integrity(connection, [items[0] for items in responses.values() if len(items)==1],
+                        preimages=preimage, manifest=manifest, stage='lifecycle')
                     reconcile_final_state(connection, fixtures, preimage, updates)
                 # Set only after engine.begin().__exit__ returns from COMMIT.
                 commit_confirmed = True
@@ -649,10 +668,10 @@ def main() -> int:
         "execution_success": execution_success, "commit_confirmed": commit_confirmed,
         "exit_code": exit_code,
         "execution_outcome": ("FIXTURE REFRESH COMMITTED" if execution_success and commit_confirmed
-                              else "FIXTURE REFRESH FAILED — COMMIT CONFIRMED; REVIEW REQUIRED" if commit_confirmed
-                              else "FIXTURE REFRESH FAILED — NO SUCCESSFUL COMMIT CONFIRMED" if write_requested
+                              else "FIXTURE REFRESH FAILED â€” COMMIT CONFIRMED; REVIEW REQUIRED" if commit_confirmed
+                              else "FIXTURE REFRESH FAILED â€” NO SUCCESSFUL COMMIT CONFIRMED" if write_requested
                               else "DRY RUN PASSED" if execution_success else "DRY RUN INCOMPLETE OR FAILED"),
-        "coverage_outcome": "COVERAGE INCOMPLETE — EXCLUSIONS RECORDED" if incomplete else "COVERAGE COMPLETE",
+        "coverage_outcome": "COVERAGE INCOMPLETE â€” EXCLUSIONS RECORDED" if incomplete else "COVERAGE COMPLETE",
         "generated_at": datetime.now(timezone.utc).isoformat(), "mode": "write" if args.write else "dry-run", "policy": "nightly",
         "expanded_refresh_enabled": expanded, "write_error": write_error, "complete": not incomplete and not lifecycle_failures and not write_error and validation["passed"], "window_start": start.isoformat(), "window_end_exclusive": end.isoformat(), "lookahead_days": args.lookahead_days if expanded else 0, "max_requests": args.max_requests,
         "as_of": cutoff_day.isoformat(), "lookback_days": args.lookback_days, "country": args.country,
@@ -677,11 +696,49 @@ def main() -> int:
         report["complete"] = report["complete"] and global_discovery.get("coverage_complete",False)
     if tracking.get('due_deferred') or tracking['quota_deferred_ids']:
         report['complete'] = False
-        report['coverage_outcome'] = "COVERAGE INCOMPLETE — OUTSIDE-WINDOW RETRIES DEFERRED"
+        report['coverage_outcome'] = "COVERAGE INCOMPLETE â€” OUTSIDE-WINDOW RETRIES DEFERRED"
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key != "manifest"}, indent=2))
     return exit_code
+
+
+def main() -> int:
+    # Durable receipts are independent of the fixture transaction. Dry runs never write receipts.
+    from backend.fixture_integrity import RunReceipt, CURRENT_RUN
+    args = parser().parse_args()
+    expanded_refresh_enabled()
+    fixture_discovery_enabled()
+    if not args.write:
+        return run_reconciliation()
+    if not args.confirm_write:
+        return run_reconciliation()
+    url = os.getenv('DATABASE_URL')
+    if not url:
+        return run_reconciliation()
+    receipt_engine = create_engine(url)
+    receipt = RunReceipt(receipt_engine, source_sha=os.getenv('RAILWAY_GIT_COMMIT_SHA'))
+    token = CURRENT_RUN.set(receipt)
+    code, failure = 1, None
+    try:
+        code = run_reconciliation()
+    except BaseException as exc:
+        failure = type(exc).__name__
+        raise
+    finally:
+        CURRENT_RUN.reset(token)
+        try:
+            report = json.loads(args.report.read_text(encoding='utf-8')) if args.report.exists() else {}
+            # A stale report must never turn a new crash into a successful receipt.
+            result = receipt.finish(report if failure is None else {}, error=failure or ('EXIT_'+str(code) if code else None))
+            if failure is None:
+                report['integrity_receipt'] = result
+                args.report.write_text(json.dumps(report, indent=2, default=str), encoding='utf-8')
+                if result['state'] == 'FAILED':
+                    code = 1
+        finally:
+            pass  # Process-scoped receipt pool; individual transactions always close.
+    return code
 
 
 if __name__ == "__main__":
