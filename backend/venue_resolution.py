@@ -88,8 +88,10 @@ def canonical_fixtures(db, rows):
     identity = resolution(db)
     roots = {identity.canonical(row.venue_id) for row in rows if row.venue_id is not None}
     venues = {row.venue_id: row for row in db.query(Venue).filter(Venue.venue_id.in_(roots)).all()} if roots else {}
-    return [SimpleNamespace(**{column.name: (identity.canonical(row.venue_id) if column.name == 'venue_id' else getattr(row, column.name))
+    projected = [SimpleNamespace(**{column.name: (identity.canonical(row.venue_id) if column.name == 'venue_id' else getattr(row, column.name))
                                for column in Fixture.__table__.columns}, venue=venues.get(identity.canonical(row.venue_id))) for row in rows]
+    from backend.fixture_integrity import project_rows
+    return project_rows(db, projected)
 
 
 def canonical_row(db, row):

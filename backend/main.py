@@ -1,3 +1,4 @@
+from backend.fixture_integrity import eligibility_query, project_rows
 import community_tips
 from typing import Literal
 from pydantic import BaseModel as TipBaseModel
@@ -193,9 +194,11 @@ def get_fixtures(date: str | None = None):
         joinedload(Fixture.venue)
     )
 
+    query, effective_kickoff = eligibility_query(query, db, Fixture, retain_history=True)
+
     if date:
         query = query.filter(
-            utc_date_expression(Fixture.fixture_date) == date
+            utc_date_expression(effective_kickoff) == date
         )
 
     fixtures = canonical_fixtures(db, query.limit(500).all())
@@ -369,6 +372,8 @@ def get_fixture_know(fixture_id: int):
         fixture = db.query(Fixture).filter(Fixture.fixture_id == fixture_id).first()
         if fixture is None:
             raise HTTPException(status_code=404, detail="Fixture not found")
+
+        fixture = canonical_fixtures(db, [fixture])[0]
 
         relationships = (
             db.query(ClubVenue)
@@ -617,13 +622,15 @@ def get_nearby(
             Venue.longitude.between(longitude - longitude_delta, longitude + longitude_delta),
         )
 
+    query, effective_kickoff = eligibility_query(query, db, Fixture)
+
     # Exact date
 
     if date:
 
         query = query.filter(
-            Fixture.fixture_date >= datetime.fromisoformat(f"{date}T00:00:00+00:00"),
-            Fixture.fixture_date < datetime.fromisoformat(f"{date}T00:00:00+00:00") + timedelta(days=1),
+            effective_kickoff >= datetime.fromisoformat(f"{date}T00:00:00+00:00"),
+            effective_kickoff < datetime.fromisoformat(f"{date}T00:00:00+00:00") + timedelta(days=1),
         )
 
     # Date range
@@ -631,13 +638,13 @@ def get_nearby(
     if start_date:
 
         query = query.filter(
-            Fixture.fixture_date >= datetime.fromisoformat(f"{start_date}T00:00:00+00:00")
+            effective_kickoff >= datetime.fromisoformat(f"{start_date}T00:00:00+00:00")
         )
 
     if end_date:
 
         query = query.filter(
-            Fixture.fixture_date < datetime.fromisoformat(f"{end_date}T00:00:00+00:00") + timedelta(days=1)
+            effective_kickoff < datetime.fromisoformat(f"{end_date}T00:00:00+00:00") + timedelta(days=1)
         )
 
     # League
@@ -687,6 +694,7 @@ def get_nearby(
 
             results.append({
 
+                "integrity": getattr(fixture, "integrity", {}),
                 "fixture_id":
                     fixture.fixture_id,
 
@@ -1706,6 +1714,8 @@ def get_venue_fixtures(
             )
         )
 
+        query, effective_kickoff = eligibility_query(query, db, Fixture, retain_history=True)
+
         target_date = None
         if around_date:
             try:
@@ -1718,7 +1728,7 @@ def get_venue_fixtures(
                 raise HTTPException(422, detail="Choose a valid calendar timezone")
             start = datetime.combine(target_date - timedelta(days=days), datetime.min.time(), calendar_zone).astimezone(timezone.utc)
             end = datetime.combine(target_date + timedelta(days=days + 1), datetime.min.time(), calendar_zone).astimezone(timezone.utc)
-            query = query.filter(Fixture.fixture_date >= start, Fixture.fixture_date < end)
+            query = query.filter(effective_kickoff >= start, effective_kickoff < end)
 
         # -----------------------------------------------------
         # Optional team/opponent search
@@ -1756,6 +1766,8 @@ def get_venue_fixtures(
             .all()
         )
 
+        fixtures = canonical_fixtures(db, fixtures)
+
         if target_date is not None:
             def historical_fixture_rank(fixture):
                 day_difference = abs((fixture_datetime_utc(fixture.fixture_date).astimezone(calendar_zone).date() - target_date).days)
@@ -1785,6 +1797,7 @@ def get_venue_fixtures(
 
             results.append(
                 {
+                    "integrity": getattr(fixture, "integrity", {}),
                     "fixture_id":
                         fixture.fixture_id,
                     "venue_id": venue_id,
@@ -2065,6 +2078,7 @@ def get_interested_fixtures(
 
         results.append({
 
+            "integrity": getattr(fixture, "integrity", {}),
             "going": bool(item.going),
             "home_team_badge_url": badge_proxy_path(fixture.home_team_id),
             "away_team_badge_url": badge_proxy_path(fixture.away_team_id),
@@ -2882,7 +2896,7 @@ def get_fixture_social(fixture_id: int, identity: ResolvedIdentity | None = Depe
         db.add(SocialEvent(user_id=user_id, fixture_id=fixture_id, event_type="board_view"))
         db.commit()
         return {
-            "fixture": {
+            "fixture": {"integrity": getattr(fixture, "integrity", {}),
                 "fixture_id": fixture.fixture_id, "fixture_date": fixture_datetime_utc(fixture.fixture_date),
                 "home_team": fixture.home_team, "home_team_id": fixture.home_team_id,
                 "home_team_badge_url": badge_proxy_path(fixture.home_team_id),

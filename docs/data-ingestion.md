@@ -230,3 +230,7 @@ Full-season imports use cached provider responses for safe repeatability, so the
 ```
 
 Review the dry-run report before the transactional write. Never infer `FT` from a past kickoff. The beta preflight fails past `NS` beyond the agreed grace window and future `FT`/`AET`/`PEN` rows.
+
+### Fixture integrity foundation
+
+See `docs/fixture-integrity.md` for the additive local implementation: durable run receipts, shared effective scheduling/venue decisions, status-aware geographic serving, reviewed fixture-specific verification, cross-competition conflict reporting, and the independent read-only missed-run checker. The migration is an explicit deployment dependency; no startup schema creation, official-source crawler, second ingestion pipeline or new provider calls are introduced. Existing 750 requests / shared100 discovery requests /50 absent candidates limits and lifecycle/highlights separation remain unchanged.

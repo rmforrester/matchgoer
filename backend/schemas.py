@@ -91,6 +91,8 @@ class FixtureKnowResponse(BaseModel):
 
 
 class FixtureResponse(BaseModel):
+    integrity: dict | None = None
+
     venue_id: int | None = None
 
     fixture_id: int
@@ -111,6 +113,7 @@ class FixtureResponse(BaseModel):
 
 
 class FixtureWithVenueResponse(BaseModel):
+    integrity: dict | None = None
 
     fixture_id: int
     fixture_date: datetime
