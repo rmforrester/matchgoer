@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory=$true)][string]$BackupDirectory,
     [Parameter(Mandatory=$true)][string]$IdentityFile,
-    [string]$Image = 'matchgoer-postgres-backup:20261110'
+    [string]$Image = 'matchgoer-postgres-backup:20261110',
+    [switch]$SyntheticValidation
 )
 $ErrorActionPreference = 'Stop'
 # FOUNDER-RUN ONLY. Codex must not request or access the identity file.
@@ -30,7 +31,7 @@ try {
     $databaseCreated = $true
     $ready = $false
     for ($try = 0; $try -lt 45; $try++) {
-        $null = & docker exec $databaseContainer pg_isready --quiet -U postgres -d $databaseName 2>$null
+        $null = & docker exec $databaseContainer pg_isready --quiet -h 127.0.0.1 -U postgres -d $databaseName 2>$null
         if ($LASTEXITCODE -eq 0) { $ready = $true; break }
         Start-Sleep -Seconds 1
     }
@@ -47,17 +48,22 @@ try {
         all_row_fingerprints_match = $result.all_row_fingerprints_match
         production_connected = $false
         private_key_printed_or_copied = $false
-        founder_executed = $true
+        founder_executed = (-not $SyntheticValidation)
+        production_backup_restore = (-not $SyntheticValidation)
         data_stored_in_disposable_tmpfs = $true
         limitation = 'Local restore duration excludes incident diagnosis, download and production cutover.'
     }
-    $receipt | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $PSScriptRoot 'founder-disposable-restore-receipt.json') -Encoding UTF8
+    $transportReceipt = Get-Content -LiteralPath (Join-Path $backupPath 'receipt.json') -Raw | ConvertFrom-Json
+    $receipt.encrypted_sha256 = $transportReceipt.sha256
+    $receipt.object_key = $transportReceipt.object_key
+    $outputName = if ($SyntheticValidation) { 'synthetic-wrapper-restore-receipt.json' } else { 'founder-disposable-restore-receipt.json' }
+    $receipt | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $PSScriptRoot $outputName) -Encoding UTF8
     $receipt | ConvertTo-Json
 }
 finally {
     # Names are unique identifiers created by this script; never enumerate or
     # remove other Docker objects. PostgreSQL data lives only in tmpfs.
     if ($databaseCreated) { $null = & docker rm --force $databaseContainer 2>$null }
-    $null = & docker rm --force $restoreContainer 2>$null
+    try { $null = & docker rm --force $restoreContainer 2>$null } catch { }
     if ($networkCreated) { $null = & docker network rm $network 2>$null }
 }

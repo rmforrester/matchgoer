@@ -40,6 +40,21 @@ def digest(path):
     return h.hexdigest()
 
 
+def endpoint_shape():
+    """Only structural booleans/lengths; never return an endpoint or account ID."""
+    raw = os.environ.get('BACKUP_R2_ENDPOINT', '')
+    try:
+        u = urllib.parse.urlsplit(raw.strip())
+        host = u.hostname or ''
+        return {'https': u.scheme == 'https', 'r2_hostname_suffix': host.endswith('.r2.cloudflarestorage.com'),
+                'account_label_length': len(host.split('.')[0]), 'path_present': bool(u.path.strip('/')),
+                'path_is_approved_bucket': u.path.strip('/') == 'matchgoer-postgres-backups',
+                'surrounding_whitespace': raw != raw.strip(), 'query_or_fragment': bool(u.query or u.fragment),
+                'userinfo_present': bool(u.username or u.password)}
+    except ValueError:
+        return {'unparseable': True}
+
+
 def config(env=os.environ, require_recipient=True):
     needed = ['BACKUP_R2_ENDPOINT', 'BACKUP_R2_BUCKET', 'BACKUP_R2_ACCESS_KEY_ID',
               'BACKUP_R2_SECRET_ACCESS_KEY']
@@ -47,16 +62,23 @@ def config(env=os.environ, require_recipient=True):
         needed.append('BACKUP_AGE_RECIPIENT')
     if any(not env.get(k) for k in needed):
         raise BackupError('BACKUP_CONFIGURATION_INCOMPLETE')
-    endpoint = urllib.parse.urlsplit(env['BACKUP_R2_ENDPOINT'])
+    endpoint = urllib.parse.urlsplit(env['BACKUP_R2_ENDPOINT'].strip())
     if (endpoint.scheme != 'https' or endpoint.username or endpoint.password or endpoint.query
-            or endpoint.fragment or endpoint.path not in ('', '/') or
+            or endpoint.fragment or endpoint.path not in ('', '/', '/matchgoer-postgres-backups', '/matchgoer-postgres-backups/') or
             not re.fullmatch(r'[a-f0-9]{32}(?:\.(?:eu|us))?\.r2\.cloudflarestorage\.com', endpoint.hostname or '')):
         raise BackupError('BACKUP_ENDPOINT_INVALID')
-    if require_recipient and not re.fullmatch(r'age1[0-9a-z]{58}', env['BACKUP_AGE_RECIPIENT']):
+    if require_recipient and not re.fullmatch(r'age1[0-9a-z]{58}', env['BACKUP_AGE_RECIPIENT'].strip()):
         raise BackupError('BACKUP_PUBLIC_RECIPIENT_INVALID')
-    if env['BACKUP_R2_BUCKET'] != 'matchgoer-postgres-backups':
+    if env['BACKUP_R2_BUCKET'].strip() != 'matchgoer-postgres-backups':
         raise BackupError('BACKUP_BUCKET_NOT_APPROVED')
-    return {k: env[k] for k in needed}
+    result = {k: env[k] for k in needed}
+    # Cloudflare's bucket dashboard may show a bucket-specific S3 URL. The SDK
+    # supplies the bucket separately; strip only this exact approved bucket path.
+    result['BACKUP_R2_ENDPOINT'] = 'https://' + endpoint.hostname
+    result['BACKUP_R2_BUCKET'] = env['BACKUP_R2_BUCKET'].strip()
+    if require_recipient:
+        result['BACKUP_AGE_RECIPIENT'] = env['BACKUP_AGE_RECIPIENT'].strip()
+    return result
 
 
 def client(c):
@@ -301,7 +323,7 @@ def prune(s3, bucket, rows):
             s3.delete_object(Bucket=bucket, Key=r['object_key'])
             removed += 1
         except Exception as exc:
-            if getattr(exc, 'response', {}).get('Error', {}).get('Code') in ('AccessDenied', 'ObjectLockedByBucketPolicy'):
+            if getattr(exc, 'response', {}).get('Error', {}).get('Code') == 'ObjectLockedByBucketPolicy':
                 protected += 1
             else:
                 raise BackupError('BACKUP_RETENTION_FAILED') from None
@@ -367,7 +389,7 @@ def alert(reason, observed, test=False, env=os.environ):
     title = 'Matchgoer database backup — ' + ('safe test alert' if test else 'attention required')
     body = {'from': sender, 'to': [recipient], 'subject': title,
             'text': ('Safe backup alert delivery test. No production restore or fixture processing occurred.' if test else
-                     'Backup protection requires attention. Code: ' + reason + '\nObserved UTC: ' + observed.isoformat() +
+                     'Backup protection requires attention. Code: ' + reason + '\nObserved UTC day: ' + observed.date().isoformat() +
                      '\nUnrelated Matchgoer services continue. This message contains no database records or credentials.')}
     request = urllib.request.Request('https://api.resend.com/emails', data=json.dumps(body).encode(),
                                     headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json',
@@ -418,7 +440,10 @@ def run(observed, check_only=False):
         except BackupError:
             notify('BACKUP_OLDER_CIPHERTEXT_INVALID', observed)
             latest = []
-    existing = next((r for r in latest if datetime.fromisoformat(r['completed_at_utc']).date() == observed.date()), None)
+    scheduled = observed.replace(hour=7, minute=10, second=0, microsecond=0)
+    slot_start = scheduled if observed >= scheduled else observed.replace(hour=0, minute=0, second=0, microsecond=0)
+    existing = next((r for r in latest if datetime.fromisoformat(r['completed_at_utc']).date() == observed.date()
+                     and datetime.fromisoformat(r['completed_at_utc']) >= slot_start), None)
     with tempfile.TemporaryDirectory(prefix='matchgoer-encrypted-backup-') as td:
         os.chmod(td, 0o700)
         archive = Path(td) / 'database.dump.age'
@@ -514,7 +539,15 @@ def main():
         sqlstate = getattr(exc, 'sqlstate', None)
         if isinstance(sqlstate, str) and re.fullmatch(r'[0-9A-Z]{5}', sqlstate):
             reason = 'BACKUP_DATABASE_SQLSTATE_' + sqlstate
-        emit('BACKUP_FAILED', reason=reason)
+        detail = {}
+        if reason == 'BACKUP_ENDPOINT_INVALID':
+            detail['safe_endpoint_shape'] = endpoint_shape()
+        if reason == 'BACKUP_BUCKET_NOT_APPROVED':
+            raw = os.environ.get('BACKUP_R2_BUCKET', '')
+            detail['safe_bucket_shape'] = {'surrounding_whitespace': raw != raw.strip(),
+                                          'valid_bucket_name': bool(re.fullmatch(r'[a-z0-9][a-z0-9-]{1,61}[a-z0-9]', raw.strip())),
+                                          'contains_assignment': '=' in raw, 'contains_quotes': any(q in raw for q in ('"', "'"))}
+        emit('BACKUP_FAILED', reason=reason, **detail)
         if not args.check and not args.test_alert and not args.test_stale_alert and not args.preflight:
             try:
                 record_attempt('FAILED', now(), reason)
