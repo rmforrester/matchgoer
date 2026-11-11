@@ -42,3 +42,13 @@ jobs:
           else
             python ops/postgres_backup/backup.py --check
           fi
+      - name: Check independent Supabase recovery health
+        if: ${{ always() && inputs.test_stale_alert != true }}
+        env:
+          BACKUP_R2_ENDPOINT: ${{ secrets.BACKUP_R2_ENDPOINT }}
+          BACKUP_R2_BUCKET: ${{ secrets.BACKUP_R2_BUCKET }}
+          BACKUP_R2_ACCESS_KEY_ID: ${{ secrets.BACKUP_R2_ACCESS_KEY_ID }}
+          BACKUP_R2_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_R2_SECRET_ACCESS_KEY }}
+          FIXTURE_INTEGRITY_RESEND_API_KEY: ${{ secrets.BACKUP_RESEND_API_KEY }}
+          BACKUP_ALERT_TO: ${{ secrets.BACKUP_ALERT_TO }}
+        run: python ops/postgres_backup/check_supabase.py
