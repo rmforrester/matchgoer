@@ -1,6 +1,7 @@
 "use client";
+import FixtureDateTime from "./FixtureDateTime";
 
-import { formatKickoffTime, formatFixtureDistance } from "../../lib/fixture-format";
+import { formatFixtureDistance } from "../../lib/fixture-format";
 
 import {
   MapContainer,
@@ -167,7 +168,7 @@ function FixtureVenueMarker({ group, visited, icons, onFixtureSelect, onFixtureD
       <span className="mt-2 block text-xs font-bold">
       {statusGroup === "postponed" || statusGroup === "cancelled"
         ? fixtureStatusLabel(fixture.status)
-        : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {formatKickoffTime(new Date(fixture.fixture_date))}</>}
+        : <FixtureDateTime value={fixture.fixture_date} />}
       </span>
       <span className="mt-1 flex items-center gap-1 text-[0.68rem] font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)]"><FixtureTypeIcon type={fixtureType} />{fixture.league_name}</span>
       <span className="mt-1 block min-w-0 break-words text-xs font-bold">{fixture.venue_name}</span>
@@ -212,7 +213,7 @@ function MobileFixtureCard({
         <span className="mt-1 block text-xs font-bold leading-tight">
           {statusGroup === "postponed" || statusGroup === "cancelled"
             ? fixtureStatusLabel(fixture.status)
-            : <>{new Date(fixture.fixture_date).toLocaleDateString()} · {formatKickoffTime(new Date(fixture.fixture_date))}</>}
+            : <FixtureDateTime value={fixture.fixture_date} />}
         </span>
         <span className="mt-1 block min-w-0 break-words text-xs font-bold leading-tight">{fixture.venue_name}</span>
       </div>

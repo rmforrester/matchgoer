@@ -150,13 +150,13 @@ def cleanup(db,storage,*,limit=50,at=None):
             except StorageUnavailable:db.rollback();pending+=1
     return {'cleaned':done,'retry_pending':pending}
 
-def photo_payload(db,storage,row,*,private=False):
+def photo_payload(db,storage,row,*,private=False,viewer_user_id=None):
     profile=db.get(UserProfile,row.owner_user_id)
     fixture=db.get(Fixture,row.fixture_id) if row.fixture_id else None
     visit=db.get(VenueVisit,row.visit_id) if row.visit_id else None
     venue_id=resolution(db).canonical(row.venue_id)
     venue=db.get(Venue,venue_id)
-    result={'photo_id':row.photo_id,'venue_id':venue_id,'venue_name':venue.name if venue else None,'fixture_id':row.fixture_id,'caption':row.caption,
+    result={'can_delete':viewer_user_id is not None and row.owner_user_id==viewer_user_id and row.status!='REMOVED' and row.storage_deleted_at is None,'photo_id':row.photo_id,'venue_id':venue_id,'venue_name':venue.name if venue else None,'fixture_id':row.fixture_id,'caption':row.caption,
             'display_name':profile.display_name if profile else 'Matchgoer','published_at':row.published_at,
             'match_date':fixture.fixture_date if fixture else visit.visit_date if visit else None,
             'home_team':fixture.home_team if fixture else None,'away_team':fixture.away_team if fixture else None}
@@ -219,7 +219,7 @@ def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,
             row=next((p for p in remaining if p.published_at==timestamp and p.owner_user_id not in contributors),remaining[0])
             selected.append(row);contributors.add(row.owner_user_id);remaining.remove(row)
         selected.sort(key=lambda p:(p.published_at,p.photo_id),reverse=True)
-        return {'photos':[{**photo_payload(db,storage,row),**public_matchday_metadata(db,row,viewer_user_id)} for row in selected],'next_cursor':None}
+        return {'photos':[{**photo_payload(db,storage,row,viewer_user_id=viewer_user_id),**public_matchday_metadata(db,row,viewer_user_id)} for row in selected],'next_cursor':None}
     if cursor:
         try:
             if len(cursor)>256:raise ValueError()
@@ -231,4 +231,4 @@ def public_page(db,storage,*,venue_id=None,fixture_id=None,cursor=None,limit=12,
     rows=query.order_by(Photo.published_at.desc(),Photo.photo_id.desc()).limit(limit+1).all()
     more=len(rows)>limit;rows=rows[:limit]
     next_cursor=base64.urlsafe_b64encode(json.dumps([rows[-1].published_at.isoformat(),rows[-1].photo_id]).encode()).decode().rstrip('=') if more else None
-    return {'photos':[photo_payload(db,storage,row) for row in rows],'next_cursor':next_cursor}
+    return {'photos':[photo_payload(db,storage,row,viewer_user_id=viewer_user_id) for row in rows],'next_cursor':next_cursor}

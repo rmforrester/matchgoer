@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import DeleteTerracePhoto from "./DeleteTerracePhoto";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import api, { anonymousApi } from "../../lib/api";
@@ -18,10 +19,11 @@ type Props = { mode?: "feed" | "preview" | "venue"; venueId?: number; personal?:
 export default function TerracePublicGallery(props: Props) {
   const { accountKey } = useAuth();
   const [revision, setRevision] = useState(0);
-  return <PublicGalleryContent key={`${accountKey}:${revision}`} {...props} onBlocked={() => setRevision(value => value + 1)} />;
+  const [notice, setNotice] = useState("");
+  return <>{notice && <p role="status" className="mx-4 my-3 text-sm font-bold">{notice}</p>}<PublicGalleryContent key={`${accountKey}:${revision}`} {...props} onPhotoDeleted={() => { setNotice("Photo deleted. Your attendance is unchanged."); setRevision(value => value + 1); }} onBlocked={() => setRevision(value => value + 1)} /></>;
 }
 
-function PublicGalleryContent({ mode = "feed", venueId, personal = false, onBlocked }: Props & { onBlocked: () => void }) {
+function PublicGalleryContent({ mode = "feed", venueId, personal = false, onBlocked, onPhotoDeleted }: Props & { onBlocked: () => void; onPhotoDeleted: () => void }) {
   const { authenticated } = useAuth();
   const [photos, setPhotos] = useState<TerracePhoto[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -229,7 +231,7 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false, onBloc
       {loading ? <><p role="status" className="sr-only">Loading photos...</p><div aria-hidden="true" className="flex gap-3 overflow-hidden px-1 pb-2 pt-1">{[0, 1, 2].map(index => <div key={index} className="max-w-52 min-w-0 shrink-0 basis-[42%]"><div className="aspect-square bg-[var(--tt-ink)]/10" /><div className="mt-2 h-10 bg-[var(--tt-ink)]/10" /></div>)}</div></> : error ? <div className="py-3"><p role="alert" className="text-sm">{error}</p><button type="button" onClick={() => void load()} className="min-h-11 font-bold underline">Try again</button></div> : <p className="py-4 text-sm">No photographs to show yet.</p>}
     </div>}
     {feedPhotos.length > 0 && <div role={mode === "preview" ? "group" : undefined} aria-label={mode === "preview" ? "Recent photographs" : undefined} tabIndex={mode === "preview" ? 0 : undefined} className={mode === "preview" ? "flex min-h-64 snap-x snap-proximity items-start gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pt-1 focus-visible:outline-2 focus-visible:outline-[var(--brand-interactive)]" : `grid grid-cols-1 items-start gap-6 ${mode === "feed" ? "mt-4" : ""}`}>
-      {mode !== "preview" ? groups.map(group => <TerraceFixtureGallery key={fixtureGalleryKey(group[0], historicalGroups)} photos={group} location={locations[group[0].venue_id]} onPhotos={receiveMatchday} open={open} refresh={photo => void refresh(photo)} />) : feedPhotos.map(photo => <article key={photo.photo_id} className={`min-w-0 ${mode === "preview" ? "max-w-52 shrink-0 basis-[42%] snap-start" : ""}`}>
+      {mode !== "preview" ? groups.map(group => <TerraceFixtureGallery key={fixtureGalleryKey(group[0], historicalGroups)} photos={group} location={locations[group[0].venue_id]} onPhotos={receiveMatchday} open={open} refresh={photo => void refresh(photo)} onDeleted={onPhotoDeleted} />) : feedPhotos.map(photo => <article key={photo.photo_id} className={`min-w-0 ${mode === "preview" ? "max-w-52 shrink-0 basis-[42%] snap-start" : ""}`}>
         {<button type="button" onClick={() => open(photo)} aria-label={`View photograph from ${photo.venue_name || "this ground"}${photo.home_team && photo.away_team ? `, ${photo.home_team} v ${photo.away_team}` : ""}${(photo.matchday_photo_count ?? 0) > 1 ? `, ${photo.matchday_photo_count! - 1} more ${photo.matchday_photo_count === 2 ? "photo" : "photos"} from this matchday` : ""}`} className="block min-h-11 w-full text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">
           <span className="relative block">
             <TerracePhotoView photo={photo} compact passive showContext={false} showCaption={false} refresh={() => void refresh(photo)} />
@@ -238,6 +240,7 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false, onBloc
           <span className="mt-2 block break-words text-sm font-extrabold">{photo.home_team && photo.away_team ? `${photo.home_team} v ${photo.away_team}` : photo.venue_name || "Ground"}</span>
           <span className="mt-1 block break-words text-xs text-[var(--tt-muted)]">{photo.home_team && photo.away_team && photo.venue_name}{photo.home_team && photo.away_team && photo.venue_name && locations[photo.venue_id] && " · "}{locations[photo.venue_id]}</span>
         </button>}
+        <DeleteTerracePhoto photo={photo} onDeleted={onPhotoDeleted} />
       </article>)}
     </div>}
     {mode !== "preview" && <>
@@ -259,6 +262,7 @@ function PublicGalleryContent({ mode = "feed", venueId, personal = false, onBloc
           {matchdayError && <div className="mt-2 text-sm"><p role="alert">{matchdayError}</p><button type="button" onClick={() => void loadMatchday(matchdayLoaded ? matchdayCursor ?? undefined : undefined)} className="min-h-11 font-bold underline">Try again</button></div>}
         </>}
         <div className="mt-3">{context(selected, true)}</div>
+        <DeleteTerracePhoto key={`delete-${selected.photo_id}`} photo={selected} onDeleted={() => { dialog.current?.close(); onPhotoDeleted(); }} />
         {detailError && <p role="alert" className="mt-2 text-sm">{detailError}</p>}
         {authenticated && <button type="button" className="mt-3 min-h-11 text-sm font-bold underline" onClick={() => void (async () => { if (!selected) return; try { await api.post(`/terraces/photos/${selected.photo_id}/block-author`, undefined, { signal: scope.current?.signal }); if (scope.current?.signal.aborted) return; dialog.current?.close(); onBlocked(); } catch { setReportMessage("Couldn't block this matchgoer. Please try again."); } })()}>Block this matchgoer</button>}
         {authenticated ? <details className="mt-3"><summary className="min-h-11 cursor-pointer content-center text-sm underline">Report photo</summary><label className="grid gap-2 text-sm">What should we know?<textarea value={reason} onChange={event => setReason(event.target.value)} maxLength={200} className="tt-control p-2" /></label><button type="button" disabled={reporting || !reason.trim()} onClick={() => void report()} className="min-h-11 text-sm font-bold underline">{reporting ? "Sending…" : "SEND REPORT"}</button>{reportMessage && <p role="status" className="text-sm">{reportMessage}</p>}</details> : <Link href="/signin" className="mt-3 inline-flex min-h-11 items-center text-sm underline">Sign in to report a photo</Link>}

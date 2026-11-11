@@ -1,6 +1,7 @@
 "use client";
+import FixtureDateTime from "./FixtureDateTime";
 
-import { formatKickoffTime } from "../../lib/fixture-format";
+
 
 import Link from "next/link";
 import { apiAssetUrl } from "../../lib/api";
@@ -25,12 +26,11 @@ export default function DiscoverShortlist({ fixtures, discoveredFixtures, expand
     <p className="mt-2 text-xs font-bold">{fixtures.length} {fixtures.length === 1 ? "match" : "matches"}</p>
     <div id="discover-shortlist" className="mt-4 grid min-w-0 items-start gap-2 md:grid-cols-2 xl:grid-cols-3">
       {(expanded ? fixtures : fixtures.slice(0, 5)).map((fixture) => {
-        const kickoff = new Date(fixture.fixture_date);
         const updating = updatingFixtureIds.includes(fixture.fixture_id);
         const competition = discoveredFixtures.find((item) => item.fixture_id === fixture.fixture_id)?.league_name;
         return <article key={fixture.fixture_id} className="@container flex min-w-0 flex-col border border-[var(--tt-ink)] bg-[var(--tt-paper)] p-3">
           <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-[var(--brand-interactive)]">
-            {kickoff.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {formatKickoffTime(kickoff)}
+            <FixtureDateTime value={fixture.fixture_date} />
           </p>
           <FixtureTeams
             compact

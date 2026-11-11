@@ -2,23 +2,21 @@
 
 import { useEffect, useState } from "react";
 import api from "../../lib/api";
-import { coordinatePlaceUrl, mapPlatform } from "../../lib/map-destination";
+import MapDirections from "./MapDirections";
 
 export default function FixtureDirections({ venueId }: { venueId: number | null }) {
-  const [destination, setDestination] = useState<{ venueId: number; url: string } | null>(null);
+  const [destination, setDestination] = useState<{ venueId: number; latitude: number; longitude: number; name: string } | null>(null);
   useEffect(() => {
     if (!venueId || !Number.isSafeInteger(venueId) || venueId <= 0) return;
     const controller = new AbortController();
     api.get(`/venue/${venueId}`, { signal: controller.signal }).then(({ data }) => {
       const { latitude, longitude } = data ?? {};
       if (!controller.signal.aborted && Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
-        const url = coordinatePlaceUrl(latitude, longitude, data.name ?? "", mapPlatform());
-        if (url) setDestination({ venueId, url });
+        setDestination({ venueId, latitude, longitude, name: data.name ?? "" });
       }
     }).catch(() => { /* No valid canonical destination: omit directions. */ });
     return () => controller.abort();
   }, [venueId]);
-  const directionsUrl = destination?.venueId === venueId ? destination?.url : null;
-  if (!directionsUrl) return null;
-  return <a href={directionsUrl} target="_blank" rel="noopener noreferrer" aria-label="View the match ground on a map (opens in a new tab)" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 border border-[var(--mg-green)] px-3 py-2 text-xs font-extrabold uppercase text-[var(--mg-green)] hover:bg-[var(--mg-paper)] focus-visible:-outline-offset-4">VIEW ON MAP <span aria-hidden="true">&rarr;</span></a>;
+  if (!destination || destination.venueId !== venueId) return null;
+  return <MapDirections latitude={destination.latitude} longitude={destination.longitude} name={destination.name} />;
 }

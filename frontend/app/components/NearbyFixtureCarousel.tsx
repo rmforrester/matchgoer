@@ -1,6 +1,7 @@
 "use client";
+import FixtureDateTime from "./FixtureDateTime";
 
-import { formatKickoffTime, formatFixtureDistance } from "../../lib/fixture-format";
+import { formatFixtureDistance } from "../../lib/fixture-format";
 
 import Link from "next/link";
 
@@ -42,7 +43,6 @@ export default function NearbyFixtureCarousel({ fixtures, expanded, onExpandedCh
 
       <div className="grid min-w-0 items-start gap-2 md:grid-cols-2 xl:grid-cols-3" id="nearby-fixtures-list" aria-label="Nearby fixtures">
         {(expanded ? fixtures : fixtures.slice(0, 5)).map((fixture) => {
-          const kickoff = new Date(fixture.fixture_date);
           const statusGroup = fixtureStatusGroup(fixture.status);
           const hasResult = statusGroup === "finished" && fixture.home_goals !== null && fixture.away_goals !== null;
           const isInterested = interestedFixtureIds.includes(fixture.fixture_id);
@@ -62,7 +62,7 @@ export default function NearbyFixtureCarousel({ fixtures, expanded, onExpandedCh
               <Link href={`/fixture/${fixture.fixture_id}`} className="block min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]" aria-label={`${fixture.home_team} versus ${fixture.away_team} at ${fixture.venue_name}`}>
                 <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
                   <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--brand-interactive)]">
-                    {kickoff.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {formatKickoffTime(kickoff)}
+                    <FixtureDateTime value={fixture.fixture_date} />
                   </p>
                   {hasResult ? <span className="bg-[var(--tt-ink)] px-2 py-1 text-sm font-extrabold text-[var(--tt-paper)]">{fixture.home_goals}–{fixture.away_goals}</span> : statusGroup === "postponed" || statusGroup === "cancelled" ? <span className="bg-[var(--tt-ink)] px-2 py-1 text-[0.62rem] font-extrabold uppercase tracking-wide text-[var(--tt-paper)]">{fixtureStatusLabel(fixture.status)}</span> : null}
                   {showMeaningfulDistance && <span className="min-w-0 break-words text-xs font-bold text-[var(--tt-muted)]">{formatFixtureDistance(fixture.distance_miles, distanceOrigin)}</span>}

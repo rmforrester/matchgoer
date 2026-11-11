@@ -1,6 +1,32 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { formatKickoffTime, formatFixtureDistance } from "./fixture-format.ts";
+import { formatFixtureDate, formatKickoffTime, formatFixtureDistance } from "./fixture-format.ts";
+
+test("contextual dates follow device calendar across UTC midnight and retain time", () => {
+  const previous = process.env.TZ; process.env.TZ = "America/New_York";
+  try {
+    const now = new Date("2026-11-10T23:30:00-05:00");
+    assert.equal(formatFixtureDate("2026-11-11T04:45:00Z", now), "TODAY");
+    assert.equal(formatKickoffTime("2026-11-11T04:45:00Z"), "11:45 PM");
+    assert.equal(formatFixtureDate("2026-11-11T05:00:00Z", now), "TOMORROW");
+    assert.equal(formatFixtureDate("2026-11-11T05:00:00Z", new Date("2026-11-11T05:00:00Z")), "TODAY");
+    assert.doesNotMatch(formatFixtureDate("2026-11-09T17:00:00Z", now), /TODAY|TOMORROW/);
+  } finally { if (previous === undefined) delete process.env.TZ; else process.env.TZ = previous; }
+});
+
+test("tomorrow is a calendar operation through month/year boundaries and DST", () => {
+  const previous = process.env.TZ; process.env.TZ = "America/New_York";
+  try {
+    for (const [now, kickoff] of [
+      ["2026-01-31T23:30:00-05:00", "2026-02-01T22:00:00-05:00"],
+      ["2026-12-31T23:30:00-05:00", "2027-01-01T22:00:00-05:00"],
+      ["2026-03-07T23:30:00-05:00", "2026-03-08T23:45:00-04:00"],
+      ["2026-10-31T23:30:00-04:00", "2026-11-01T23:45:00-05:00"],
+    ]) assert.equal(formatFixtureDate(kickoff, new Date(now)), "TOMORROW");
+    assert.equal(formatFixtureDate("2026-11-11T02:00:00Z", new Date("2026-11-10T20:00:00-05:00"), { timeZone: "UTC" }), "TOMORROW");
+    assert.equal(formatFixtureDate("invalid"), "Date to be confirmed");
+  } finally { if (previous === undefined) delete process.env.TZ; else process.env.TZ = previous; }
+});
 
 test("12-hour kickoff preserves zone/DST and canonical instants", () => {
   const date = new Date("2026-10-10T12:15:00Z");

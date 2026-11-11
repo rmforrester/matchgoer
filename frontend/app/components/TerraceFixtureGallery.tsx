@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import DeleteTerracePhoto from "./DeleteTerracePhoto";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import api, { anonymousApi } from "../../lib/api";
@@ -8,9 +9,9 @@ import type { TerracePhoto } from "../../lib/terraces";
 import { formatMatchDate } from "../../lib/terraces-dates";
 import TerracePhotoView from "./TerracePhotoView";
 
-type Props = { photos: TerracePhoto[]; location?: string; onPhotos: (anchor: TerracePhoto, photos: TerracePhoto[]) => void; open: (photo: TerracePhoto) => void; refresh: (photo: TerracePhoto) => void };
+type Props = { photos: TerracePhoto[]; location?: string; onPhotos: (anchor: TerracePhoto, photos: TerracePhoto[]) => void; open: (photo: TerracePhoto) => void; refresh: (photo: TerracePhoto) => void; onDeleted: () => void };
 
-export default function TerraceFixtureGallery({ photos, location, onPhotos, open, refresh }: Props) {
+export default function TerraceFixtureGallery({ photos, location, onPhotos, open, refresh, onDeleted }: Props) {
   const { authenticated } = useAuth();
   const anchor = photos[0];
   const { photo_id: anchorId, fixture_id: fixtureId, venue_id: venueId } = anchor;
@@ -59,6 +60,7 @@ export default function TerraceFixtureGallery({ photos, location, onPhotos, open
           <TerracePhotoView photo={photo} compact={index > 0 && count > 2} passive presentation="mosaic" showContext={false} showCaption={false} refresh={() => refresh(photo)} />
         </button>)}
       </div>}
+    <div className="flex flex-wrap gap-2">{shown.map((photo, index) => <DeleteTerracePhoto key={photo.photo_id} photo={photo} number={count > 1 ? index + 1 : undefined} onDeleted={onDeleted} />)}</div>
     {more !== null && more > 0 && <button type="button" onClick={() => view(anchor)} className="mt-3 min-h-11 text-left text-xs font-extrabold text-[var(--brand-interactive)] underline">MORE PHOTOS FROM THIS {anchor.fixture_id === null ? "MATCHDAY" : "MATCH"} ({more}) →</button>}
     {error && <button type="button" className="mt-2 min-h-11 text-left text-xs underline" onClick={() => setAttempt(value => value + 1)}>Try loading match photos again</button>}
   </article>;

@@ -1,5 +1,4 @@
-import { coordinatePlaceUrl } from "../../lib/map-destination";
-import DestinationLink from "./DestinationLink";
+import MapDirections from "./MapDirections";
 import GroundPhotograph from "./GroundPhotograph";
 import type { ReactNode } from "react";
 
@@ -9,7 +8,7 @@ type Props = { venue: Venue; clubName?: string | null; children?: ReactNode };
 
 export default function VenueHeader({ venue, clubName, children }: Props) {
   return (
-    <header className="tt-panel overflow-hidden" aria-labelledby="venue-heading">
+    <header className="tt-panel" aria-labelledby="venue-heading">
       <div className="border-b-2 border-[var(--tt-ink)] bg-[var(--brand-interactive)] px-4 py-3 text-[var(--tt-paper)] sm:px-7"><p className="text-xs font-extrabold uppercase tracking-[0.14em]">01 / The ground</p></div>
       <div className="min-w-0 px-4 py-6 sm:px-7 sm:py-8">
         <div className="min-w-0">
@@ -19,7 +18,7 @@ export default function VenueHeader({ venue, clubName, children }: Props) {
           <p className="mt-5 font-extrabold uppercase tracking-[0.1em] text-[var(--brand-interactive)]">{venue.city}{venue.country ? ` · ${venue.country}` : ""}</p>
           <GroundPhotograph venueId={venue.venue_id} />
           {venue.address && <p className="mt-2 font-bold">{venue.address}</p>}
-          {venue.latitude != null && venue.longitude != null && <DestinationLink destinationName={venue.name} id="directions" className="mt-4 inline-flex min-h-11 items-center bg-[var(--brand-interactive)] px-4 text-xs font-extrabold uppercase tracking-[0.08em] text-white" url={coordinatePlaceUrl(venue.latitude, venue.longitude, venue.name)}>View on map</DestinationLink>}
+          <MapDirections latitude={venue.latitude ?? null} longitude={venue.longitude ?? null} name={venue.name} className="mt-4" />
           {venue.capacity !== null && venue.capacity > 0 && <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-[var(--tt-muted)]">Capacity · {venue.capacity.toLocaleString()}</p>}
         </div>
       </div>

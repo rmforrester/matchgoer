@@ -9,8 +9,8 @@ import { formatMatchdayDate, matchdayDate } from "../../lib/ground-matchdays";
 
 // Presentation state only; survives tab navigation without storing supporter data.
 const expansion = new Map<string, boolean>();
-export default function FootprintLeagues({ grounds, footprint, period, renderVisits }: {
-  grounds: MyGround[]; footprint: FootprintSummary | null; period: FootprintPeriod; renderVisits?: (ground: MyGround, context: string) => ReactNode;
+export default function FootprintLeagues({ grounds, footprint, period, renderVisits, renderGroundActions }: {
+  grounds: MyGround[]; footprint: FootprintSummary | null; period: FootprintPeriod; renderVisits?: (ground: MyGround, context: string) => ReactNode; renderGroundActions?: (ground: MyGround, context: string) => ReactNode;
 }) {
   const [openings, setOpenings] = useState(() => new Map(expansion));
   const competitions = competitionsForGrounds(footprint?.attendance_competitions ?? footprint?.competitions ?? [], grounds, period);
@@ -37,16 +37,17 @@ export default function FootprintLeagues({ grounds, footprint, period, renderVis
   function card(ground: MyGround, context: string) {
     const latest = ground.visits.map(visit => matchdayDate(visit.visit_date)).filter((date): date is string => date !== null).sort().at(-1);
     return <li key={ground.venue_id} className="min-w-0 border-b border-[var(--tt-rule)] last:border-0">
-      <details {...disclosure(`ground-${context}`)}>
-        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden group">
+      <button type="button" aria-expanded={openings.get(`${prefix}-ground-${context}`) ?? false} aria-controls={`${prefix}-visits-${context}`} onClick={() => { const id = `${prefix}-ground-${context}`; const next = !(openings.get(id) ?? false); expansion.set(id, next); setOpenings(previous => new Map(previous).set(id, next)); }} className="w-full text-left">
+        <span className="flex min-h-11 items-center gap-3 py-3">
           <svg aria-hidden="true" data-ground-icon viewBox="0 0 24 24" className="h-8 w-8 shrink-0 text-[var(--brand-interactive)]" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 9v11h18V9L12 5 3 9Zm0 4 9 4 9-4M7 11v9m10-9v9M12 2v3M3 3v6m18-6v6"/></svg>
           <span className="min-w-0 flex-1"><span className="block break-words text-base font-bold text-[var(--brand-interactive)]">{ground.venue_name}</span>
             <span className="block text-xs text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" \u00b7 ")}</span>
             <span className="mt-1 block text-xs">{ground.visits.length} {ground.visits.length === 1 ? "matchday" : "matchdays"}<span className="text-[var(--tt-muted)]">{latest ? ` \u00b7 ${formatMatchdayDate(latest)}` : " \u00b7 DATE NOT RECORDED"}</span></span>
-          </span><span aria-hidden="true" className="text-lg text-[var(--brand-interactive)] group-open:rotate-180">{"\u2304"}</span>
-        </summary>
-        {openings.get(`${prefix}-ground-${context}`) && <div className="pb-3">{renderVisits?.(ground, context) ?? <GroundMatchdays ground={ground} />}<Link href={`/venue/${ground.venue_id}`} className="mt-2 inline-flex min-h-11 items-center text-xs font-bold text-[var(--brand-interactive)]">GROUND DETAILS {"\u2192"}</Link></div>}
-      </details>
+          </span><span aria-hidden="true" className={`text-lg text-[var(--brand-interactive)] ${openings.get(`${prefix}-ground-${context}`) ? "rotate-180" : ""}`}>{"\u2304"}</span>
+        </span>
+      </button>
+      {renderGroundActions?.(ground, context)}
+        {openings.get(`${prefix}-ground-${context}`) && <div id={`${prefix}-visits-${context}`} className="pb-3">{renderVisits?.(ground, context) ?? <GroundMatchdays ground={ground} />}<Link href={`/venue/${ground.venue_id}`} className="mt-2 inline-flex min-h-11 items-center text-xs font-bold text-[var(--brand-interactive)]">GROUND DETAILS {"\u2192"}</Link></div>}
     </li>;
   }
   return <div className="py-2">

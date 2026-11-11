@@ -231,7 +231,8 @@ test("My Matchdays separates upcoming, confirmation, and attended history", () =
   assert.match(matchdaysSource, /if \(attended && !attendedFixtureIds\.has/);
   assert.match(matchdaysSource, /api\.post\(`\/fixtures\/\$\{fixture\.fixture_id\}\/attendance`\)/);
   assert.match(matchdaysSource, /api\.delete\(`\/fixtures\/\$\{fixture\.fixture_id\}\/interested`\)/);
-  assert.match(matchdaysSource, /api\.get\("\/my-grounds"\)/);
+  assert.match(matchdaysSource, /api\.get<MyGroundFootprint \| MyGround\[\]>\("\/my-grounds", \{ params: \{ footprint: true \} \}\)/);
+  assert.match(matchdaysSource, /footprint\.season_visit_ids/);
   assert.match(matchdaysSource, /sectionHeading\("went"/);
   assert.doesNotMatch(matchdaysSource, /UPCOMING_PREVIEW_LIMIT|PAST_PREVIEW_LIMIT|ExpandButton/);
   assert.doesNotMatch(matchdaysSource, /Who&apos;s Going|Open to meeting supporters/);

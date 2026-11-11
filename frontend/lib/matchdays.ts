@@ -1,5 +1,5 @@
 import { eligibleAttendanceFixture } from "./attendance-eligibility.ts";
-import { formatKickoffTime } from "./fixture-format.ts";
+import { formatFixtureDate, formatKickoffTime } from "./fixture-format.ts";
 
 
 export type ConfirmedGoing<T> = { fixture: T; going: boolean; checked: boolean };
@@ -64,10 +64,10 @@ export function partitionMatchdays<T extends SavedMatch>(saved: T[], attendedIds
 }
 
 /** Display-only; omitted timeZone preserves the browser's current timezone. */
-export function formatMatchdayKickoff(value: string, timeZone?: string) {
+export function formatMatchdayKickoff(value: string, timeZone?: string, now = new Date()) {
   const instant = new Date(value);
   return {
-    date: new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone }).format(instant).replace(",", ""),
+    date: formatFixtureDate(instant, now, { timeZone }, "en-GB").replace(",", ""),
     time: formatKickoffTime(instant, { timeZone }),
   };
 }

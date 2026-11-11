@@ -193,7 +193,7 @@ def owned_photos(visit_id:int,response:Response,authorization:str|None=Header(de
         actor=require_verified_account(db,authorization)
         if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).filter(VenueVisit.source != "ground_collection").first():raise HTTPException(404,'Recorded matchday not found')
         # Owner-only reconciliation: never include submission keys in public or moderator payloads.
-        return {'can_submit':actor.user_id in configured_upload_user_ids(),'reconciliation_supported':True,'photos':[{**service.photo_payload(db,PrivatePhotoStorage(),row,private=True), 'submission_key':row.submission_key} for row in db.query(Photo).filter_by(visit_id=visit_id,owner_user_id=actor.user_id).order_by(Photo.submitted_at,Photo.photo_id).all()]}
+        return {'can_submit':actor.user_id in configured_upload_user_ids(),'reconciliation_supported':True,'photos':[{**service.photo_payload(db,PrivatePhotoStorage(),row,private=True,viewer_user_id=actor.user_id), 'submission_key':row.submission_key} for row in db.query(Photo).filter_by(visit_id=visit_id,owner_user_id=actor.user_id).order_by(Photo.submitted_at,Photo.photo_id).all()]}
     response.headers['Cache-Control']='no-store';return transaction(action)
 
 @router.get('/photos/{photo_id}')
@@ -205,7 +205,7 @@ def photo_detail(photo_id:int,response:Response,authorization:str|None=Header(de
         if actor and has_block(db,actor.user_id,row.owner_user_id):
             raise HTTPException(404,'Photograph not found')
         private=not (row.status=='APPROVED' and row.published_at is not None)
-        result=service.photo_payload(db,PrivatePhotoStorage(),row,private=private)
+        result=service.photo_payload(db,PrivatePhotoStorage(),row,private=private,viewer_user_id=actor.user_id if actor else None)
         if not private:result.update(service.public_matchday_metadata(db,row,actor.user_id if actor else None))
         return result
     response.headers['Cache-Control']='no-store';return transaction(action)

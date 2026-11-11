@@ -1,5 +1,6 @@
+import FixtureDateTime from "./FixtureDateTime";
 import Link from "next/link";
-import { formatKickoffTime } from "../../lib/fixture-format";
+
 
 import type { Fixture } from "../types/fixture";
 import { buildWorthTheTripRecommendations } from "../../lib/worthTheTrip";
@@ -66,13 +67,7 @@ export default function WorthTheTrip({ fixtures }: Props) {
                   </p>
 
                   <p className="mt-2 text-sm text-[var(--tt-muted)]">
-                    {new Date(fixture.fixture_date).toLocaleDateString(undefined, {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                    })}{" "}
-                    ·{" "}
-                    {formatKickoffTime(new Date(fixture.fixture_date))}
+                    <FixtureDateTime value={fixture.fixture_date} />
                   </p>
 
                   <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-[var(--tt-rule)] pt-3 text-xs font-extrabold uppercase">

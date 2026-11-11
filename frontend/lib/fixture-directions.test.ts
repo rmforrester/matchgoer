@@ -16,7 +16,8 @@ function compile(path: string, dependencies: Record<string, unknown> = {}) {
   vm.runInNewContext(code, { AbortController, module: compiled, exports: compiled.exports, require: (name: string) => dependencies[name] ?? require(name) });
   return compiled.exports;
 }
-const dependencies = { "../../lib/api": { get: () => Promise.resolve({ data: null }) }, "../../lib/map-destination": mapDestinations };
+const chooser = compile("../app/components/MapDirections.tsx", { "../../lib/map-destination": mapDestinations });
+const dependencies = { "./MapDirections": chooser, "../../lib/api": { get: () => Promise.resolve({ data: null }) }, "../../lib/map-destination": mapDestinations };
 type DirectionsComponent = { default: React.ComponentType<Record<string, unknown>> };
 async function directionsFor(venueId: number | null, data: unknown) {
   let stored: unknown = null;
@@ -30,17 +31,17 @@ async function directionsFor(venueId: number | null, data: unknown) {
 test("directions resolve only the fixture venue, including canonical equivalences, never the club's usual ground", async () => {
   const result = await directionsFor(99, { venue_id: 51, latitude: 51.5, longitude: -0.1 });
   assert.deepEqual(result.requests, ["/venue/99"]);
-  assert.deepEqual(JSON.parse(JSON.stringify(result.stored)), { venueId: 99, url: "https://www.google.com/maps/search/?api=1&query=51.5%2C-0.1" });
+  assert.deepEqual(JSON.parse(JSON.stringify(result.stored)), { venueId: 99, latitude: 51.5, longitude: -0.1, name: "" });
 });
 test("invalid or missing canonical coordinates never produce a directions destination", async () => {
   for (const data of [null, {}, { latitude: null, longitude: 0 }, { latitude: 91, longitude: 0 }, { latitude: 0, longitude: 181 }, { latitude: "51", longitude: 0 }]) assert.equal((await directionsFor(99, data)).stored, null);
   assert.deepEqual((await directionsFor(null, { latitude: 51, longitude: 0 })).requests, []);
 });
 test("compact directions use a green outline and omit stale destinations", () => {
-  const ready = compile("../app/components/FixtureDirections.tsx", { ...dependencies, react: { ...React, useState: () => [{ venueId: 99, url: "https://www.google.com/maps/search/?api=1&query=51%2C0" }, () => undefined] } }) as DirectionsComponent;
+  const ready = compile("../app/components/FixtureDirections.tsx", { ...dependencies, react: { ...React, useState: () => [{ venueId: 99, latitude: 51, longitude: 0, name: "Ground" }, () => undefined] } }) as DirectionsComponent;
   const html = renderToStaticMarkup(React.createElement(ready.default, { venueId: 99 }));
-  assert.match(html, /VIEW ON MAP/); assert.match(html, /min-h-11 shrink-0/);
-  assert.match(html, /border-\[var\(--mg-green\)\]/); assert.doesNotMatch(html, /bg-\[var\(--mg-green\)\]/);
+  assert.match(html, /Directions/); assert.match(html, /Apple Maps/); assert.match(html, /Google Maps/); assert.match(html, /min-h-11/);
+  assert.match(html, /tt-action-secondary/);
   assert.match(html, /target="_blank" rel="noopener noreferrer"/);
   assert.equal(renderToStaticMarkup(React.createElement(ready.default, { venueId: 100 })), "");
   const page = readFileSync(new URL("../app/fixture/[fixtureId]/page.tsx", import.meta.url), "utf8");

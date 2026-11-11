@@ -1,5 +1,6 @@
 "use client";
 
+import FixtureDateTime from "../../components/FixtureDateTime";
 import { formatKickoffTime } from "../../../lib/fixture-format";
 
 import Link from "next/link";
@@ -265,7 +266,7 @@ function FixturePageContent({ params, searchParams }: FixturePageProps) {
           {hasResult && <MatchdayHighlights data={data.matchday_highlights} homeTeam={data.fixture.home_team} awayTeam={data.fixture.away_team} />}
         </div>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[var(--mg-rule)] pt-3 text-sm">
-          <div><dt className="mg-meta font-bold">Date</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? kickoff.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : "To be confirmed"}</dd></div>
+          <div><dt className="mg-meta font-bold">Date</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? <FixtureDateTime value={data.fixture.fixture_date} dateOnly long /> : "To be confirmed"}</dd></div>
           <div><dt className="mg-meta font-bold">Your timezone</dt><dd className="mt-0.5 font-bold">{confirmedKickoff ? formatKickoffTime(kickoff, { timeZoneName: "short" }) : "Kick-off to be confirmed"}</dd></div>
           {((statusGroup !== "upcoming" && !completed) || !confirmedKickoff) && <div><dt className="mg-meta font-bold">Status</dt><dd className="mt-0.5 font-bold">{!confirmedKickoff && statusGroup === "upcoming" ? "Kick-off to be confirmed" : fixtureStatusLabel(data.fixture.status)}</dd></div>}
           <div className="col-span-2"><dt className="mg-meta font-bold">Ground</dt><dd className="mt-0.5 flex min-w-0 flex-wrap items-baseline justify-between gap-2 font-bold"><span className="min-w-0 grow basis-[10rem] break-words">{data.fixture.venue_name || "Ground to be confirmed"}{data.fixture.venue_city ? ` · ${data.fixture.venue_city}` : ""}</span><FixtureDirections venueId={data.fixture.venue_id} /></dd></div>

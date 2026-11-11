@@ -15,8 +15,11 @@ import { useAuth } from "./AuthProvider";
 import TerracePhotoSubmission from "./TerracePhotoSubmission";
 import { recordedPhotoAttendance, type PhotoAttendance } from "../../lib/terraces";
 import { trackEvent } from "../../lib/analytics";
-import { trustworthyScore, partitionMatchdays, formatMatchdayKickoff, reconcileGoingRead, type ConfirmedGoing } from "../../lib/matchdays";
+import { trustworthyScore, partitionMatchdays, reconcileGoingRead, type ConfirmedGoing } from "../../lib/matchdays";
 import type { InterestedFixture } from "../types/interested";
+import FixtureDateTime from "./FixtureDateTime";
+import { type FootprintPeriod } from "../../lib/football-footprint";
+import type { FootprintSummary, MyGroundFootprint } from "../types/grounds";
 import type { AttendedFixture, MyGround } from "../types/grounds";
 
 type Removal = { fixtureId: number | null; visitId: number | null; venueId: number | null; name: string };
@@ -29,9 +32,8 @@ const displayDate = (value: string, includeTime = false) => new Date(value).toLo
 
 function MatchdayCard({ fixture, venueName, venueCity, state, footer }: { fixture: CardFixture; venueName: string | null; venueCity: string | null; state: "upcoming" | "answer" | "attended"; footer: ReactNode }) {
   const score = state === "attended" ? trustworthyScore(fixture) : null;
-  const kickoff = formatMatchdayKickoff(fixture.fixture_date);
   return <article className={`tt-panel min-w-0 p-4 sm:p-5 ${state === "answer" ? "border-l-4 border-l-[var(--brand-interactive)]" : ""}`}>
-    <p className="text-sm font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{state === "attended" ? displayDate(fixture.fixture_date) : <span className="inline-flex flex-wrap items-baseline gap-x-1"><span className="whitespace-nowrap">{kickoff.date}</span><span className="whitespace-nowrap">· {kickoff.time}</span></span>}{fixture.league_name ? <span className="mt-1 block">{fixture.league_name}</span> : null}</p>
+    <p className="text-sm font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{state === "attended" ? displayDate(fixture.fixture_date) : <FixtureDateTime value={fixture.fixture_date} />}{fixture.league_name ? <span className="mt-1 block">{fixture.league_name}</span> : null}</p>
     <Link href={`/fixture/${fixture.fixture_id}`} className="mt-3 block min-w-0 hover:text-[var(--brand-interactive)]">
       <FixtureTeams compact homeTeam={fixture.home_team} awayTeam={fixture.away_team} homeBadgeSrc={apiAssetUrl(fixture.home_team_badge_url)} awayBadgeSrc={apiAssetUrl(fixture.away_team_badge_url)} teamClassName="text-xl leading-tight sm:text-2xl" separatorClassName="text-xs" />
       {score && <p className="mt-2 text-center font-extrabold text-[var(--brand-interactive)]">{score}</p>}
@@ -56,6 +58,8 @@ function InterestedTabContent() {
   const historyWrite = useRef(false);
   const [photoAttendances, setPhotoAttendances] = useState<PhotoAttendance[]>([]);
   const [fixtures, setFixtures] = useState<InterestedFixture[]>([]);
+  const [footprint, setFootprint] = useState<FootprintSummary | null>(null);
+  const [period, setPeriod] = useState<FootprintPeriod>("lifetime");
   const [attendedFixtures, setAttendedFixtures] = useState<AttendedMatch[]>([]);
   const [attendanceResolution, setAttendanceResolution] = useState<InterestedFixture | null>(null);
   const [planFeedback, setPlanFeedback] = useState<Record<number, { error: boolean; message: string; expectedGoing?: boolean }>>({});
@@ -79,9 +83,11 @@ function InterestedTabContent() {
           && !historySeen.current && !confirmedAttendance && !confirmedGoing.current.size) {
           setError(""); setLoading(false); return;
         }
-        const [interestedResponse, groundsResponse] = await Promise.all([api.get("/interested"), api.get("/my-grounds")]);
+        const [interestedResponse, groundsResponse] = await Promise.all([api.get("/interested"), api.get<MyGroundFootprint | MyGround[]>("/my-grounds", { params: { footprint: true } })]);
         if (!active.current || generation !== requestGeneration.current) return;
-        const grounds = groundsResponse.data as MyGround[];
+        const data = groundsResponse.data;
+        const grounds = Array.isArray(data) ? data : data.grounds;
+        setFootprint(Array.isArray(data) ? null : data.footprint);
         if (grounds.length || interestedResponse.data.length) historySeen.current = true;
         setError("");
         const ownedPhotos = recordedPhotoAttendance(grounds);
@@ -214,6 +220,13 @@ function InterestedTabContent() {
   const removePlanButton = (fixture: InterestedFixture) => <button type="button" disabled={updatingFixtureIds.includes(fixture.fixture_id)} onClick={() => { setRemovalError(""); setRemoval({ fixtureId: fixture.fixture_id, visitId: null, venueId: fixture.venue_id, name: `${fixture.home_team} vs ${fixture.away_team}` }); }} className="tt-action tt-action-secondary mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 px-3 text-xs"><HistoryActionIcon action="matchday"/>Remove Matchday</button>;
   const removeRecordedButton = (visit: PhotoAttendance) => <button type="button" onClick={() => { setRemovalError(""); setRemoval({ fixtureId: visit.fixture_id, visitId: visit.visit_id, venueId: visit.venue_id, name: visit.home_team && visit.away_team ? `${visit.home_team} vs ${visit.away_team}` : visit.venue_name }); }} className="tt-action tt-action-secondary mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 px-3 text-xs"><HistoryActionIcon action="matchday"/>Remove Matchday</button>;
 
+  const unlinkedAttendances = photoAttendances.filter(visit => !attendedFixtures.some(fixture => fixture.fixture_id === visit.fixture_id));
+  const seasonIds = footprint ? new Set(footprint.season_visit_ids) : null;
+  const visibleAttendance = period === "season" && seasonIds ? photoAttendances.filter(visit => seasonIds.has(visit.visit_id)) : photoAttendances;
+  const visibleFixtureIds = new Set(visibleAttendance.map(visit => visit.fixture_id));
+  const visibleAttended = period === "season" && seasonIds ? attendedFixtures.filter(fixture => visibleFixtureIds.has(fixture.fixture_id)) : attendedFixtures;
+  const visibleUnlinked = period === "season" && seasonIds ? unlinkedAttendances.filter(visit => seasonIds.has(visit.visit_id)) : unlinkedAttendances;
+
   const empty = !loading && upcomingFixtures.length === 0 && interestedFixtures.length === 0 && unresolvedFixtures.length === 0 && attendedFixtures.length === 0 && photoAttendances.length === 0;
   const linkFooter = (fixtureId: number) => <Link href={`/fixture/${fixtureId}`} className="tt-action inline-flex w-full min-w-0 items-center justify-center whitespace-nowrap px-1 text-center sm:px-2">View match →</Link>;
 
@@ -235,9 +248,8 @@ function InterestedTabContent() {
     return <div><div className="grid grid-cols-1 gap-2 sm:grid-cols-3">{eligible && <button type="button" disabled={updatingFixtureIds.includes(fixture.fixture_id)} onClick={() => void resolveCompletedFixture(fixture, true)} className="tt-action flex min-w-0 items-center justify-center px-3 text-center">Yes, I was there</button>}{removePlanButton(fixture)}<Link href={`/fixture/${fixture.fixture_id}`} className="tt-action tt-action-secondary flex min-w-0 items-center justify-center px-3 text-center">View match</Link></div></div>;
   };
   const sectionHeading = (section: "going" | "interested" | "awaiting" | "went", count: number) => <h2><button id={`${section}-heading`} type="button" aria-expanded={openSection === section} aria-controls={`${section}-content`} onClick={event => { if (openSection !== section) scrollExpandedHeading(event.currentTarget); setOpenSection(current => current === section ? null : section); }} className="tt-display flex min-h-14 w-full items-center justify-between py-3 text-left text-2xl text-[var(--brand-interactive)] focus-visible:outline-2 focus-visible:outline-offset-2"><span>{section === "awaiting" ? "DID YOU GO?" : section.toUpperCase()} ({count})</span><span aria-hidden="true">{openSection === section ? "−" : "+"}</span></button></h2>;
-  const unlinkedAttendances = photoAttendances.filter(visit => !attendedFixtures.some(fixture => fixture.fixture_id === visit.fixture_id));
-  return <><HistoryConfirmation open={removal !== null} title="Remove this matchday?" label="Remove Matchday" busy={removing} error={removalError}
-    description={`Remove ${removal?.name ?? "this matchday"} from My Matchdays${removal?.visitId !== null ? " and its attendance from My Grounds" : ""}? Any saved plan for this match is removed too. A ground leaves My Grounds only when no other matchdays or independent save remain. Your other matchdays and ratings are kept. Photos attached to removed attendance will stop being shared.`}
+  return <><HistoryConfirmation open={removal !== null} title="REMOVE MATCHDAY?" label="Remove Matchday" busy={removing} error={removalError}
+    description="Remove this matchday from your history?"
     onCancel={() => { if (!historyWrite.current) { setRemoval(null); setRemovalError(""); } }} onConfirm={() => void confirmRemoval()} /><main className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10">
     {historyNotice && <p role="status" className="mb-4 border-l-4 border-[var(--brand-interactive)] p-3 text-sm font-bold">{historyNotice}</p>}
     <header className="border-b-[3px] border-[var(--tt-ink)] pb-4"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My Matchdays</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">The occasions you&apos;re looking forward to and the matches you remember.</p><p className="mt-1 text-xs text-[var(--tt-muted)]">Times shown in your current timezone.</p></header>
@@ -250,7 +262,7 @@ function InterestedTabContent() {
     {!loading && <section className="border-b border-[var(--tt-rule)] mt-4" aria-labelledby="going-heading">{sectionHeading("going", upcomingFixtures.length)}<div id="going-content" hidden={openSection !== "going"} className="pb-4"><div className="mt-4 grid gap-4 md:grid-cols-2">{upcomingFixtures.map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="upcoming" footer={planFooter(fixture)} />)}</div>{!error && upcomingFixtures.length === 0 && <p className="text-sm">No matchdays in the diary yet. Find your next one.</p>}</div></section>}
     {!loading && <section className="border-b border-[var(--tt-rule)]" aria-labelledby="interested-heading">{sectionHeading("interested", interestedFixtures.length)}<div id="interested-content" hidden={openSection !== "interested"} className="pb-4"><div className="mt-4 grid gap-4 md:grid-cols-2">{interestedFixtures.map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="upcoming" footer={planFooter(fixture)} />)}</div>{!error && interestedFixtures.length === 0 && <p className="text-sm">Nothing on your radar yet. Find a match worth going to.</p>}</div></section>}
     {!loading && <section className="border-b border-[var(--tt-rule)]" aria-labelledby="awaiting-heading">{sectionHeading("awaiting", unresolvedFixtures.length)}<div id="awaiting-content" hidden={openSection !== "awaiting"} className="pb-4"><div className="mt-4 grid gap-4 md:grid-cols-2">{unresolvedFixtures.map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="answer" footer={answerFooter(fixture)} />)}</div>{!error && unresolvedFixtures.length === 0 && <p className="text-sm">Nothing to look back on just yet.</p>}</div></section>}
-    {!loading && <section className="border-b border-[var(--tt-rule)]" aria-labelledby="went-heading">{sectionHeading("went", attendedFixtures.length + unlinkedAttendances.length)}<div id="went-content" hidden={openSection !== "went"} className="pb-4"><div className="mt-5 grid gap-4 md:grid-cols-2">{attendedFixtures.map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="attended" footer={<>{linkFooter(fixture.fixture_id)}{photoAttendances.filter(visit => visit.fixture_id === fixture.fixture_id).map(visit => <div key={`visit-${visit.visit_id}`}>{removeRecordedButton(visit)}<TerracePhotoSubmission key={`${email}:${visit.visit_id}`} attendance={visit} /></div>)}</>} />)}</div><div className="mt-4 grid gap-4 md:grid-cols-2">{unlinkedAttendances.map(visit => <article key={visit.visit_id} className="tt-panel min-w-0 p-4"><h3 className="tt-display break-words text-2xl">{visit.venue_name}</h3><p className="mt-2 text-sm">Historical matchday &middot; {visit.match_date ? visit.match_date : "Date not recorded"}</p><div key={`visit-${visit.visit_id}`}>{removeRecordedButton(visit)}<TerracePhotoSubmission key={`${email}:${visit.visit_id}`} attendance={visit} /></div></article>)}</div>{!error && attendedFixtures.length === 0 && unlinkedAttendances.length === 0 && <p className="text-sm">Your matchday story starts here. Record a match you&apos;ve attended.</p>}</div></section>}
+    {!loading && <section className="border-b border-[var(--tt-rule)]" aria-labelledby="went-heading">{sectionHeading("went", visibleAttended.length + visibleUnlinked.length)}<div id="went-content" hidden={openSection !== "went"} className="pb-4"><div className="mt-3 flex gap-2" aria-label="Show attended matchdays from">{([{ key: "lifetime", label: "All Time" }, { key: "season", label: "This Season" }] as const).map(option => <button key={option.key} type="button" aria-pressed={period === option.key} onClick={() => setPeriod(option.key)} className="tt-action tt-action-secondary px-3 text-xs">{option.label}</button>)}</div>{period === "season" && !footprint && <p role="status" className="mt-2 text-xs">Season information is unavailable. Keeping your attendance visible.</p>}<div className="mt-5 grid gap-4 md:grid-cols-2">{visibleAttended.map((fixture) => <MatchdayCard key={fixture.fixture_id} fixture={fixture} venueName={fixture.venue_name} venueCity={fixture.venue_city} state="attended" footer={<>{linkFooter(fixture.fixture_id)}{photoAttendances.filter(visit => visit.fixture_id === fixture.fixture_id).map(visit => <div key={`visit-${visit.visit_id}`}>{removeRecordedButton(visit)}<TerracePhotoSubmission key={`${email}:${visit.visit_id}`} attendance={visit} /></div>)}</>} />)}</div><div className="mt-4 grid gap-4 md:grid-cols-2">{visibleUnlinked.map(visit => <article key={visit.visit_id} className="tt-panel min-w-0 p-4"><h3 className="tt-display break-words text-2xl">{visit.venue_name}</h3><p className="mt-2 text-sm">Historical matchday &middot; {visit.match_date ? visit.match_date : "Date not recorded"}</p><div key={`visit-${visit.visit_id}`}>{removeRecordedButton(visit)}<TerracePhotoSubmission key={`${email}:${visit.visit_id}`} attendance={visit} /></div></article>)}</div>{!error && visibleAttended.length === 0 && visibleUnlinked.length === 0 && <p className="text-sm">Your matchday story starts here. Record a match you&apos;ve attended.</p>}</div></section>}
     {empty && <section className="tt-panel mt-7 border-l-[8px] border-l-[var(--brand-interactive)] p-6"><p className="tt-kicker">Your matchday history starts here</p><p className="mt-2 max-w-xl text-sm leading-6 text-[var(--tt-muted)]">Shortlist a fixture, then come back after the match to remember the occasion.</p><Link href="/" className="tt-action mt-5 inline-flex items-center justify-center px-5">Find a match →</Link></section>}
   </main></>;
 }

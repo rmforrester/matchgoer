@@ -1,4 +1,6 @@
 /* Bundled only by the native entry; shared web navigation is untouched. */
+body{padding-top:var(--native-safe-top,env(safe-area-inset-top))!important}
+body::before{content:"";position:fixed;inset:0 0 auto;height:var(--native-safe-top,env(safe-area-inset-top));background:#F4F0E5;pointer-events:none;z-index:50}
 body{padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}
 .native-header{display:flex;justify-content:center;align-items:center;background:#F4F0E5;border-bottom:1px solid #174A32;padding:10px 16px}
 .native-header a{display:flex;align-items:center;min-height:32px}

@@ -414,13 +414,13 @@ function VisitedTabContent() {
     {reviewingId === ground.venue_id && passportReviewContext === context && renderReviewPanel(ground)}
   </>;
   const removeGroundButton = (ground: MyGround) => <button type="button" disabled={saving} onClick={() => void beginGroundRemoval(ground.venue_id)} className="tt-action tt-action-secondary inline-flex items-center justify-center gap-1"><HistoryActionIcon action="ground"/>Remove Ground</button>;
-  const renderVisitList = (ground: MyGround, context = `all-${ground.venue_id}`) => <><ul id={`ground-visits-${ground.venue_id}`} className="space-y-2">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-t border-[var(--tt-rule)] py-2"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{fixture ? knownDate(localCalendarDateValue(new Date(fixture.fixture_date))) : visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 flex flex-wrap items-center gap-1 text-sm font-bold"><TeamBadge src={fixture.home_team_badge_url} className="h-5 w-5"/>{fixture.home_team}<span className="font-normal">v</span><TeamBadge src={fixture.away_team_badge_url} className="h-5 w-5"/>{fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}<div className="passport-actions mt-2 grid gap-2">{visit.fixture_id !== null ? <>
+  const removeVisitButton = (ground: MyGround, visit: MyGround["visits"][number]) => <button type="button" disabled={saving} onClick={() => { setRemovalError(""); setRemoval({ kind: "matchday", venueId: ground.venue_id, visitId: visit.visit_id, fixtureId: visit.fixture_id, name: ground.venue_name }); }} className="tt-action tt-action-secondary inline-flex items-center justify-center gap-1"><HistoryActionIcon action="matchday"/>Remove Matchday</button>;
+  const renderVisitList = (ground: MyGround) => <><ul id={`ground-visits-${ground.venue_id}`} className="space-y-2">{ground.visits.map((visit) => { const fixture = ground.attended_fixtures.find((item) => item.fixture_id === visit.fixture_id); return <li key={visit.visit_id} className="border-t border-[var(--tt-rule)] py-2"><p className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{fixture ? knownDate(localCalendarDateValue(new Date(fixture.fixture_date))) : visit.visit_date ? knownDate(visit.visit_date) : "Date not recorded"}</p>{fixture && <><p className="mt-1 flex flex-wrap items-center gap-1 text-sm font-bold"><TeamBadge src={fixture.home_team_badge_url} className="h-5 w-5"/>{fixture.home_team}<span className="font-normal">v</span><TeamBadge src={fixture.away_team_badge_url} className="h-5 w-5"/>{fixture.away_team}</p><p className="mt-1 text-sm text-[var(--tt-muted)]">{fixture.league_name}</p></>}<div className="passport-actions mt-2 grid gap-2">{visit.fixture_id !== null ? <>
         <Link href={`/fixture/${visit.fixture_id}`} className="tt-action inline-flex min-h-11 items-center justify-center px-3 text-xs">VIEW MATCH</Link>
         {editingVisitId !== visit.visit_id && <button type="button" disabled={saving} onClick={() => editVisit(ground.venue_id, visit.visit_id)} className="tt-action tt-action-secondary inline-flex min-h-11 items-center justify-center gap-2 px-3 text-xs"><HistoryActionIcon action="change"/>Change Match</button>}
       </> : editingVisitId !== visit.visit_id && <button type="button" onClick={() => editVisit(ground.venue_id, visit.visit_id)} className="tt-action tt-action-secondary inline-flex min-h-11 items-center justify-center gap-2 px-3 text-xs"><HistoryActionIcon action="change"/>Change Match</button>}
-      {renderPassportRating(ground, `${context}-${visit.visit_id}`)}
-      <div className="passport-removals">      <button type="button" disabled={saving} onClick={() => { setRemovalError(""); setRemoval({ kind: "matchday", venueId: ground.venue_id, visitId: visit.visit_id, fixtureId: visit.fixture_id, name: fixture ? `${fixture.home_team} vs ${fixture.away_team}` : ground.venue_name }); }} className="tt-action tt-action-secondary inline-flex items-center justify-center gap-1"><HistoryActionIcon action="matchday"/>Remove Matchday</button>
-{removeGroundButton(ground)}</div>
+      <div className="passport-removals">      {ground.visits.length > 1 && removeVisitButton(ground, visit)}
+</div>
       </div>{editingVisitId === visit.visit_id && <div className="mt-3">
         <h3 className="tt-kicker">{visit.fixture_id === null ? "EDIT VISIT" : "CHANGE MATCH"}</h3>
         <p className="mt-2 text-xs text-[var(--tt-muted)]">Changing the match keeps this matchday record. Photos attached to the old match will be unlinked.</p>
@@ -438,21 +438,23 @@ function VisitedTabContent() {
           <button type="button" disabled={saving} onClick={() => { setReplacementGround(null); setEditingVisitId(null); matchSearch.current += 1; setFindingMatches(false); setMatchLookupFailed(false); setPastMatchDate(""); setFixtureCandidates([]); setSelectedFixtureId(null); }} className="min-h-11 px-2 text-sm underline">Cancel</button>
         </div>
         {visit.fixture_id === null && visit.visit_date && <button type="button" disabled={saving} onClick={() => void updateManualDate(ground, visit.visit_id, "")} className="mt-2 min-h-11 text-xs font-bold uppercase text-[var(--tt-muted)] underline">Remove date</button>}
-      </div>}</li>; })}</ul>{ground.visits.length === 0 && <div className="passport-actions">{renderPassportRating(ground, `${context}-saved`)}{removeGroundButton(ground)}</div>}<p className="mt-2 text-xs leading-relaxed text-[var(--tt-muted)]">Removing the ground will also remove all {grounds.find(item => item.venue_id === ground.venue_id)?.visits.length ?? ground.visits.length} associated matchdays from My Matchdays.</p></>;
+      </div>}</li>; })}</ul><p className="mt-2 text-xs leading-relaxed text-[var(--tt-muted)]">Removing the ground will also remove all {grounds.find(item => item.venue_id === ground.venue_id)?.visits.length ?? ground.visits.length} associated matchdays from My Matchdays.</p></>;
 
-  const renderFootprintVisits = (projected: MyGround, context: string) => {
+  const renderGroundActions = (ground: MyGround, context: string) => <div className="passport-actions">{renderPassportRating(grounds.find(item => item.venue_id === ground.venue_id) ?? ground, context)}<div className="passport-removals mb-2">{ground.visits.length === 1 ? removeVisitButton(ground, ground.visits[0]) : <span/>}{removeGroundButton(ground)}</div></div>;
+
+  const renderFootprintVisits = (projected: MyGround) => {
     // Use only original, owned records represented by this season projection.
     const owned = grounds.find(item => item.venue_id === projected.venue_id);
     if (!owned) return null;
     const ids = new Set(projected.visits.map(visit => visit.visit_id));
-    return renderVisitList({ ...owned, visits: owned.visits.filter(visit => ids.has(visit.visit_id)) }, context);
+    return renderVisitList({ ...owned, visits: owned.visits.filter(visit => ids.has(visit.visit_id)) });
   };
 
   const renderGround = (ground: MyGround, nested: boolean) => <article key={ground.venue_id} className={`${nested ? "flex min-w-0 flex-col py-4" : "tt-panel flex min-w-0 flex-col p-4"} ${reviewingId === ground.venue_id ? "sm:col-span-2" : ""}`}>
       <h2 className="tt-display break-words text-[1.7rem] leading-[0.94]">{ground.venue_name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--tt-muted)]">{[ground.venue_city, ground.venue_country].filter(Boolean).join(" · ")}</p>
       <p className="mt-3 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--brand-interactive)]">{ground.visit_count} {ground.visit_count === 1 ? "matchday" : "matchdays"}</p>
       <p className="mt-1 text-sm text-[var(--tt-muted)]">{ground.latest_visit_date ? `Last visited · ${knownDate(ground.latest_visit_date)}` : "Date not recorded"}</p>
-      {Number(requestedReview) !== ground.venue_id && expandedId !== ground.venue_id && renderPersonalReview(ground, true)}
+      {renderGroundActions(ground, `all-${ground.venue_id}`)}
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Link href={`/venue/${ground.venue_id}`} className="tt-action inline-flex min-w-0 items-center justify-center whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">View ground →</Link>
         <button type="button" aria-expanded={expandedId === ground.venue_id} aria-controls={`ground-visits-${ground.venue_id}`} onClick={event => { if (expandedId !== ground.venue_id) scrollExpandedHeading(event.currentTarget); setExpandedId(expandedId === ground.venue_id ? null : ground.venue_id); }} className="tt-action tt-action-secondary min-w-0 whitespace-nowrap px-1 text-center text-[0.68rem]! tracking-[0.04em]! sm:text-xs! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-interactive)]">{expandedId === ground.venue_id ? "Hide visits" : "Visit details"}</button>
@@ -480,8 +482,8 @@ function VisitedTabContent() {
     </div>
   </section>;
 
-  return <><HistoryConfirmation open={removal !== null} title={removal?.kind === "ground" ? `Remove ${removal.name}?` : "Remove this matchday?"} label={removal?.kind === "ground" ? "Remove Ground" : "Remove Matchday"} busy={saving} error={removalError}
-    description={removal?.kind === "ground" ? `Remove ${removal.name} from My Grounds? This will also remove ${removal.count} ${removal.count === 1 ? "matchday" : "matchdays"} from My Matchdays, including any saved plans for those matches. Your ratings and other Interested fixtures are kept. Photos attached to removed matchdays will stop being shared.` : `Remove ${removal?.name ?? "this matchday"} from My Grounds and My Matchdays? Any saved plan for this match is removed too. Other matchdays and independently saved grounds are kept. Photos attached to this matchday will stop being shared.`}
+  return <><HistoryConfirmation open={removal !== null} title={removal?.kind === "ground" ? `Remove ${removal.name}?` : "REMOVE MATCHDAY?"} label={removal?.kind === "ground" ? "Remove Ground" : "Remove Matchday"} busy={saving} error={removalError}
+    description={removal?.kind === "ground" ? `Remove ${removal.name} from My Grounds? This will also remove ${removal.count} ${removal.count === 1 ? "matchday" : "matchdays"} from My Matchdays, including any saved plans for those matches. Your ratings and other Interested fixtures are kept. Photos attached to removed matchdays will stop being shared.` : "Remove this matchday from your history?"}
     onCancel={() => { setRemoval(null); setRemovalError(""); }} onConfirm={() => void confirmRemoval()} /><main className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
     {historyNotice && <p role="status" className="mb-4 border-l-4 border-[var(--brand-interactive)] p-3 text-sm font-bold">{historyNotice}</p>}
     <header className="border-b-2 border-[var(--tt-ink)] pb-3"><h1 className="tt-display text-4xl leading-none sm:text-5xl">My grounds</h1><p className="mt-2 text-sm text-[var(--tt-muted)]">Football takes you places.</p></header>
@@ -521,7 +523,7 @@ function VisitedTabContent() {
               <span className="flex items-start justify-between gap-3"><span className="tt-display min-w-0 break-words text-2xl leading-none text-[var(--brand-interactive)]">{country.name}</span><span aria-hidden="true" className="shrink-0 text-[var(--brand-interactive)]">{isOpen ? "⌃" : "⌄"}</span></span>
               <span className="mt-2 block text-xs font-extrabold uppercase tracking-[0.04em]">{country.groundCount} {country.groundCount === 1 ? "ground" : "grounds"} · {country.matchdayCount} {country.matchdayCount === 1 ? "matchday" : "matchdays"}</span>
             </button></h3>
-            {isOpen && <div id={panelId} className="mx-3 border-t border-[var(--tt-rule)] divide-y divide-[var(--tt-rule)]">{<FootprintLeagues key={`${country.key}-${timeframe}`} grounds={visibleGrounds.filter((ground) => footballCountry(ground.venue_country)?.key === country.key)} footprint={footprint} period={timeframe} renderVisits={renderFootprintVisits} />}</div>}
+            {isOpen && <div id={panelId} className="mx-3 border-t border-[var(--tt-rule)] divide-y divide-[var(--tt-rule)]">{<FootprintLeagues key={`${country.key}-${timeframe}`} grounds={visibleGrounds.filter((ground) => footballCountry(ground.venue_country)?.key === country.key)} footprint={footprint} period={timeframe} renderVisits={renderFootprintVisits} renderGroundActions={renderGroundActions} />}</div>}
           </li>;
         })}
       </ul>

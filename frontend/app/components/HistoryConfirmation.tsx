@@ -36,7 +36,7 @@ export default function HistoryConfirmation({ open, title, description, label, b
     <h2 id={`${id}-title`} className="tt-display text-center text-3xl">{title}</h2>
     <p id={`${id}-description`} className="mt-3 text-center text-sm leading-relaxed">{description}</p>
     {error && <p role="alert" className="mt-3 text-sm font-bold text-red-800">{error}</p>}
-    <div className="mt-5 grid gap-2">
+    <div className="mt-5 grid grid-cols-2 gap-2">
       <button autoFocus type="button" disabled={busy} onClick={onCancel} className="tt-action tt-action-secondary min-h-11 px-3">Cancel</button>
       <button type="button" disabled={busy} aria-busy={busy} onClick={onConfirm} className="tt-action tt-action-danger inline-flex min-h-11 items-center justify-center gap-2 px-3"><HistoryActionIcon action={label === "Remove Ground" ? "ground" : "matchday"}/>{busy ? "Removing..." : label}</button>
     </div>

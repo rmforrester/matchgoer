@@ -1,6 +1,7 @@
 import type { MyGround } from "../app/types/grounds.ts";
 
 export type TerracePhoto = {
+  can_delete?: boolean;
   submission_key?: string;
   matchday_photo_count?: number;
   photo_id: number; venue_id: number; venue_name?: string | null; image_state?: "available" | "unavailable"; fixture_id: number | null;
