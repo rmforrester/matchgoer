@@ -1,15 +1,14 @@
 {
-  "source_commit": "ced94da27309751a464abaac6b2329bf79a27485",
+  "source_commit": "18fb1891ef90e4073624f741505e7e033173c06e",
   "version": "0.1.0",
-  "build": "12",
+  "build": "13",
   "bundle_id": "com.matchgoer.app",
-  "archive_sha256": "99ed404548dfbced22eb414ebe8839c16cc08ba23880cc306b5dfe52178c81ed",
-  "archive_bytes": 2213267,
+  "archive_sha256": "cc8131b27b744ac1c1b62a1aceb30ccdb2fea00bcfb82978d5af978cf8ebac90",
+  "archive_bytes": 2206251,
   "prior_build11_archive_sha256": "a7f0e5d0d87e8e66cc8ba252e23d6e8c55ba0c4c107c7a5499b2be535f4accf9",
   "shell_identity_permissions_entitlements_swift_and_plugins_unchanged": true,
   "changed_entries": [
     "ios/App/App/public/app.css",
-    "ios/App/App/public/brand/matchgoer-wordmark-primary.svg",
     "ios/App/App/public/bundle.css",
     "ios/App/App/public/bundle.js"
   ],
@@ -21,6 +20,11 @@
     "analytics": false
   },
   "required_ux_labels": [
+    "TODAY",
+    "TOMORROW",
+    "Delete photo",
+    "Apple Maps",
+    "Google Maps",
     "Save your visit",
     "Change Match",
     "Remove Matchday",
@@ -119,7 +123,7 @@
     },
     {
       "path": "ios/App/App/public/app.css",
-      "sha256": "b92faa2f7412477d4d18d8990d4b31d563be9ffba382eb002b5f6dc02f53c202"
+      "sha256": "2be40d574ebf8c55acebcc5470b3a662a92746d40be289e05c2c20ed780e09db"
     },
     {
       "path": "ios/App/App/public/apple-signin-logo.png",
@@ -147,15 +151,15 @@
     },
     {
       "path": "ios/App/App/public/brand/matchgoer-wordmark-primary.svg",
-      "sha256": "cfe13557435b9f4ac0f7d86997e52f26fe9696886b1625f985acf62952e8af02"
+      "sha256": "7297449a5aacfc0068acdd2216a30f677a17f7771191074bdf599017bfb83f43"
     },
     {
       "path": "ios/App/App/public/bundle.css",
-      "sha256": "cd4b4ab2e679ab928cc1a406d329fedcfa3dcf6a1e8b7fd1ce348683fa76c733"
+      "sha256": "cafe75a062dad06af626ad5ba11072dda3e363c9ffb81c5ed5319024691dd414"
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "165300b3f0688ed9376ee710eab1436ec0a82b8ce86cf38ae644c41ad6f7ca92"
+      "sha256": "f4f94d4ed318ccda4f687c73a1bce548a9fa9c3e6f6d4716e5f1f0237f80b3b7"
     },
     {
       "path": "ios/App/App/public/cordova.js",
