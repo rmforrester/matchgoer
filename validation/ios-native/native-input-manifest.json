@@ -1,10 +1,10 @@
 {
-  "source_commit": "18fb1891ef90e4073624f741505e7e033173c06e",
+  "source_commit": "29d5da7eae441202355f878f54efd4e1285db340",
   "version": "0.1.0",
-  "build": "13",
+  "build": "14",
   "bundle_id": "com.matchgoer.app",
-  "archive_sha256": "cc8131b27b744ac1c1b62a1aceb30ccdb2fea00bcfb82978d5af978cf8ebac90",
-  "archive_bytes": 2206251,
+  "archive_sha256": "23ebda2d993a0d7c02c59d35a5beaeeeffc0027315e0612e3d63012e8db0c86b",
+  "archive_bytes": 2206336,
   "prior_build11_archive_sha256": "a7f0e5d0d87e8e66cc8ba252e23d6e8c55ba0c4c107c7a5499b2be535f4accf9",
   "shell_identity_permissions_entitlements_swift_and_plugins_unchanged": true,
   "changed_entries": [
@@ -123,7 +123,7 @@
     },
     {
       "path": "ios/App/App/public/app.css",
-      "sha256": "2be40d574ebf8c55acebcc5470b3a662a92746d40be289e05c2c20ed780e09db"
+      "sha256": "fe3cc37643b5935711d099b3985066e237240e3e31c88c8f81adc3c6f8ca7320"
     },
     {
       "path": "ios/App/App/public/apple-signin-logo.png",
@@ -159,7 +159,7 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "f4f94d4ed318ccda4f687c73a1bce548a9fa9c3e6f6d4716e5f1f0237f80b3b7"
+      "sha256": "35d5f7d91739d68530962f68daa944edcabfaf393f1a28f3accb2efd3ab32c30"
     },
     {
       "path": "ios/App/App/public/cordova.js",
