@@ -150,7 +150,11 @@ def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
     proof = context.get("event_proofs", {}).get(key)
     fallback = False
     try:
-        # Club home-ground reviews alone do not establish this event venue.
+        # Only scoped, independently verified routine-league attestations qualify.
+        # Never replace an established event binding or bypass a venue policy.
+        if proof is None and old is None and decision is None:
+            proof = reviewed_home_proof(item, context.get("home_ground_reviews", ()))
+            fallback = proof is not None
         if raw.get("id") is None and not raw.get("name") and proof is None:
             return checked(old, "MISSING")
         vid, location = resolve_event_venue(raw, scope,

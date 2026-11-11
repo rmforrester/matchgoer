@@ -890,6 +890,8 @@ def plan_fixture_discovery(connection, payloads, start, end, *, max_candidates=5
                     from ingestion.discovery_venues import resolve_event_venue, reviewed_home_proof
                     proof_key = (fid, *scope_key, teams['home']['id'], teams['away']['id'], kickoff.isoformat())
                     proof = (event_proofs or {}).get(proof_key)
+                    if proof is None and fid not in fixture_verifications:
+                        proof = reviewed_home_proof(item, getattr(scopes[scope_key], 'home_ground_reviews', ()))
                     vid, location = resolve_event_venue(event, scopes[scope_key], venues, refs, aliases, proof)
                     venue = venues.get(vid, {})
                 else:
@@ -945,7 +947,7 @@ def plan_fixture_discovery(connection, payloads, start, end, *, max_candidates=5
             except ValueError as error:
                 # A location-only failure must not discard a valid event identity.
                 # Keep provider labels, withhold its ground, and retry normally.
-                if str(error) not in {'VENUE_COUNTRY_CONFLICT', 'VENUE_CITY_CONFLICT', 'VENUE_NAME_CONFLICT', 'VENUE_EQUIVALENCE_REVIEW', 'VENUE_GEOGRAPHIC_CONFLICT', 'UNKNOWN_CANONICAL_VENUE', 'AMBIGUOUS_EVENT_VENUE', 'AMBIGUOUS_OR_UNKNOWN_VENUE', 'INVALID_PROVIDER_VENUE_ID', 'VENUE_LOCALITY_CONFLICT', 'REVIEWED_EVENT_VENUE_CONFLICT'}:
+                if str(error) not in {'VENUE_COUNTRY_CONFLICT', 'VENUE_CITY_CONFLICT', 'VENUE_NAME_CONFLICT', 'VENUE_EQUIVALENCE_REVIEW', 'VENUE_GEOGRAPHIC_CONFLICT', 'UNKNOWN_CANONICAL_VENUE', 'AMBIGUOUS_EVENT_VENUE', 'AMBIGUOUS_REVIEWED_HOME_GROUND', 'AMBIGUOUS_OR_UNKNOWN_VENUE', 'INVALID_PROVIDER_VENUE_ID', 'VENUE_LOCALITY_CONFLICT', 'REVIEWED_EVENT_VENUE_CONFLICT'}:
                     raise
                 vid, venue, location = None, {}, 'UNRESOLVED_' + str(error)
             verification = fixture_verifications.get(fid)

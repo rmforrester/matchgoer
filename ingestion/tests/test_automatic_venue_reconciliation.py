@@ -74,13 +74,27 @@ class AutomaticVenueTests(unittest.TestCase):
         proof=dict(home_team_id=505,league_id=135,season=2026,venue_id=23100,competition_type='league',no_venue_exceptions=True,
             valid_from='2026-08-01',valid_until='2027-05-31',review_status='VERIFIED_CURRENT_HOME',source='https://www.inter.it/verified-home')
         self.assertEqual(reviewed_home_proof(p,[proof]),proof)
-        rc=dict(home_ground_reviews=[proof]);self.assertEqual(refresh.resolve_venue(row(),p,*context(),rc),(None,'MISSING'))
+        rc=dict(home_ground_reviews=[proof]);self.assertEqual(refresh.resolve_venue(row(),p,*context(),rc),(23100,'MATCHED_HOME_REVIEW'))
         # Existing verified event venue is never replaced by a home fallback.
         self.assertEqual(refresh.resolve_venue(row(99),p,*context(),rc),(99,'MISSING'))
         for key,value in [('round','Play-offs'),('round','Final'),('round','Round of 16')]:
             bad=copy.deepcopy(p);bad['league'][key]=value;self.assertIsNone(reviewed_home_proof(bad,[proof]))
         for change in [dict(no_venue_exceptions=False),dict(valid_until='2026-11-01'),dict(source=''),dict(competition_type='cup')]:
             self.assertIsNone(reviewed_home_proof(p,[dict(proof,**change)]))
+    def test_home_fallback_rejects_venue_policy_conflict_and_locality(self):
+        p=item();p['league'].update(id=135,round='Regular Season - 9')
+        proof=dict(home_team_id=505,league_id=135,season=2026,venue_id=23100,competition_type='league',no_venue_exceptions=True,
+            valid_from='2026-08-01',valid_until='2027-05-31',review_status='VERIFIED_CURRENT_HOME',source='https://www.inter.it/verified-home')
+        rc=dict(home_ground_reviews=[proof],fixture_verifications={1639884:dict(state='DISPUTED',identity=dict(fixture_id=1639884,league_id=137,season=2026,home_team_id=505,away_team_id=495))})
+        self.assertEqual(refresh.resolve_venue(row(),p,*context(),rc),(None,'MISSING'))
+        rc.pop('fixture_verifications');p['fixture']['venue']=dict(id=None,name=None,city='Rome')
+        self.assertEqual(refresh.resolve_venue(row(),p,*context(),rc),(None,'DISPUTED'))
+        p['fixture']['venue']=dict(id=909,name='Alternative Ground',city='Milano')
+        self.assertEqual(refresh.resolve_venue(row(),p,*context(),rc),(99,'MATCHED'))
+        p['fixture']['venue']=None
+        for change in [dict(no_venue_exceptions=False),dict(valid_until='2026-11-01'),dict(source=''),dict(competition_type='cup')]:
+            self.assertEqual(refresh.resolve_venue(row(),p,*context(),dict(home_ground_reviews=[dict(proof,**change)])),(None,'MISSING'))
+
     def test_official_event_proof_is_an_exact_preimage_not_generic_home_fallback(self):
         p=item();key=(1639884,137,2026,505,495,KICKOFF.isoformat());rc=dict(event_proofs={key:dict(venue_id=23100,source='https://www.inter.it/official-event')})
         self.assertEqual(refresh.resolve_venue(row(),p,*context(),rc),(23100,'MATCHED'))
@@ -92,7 +106,7 @@ class AutomaticVenueTests(unittest.TestCase):
         proof=dict(home_team_id=505,league_id=135,season=2026,venue_id=23100,competition_type='league',no_venue_exceptions=True,
             valid_from='2026-08-01',valid_until='2027-05-31',review_status='VERIFIED_CURRENT_HOME',source='https://www.inter.it/verified-home')
         m,v=refresh.classify_candidate(r,[p],(*context(),dict(home_ground_reviews=[proof,dict(proof,venue_id=99)])))
-        self.assertEqual(m['venue_mapping'],'MISSING');self.assertEqual(m['classification'],'WOULD_UPDATE_RESCHEDULED');self.assertIsNone(v['venue_id'])
+        self.assertEqual(m['venue_mapping'],'AMBIGUOUS');self.assertEqual(m['classification'],'WOULD_UPDATE_RESCHEDULED');self.assertIsNone(v['venue_id'])
 
 class NightlyVenueIntegrationTests(unittest.TestCase):
     def setUp(self):
@@ -141,6 +155,22 @@ class NightlyVenueIntegrationTests(unittest.TestCase):
     def test_mapping_preimage_drift_refuses_fixture_update(self):
         before=self.state();code,result=self.run_nightly(item(dict(id=907,name='San Siro',city='Milano')),mapping_change=True)
         self.assertEqual(code,1);self.assertFalse(result['commit_confirmed']);self.assertEqual(self.state(),before)
+    def test_scoped_home_fallback_through_nightly_writer(self):
+        from ingestion.global_discovery import load_registry
+        reg=load_registry()
+        proof=dict(home_team_id=505,league_id=135,season=2026,venue_id=23100,competition_type='league',no_venue_exceptions=True,
+            valid_from='2026-08-01',valid_until='2027-05-31',review_status='VERIFIED_CURRENT_HOME',source='https://www.inter.it/verified-home')
+        reg['home_ground_reviews']=[proof]
+        with self.engine.begin() as c:c.execute(text('UPDATE fixtures SET league_id=135'))
+        p=item();p['league'].update(id=135,round='Regular Season - 9')
+        with patch('ingestion.global_discovery.load_registry',return_value=reg):
+            code,result=self.run_nightly(p)
+            self.assertEqual(code,0,result);self.assertEqual(self.state()['venue_id'],23100)
+            self.assertEqual(result['venue_reconciliation']['mapping_counts'].get('MATCHED_HOME_REVIEW'),1)
+            code,second=self.run_nightly(p)
+            self.assertEqual(code,0,second);self.assertEqual(second['proposed_fixture_rows_changed'],0)
+        with self.engine.connect() as c:self.assertEqual(c.execute(text('SELECT * FROM supporter_fixture_links')).all(),[(7,1639884)])
+
     def test_discovery_uses_same_scoped_home_proof_and_excludes_cup_round(self):
         from ingestion.global_discovery import DiscoveryScope
         from ingestion.pipeline import plan_fixture_discovery
@@ -150,10 +180,24 @@ class NightlyVenueIntegrationTests(unittest.TestCase):
         p=item();p['fixture'].update(id=1639885,date='2026-12-04T17:00:00+00:00');p['league'].update(id=135,round='Regular Season - 9')
         with self.engine.connect() as c:
             plan=plan_fixture_discovery(c,{(135,2026):[p]},datetime(2026,12,1,tzinfo=timezone.utc),datetime(2026,12,5,tzinfo=timezone.utc),approved_scopes=(scope,))
-            self.assertIsNone(plan['rows'][0]['venue_id'])
+            self.assertEqual(plan['rows'][0]['venue_id'],23100)
             p['league']['round']='Play-offs'
             plan=plan_fixture_discovery(c,{(135,2026):[p]},datetime(2026,12,1,tzinfo=timezone.utc),datetime(2026,12,5,tzinfo=timezone.utc),approved_scopes=(scope,))
             self.assertIsNone(plan['rows'][0]['venue_id'])
+            p['league']['round']='Regular Season - 9'
+            from dataclasses import replace
+            for reviews in [(dict(proof,no_venue_exceptions=False),),(dict(proof,valid_until='2026-11-01'),),(proof,dict(proof,venue_id=99))]:
+                blocked=replace(scope,home_ground_reviews=reviews)
+                plan=plan_fixture_discovery(c,{(135,2026):[p]},datetime(2026,12,1,tzinfo=timezone.utc),datetime(2026,12,5,tzinfo=timezone.utc),approved_scopes=(blocked,))
+                self.assertEqual(len(plan['rows']),1,plan);self.assertIsNone(plan['rows'][0]['venue_id'])
+        from ingestion.pipeline import run_fixture_discovery
+        p['league']['round']='Regular Season - 9'
+        client=Client();client.fixtures_between=lambda *args: [p]
+        result=run_fixture_discovery(self.engine,client,datetime(2026,12,3).date(),write=True,approved_scopes=(scope,))
+        self.assertTrue(result['passed'],result);self.assertEqual(result['inserted'],1)
+        with self.engine.connect() as c:self.assertEqual(c.execute(text('SELECT venue_id FROM fixtures WHERE fixture_id=1639885')).scalar_one(),23100)
+        second=run_fixture_discovery(self.engine,client,datetime(2026,12,3).date(),write=True,approved_scopes=(scope,))
+        self.assertTrue(second['passed'],second);self.assertEqual(second['inserted'],0)
 
 @unittest.skipUnless(os.getenv('MATCHGOER_LOCAL_POSTGRES_TEST')=='TRUE','Explicit fixed loopback PostgreSQL opt-in required')
 class NightlyVenuePostgresTests(NightlyVenueIntegrationTests):
