@@ -11753,6 +11753,29 @@
         "Roschino"
       ],
       "source": "https://fc-leningradec.ru/roshhino-arena/"
+    },
+    {
+      "venue_id": 23667,
+      "names": [
+        "Stade Jean Dasnias",
+        "Stade Jean-Dasnias"
+      ],
+      "localities": [
+        "Dieppe",
+        "Saint-Aubin-sur-Scie"
+      ],
+      "source": "https://media.fff.fr/uploads/documents/pv-cfcnsm-180925-vdef.pdf"
+    },
+    {
+      "venue_id": 23664,
+      "names": [
+        "Stade Didier Eloy",
+        "Complexe Sportif Didier Eloy"
+      ],
+      "localities": [
+        "Feignies"
+      ],
+      "source": "https://aulnoye-aymeries.fr/event/football-regionale-1-entente-feignie-aulnoye-fc-2-avion-cs/"
     }
   ],
   "team_reviews": [
@@ -11829,6 +11852,512 @@
       "venue_name": "Stade Michel Farr\u00e9",
       "city": "Mondeville",
       "source": "https://www.ville-verson.fr/agenda/coupe-de-france-as-verson-rc-calais/"
+    }
+  ],
+  "home_ground_reviews": [
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3009,
+      "venue_id": 24269,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.andrezieuxboutheonfc.com/envol-stadium/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3011,
+      "venue_id": 24252,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://acfcfootball.net/wp-content/uploads/2026/02/PLAQUETTE-PARTENAIRES-26-27-WEB.pdf",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 1303,
+      "venue_id": 24250,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://us-avranches.fr/lieu/stade-rene-fenouillere/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 10166,
+      "venue_id": 24265,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://footpyr64.fff.fr/wp-content/uploads/sites/25/bsk-pdf-manager/2b8c77e004ca1b4a29cc91290fac98d7.pdf",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 3025,
+      "venue_id": 23659,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.usc.fr/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3030,
+      "venue_id": 24271,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://canet-foot.fr/le-club/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 3162,
+      "venue_id": 23663,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.us-chantilly.com/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 9254,
+      "venue_id": 24279,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.goalfc.fr/national-2/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 107,
+      "venue_id": 24267,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.chateauroux-metropole.fr/fileadmin/medias/Les_institutions/Ville_de_Chateauroux/Conseil_municipal/2023/01-2023-269.pdf",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3037,
+      "venue_id": 24253,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.fcchauray.fr/stade",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 9272,
+      "venue_id": 24263,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.voltigeurs.fr/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 13583,
+      "venue_id": 23669,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://sr-colmar.fr/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 1307,
+      "venue_id": 23656,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.usc.fr/le-club",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 9274,
+      "venue_id": 23667,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://media.fff.fr/uploads/documents/pv-cfcnsm-180925-vdef.pdf",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 9275,
+      "venue_id": 24264,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.dinan.fr/fiche-annuaire/dinan-lehon-football-club-2/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 3176,
+      "venue_id": 23664,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://aulnoye-aymeries.fr/event/football-regionale-1-entente-feignie-aulnoye-fc-2-avion-cs/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3051,
+      "venue_id": 24272,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://etoilefc.fr/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 3181,
+      "venue_id": 23665,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.frhaguenau.fr/equipe-1",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3185,
+      "venue_id": 24257,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://usgranville.fr/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 3058,
+      "venue_id": 23660,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.frhaguenau.fr/installation",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3187,
+      "venue_id": 24276,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.hautslyonnais.footeo.com/actualite.html",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3061,
+      "venue_id": 24273,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://media.fff.fr/uploads/documents/pv-02-classement-installation-et-eclairage-du-28-08-2025.pdf",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3267,
+      "venue_id": 24277,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.sports.gouv.fr/complexe-sportif-parsemain",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 20601,
+      "venue_id": 23670,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.frhaguenau.fr/equipe-1",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3068,
+      "venue_id": 24254,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.lepoiresurvie-vendee-football.com/club-2/infrastructure/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 1308,
+      "venue_id": 24251,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://us-avranches.fr/lieu/stade-massabielle/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 1295,
+      "venue_id": 24268,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.lyonladuchere.fr/le-club/terrain/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 9293,
+      "venue_id": 23668,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://fcmontlouis.footeo.com/sport-facilities",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 92,
+      "venue_id": 24266,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://billetterie.nimesolympiqueensemble.fr/fr/calendrier",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3098,
+      "venue_id": 24255,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.gsipontivy.com/stade-du-faubourg-de-verdun/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 9973,
+      "venue_id": 24281,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.gfa74.fr/infrastructures/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3224,
+      "venue_id": 24258,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://saintcolomban-locmine.fr/rencontre/rencontres-du-3-4-octobre/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3108,
+      "venue_id": 24256,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.ussm.fr/actualites/18566-carte-cashless.html",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3296,
+      "venue_id": 24278,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://app.francefootball.fr//fiche/club/saint-priest/420",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3225,
+      "venue_id": 24259,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://olympiquesaumur.fr/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 3115,
+      "venue_id": 23661,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.frhaguenau.fr/equipe-1",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 67,
+      "season": 2026,
+      "home_team_id": 3117,
+      "venue_id": 23662,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.saintpryvefoot.fr/installations/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3229,
+      "venue_id": 24260,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.stadebriochin.com/",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3125,
+      "venue_id": 24275,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.sctoulon.fr/wp-content/uploads/2017/03/Fiche-dinscription-pour-les-stages-vacances-du-SCT.pdf",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 9926,
+      "venue_id": 27837,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.uft.club/post/l-uft-r%C3%A9pond-%C3%A0-vos-questions",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 68,
+      "season": 2026,
+      "home_team_id": 3235,
+      "venue_id": 24261,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.nrpyrenees.fr/2026/08/28/football-national-1-malgre-la-secheresse-la-pelouse-de-trelut-est-prete-pour-louverture-de-saison-du-tarbes-pf-grace-a-une-equipe-municipale-devouee-13527087.php",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
+    },
+    {
+      "league_id": 69,
+      "season": 2026,
+      "home_team_id": 3071,
+      "venue_id": 24274,
+      "review_status": "VERIFIED_CURRENT_HOME",
+      "competition_type": "league",
+      "no_venue_exceptions": true,
+      "source": "https://www.limonest.fr/app/uploads/2025/03/web-Gazette-152-mars-2025.pdf",
+      "valid_from": "2026-11-11",
+      "valid_until": "2027-05-29"
     }
   ]
 }

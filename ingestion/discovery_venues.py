@@ -15,7 +15,11 @@ def reviewed_home_proof(item, reviews):
     event=raw.get('venue') or {}
     if event.get('id') is not None or event.get('name'):
         return None
-    if not re.fullmatch(r'Regular Season - [0-9]+',str(league.get('round','')),re.I):
+    round_name=str(league.get('round',''))
+    regular=bool(re.fullmatch(r'Regular Season - [0-9]+',round_name,re.I))
+    # Founder-reviewed National 2 scopes only; no cup/playoff/neutral-stage widening.
+    group={67:'A',68:'B',69:'C'}.get(league.get('id')) if league.get('season')==2026 else None
+    if not regular and not (group and re.fullmatch(r'Group '+group+r' - [1-9][0-9]*',round_name)):
         return None
     kickoff=date.fromisoformat(raw['date'][:10])
     home=((item.get('teams') or {}).get('home') or {}).get('id')
