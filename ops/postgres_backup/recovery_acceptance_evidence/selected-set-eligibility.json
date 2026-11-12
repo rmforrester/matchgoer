@@ -1,0 +1,22 @@
+{
+  "classification": "ELIGIBLE_FOR_FOUNDER_ISOLATED_RESTORE_VALIDATION",
+  "scope": "Only the selected post-hook set; not historical backups or a production cutover",
+  "postgres_prefix": "railway-postgres-v1/daily/20261111T071410Z-530a92b5/",
+  "supabase_prefix": "supabase-recovery-v1/points/20261111T071420Z-213be8f4/",
+  "coverage_from_utc": "2026-11-11T07:14:00+00:00",
+  "restore_cutoff_utc": "2026-11-11T16:28:53.005056+00:00",
+  "basis": [
+    "founder-attestation.json",
+    "fresh-readonly-check.json",
+    "production-preservation.json"
+  ],
+  "required_post_point_deletion_events": 0,
+  "mandatory_replay_required_even_with_zero_events": true,
+  "historical_photo_purges_to_preserve": 15,
+  "auth_bindings_expected": 14,
+  "orphan_bindings_preserved": 3,
+  "older_archives": "Preserved but excluded unless independently verified",
+  "original_selected_artifact_integrity": "Must be verified against original receipts by the existing restore helper before PASS",
+  "full_disaster_recovery": "HOLD_PENDING_ACTUAL_FOUNDER_RESTORE",
+  "production_changes": false
+}

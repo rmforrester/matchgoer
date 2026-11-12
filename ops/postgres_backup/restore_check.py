@@ -39,7 +39,7 @@ def validate_receipt(receipt, archive, verification):
             raise BackupError('RESTORE_CIPHERTEXT_CHECKSUM_MISMATCH')
 
 
-def check(archive, verification, receipt_path, identity):
+def _restore_database(archive, verification, receipt_path, identity):
     import psycopg
     from psycopg import sql
     started = time.monotonic()
@@ -94,10 +94,16 @@ def check(archive, verification, receipt_path, identity):
             if count != t['rows'] or fingerprint != t['fingerprint']:
                 raise BackupError('RESTORE_TABLE_FINGERPRINT_MISMATCH')
         conn.rollback()
-    return {'passed': True, 'recovery_seconds': round(time.monotonic() - started, 2),
+    # This is an internal transport stage, never a recovery acceptance receipt.
+    return {'stage_verified': True, 'recovery_seconds': round(time.monotonic() - started, 2),
             'tables_verified': len(expected['tables']), 'all_row_fingerprints_match': True,
             'production_connected': False, 'private_key_printed_or_copied': False,
             'note': 'Measured local restore excludes incident diagnosis, downloads and production cutover.'}
+
+
+def check(archive, verification, receipt_path, identity):
+    from mandatory_restore import recover
+    return recover(archive, verification, receipt_path, identity)
 
 
 def main():

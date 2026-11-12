@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "source": "Original founder-controlled deletion-safe isolated restore accepted 11 November 2026",
+  "inventory_sha256": "65aa2bf120c30cb2a4bab68f414daa578ec3d48a032faf8fb5326404cc0d96ab",
+  "cutoff_utc": "2026-11-11T16:28:53.005056+00:00",
+  "files": {
+    "founder-attestation.json": "5c0ea291756fb6a1edd7f4874c97f07f004b55899ff3206b813dbec0f011c048",
+    "founder-deletion-safe-restore-receipt.json": "3d465e579e672e26c01263252e12b0243cd9adfb2e8bc9b79b1c9d3b75d0a417",
+    "fresh-readonly-check.json": "0fa834b8acf4e06e4a6a31bd6ce37466422460ebe3735c3cc103505b8bf0f96c",
+    "selected-set-eligibility.json": "c8c3eed3849e95f77730c4fff8e83399f6fc9993f8baf11571d821e58de8bfab"
+  },
+  "restore_code": {
+    "mandatory_restore.py": "cc0c9e81916b5d5ab4aae16e86d5aa10ae3f1b3222a173afd28343e280227f04",
+    "restore_check.py": "b648acac5484c3a9d7ebd16a09c76c6ff2395e03ccd39f00794961f9c1575bca",
+    "deletion_suppression.py": "c0bcda3452ab15cd13e4777209398f927eca9fb91814520120458ab21e43ffc3",
+    "recovery_policy.py": "620d4c59b92bc889072906505067929ef48d3316a6333c0af9ab4fb293a101b3"
+  }
+}

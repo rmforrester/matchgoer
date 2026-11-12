@@ -1,0 +1,9 @@
+{
+  "source": "Founder message in this session",
+  "recorded_date": "2026-11-11",
+  "statement": "I confirm that no Matchgoer accounts or photos have been manually deleted outside the application's protected paths since 11 November 2026 at 07:14 UTC.",
+  "from_utc": "2026-11-11T07:14:00+00:00",
+  "scope": "One selected post-protection PostgreSQL/Auth/photo recovery set only",
+  "older_archives": "Preserved; excluded from normal supported restoration unless independently verified",
+  "private_key_custody": "Founder only"
+}

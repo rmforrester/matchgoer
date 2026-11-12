@@ -28,6 +28,7 @@ jobs:
       - name: Install bounded S3 client
         run: python -m pip install boto3==1.40.75
       - name: Check encrypted recovery-point health
+        id: postgres_health
         env:
           BACKUP_R2_ENDPOINT: ${{ secrets.BACKUP_R2_ENDPOINT }}
           BACKUP_R2_BUCKET: ${{ secrets.BACKUP_R2_BUCKET }}
@@ -43,6 +44,7 @@ jobs:
             python ops/postgres_backup/backup.py --check
           fi
       - name: Check independent Supabase recovery health
+        id: supabase_health
         if: ${{ always() && inputs.test_stale_alert != true }}
         env:
           BACKUP_R2_ENDPOINT: ${{ secrets.BACKUP_R2_ENDPOINT }}
@@ -52,3 +54,26 @@ jobs:
           FIXTURE_INTEGRITY_RESEND_API_KEY: ${{ secrets.BACKUP_RESEND_API_KEY }}
           BACKUP_ALERT_TO: ${{ secrets.BACKUP_ALERT_TO }}
         run: python ops/postgres_backup/check_supabase.py
+      - name: Record independent checker execution
+        if: ${{ always() }}
+        env:
+          POSTGRES_CHECK_OUTCOME: ${{ steps.postgres_health.outcome }}
+          SUPABASE_CHECK_OUTCOME: ${{ steps.supabase_health.outcome }}
+          CHECKER_TRIGGER: ${{ github.event_name }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          result = {
+              'event': 'BACKUP_CHECKER_EXECUTION',
+              'at_utc': datetime.now(timezone.utc).isoformat(),
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'trigger': os.environ['CHECKER_TRIGGER'],
+              'postgres_health_step': os.environ['POSTGRES_CHECK_OUTCOME'],
+              'supabase_health_step': os.environ['SUPABASE_CHECK_OUTCOME'],
+              'note': 'Execution receipt only. Backup object health and recovery acceptance are reported separately; a missing workflow run cannot report itself.'
+          }
+          print(json.dumps(result))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+              output.write('### Independent backup checker execution\n\n```json\n' + json.dumps(result, indent=2) + '\n```\n')
+          PY

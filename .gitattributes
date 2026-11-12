@@ -1,0 +1,3 @@
+# Preserve the exact approved non-sensitive audit evidence across Git checkouts.
+ops/postgres_backup/identity-continuity-baseline.json -text
+ops/postgres_backup/recovery_acceptance_evidence/*.json -text
