@@ -88,6 +88,8 @@ def request_deletion(db, identity, confirmed, now=None):
     request_type = "account" if identity.is_registered else "guest_history"
     row = latest(db, identity.user_id, request_type)
     if row and row.status in {"pending", "processing"}:
+        from recovery_deletions import capture_account_request
+        capture_account_request(db, row)
         return row
     now = now or datetime.now(timezone.utc)
     row = AccountDeletionRequest(request_id=str(uuid.uuid4()), user_id=identity.user_id,
@@ -95,6 +97,8 @@ def request_deletion(db, identity, confirmed, now=None):
         transfer_lineage=[], status="pending", apple_revocation="pending", requested_at=now, due_at=now + timedelta(days=7))
     db.add(row)
     db.flush()
+    from recovery_deletions import capture_account_request
+    capture_account_request(db, row)
     return row
 
 

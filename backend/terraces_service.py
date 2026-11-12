@@ -87,6 +87,8 @@ def purge_photo(db,storage,photo_id,at=None):
     at=at or now();row=lock(db,photo_id)
     if row.storage_deleted_at or row.dispute_reason:return False
     if row.status!='REMOVED' and not (row.status=='REJECTED' and row.rejected_at<=at-timedelta(days=7)):return False
+    from recovery_deletions import before_photo_purge
+    before_photo_purge(db,row)
     storage.delete(row.display_key);storage.delete(row.thumbnail_key)
     row.storage_deleted_at=at;event(db,row,'STORAGE_DELETED',completed=True);db.commit();return True
 
@@ -138,6 +140,8 @@ def cleanup(db,storage,*,limit=50,at=None):
         row=db.query(Event).filter_by(event_id=identifier).with_for_update().first()
         if row.payload.get('legal_hold') is not False:continue
         try:
+            from recovery_deletions import before_cascade_photo_purge
+            before_cascade_photo_purge(row)
             storage.delete(row.payload['display_key']);storage.delete(row.payload['thumbnail_key'])
             row.completed_at=at;db.commit();done+=1
         except StorageUnavailable:db.rollback();pending+=1

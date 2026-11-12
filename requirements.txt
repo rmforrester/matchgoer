@@ -27,3 +27,4 @@ Pillow==12.3.0
 # Offline venue-local calendar resolution; pin code and polygon data together.
 timezonefinder==9.1.0
 timezonefinder-data==4.2026.5
+boto3==1.40.75
