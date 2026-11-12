@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/check-required-routes.mjs",
     "start": "next start",
     "lint": "eslint",
+    "test:required-routes": "node --test scripts/check-required-routes.test.mjs",
     "test:pending-auth": "node --experimental-strip-types --test lib/pending-auth-action.test.ts",
     "test:auth-flow": "node --experimental-strip-types --test lib/auth-flow.test.ts",
     "test:discovery": "node --experimental-strip-types --test lib/fixtureDiscovery.test.ts",
