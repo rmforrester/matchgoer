@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 import unicodedata
 
-from sqlalchemy import and_, or_, tuple_
+from sqlalchemy import Integer, and_, column, or_, select, tuple_, values
 
 
 @dataclass(frozen=True)
@@ -129,9 +129,17 @@ def fixture_decision_leads(db, fixtures) -> dict[int, dict]:
     home_team_ids = {item.home_team_id for item in fixture_rows if item.home_team_id is not None}
     subject_filters = []
     if pairs:
+        # A literal row-IN list becomes a deep OR-of-AND expression in
+        # PostgreSQL. Keep pairs relational so worldwide cohorts have bounded
+        # expression depth without changing exact pair matching or query count.
+        requested_pairs = values(
+            column("team_a_id", Integer), column("team_b_id", Integer),
+        ).data(sorted(pairs)).cte("discover_team_pairs")
         subject_filters.append(and_(
             DecisionFact.subject_type == "TEAM_PAIR",
-            tuple_(DecisionFact.team_a_id, DecisionFact.team_b_id).in_(sorted(pairs)),
+            tuple_(DecisionFact.team_a_id, DecisionFact.team_b_id).in_(
+                select(requested_pairs.c.team_a_id, requested_pairs.c.team_b_id),
+            ),
         ))
     if venue_ids:
         subject_filters.append(and_(
