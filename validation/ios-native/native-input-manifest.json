@@ -158,7 +158,7 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "sha256": "54754e119a56433defed3a809b340ea4b230fa9b68d527b41eb53a52247996af"
+      "sha256": "bc28063bdbed0a663ce4bb0002723c7135d34e2f2d3dac8a661ee4785bc5f814"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -251,7 +251,7 @@
   ],
   "signed": false,
   "uploaded": false,
-  "archive_sha256": "eca0bfbd6b503f9a69ce3bb858e5822c70701691dcc12b2cab2616ed28a56fe8",
-  "unsigned_compile_only": true,
-  "signing_upload_authorised": false
+  "archive_sha256": "20fd89430ba0fcb4b6bc9685bc0b73526e63744cf6127623b90c4e0c53ce0117",
+  "source_files": 33,
+  "source_manifest_sha256": "a2f1e83f7c64d8fbf61f977399ab56caa6d58a0bc79dc06a492bc2c6d95ed80c"
 }
