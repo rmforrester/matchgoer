@@ -194,33 +194,64 @@ ipa_count="$(find "$private_dir/export" -maxdepth 1 -name '*.ipa' | wc -l | tr -
 [[ "$ipa_count" == 1 ]] || { echo 'STOP: expected one exported IPA'; exit 4; }
 ipa="$(find "$private_dir/export" -maxdepth 1 -name '*.ipa')"
 
-# Independently verify the actual exported IPA before any upload.
-unzip -q "$ipa" -d "$private_dir/ipa-check"
-ipa_app_count="$(find "$private_dir/ipa-check/Payload" -maxdepth 1 -name '*.app' | wc -l | tr -d ' ')"
-[[ "$ipa_app_count" == 1 ]] || { echo 'STOP: exported IPA application count mismatch'; exit 4; }
-ipa_app="$(find "$private_dir/ipa-check/Payload" -maxdepth 1 -name '*.app')"
-codesign --verify --deep --strict "$ipa_app"
-codesign -d --entitlements :- "$ipa_app" > "$private_dir/ipa-entitlements.plist" 2>/dev/null
-security cms -D -i "$ipa_app/embedded.mobileprovision" > "$private_dir/ipa-profile.plist"
-codesign -d --extract-certificates "$private_dir/ipa-signing-cert-" "$ipa_app" 2>/dev/null
-export SIGNING_IPA_APP="$ipa_app"
+# Independently verify the actual exported IPA; report only safe stage diagnostics.
+export SIGNING_IPA_PATH="$ipa"
 python3 - <<'PY'
-import pathlib,plistlib,os,json,hashlib,datetime,subprocess
-private=pathlib.Path(os.environ['SIGNING_PRIVATE_DIR']);app=pathlib.Path(os.environ['SIGNING_IPA_APP'])
-info=plistlib.loads((app/'Info.plist').read_bytes());ent=plistlib.loads((private/'ipa-entitlements.plist').read_bytes());profile=plistlib.loads((private/'ipa-profile.plist').read_bytes());expected=plistlib.loads((private/'profile.plist').read_bytes())
-assert info['CFBundleIdentifier']=='com.matchgoer.app' and info['CFBundleShortVersionString']=='0.1.1' and info['CFBundleVersion']=='15'
-assert ent['application-identifier']=='R58JW38U27.com.matchgoer.app' and ent['com.apple.developer.team-identifier']=='R58JW38U27' and ent.get('com.apple.developer.applesignin')==['Default'] and not ent.get('get-task-allow')
-assert profile['UUID']==expected['UUID'] and profile['TeamIdentifier']==['R58JW38U27'] and not profile.get('ProvisionedDevices') and not profile.get('ProvisionsAllDevices')
-assert profile['ExpirationDate']>datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-cert=(private/'ipa-signing-cert-0').read_bytes();assert hashlib.sha1(cert).hexdigest().upper()==os.environ['SIGNING_CERT_SHA1'];assert cert in profile['DeveloperCertificates']
-source=pathlib.Path('native-input/ios/App/App')
-assert plistlib.loads((app/'GoogleService-Info.plist').read_bytes())==plistlib.loads((source/'GoogleService-Info.plist').read_bytes())
-assert (app/'public/bundle.js').read_bytes()==(source/'public/bundle.js').read_bytes()
-assert json.loads((app/'native-analytics-rules.json').read_text())==json.loads((source/'native-analytics-rules.json').read_text())
-archive_app=private/'Matchgoer.xcarchive/Products/Applications/App.app'
-def identity(p):return subprocess.check_output(['xcrun','dwarfdump','--uuid',str(p/'App')]).decode().split('UUID: ',1)[1].split(')')[0]
-assert identity(app)==identity(archive_app),'Exported code UUID differs from validated signed archive'
-pathlib.Path('evidence/ipa-validation-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'15','codesign_verification':'PASS','existing_signing_certificate_match':True,'existing_profile_match':True,'entitlements':'PASS','compiled_candidate_resources_unchanged':True,'archive_executable_uuid_match':True},indent=2))
+import pathlib,plistlib,os,json,hashlib,datetime,subprocess,sys,re
+private=pathlib.Path(os.environ['SIGNING_PRIVATE_DIR']);ipa=pathlib.Path(os.environ['SIGNING_IPA_PATH']);stages=[];current='start'
+def safe_detail(raw):
+    text=raw.decode(errors='replace')
+    for k,v in os.environ.items():
+        if k.startswith('IOS_') and v:text=text.replace(v,'[REDACTED]')
+    identities=(private/'identities.txt').read_text()
+    for name in re.findall(r'[A-F0-9]{40}\s+"([^"]+)"',identities):text=text.replace(name,'[SIGNING IDENTITY]')
+    text=text.replace(str(private),'[PRIVATE TEMP]')
+    return re.sub(r'[A-Za-z0-9_+/=-]{48,}','[REDACTED]',text)[:600]
+def run_stage(stage,args,output=None):
+    global current
+    current=stage;print('IPA validation: '+stage,flush=True)
+    result=subprocess.run(args,capture_output=True,cwd=private)
+    if result.returncode:
+        raise RuntimeError(json.dumps({'step':stage,'exit_code':result.returncode,'diagnostic':safe_detail(result.stderr)}))
+    if output:output.write_bytes(result.stdout)
+    stages.append({'step':stage,'result':'PASS'})
+    return result.stdout
+def check(stage,condition):
+    global current
+    current=stage
+    if not condition:raise AssertionError('Check failed: '+stage)
+    stages.append({'step':stage,'result':'PASS'});print('IPA validation: '+stage+' PASS',flush=True)
+try:
+    run_stage('unzip_ipa',['unzip','-q',str(ipa),'-d',str(private/'ipa-check')])
+    apps=list((private/'ipa-check/Payload').glob('*.app'));check('one_application',len(apps)==1);app=apps[0]
+    run_stage('codesign_verify',['codesign','--verify','--deep','--strict',str(app)])
+    run_stage('extract_entitlements',['codesign','-d','--entitlements',':-',str(app)],private/'ipa-entitlements.plist')
+    run_stage('decode_provisioning_profile',['security','cms','-D','-i',str(app/'embedded.mobileprovision')],private/'ipa-profile.plist')
+    # Read-only reproduction of the prior invocation, before applying the corrected form.
+    legacy=subprocess.run(['codesign','-d','--extract-certificates',str(private/'ipa-signing-cert-'),str(app)],capture_output=True,cwd=private)
+    pathlib.Path('evidence/certificate-extraction-regression-receipt.json').write_text(json.dumps({'legacy_invocation_exit_code':legacy.returncode,'legacy_diagnostic':safe_detail(legacy.stderr),'corrected_form':'--extract-certificates=<prefix>'},indent=2))
+    run_stage('extract_signing_certificate',['codesign','-d','--extract-certificates='+str(private/'ipa-signing-cert-'),str(app)])
+    current='read_identity_records'
+    info=plistlib.loads((app/'Info.plist').read_bytes());ent=plistlib.loads((private/'ipa-entitlements.plist').read_bytes());profile=plistlib.loads((private/'ipa-profile.plist').read_bytes());expected=plistlib.loads((private/'profile.plist').read_bytes())
+    check('production_identity',info['CFBundleIdentifier']=='com.matchgoer.app' and info['CFBundleShortVersionString']=='0.1.1' and info['CFBundleVersion']=='15')
+    check('team_and_entitlements',ent['application-identifier']=='R58JW38U27.com.matchgoer.app' and ent['com.apple.developer.team-identifier']=='R58JW38U27' and ent.get('com.apple.developer.applesignin')==['Default'] and not ent.get('get-task-allow'))
+    check('existing_distribution_profile',profile['UUID']==expected['UUID'] and profile['TeamIdentifier']==['R58JW38U27'] and not profile.get('ProvisionedDevices') and not profile.get('ProvisionsAllDevices'))
+    check('profile_expiration',profile['ExpirationDate']>datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None))
+    current='read_signing_certificate';cert=(private/'ipa-signing-cert-0').read_bytes()
+    check('existing_signing_certificate',hashlib.sha1(cert).hexdigest().upper()==os.environ['SIGNING_CERT_SHA1'] and cert in profile['DeveloperCertificates'])
+    source=pathlib.Path('native-input/ios/App/App')
+    check('firebase_configuration',plistlib.loads((app/'GoogleService-Info.plist').read_bytes())==plistlib.loads((source/'GoogleService-Info.plist').read_bytes()))
+    check('release_candidate_javascript',(app/'public/bundle.js').read_bytes()==(source/'public/bundle.js').read_bytes())
+    check('release_candidate_event_policy',json.loads((app/'native-analytics-rules.json').read_text())==json.loads((source/'native-analytics-rules.json').read_text()))
+    archive_app=private/'Matchgoer.xcarchive/Products/Applications/App.app'
+    def identity(p):return subprocess.check_output(['xcrun','dwarfdump','--uuid',str(p/'App')]).decode().split('UUID: ',1)[1].split(')')[0]
+    current='read_executable_uuid';check('archive_executable_uuid',identity(app)==identity(archive_app))
+    pathlib.Path('evidence/ipa-validation-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'15','codesign_verification':'PASS','existing_signing_certificate_match':True,'existing_profile_match':True,'entitlements':'PASS','compiled_candidate_resources_unchanged':True,'archive_executable_uuid_match':True,'stages':stages},indent=2))
+except Exception as exc:
+    detail=str(exc) if isinstance(exc,(RuntimeError,AssertionError)) else type(exc).__name__
+    failure={'step':current,'result':'FAIL','detail':detail,'completed_stages':stages,'upload_attempted':False}
+    pathlib.Path('evidence/ipa-validation-failure-receipt.json').write_text(json.dumps(failure,indent=2))
+    print('IPA validation FAIL: '+current+'; '+detail,flush=True);sys.exit(4)
 PY
 
 evidence="$PWD/evidence"
