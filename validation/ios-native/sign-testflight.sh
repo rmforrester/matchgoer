@@ -64,6 +64,7 @@ uuid.UUID(p['UUID']);print(p['UUID'])
 PY
 )"
 profile_name="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$private_dir/profile.plist")"
+export SIGNING_PROFILE_NAME="$profile_name"
 for directory in "$HOME/Library/MobileDevice/Provisioning Profiles" "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"; do
   mkdir -p "$directory"
   cp "$private_dir/profile.mobileprovision" "$directory/$profile_uuid.mobileprovision"
@@ -75,6 +76,43 @@ import pathlib,plistlib,json
 p=pathlib.Path('native-input/ios/App/App/Info.plist');d=plistlib.loads(p.read_bytes());assert d['CFBundleDisplayName']=='Matchgoer'
 c=json.loads((p.parent/'capacitor.config.json').read_text());assert c['appId']=='com.matchgoer.app' and c['appName']=='Matchgoer' and not c.get('server',{}).get('url')
 PY
+
+# Apply only four signing settings to the production App target's Release config.
+python3 - <<'PY'
+import pathlib,json,os,subprocess,copy,re,hashlib
+# Begin pure target-signing helper.
+def target_signing_patch(text,project,identity,profile):
+    objects=project['objects']
+    targets=[v for v in objects.values() if v.get('isa')=='PBXNativeTarget' and v.get('name')=='App' and v.get('productType')=='com.apple.product-type.application']
+    assert len(targets)==1, 'Production App target missing or ambiguous'
+    configs=objects[targets[0]['buildConfigurationList']]['buildConfigurations']
+    releases=[i for i in configs if objects[i]['name']=='Release']
+    assert len(releases)==1, 'App Release configuration missing or ambiguous'
+    cid=releases[0];settings=objects[cid]['buildSettings']
+    assert settings['PRODUCT_BUNDLE_IDENTIFIER']=='com.matchgoer.app' and str(settings['CURRENT_PROJECT_VERSION'])=='15' and str(settings['MARKETING_VERSION'])=='0.1.1', 'App identity/version drift'
+    updates={'DEVELOPMENT_TEAM':'R58JW38U27','CODE_SIGN_STYLE':'Manual','CODE_SIGN_IDENTITY':identity,'PROVISIONING_PROFILE_SPECIFIER':profile}
+    pattern=r'(?ms)(^\s*'+re.escape(cid)+r' /\* Release \*/ = \{.*?buildSettings = \{\n)(.*?)(^\t\t\t\};)'
+    matches=list(re.finditer(pattern,text));assert len(matches)==1,'Release settings block ambiguous'
+    m=matches[0];body=m.group(2)
+    for key,value in updates.items():
+        line='\t\t\t\t'+key+' = '+json.dumps(value)+';'
+        key_pattern=r'(?m)^\s*'+key+r' = [^\n]*;'
+        found=list(re.finditer(key_pattern,body));assert len(found)<=1,'Duplicate signing setting'
+        body=re.sub(key_pattern,lambda _:line,body) if found else body+line+'\n'
+    return text[:m.start(2)]+body+text[m.end(2):],cid,updates
+# End pure target-signing helper.
+p=pathlib.Path('native-input/ios/App/App.xcodeproj/project.pbxproj')
+def read_project():return json.loads(subprocess.check_output(['plutil','-convert','json','-o','-',str(p)]))
+before=read_project();original=p.read_text();fixed,cid,updates=target_signing_patch(original,before,os.environ['SIGNING_CERT_SHA1'],os.environ['SIGNING_PROFILE_NAME']);p.write_text(fixed)
+after=read_project();expected=copy.deepcopy(before);expected['objects'][cid]['buildSettings'].update(updates)
+assert after==expected,'Non-signing or non-App-target project changes'
+# Ensure no parent-level profile can flow into another target; package sources stay untouched.
+for oid,obj in after['objects'].items():
+    if obj.get('isa')=='XCBuildConfiguration' and oid!=cid:
+        assert not obj.get('buildSettings',{}).get('PROVISIONING_PROFILE_SPECIFIER') and not obj.get('buildSettings',{}).get('PROVISIONING_PROFILE'),'App profile inherited by another configuration'
+pathlib.Path('evidence/signing-scope-receipt.json').write_text(json.dumps({'scope':'App target Release only','signing_keys':list(updates),'other_project_settings_unchanged':True,'non_app_profile_assignments':0,'global_signing_overrides':False,'third_party_source_modified':False},indent=2))
+PY
+
 xcodebuild -version | tee evidence/xcode-version.txt
 grep -qx 'Xcode 26.3' evidence/xcode-version.txt || { echo 'STOP: toolchain mismatch'; exit 3; }
 xcrun --sdk iphoneos --show-sdk-version | tee evidence/device-sdk.txt
@@ -83,8 +121,7 @@ xcodebuild -project "$project" -scheme App -configuration Release -sdk iphoneos 
   -destination 'generic/platform=iOS' -archivePath "$private_dir/Matchgoer.xcarchive" \
   -derivedDataPath "$PWD/DerivedData-signed" -clonedSourcePackagesDirPath "$PWD/SourcePackages" \
   PRODUCT_BUNDLE_IDENTIFIER=com.matchgoer.app MARKETING_VERSION=0.1.1 CURRENT_PROJECT_VERSION=15 \
-  DEVELOPMENT_TEAM=R58JW38U27 CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$cert_sha1" \
-  PROVISIONING_PROFILE_SPECIFIER="$profile_name" archive
+  archive
 app="$private_dir/Matchgoer.xcarchive/Products/Applications/App.app"
 codesign --verify --deep --strict "$app"
 codesign -d --entitlements :- "$app" > "$private_dir/signed-entitlements.plist" 2>/dev/null
@@ -156,6 +193,36 @@ xcodebuild -exportArchive -archivePath "$private_dir/Matchgoer.xcarchive" -expor
 ipa_count="$(find "$private_dir/export" -maxdepth 1 -name '*.ipa' | wc -l | tr -d ' ')"
 [[ "$ipa_count" == 1 ]] || { echo 'STOP: expected one exported IPA'; exit 4; }
 ipa="$(find "$private_dir/export" -maxdepth 1 -name '*.ipa')"
+
+# Independently verify the actual exported IPA before any upload.
+unzip -q "$ipa" -d "$private_dir/ipa-check"
+ipa_app_count="$(find "$private_dir/ipa-check/Payload" -maxdepth 1 -name '*.app' | wc -l | tr -d ' ')"
+[[ "$ipa_app_count" == 1 ]] || { echo 'STOP: exported IPA application count mismatch'; exit 4; }
+ipa_app="$(find "$private_dir/ipa-check/Payload" -maxdepth 1 -name '*.app')"
+codesign --verify --deep --strict "$ipa_app"
+codesign -d --entitlements :- "$ipa_app" > "$private_dir/ipa-entitlements.plist" 2>/dev/null
+security cms -D -i "$ipa_app/embedded.mobileprovision" > "$private_dir/ipa-profile.plist"
+codesign -d --extract-certificates "$private_dir/ipa-signing-cert-" "$ipa_app" 2>/dev/null
+export SIGNING_IPA_APP="$ipa_app"
+python3 - <<'PY'
+import pathlib,plistlib,os,json,hashlib,datetime,subprocess
+private=pathlib.Path(os.environ['SIGNING_PRIVATE_DIR']);app=pathlib.Path(os.environ['SIGNING_IPA_APP'])
+info=plistlib.loads((app/'Info.plist').read_bytes());ent=plistlib.loads((private/'ipa-entitlements.plist').read_bytes());profile=plistlib.loads((private/'ipa-profile.plist').read_bytes());expected=plistlib.loads((private/'profile.plist').read_bytes())
+assert info['CFBundleIdentifier']=='com.matchgoer.app' and info['CFBundleShortVersionString']=='0.1.1' and info['CFBundleVersion']=='15'
+assert ent['application-identifier']=='R58JW38U27.com.matchgoer.app' and ent['com.apple.developer.team-identifier']=='R58JW38U27' and ent.get('com.apple.developer.applesignin')==['Default'] and not ent.get('get-task-allow')
+assert profile['UUID']==expected['UUID'] and profile['TeamIdentifier']==['R58JW38U27'] and not profile.get('ProvisionedDevices') and not profile.get('ProvisionsAllDevices')
+assert profile['ExpirationDate']>datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+cert=(private/'ipa-signing-cert-0').read_bytes();assert hashlib.sha1(cert).hexdigest().upper()==os.environ['SIGNING_CERT_SHA1'];assert cert in profile['DeveloperCertificates']
+source=pathlib.Path('native-input/ios/App/App')
+assert plistlib.loads((app/'GoogleService-Info.plist').read_bytes())==plistlib.loads((source/'GoogleService-Info.plist').read_bytes())
+assert (app/'public/bundle.js').read_bytes()==(source/'public/bundle.js').read_bytes()
+assert json.loads((app/'native-analytics-rules.json').read_text())==json.loads((source/'native-analytics-rules.json').read_text())
+archive_app=private/'Matchgoer.xcarchive/Products/Applications/App.app'
+def identity(p):return subprocess.check_output(['xcrun','dwarfdump','--uuid',str(p/'App')]).decode().split('UUID: ',1)[1].split(')')[0]
+assert identity(app)==identity(archive_app),'Exported code UUID differs from validated signed archive'
+pathlib.Path('evidence/ipa-validation-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'15','codesign_verification':'PASS','existing_signing_certificate_match':True,'existing_profile_match':True,'entitlements':'PASS','compiled_candidate_resources_unchanged':True,'archive_executable_uuid_match':True},indent=2))
+PY
+
 evidence="$PWD/evidence"
 # The App Store Connect P8 is discovered only inside this temporary directory.
 (
