@@ -51,7 +51,9 @@ assert config['BUNDLE_ID']=='com.matchgoer.app'
 assert config['PROJECT_ID']=='matchgoer-40103'
 assert config['GOOGLE_APP_ID']=='1:158177709083:ios:50df43974431810e64fcbe'
 import hashlib,subprocess
-assert hashlib.sha256((app/'GoogleService-Info.plist').read_bytes()).hexdigest()=='d1a71a73ee41c79184b7c1a1ae01579f510813f0917ccce825ea7bb6f4013613'
+source_config_bytes=pathlib.Path('native-input/ios/App/App/GoogleService-Info.plist').read_bytes()
+assert hashlib.sha256(source_config_bytes).hexdigest()=='d1a71a73ee41c79184b7c1a1ae01579f510813f0917ccce825ea7bb6f4013613', 'Sealed Firebase source drift'
+assert config==plistlib.loads(source_config_bytes), 'Archived Firebase configuration differs from sealed source'
 flags=['FIREBASE_ANALYTICS_COLLECTION_ENABLED','GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED','GOOGLE_ANALYTICS_DEFAULT_ALLOW_ANALYTICS_STORAGE','GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE','GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA','GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS','GOOGLE_ANALYTICS_REGISTRATION_WITH_AD_NETWORK_ENABLED','GOOGLE_ADS_ON_DEVICE_CONVERSION_EVENT_DATA_ENABLED','FirebaseAutomaticScreenReportingEnabled']
 assert all(info.get(key) is False for key in flags)
 assert (app/'native-analytics-rules.json').is_file()
