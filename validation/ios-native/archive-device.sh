@@ -58,8 +58,32 @@ flags=['FIREBASE_ANALYTICS_COLLECTION_ENABLED','GOOGLE_ANALYTICS_IDFV_COLLECTION
 assert all(info.get(key) is False for key in flags)
 assert (app/'native-analytics-rules.json').is_file()
 assert 'attendance_recorded' not in json.loads((app/'native-analytics-rules.json').read_text())
-symbols=subprocess.check_output(['xcrun','nm',str(app/'App')],stderr=subprocess.DEVNULL).decode(errors='replace')
-assert 'FIRAnalytics' in symbols and 'MatchgoerAnalyticsPlugin' in symbols
+# Release linkage: use defined code in the UUID-matched archive dSYM.
+def validate_release_linkage(binary_uuid, dsym_uuid, symbols):
+    import re
+    def identities(output):
+        return re.findall(r'UUID:\s*([0-9A-Fa-f-]+)\s+\(([^)]+)\)',output)
+    a=identities(binary_uuid);b=identities(dsym_uuid)
+    assert len(a)==len(b)==1 and a[0][1]==b[0][1]=='arm64' and a[0][0].lower()==b[0][0].lower(), 'App/dSYM UUID or architecture mismatch'
+    methods={
+        'firebase_log_event':r'\+\[FIRAnalytics logEventWithName:parameters:\]',
+        'firebase_consent_control':r'\+\[FIRAnalytics setAnalyticsCollectionEnabled:\]',
+        'bridge_log_event':r'.*MatchgoerAnalyticsPlugin.*logEvent.*',
+        'bridge_consent_control':r'.*MatchgoerAnalyticsPlugin.*setState.*',
+        'bridge_load':r'.*MatchgoerAnalyticsPlugin.*load.*',
+    }
+    for label,method in methods.items():
+        matches=re.findall(r'(?m)^\s*([0-9a-fA-F]+)\s+[tT]\s+'+method+r'\s*$',symbols)
+        assert any(int(address,16)>0 for address in matches), 'Missing defined linked code: '+label
+    return {'matched_uuid':a[0][0].lower(),'architecture':'arm64','defined_functions_verified':list(methods)}
+# End pure release-linkage validator.
+dsym=pathlib.Path('evidence/Matchgoer-unsigned.xcarchive/dSYMs/App.app.dSYM/Contents/Resources/DWARF/App')
+assert dsym.is_file(), 'Archived dSYM missing'
+app_uuid=subprocess.check_output(['xcrun','dwarfdump','--uuid',str(app/'App')]).decode()
+dsym_uuid=subprocess.check_output(['xcrun','dwarfdump','--uuid',str(dsym)]).decode()
+symbols=subprocess.check_output(['xcrun','nm','-n',str(dsym)],stderr=subprocess.DEVNULL).decode(errors='replace')
+linkage=validate_release_linkage(app_uuid,dsym_uuid,symbols)
+pathlib.Path('evidence/release-linkage-verification.json').write_text(json.dumps(linkage,indent=2))
 linked=subprocess.check_output(['otool','-L',str(app/'App')]).decode()
 assert 'AdSupport.framework' not in linked
 pathlib.Path('evidence/native-analytics-build-verification.json').write_text(json.dumps({'bundle_id':info['CFBundleIdentifier'],'version':info['CFBundleShortVersionString'],'build':info['CFBundleVersion'],'firebase_config_sha256':hashlib.sha256((app/'GoogleService-Info.plist').read_bytes()).hexdigest(),'production_bundle_verified':True,'bridge_and_sdk_linked':True,'consent_and_ad_flags_default_false':True,'direct_AdSupport_link':False,'sdk_runtime_initialisation':'NOT_EXECUTED','app_executed':False,'real_events_sent':0,'ga4_property_link':'PENDING_SEPARATE_VERIFICATION'},indent=2))
