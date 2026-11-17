@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One authorised internal TestFlight upload. Never publishes signing artifacts.
+# One authorised App Store-eligible build upload. No public submission or external distribution.
 set -euo pipefail
 set +x
 umask 077
@@ -120,7 +120,7 @@ xcodebuild -resolvePackageDependencies -project "$project" -scheme App -clonedSo
 xcodebuild -project "$project" -scheme App -configuration Release -sdk iphoneos \
   -destination 'generic/platform=iOS' -archivePath "$private_dir/Matchgoer.xcarchive" \
   -derivedDataPath "$PWD/DerivedData-signed" -clonedSourcePackagesDirPath "$PWD/SourcePackages" \
-  PRODUCT_BUNDLE_IDENTIFIER=com.matchgoer.app MARKETING_VERSION=0.1.1 CURRENT_PROJECT_VERSION=15 \
+  PRODUCT_BUNDLE_IDENTIFIER=com.matchgoer.app MARKETING_VERSION=0.1.1 CURRENT_PROJECT_VERSION=16 \
   archive
 app="$private_dir/Matchgoer.xcarchive/Products/Applications/App.app"
 codesign --verify --deep --strict "$app"
@@ -139,7 +139,7 @@ assert config['GOOGLE_APP_ID']=='1:158177709083:ios:50df43974431810e64fcbe'
 assert all(d.get(k) is False for k in ['FIREBASE_ANALYTICS_COLLECTION_ENABLED','GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED','GOOGLE_ANALYTICS_DEFAULT_ALLOW_ANALYTICS_STORAGE','GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_STORAGE','GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_USER_DATA','GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS','GOOGLE_ANALYTICS_REGISTRATION_WITH_AD_NETWORK_ENABLED','GOOGLE_ADS_ON_DEVICE_CONVERSION_EVENT_DATA_ENABLED','FirebaseAutomaticScreenReportingEnabled'])
 assert (p/'native-analytics-rules.json').is_file()
 
-assert d['CFBundleShortVersionString']=='0.1.1' and d['CFBundleVersion']=='15'
+assert d['CFBundleShortVersionString']=='0.1.1' and d['CFBundleVersion']=='16'
 
 import hashlib,subprocess
 source=pathlib.Path('native-input/ios/App/App')
@@ -183,11 +183,12 @@ assert d['ITSAppUsesNonExemptEncryption'] is False
 assert d['CFBundleURLTypes']==[{'CFBundleURLName':'com.matchgoer.app.auth','CFBundleURLSchemes':['com.matchgoer.app']}]
 assert b'com.matchgoer.app://auth/callback' in (p/'public/bundle.js').read_bytes()
 assert d['CFBundleSupportedPlatforms']==['iPhoneOS'] and (p/'embedded.mobileprovision').is_file()
-options={'method':'app-store-connect','destination':'export','teamID':'R58JW38U27','signingStyle':'manual','signingCertificate':os.environ['SIGNING_CERT_SHA1'],'provisioningProfiles':{'com.matchgoer.app':plistlib.loads((pathlib.Path(os.environ['SIGNING_PRIVATE_DIR'])/'profile.plist').read_bytes())['Name']},'manageAppVersionAndBuildNumber':False,'testFlightInternalTestingOnly':True}
+options={'method':'app-store-connect','destination':'export','teamID':'R58JW38U27','signingStyle':'manual','signingCertificate':os.environ['SIGNING_CERT_SHA1'],'provisioningProfiles':{'com.matchgoer.app':plistlib.loads((pathlib.Path(os.environ['SIGNING_PRIVATE_DIR'])/'profile.plist').read_bytes())['Name']},'manageAppVersionAndBuildNumber':False,'testFlightInternalTestingOnly':False}
 help_result=subprocess.run(['xcodebuild','-help'],capture_output=True,text=True)
-assert 'testFlightInternalTestingOnly' in help_result.stdout+help_result.stderr, 'Internal-only export option unavailable; stop before upload'
+assert 'testFlightInternalTestingOnly' in help_result.stdout+help_result.stderr, 'Distribution export option unavailable; stop before upload'
+assert options['method']=='app-store-connect' and options['testFlightInternalTestingOnly'] is False
 (pathlib.Path(os.environ['SIGNING_PRIVATE_DIR'])/'ExportOptions.plist').write_bytes(plistlib.dumps(options))
-pathlib.Path('evidence/signing-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'15','commit':os.environ['GITHUB_SHA'],'signed_archive':'PASS','codesign_verification':'PASS','upload':'NOT YET ATTEMPTED'},indent=2)+'\n')
+pathlib.Path('evidence/signing-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'16','commit':os.environ['GITHUB_SHA'],'signed_archive':'PASS','codesign_verification':'PASS','upload':'NOT YET ATTEMPTED'},indent=2)+'\n')
 PY
 xcodebuild -exportArchive -archivePath "$private_dir/Matchgoer.xcarchive" -exportOptionsPlist "$private_dir/ExportOptions.plist" -exportPath "$private_dir/export"
 ipa_count="$(find "$private_dir/export" -maxdepth 1 -name '*.ipa' | wc -l | tr -d ' ')"
@@ -233,7 +234,7 @@ try:
     run_stage('extract_signing_certificate',['codesign','-d','--extract-certificates='+str(private/'ipa-signing-cert-'),str(app)])
     current='read_identity_records'
     info=plistlib.loads((app/'Info.plist').read_bytes());ent=plistlib.loads((private/'ipa-entitlements.plist').read_bytes());profile=plistlib.loads((private/'ipa-profile.plist').read_bytes());expected=plistlib.loads((private/'profile.plist').read_bytes())
-    check('production_identity',info['CFBundleIdentifier']=='com.matchgoer.app' and info['CFBundleShortVersionString']=='0.1.1' and info['CFBundleVersion']=='15')
+    check('production_identity',info['CFBundleIdentifier']=='com.matchgoer.app' and info['CFBundleShortVersionString']=='0.1.1' and info['CFBundleVersion']=='16')
     check('team_and_entitlements',ent['application-identifier']=='R58JW38U27.com.matchgoer.app' and ent['com.apple.developer.team-identifier']=='R58JW38U27' and ent.get('com.apple.developer.applesignin')==['Default'] and not ent.get('get-task-allow'))
     check('existing_distribution_profile',profile['UUID']==expected['UUID'] and profile['TeamIdentifier']==['R58JW38U27'] and not profile.get('ProvisionedDevices') and not profile.get('ProvisionsAllDevices'))
     check('profile_expiration',profile['ExpirationDate']>datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None))
@@ -246,7 +247,7 @@ try:
     archive_app=private/'Matchgoer.xcarchive/Products/Applications/App.app'
     def identity(p):return subprocess.check_output(['xcrun','dwarfdump','--uuid',str(p/'App')]).decode().split('UUID: ',1)[1].split(')')[0]
     current='read_executable_uuid';check('archive_executable_uuid',identity(app)==identity(archive_app))
-    pathlib.Path('evidence/ipa-validation-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'15','codesign_verification':'PASS','existing_signing_certificate_match':True,'existing_profile_match':True,'entitlements':'PASS','compiled_candidate_resources_unchanged':True,'archive_executable_uuid_match':True,'stages':stages},indent=2))
+    pathlib.Path('evidence/ipa-validation-receipt.json').write_text(json.dumps({'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'16','codesign_verification':'PASS','existing_signing_certificate_match':True,'existing_profile_match':True,'entitlements':'PASS','compiled_candidate_resources_unchanged':True,'archive_executable_uuid_match':True,'stages':stages},indent=2))
 except Exception as exc:
     detail=str(exc) if isinstance(exc,(RuntimeError,AssertionError)) else type(exc).__name__
     failure={'step':current,'result':'FAIL','detail':detail,'completed_stages':stages,'upload_attempted':False}
@@ -281,7 +282,7 @@ PY
 python3 - <<'PY'
 import os,pathlib,json,hashlib
 p=pathlib.Path(os.environ['SIGNING_PRIVATE_DIR']);result=json.loads((p/'upload-result.json').read_text());assert not result.get('product-errors'), 'STOP: upload returned errors'
-ipa=next((p/'export').glob('*.ipa'));r={'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'15','commit':os.environ['GITHUB_SHA'],'signed_archive':'PASS','ipa_sha256':hashlib.sha256(ipa.read_bytes()).hexdigest(),'upload':'PASS','apple_processing':'PENDING','physical_installation':'PENDING FOUNDER TEST'}
+ipa=next((p/'export').glob('*.ipa'));r={'bundle_id':'com.matchgoer.app','version':'0.1.1','build':'16','commit':os.environ['GITHUB_SHA'],'signed_archive':'PASS','ipa_sha256':hashlib.sha256(ipa.read_bytes()).hexdigest(),'upload':'PASS','apple_processing':'PENDING','physical_installation':'PENDING FOUNDER TEST'}
 pathlib.Path('evidence/upload-receipt.json').write_text(json.dumps(r,indent=2)+'\n')
 PY
 printf 'PASS: signed archive exported and uploaded; Apple processing and physical installation still require verification\n' | tee "$evidence/outcome.txt"
