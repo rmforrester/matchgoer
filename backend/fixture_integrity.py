@@ -551,6 +551,15 @@ def transaction_integrity(connection, items, *, preimages=None, manifest=None, s
         current = connection.execute(select(VENUES).where(VENUES.c.fixture_id==fid)).mappings().first()
         if current and current['state']=='OFFICIAL_VERIFIED':
             continue
+        if accepted_ids is not None and fid not in accepted_ids:
+            if current and current['state'] in {'DISPUTED', 'UNRESOLVED'}:
+                continue  # Rejected identity evidence cannot release an existing hold.
+            if outcome not in {'DISPUTED', 'AMBIGUOUS', 'UNKNOWN'}:
+                continue  # Still permit protective quarantine of an unheld wrong pin.
+        if current and (current['source_url'] or current['evidence_sha256'] or
+                current['state'] in {'DISPUTED', 'UNRESOLVED'} and current['actor'] not in {
+                    'AUTOMATED_CANONICAL_CONFLICT', 'AUTOMATED_GEOGRAPHIC_CONFLICT'}):
+            continue  # Preserve reviewed and explicitly owned holds.
         row = connection.execute(select(fixtures).where(fixtures.c.fixture_id==fid)).mappings().first()
         if row is None:
             continue
@@ -564,6 +573,10 @@ def transaction_integrity(connection, items, *, preimages=None, manifest=None, s
             connection.execute(VENUES.update().where(VENUES.c.fixture_id==fid).values(**values) if current
                                else VENUES.insert().values(fixture_id=fid,**values))
         elif current and current['actor']=='AUTOMATED_CANONICAL_CONFLICT':
+            provider_id = (diagnostic.get('raw_provider_venue') or {}).get('id')
+            if current['state'] in {'DISPUTED', 'UNRESOLVED'} and (
+                    type(provider_id) is not int or provider_id <= 0):
+                continue  # A name-only/zero-ID match is not authority to release a hold.
             connection.execute(VENUES.update().where(VENUES.c.fixture_id==fid).values(
                 state='PROVIDER_ASSIGNED',venue_id=row['venue_id'],revision=current['revision']+1))
     # Audit the stored relationship even when the provider venue is NULL. This

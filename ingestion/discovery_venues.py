@@ -58,6 +58,10 @@ def resolve_event_venue(event, scope, venues, refs, aliases, proof=None):
         reviews[root]=review
         grouped_names[root].update(normalize_identity(n) for n in review.get('names',()))
     pid = event.get('id')
+    # API-Football uses integer zero as an absent reference. Keep the raw
+    # observation intact; names/locality/country must still establish identity.
+    if type(pid) is int and pid == 0:
+        pid = None
     if pid is not None and (type(pid) is not int or pid <= 0):
         raise ValueError('INVALID_PROVIDER_VENUE_ID')
     direct = set()
