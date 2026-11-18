@@ -11832,6 +11832,301 @@
       ],
       "physical_country": "England",
       "source": "https://www.wearehullcity.co.uk/getting-to-the-mkm-stadium/"
+    },
+    {
+      "venue_id": 19723,
+      "names": [
+        "Sandy Lane Stadium"
+      ],
+      "localities": [
+        "Worksop"
+      ],
+      "source": "https://www.worksoptownfc.com/news/winsor-foodservice-sponsorship"
+    },
+    {
+      "venue_id": 21183,
+      "names": [
+        "Rush Green Stadium"
+      ],
+      "localities": [
+        "London",
+        "Romford"
+      ],
+      "source": "https://www.whufc.com/en/news/preview-or-u21s-host-reading-in-last-test-ahead-of-national-league-cup-final"
+    },
+    {
+      "venue_id": 599,
+      "names": [
+        "The Brick Community Stadium"
+      ],
+      "localities": [
+        "Wigan"
+      ],
+      "source": "https://thebrickcommunitystadium.com/our-history/"
+    },
+    {
+      "venue_id": 2692,
+      "names": [
+        "Plainmoor"
+      ],
+      "localities": [
+        "Torquay"
+      ],
+      "source": "https://torquayunited.com/ticketing-terms-conditions/"
+    },
+    {
+      "venue_id": 19200,
+      "names": [
+        "Broadfield Stadium",
+        "The Broadfield Stadium"
+      ],
+      "localities": [
+        "Crawley"
+      ],
+      "source": "https://www.crawleytownfc.com/"
+    },
+    {
+      "venue_id": 3537,
+      "names": [
+        "New Bucks Head"
+      ],
+      "localities": [
+        "Telford"
+      ],
+      "source": "https://fc-utd.co.uk/grounds/new-bucks-head-stadium"
+    },
+    {
+      "venue_id": 490,
+      "names": [
+        "The Wham Stadium"
+      ],
+      "localities": [
+        "Accrington"
+      ],
+      "source": "https://www.accringtonstanley.co.uk/company-details"
+    },
+    {
+      "venue_id": 539,
+      "names": [
+        "The Shay"
+      ],
+      "localities": [
+        "Halifax"
+      ],
+      "source": "https://fchalifaxtown.com/club/contact-us/"
+    },
+    {
+      "venue_id": 12272,
+      "names": [
+        "VBS Community Stadium"
+      ],
+      "localities": [
+        "London",
+        "Sutton"
+      ],
+      "source": "https://www.suttonunited.net/wp-content/uploads/2024/06/away-guide.pdf"
+    },
+    {
+      "venue_id": 6193,
+      "names": [
+        "Grosvenor Vale"
+      ],
+      "localities": [
+        "London",
+        "Ruislip"
+      ],
+      "source": "https://www.wealdstonefc.com/contact/"
+    },
+    {
+      "venue_id": 3541,
+      "names": [
+        "Edgar Street"
+      ],
+      "localities": [
+        "Hereford"
+      ],
+      "source": "https://herefordfc.co.uk/2026/04/update-on-close-season-pitch-drainage-renovations/"
+    },
+    {
+      "venue_id": 11880,
+      "names": [
+        "The Mazuma Stadium"
+      ],
+      "localities": [
+        "Morecambe"
+      ],
+      "source": "https://ticketsmorecambefc.com/about-us"
+    },
+    {
+      "venue_id": 6189,
+      "names": [
+        "Meadowbank"
+      ],
+      "localities": [
+        "Dorking"
+      ],
+      "source": "https://www.molevalley.gov.uk/community/meadowbank-community-football-facilities/"
+    },
+    {
+      "venue_id": 553,
+      "names": [
+        "York Road"
+      ],
+      "localities": [
+        "Maidenhead"
+      ],
+      "source": "https://www.maidenheadunitedfc.org/our-club/faqs/"
+    },
+    {
+      "venue_id": 11960,
+      "names": [
+        "Southwood Stadium"
+      ],
+      "localities": [
+        "Ramsgate"
+      ],
+      "source": "https://ramsgatefc.co.uk/club-history/"
+    },
+    {
+      "venue_id": 603,
+      "names": [
+        "Huish Park"
+      ],
+      "localities": [
+        "Yeovil"
+      ],
+      "source": "https://somerset.moderngov.co.uk/documents/s57446/Huish%20Park%20-%20buy%20back%20option%20extension%20report.pdf"
+    },
+    {
+      "venue_id": 491,
+      "names": [
+        "Mill Farm"
+      ],
+      "localities": [
+        "Wesham"
+      ],
+      "source": "https://find-and-update.company-information.service.gov.uk/company/05916248"
+    },
+    {
+      "venue_id": 12133,
+      "names": [
+        "Jakemans Community Stadium"
+      ],
+      "localities": [
+        "Boston"
+      ],
+      "source": "https://www.bostonunited.co.uk/a/terms-and-conditions-20262027-64150.html"
+    },
+    {
+      "venue_id": 19201,
+      "names": [
+        "The New Lawn"
+      ],
+      "localities": [
+        "Nailsworth"
+      ],
+      "source": "https://www.fgr.co.uk/news/introducing-the-bolt-new-lawn/"
+    },
+    {
+      "venue_id": 527,
+      "names": [
+        "Pride Park"
+      ],
+      "localities": [
+        "Derby"
+      ],
+      "source": "https://www.dcfc.co.uk/news/2026/09/fans-guide-birmingham-city-h"
+    },
+    {
+      "venue_id": 20414,
+      "names": [
+        "Loftus Road"
+      ],
+      "localities": [
+        "London"
+      ],
+      "source": "https://www.qpr.co.uk/?site=desktop"
+    },
+    {
+      "venue_id": 18620,
+      "names": [
+        "Bescot Stadium"
+      ],
+      "localities": [
+        "Walsall"
+      ],
+      "source": "https://go.walsall.gov.uk/assets-community-value-list/poundland-bescot-stadium-and-saddlers-club"
+    },
+    {
+      "venue_id": 21329,
+      "names": [
+        "Turnbull Ground"
+      ],
+      "localities": [
+        "Whitby"
+      ],
+      "source": "https://whitbytownfc.ktckts.com/contactus"
+    },
+    {
+      "venue_id": 579,
+      "names": [
+        "Peninsula Stadium"
+      ],
+      "localities": [
+        "Salford"
+      ],
+      "source": "https://www.levelplayingfield.org.uk/club/salford-city/"
+    },
+    {
+      "venue_id": 592,
+      "names": [
+        "County Ground"
+      ],
+      "localities": [
+        "Swindon"
+      ],
+      "source": "https://www.swindontownfc.co.uk/"
+    },
+    {
+      "venue_id": 6187,
+      "names": [
+        "Twerton Park"
+      ],
+      "localities": [
+        "Bath"
+      ],
+      "source": "https://www.bathcityfc.com/how-to-find-us/"
+    },
+    {
+      "venue_id": 569,
+      "names": [
+        "Kassam Stadium"
+      ],
+      "localities": [
+        "Oxford"
+      ],
+      "source": "https://www.oxford.gov.uk/downloads/file/4805/exam024---oxford-city-council-response-to-inspectors-matters-issues-and-questions-matter-5-%E2%80%93-site-allocations-%E2%80%93-issue-2"
+    },
+    {
+      "venue_id": 516,
+      "names": [
+        "Cardiff City Stadium"
+      ],
+      "localities": [
+        "Cardiff"
+      ],
+      "source": "https://www.cardiffcityfc.co.uk/club/visit-contact-staff-directory",
+      "physical_country": "Wales"
+    },
+    {
+      "venue_id": 21181,
+      "names": [
+        "Elite Football Performance Centre"
+      ],
+      "localities": [
+        "Lancing"
+      ],
+      "source": "https://www.brightonandhovealbion.com/life-at-brighton"
     }
   ],
   "team_reviews": [
