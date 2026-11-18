@@ -155,7 +155,8 @@ def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
         if proof is None and old is None and decision is None:
             proof = reviewed_home_proof(item, context.get("home_ground_reviews", ()))
             fallback = proof is not None
-        if raw.get("id") is None and not raw.get("name") and proof is None:
+        missing_id = raw.get("id") is None or (type(raw.get("id")) is int and raw["id"] == 0)
+        if missing_id and not raw.get("name") and proof is None:
             return checked(old, "MISSING")
         vid, location = resolve_event_venue(raw, scope,
             by_id, refs, aliases, proof)
