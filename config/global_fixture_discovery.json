@@ -11648,9 +11648,13 @@
       "localities": [
         "Newport"
       ],
-      "geographic_hold": true,
+      "geographic_hold": false,
       "source": "https://www.newport-county.co.uk/first-time-visits-families",
-      "reason": "Canonical Rodney Parade has a point outside Newport. Retain provider evidence but leave new fixture unlinked pending correction; do not select duplicate 22779."
+      "reason": "Verified current canonical point within official Rodney Parade facility; supersedes outdated out-of-Newport rationale. See evidence/extra-fetch-index.json.",
+      "names": [
+        "Rodney Parade"
+      ],
+      "physical_country": "Wales"
     },
     {
       "venue_id": 526,
@@ -12127,6 +12131,336 @@
         "Lancing"
       ],
       "source": "https://www.brightonandhovealbion.com/life-at-brighton"
+    },
+    {
+      "venue_id": 587,
+      "names": [
+        "Lamex Stadium",
+        "The Lamex Stadium"
+      ],
+      "localities": [
+        "Stevenage"
+      ],
+      "source": "https://images.gc.stevenagefcservices.co.uk/ece03b60-55c2-11f0-bf68-1b54d3bddafc.pdf"
+    },
+    {
+      "venue_id": 10731,
+      "names": [
+        "Whitley Park"
+      ],
+      "localities": [
+        "Newcastle",
+        "North Tyneside"
+      ],
+      "source": "https://blueflames.co.uk/info"
+    },
+    {
+      "venue_id": 19778,
+      "names": [
+        "USW Sport Park",
+        "USW Sports Park"
+      ],
+      "localities": [
+        "Pontypridd",
+        "Treforest"
+      ],
+      "source": "https://www.southwales.ac.uk/location/sport-park/",
+      "physical_country": "Wales"
+    },
+    {
+      "venue_id": 22342,
+      "names": [
+        "LCFC Training Ground"
+      ],
+      "localities": [
+        "Seagrave",
+        "Sileby"
+      ],
+      "source": "https://www.lcfc.com/media-article/Contact-Us"
+    },
+    {
+      "venue_id": 22938,
+      "names": [
+        "Swansea.com Stadium"
+      ],
+      "localities": [
+        "Swansea"
+      ],
+      "source": "https://www.swanseacity.com/club/swansea-city-contact-list",
+      "physical_country": "Wales"
+    },
+    {
+      "venue_id": 23191,
+      "names": [
+        "Firhill Stadium"
+      ],
+      "localities": [
+        "Glasgow"
+      ],
+      "source": "https://www.ptfc.co.uk/ptfc-news/thistle-secure-new-naming-rights-agreement-and-unveil-the-wyre-stadium-at-firhill/"
+    },
+    {
+      "venue_id": 23196,
+      "names": [
+        "East End Park"
+      ],
+      "localities": [
+        "Dunfermline"
+      ],
+      "source": "https://www.dafc.co.uk/matches/first-team/2026/g2637151"
+    },
+    {
+      "venue_id": 23209,
+      "names": [
+        "Balmoor"
+      ],
+      "localities": [
+        "Peterhead"
+      ],
+      "source": "https://www.peterheadfc.co.uk/fan-info/"
+    },
+    {
+      "venue_id": 23354,
+      "names": [
+        "Easter Road"
+      ],
+      "localities": [
+        "Edinburgh"
+      ],
+      "source": "https://www.afc.co.uk/en/news/supporter-information-hibernian-preview"
+    },
+    {
+      "venue_id": 23355,
+      "names": [
+        "Rugby Park"
+      ],
+      "localities": [
+        "Kilmarnock"
+      ],
+      "source": "https://kilmarnockfc.co.uk/news/welcome-to-the-bbsp-stadium-rugby-park/"
+    },
+    {
+      "venue_id": 23358,
+      "names": [
+        "Dens Park"
+      ],
+      "localities": [
+        "Dundee"
+      ],
+      "source": "https://dundeefc.co.uk/news/dens-park/"
+    },
+    {
+      "venue_id": 23364,
+      "names": [
+        "Falkirk Stadium"
+      ],
+      "localities": [
+        "Falkirk"
+      ],
+      "source": "https://falkirkfc.co.uk/stadium/falkirk-community-stadium/"
+    },
+    {
+      "venue_id": 23464,
+      "names": [
+        "Meadowbank Sports Centre"
+      ],
+      "localities": [
+        "Edinburgh"
+      ],
+      "source": "https://edinburghcityfc.com/match-day-info/"
+    },
+    {
+      "venue_id": 23467,
+      "names": [
+        "Ainslie Park"
+      ],
+      "localities": [
+        "Edinburgh"
+      ],
+      "source": "https://spartansfc.com/2024/09/09/spfl-trust-trophy-spartans-exit-at-hands-of-lofty-lions/"
+    },
+    {
+      "venue_id": 23738,
+      "names": [
+        "Ballymena Showgrounds"
+      ],
+      "localities": [
+        "Ballymena"
+      ],
+      "source": "https://www.midandeastantrim.gov.uk/resident/sport-and-leisure/ballymena-showgrounds/"
+    },
+    {
+      "venue_id": 23745,
+      "names": [
+        "The BetMcLean Oval"
+      ],
+      "localities": [
+        "Belfast"
+      ],
+      "source": "https://www.nifootballleague.com/betmclean-cup/2026-2027/fixtures/"
+    },
+    {
+      "venue_id": 23748,
+      "names": [
+        "Limavady Showgrounds"
+      ],
+      "localities": [
+        "Limavady"
+      ],
+      "source": "https://www.nifootballleague.com/all-clubs/limavady-united/"
+    },
+    {
+      "venue_id": 24077,
+      "names": [
+        "Cyncoed Campus"
+      ],
+      "localities": [
+        "Cardiff"
+      ],
+      "source": "https://www.cardiffmet.ac.uk/about/visit-us/cyncoed-campus/"
+    },
+    {
+      "venue_id": 24078,
+      "names": [
+        "Park Hall"
+      ],
+      "localities": [
+        "Oswestry"
+      ],
+      "source": "https://tnsfc.co.uk/fans-guide-to-park-hall/"
+    },
+    {
+      "venue_id": 24080,
+      "names": [
+        "Essity Stadium"
+      ],
+      "localities": [
+        "Flint"
+      ],
+      "source": "https://editorial.uefa.com/resources/029f-1f1d6ade076e-783243385d05-1000/uefa_european_football_directory_2025-26.pdf"
+    },
+    {
+      "venue_id": 24081,
+      "names": [
+        "Jenner Park"
+      ],
+      "localities": [
+        "Barry"
+      ],
+      "source": "https://faw.cymru/cymru-leagues/news/jenner-park-confirmed-as-venue-for-2023-24-nathaniel-mg-cup-final/"
+    },
+    {
+      "venue_id": 24082,
+      "names": [
+        "Maesdu Park"
+      ],
+      "localities": [
+        "Llandudno"
+      ],
+      "source": "https://www.llandudnofc.co.uk/about"
+    },
+    {
+      "venue_id": 24084,
+      "names": [
+        "Bryntirion Park"
+      ],
+      "localities": [
+        "Bridgend"
+      ],
+      "source": "https://d20w35i08zcmee.cloudfront.net/Club-Accessibility-Information-Guide-Cymru-Premier-V1.0-2024.pdf"
+    },
+    {
+      "venue_id": 24085,
+      "names": [
+        "Bridge Meadow Stadium"
+      ],
+      "localities": [
+        "Haverfordwest"
+      ],
+      "source": "https://haverfordwestcountyafc.com/club/contact/"
+    },
+    {
+      "venue_id": 24088,
+      "names": [
+        "The Airfield"
+      ],
+      "localities": [
+        "Broughton"
+      ],
+      "source": "https://www.airbusfc.com/index_php/club/officials/"
+    },
+    {
+      "venue_id": 24089,
+      "names": [
+        "Llanelian Road"
+      ],
+      "localities": [
+        "Colwyn Bay",
+        "Old Colwyn"
+      ],
+      "source": "https://cbfc.wales/contact/"
+    },
+    {
+      "venue_id": 26103,
+      "names": [
+        "Milltown"
+      ],
+      "localities": [
+        "Warrenpoint"
+      ],
+      "source": "https://www.nifootballleague.com/all-clubs/warrenpoint-town/"
+    },
+    {
+      "venue_id": 27417,
+      "names": [
+        "Latham Park"
+      ],
+      "localities": [
+        "Newtown"
+      ],
+      "source": "https://faw.cymru/cymru-leagues/news/2025-nathaniel-mg-cup-final-supporter-information/"
+    },
+    {
+      "venue_id": 27418,
+      "names": [
+        "Richmond Park"
+      ],
+      "localities": [
+        "Carmarthen"
+      ],
+      "source": "https://carmarthentownafc.co.uk/club-info/club-history"
+    },
+    {
+      "venue_id": 27427,
+      "names": [
+        "Belle Vue"
+      ],
+      "localities": [
+        "Rhyl"
+      ],
+      "source": "https://www.rhylfc.co.uk/news/CPD-Y-RHYL-1879-ANNOUNCES-GROUND-NAMING-RIGHTS-PARTNERSHIP-WITH-HOPS-and-BARLEY"
+    },
+    {
+      "venue_id": 27437,
+      "names": [
+        "CSE Ystrad",
+        "Centre of Sporting Excellence 4G"
+      ],
+      "localities": [
+        "Hengoed",
+        "Ystrad Mynach"
+      ],
+      "source": "https://ardalsouthern.cymru/ardal-se/clubs-se/caerphilly-athletic/"
+    },
+    {
+      "venue_id": 27851,
+      "names": [
+        "New Dundas Park"
+      ],
+      "localities": [
+        "Bonnyrigg"
+      ],
+      "source": "https://www.bonnyriggrosefc.co.uk/teams/118321/fixtures-results"
     }
   ],
   "team_reviews": [

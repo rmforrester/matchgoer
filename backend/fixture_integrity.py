@@ -605,6 +605,10 @@ def transaction_integrity(connection, items, *, preimages=None, manifest=None, s
                 connection.execute(VENUES.update().where(VENUES.c.fixture_id==fid).values(**values) if current else VENUES.insert().values(fixture_id=fid,**values))
             elif not geo['hold'] and current and current['actor']=='AUTOMATED_GEOGRAPHIC_CONFLICT':
                 connection.execute(VENUES.update().where(VENUES.c.fixture_id==fid).values(state='PROVIDER_ASSIGNED',venue_id=row['venue_id'],revision=current['revision']+1,actor='AUTOMATED_GEOGRAPHIC_RESOLUTION'))
+    # Both lifecycle and discovery writers use this same transaction hook.
+    # Reuse approved catalogue facts across future seasons without provider I/O.
+    from backend.fixture_catalogue_recheck import reevaluate
+    result['catalogue_reevaluation'] = reevaluate(connection, items=items, manifest=manifest)
     run = CURRENT_RUN.get()
     if run is not None:
         stored = connection.execute(select(RUNS.c.receipt).where(RUNS.c.run_id==run.run_id).with_for_update()).scalar_one()
@@ -715,6 +719,20 @@ class RunReceipt:
             if fid in effective_after:
                 effective_after[fid].update(fixture_date=utc(decision['effective_kickoff']).isoformat(),status=decision['effective_status'])
         data['exception_report'] = exception_digest(report, accounting, partial.get('committed_groups', []), after=effective_after)
+        # Observational only: coverage failure must not rewrite execution health,
+        # release holds, or prevent the existing durable failure receipt.
+        try:
+            from backend.fixture_coverage import collect
+            with self.engine.connect().execution_options(isolation_level='REPEATABLE READ') as c:
+                c.exec_driver_sql('SET TRANSACTION READ ONLY')
+                previous = c.execute(select(RUNS.c.receipt).where(
+                    RUNS.c.run_id != self.run_id, RUNS.c.completed_at.is_not(None),
+                    RUNS.c.state.in_(['COMPLETED','INCOMPLETE']))
+                    .order_by(RUNS.c.completed_at.desc()).limit(1)).scalar_one_or_none()
+                data['league_coverage'] = collect(c, datetime.now(UTC), (previous or {}).get('league_coverage'))
+        except Exception as coverage_error:
+            data['league_coverage'] = dict(status='UNAVAILABLE', reason=type(coverage_error).__name__,
+                                          note='No Discover coverage pass claimed; execution health is reported separately.')
         with self.engine.begin() as c:
             c.execute(RUNS.update().where(RUNS.c.run_id == self.run_id).values(
                 completed_at=datetime.now(UTC), state=state, receipt=data,
