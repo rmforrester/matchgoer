@@ -9235,6 +9235,7 @@
       "provider_season": 2026,
       "display_season": "2026",
       "venue_countries": [
+        "Andorra",
         "Spain"
       ],
       "cadence": "weekly",
@@ -12461,6 +12462,2830 @@
         "Bonnyrigg"
       ],
       "source": "https://www.bonnyriggrosefc.co.uk/teams/118321/fixtures-results"
+    },
+    {
+      "venue_id": 23057,
+      "names": [
+        "RheinEnergieStadion"
+      ],
+      "localities": [
+        "Cologne",
+        "Köln"
+      ],
+      "physical_country": "Germany",
+      "source": "https://www.rheinenergiestadion.de/en/contact/"
+    },
+    {
+      "venue_id": 23042,
+      "names": [
+        "Europa-Park Stadion"
+      ],
+      "localities": [
+        "Freiburg",
+        "Freiburg im Breisgau"
+      ],
+      "physical_country": "Germany",
+      "source": "https://www.scfreiburg.com/stadion/europa-park-stadion/stadionverordnung/"
+    },
+    {
+      "venue_id": 23098,
+      "names": [
+        "Stadio Olimpico"
+      ],
+      "localities": [
+        "Roma",
+        "Rome"
+      ],
+      "source": "https://www.asroma.com/en/stadium"
+    },
+    {
+      "venue_id": 23104,
+      "names": [
+        "Luigi Ferraris",
+        "Stadio Comunale Luigi Ferraris",
+        "Stadio Luigi Ferraris"
+      ],
+      "localities": [
+        "Genoa",
+        "Genova"
+      ],
+      "source": "https://genoacfc.it/biglietteria/stadio/"
+    },
+    {
+      "venue_id": 23105,
+      "names": [
+        "Allianz Stadium"
+      ],
+      "localities": [
+        "Torino",
+        "Turin"
+      ],
+      "source": "https://www.juventus.com/it/allianz-stadium/"
+    },
+    {
+      "venue_id": 23111,
+      "names": [
+        "Stadio Pier Luigi Penzo",
+        "Stadio Pierluigi Penzo"
+      ],
+      "localities": [
+        "Venezia",
+        "Venice"
+      ],
+      "source": "https://en.veneziafc.it/club/history"
+    },
+    {
+      "venue_id": 23102,
+      "names": [
+        "Diego Armando Maradona",
+        "Maradona Stadium",
+        "Stadio Diego Armando Maradona"
+      ],
+      "localities": [
+        "Naples",
+        "Napoli"
+      ],
+      "source": "https://sscnapoli.it/en/history-of-the-stadium/"
+    },
+    {
+      "venue_id": 23130,
+      "names": [
+        "Drususstadion",
+        "Stadio Druso",
+        "Stadio Marco Druso"
+      ],
+      "localities": [
+        "Bolzano",
+        "Bozen"
+      ],
+      "source": "https://www.comune.bolzano.bz.it/Vivere-il-Comune/Luoghi/Stadio-Druso"
+    },
+    {
+      "venue_id": 22964,
+      "names": [
+        "Generali Arena",
+        "Generali-Arena"
+      ],
+      "localities": [
+        "Vienna",
+        "Wien"
+      ],
+      "source": "https://www.generali-arena.at/anreise/"
+    },
+    {
+      "venue_id": 22978,
+      "names": [
+        "FAC Platz",
+        "FAC-Platz"
+      ],
+      "localities": [
+        "Vienna",
+        "Wien"
+      ],
+      "source": "https://fac.at/en/our-fac/stadium/"
+    },
+    {
+      "venue_id": 22963,
+      "names": [
+        "Red Bull Arena"
+      ],
+      "localities": [
+        "Salzburg",
+        "Wals",
+        "Wals-Siezenheim"
+      ],
+      "source": "https://www.redbullsalzburg.at/en/red-bull-arena/everything-for-your-match-day"
+    },
+    {
+      "venue_id": 23408,
+      "names": [
+        "Lotto Park"
+      ],
+      "localities": [
+        "Anderlecht",
+        "Brussels",
+        "Bruxelles (Brussel)"
+      ],
+      "source": "https://press.rsca.be/en"
+    },
+    {
+      "venue_id": 23593,
+      "names": [
+        "Stade Robert Diochon",
+        "Stade Robert-Diochon"
+      ],
+      "localities": [
+        "Le Petit-Quevilly",
+        "Petit-Quevilly",
+        "Rouen"
+      ],
+      "source": "https://www.metropole-rouen-normandie.fr/equipements/le-stade-robert-diochon"
+    },
+    {
+      "venue_id": 23281,
+      "names": [
+        "Decathlon Arena - Stade Pierre-Mauroy",
+        "Stade Pierre-Mauroy"
+      ],
+      "localities": [
+        "Lille",
+        "Villeneuve d'Ascq"
+      ],
+      "source": "https://www.stade-pierre-mauroy.com/infos-pratiques/acces"
+    },
+    {
+      "venue_id": 23595,
+      "names": [
+        "Stade Armand Cesari",
+        "Stade Armand-Cesari"
+      ],
+      "localities": [
+        "Bastia",
+        "Furiani"
+      ],
+      "source": "https://sc-bastia.corsica/pages/le-stade"
+    },
+    {
+      "venue_id": 23030,
+      "names": [
+        "Stade Marcel Picot",
+        "Stade Marcel-Picot"
+      ],
+      "localities": [
+        "Nancy",
+        "Tomblaine"
+      ],
+      "source": "https://www.asnl.net/351/contacter_la_billetterie/formulaires/formulaire/formulaire_de_contact_billetterie"
+    },
+    {
+      "venue_id": 23032,
+      "names": [
+        "Stade Saint-Symphorien"
+      ],
+      "localities": [
+        "Longeville-lès-Metz",
+        "Metz"
+      ],
+      "source": "https://metz.fr/lieux/lieu-56.php"
+    },
+    {
+      "venue_id": 23304,
+      "names": [
+        "epet ARENA"
+      ],
+      "localities": [
+        "Prague",
+        "Praha"
+      ],
+      "source": "https://sparta.cz/en/klub/stadium"
+    },
+    {
+      "venue_id": 23629,
+      "names": [
+        "Stadion Juliska"
+      ],
+      "localities": [
+        "Prague",
+        "Praha"
+      ],
+      "source": "https://fkdukla.cz/text/stadion"
+    },
+    {
+      "venue_id": 23310,
+      "names": [
+        "Dolicek Stadium",
+        "Stadion Ďolíček"
+      ],
+      "localities": [
+        "Prague",
+        "Praha"
+      ],
+      "source": "https://bohemians.cz/dolicek"
+    },
+    {
+      "venue_id": 23282,
+      "names": [
+        "Groupama Stadium",
+        "Parc Olympique Lyonnais"
+      ],
+      "localities": [
+        "Décines-Charpieu",
+        "Lyon"
+      ],
+      "source": "https://www.olvallee.fr/"
+    },
+    {
+      "venue_id": 23275,
+      "names": [
+        "Estadio El Sadar"
+      ],
+      "localities": [
+        "Iruña",
+        "Iruñea",
+        "Pamplona"
+      ],
+      "source": "https://www.osasuna.es/public/Attachment/2025/7/memoria2023.pdf"
+    },
+    {
+      "venue_id": 23274,
+      "names": [
+        "Anoeta",
+        "Estadio Anoeta",
+        "Reale Arena"
+      ],
+      "localities": [
+        "Donostia / San Sebastián",
+        "Donostia-San Sebastián",
+        "San Sebastian"
+      ],
+      "source": "https://www.realsociedad.eus/es/club/instalaciones"
+    },
+    {
+      "venue_id": 23553,
+      "names": [
+        "Estadio Gran Canaria",
+        "Estadio de Gran Canaria"
+      ],
+      "localities": [
+        "Las Palmas",
+        "Las Palmas de Gran Canaria"
+      ],
+      "source": "https://www.udlaspalmas.es/estadio"
+    },
+    {
+      "venue_id": 24180,
+      "names": [
+        "Estadi Johan Cruyff"
+      ],
+      "localities": [
+        "Barcelona",
+        "Sant Joan Despí"
+      ],
+      "source": "https://www.fcbarcelona.com/en/club/accesibilidad-instalaciones/estadi-johan-cruyff"
+    },
+    {
+      "venue_id": 24020,
+      "names": [
+        "VTB Arena"
+      ],
+      "localities": [
+        "Moscow",
+        "Moskva"
+      ],
+      "source": "https://vtb-arena.com/faq/"
+    },
+    {
+      "venue_id": 24010,
+      "names": [
+        "VEB Arena"
+      ],
+      "localities": [
+        "Moscow",
+        "Moskva"
+      ],
+      "source": "https://en.pfc-cska.com/club/contacts/"
+    },
+    {
+      "venue_id": 24011,
+      "names": [
+        "LUKOIL Arena",
+        "Lukoil Arena"
+      ],
+      "localities": [
+        "Moscow",
+        "Moskva"
+      ],
+      "source": "https://spartak.com/en/stadium/about"
+    },
+    {
+      "venue_id": 24013,
+      "names": [
+        "RZD Arena"
+      ],
+      "localities": [
+        "Moscow",
+        "Moskva"
+      ],
+      "source": "https://www.fclm.ru/tours/"
+    },
+    {
+      "venue_id": 24036,
+      "names": [
+        "Partizan Stadium",
+        "Stadion Partizana"
+      ],
+      "localities": [
+        "Belgrade",
+        "Beograd"
+      ],
+      "source": "https://partizan.rs/vesti/licna-karta-kluba"
+    },
+    {
+      "venue_id": 24037,
+      "names": [
+        "Rajko Mitić Stadion",
+        "Rajko Mitić Stadium",
+        "Stadion Rajko Mitić"
+      ],
+      "localities": [
+        "Belgrade",
+        "Beograd"
+      ],
+      "source": "https://www.crvenazvezdafk.com/en/klub/stadion-rajko-mitic"
+    },
+    {
+      "venue_id": 23899,
+      "names": [
+        "Bloomfield Stadium"
+      ],
+      "localities": [
+        "Tel Aviv-Yafo",
+        "Tel-Aviv",
+        "Tel-Aviv-Yāfā (Tel-Aviv)"
+      ],
+      "source": "https://www.sportpalace.co.il/tlv-faclities/sport-halls/new-blumfield"
+    },
+    {
+      "venue_id": 23903,
+      "names": [
+        "Ha Moshava Stadium",
+        "HaMoshava Stadium"
+      ],
+      "localities": [
+        "Petach-Tikva",
+        "Petah Tikva"
+      ],
+      "source": "https://www.uefa.com/under21/news/0257-0deb7e38b1c6-33c7839725d3-1000--ha-moshava-stadium/"
+    },
+    {
+      "venue_id": 25693,
+      "names": [
+        "Green Stadium"
+      ],
+      "localities": [
+        "Nazareth Illit",
+        "Nof HaGalil"
+      ],
+      "source": "https://www.nof-hagalil.muni.il/483/"
+    },
+    {
+      "venue_id": 22821,
+      "names": [
+        "Gamla Ullevi"
+      ],
+      "localities": [
+        "Gothenburg",
+        "Göteborg"
+      ],
+      "source": "https://gotevent.se/en/our-arenas/gamla-ullevi/"
+    },
+    {
+      "venue_id": 25562,
+      "names": [
+        "Tiszaliget Stadium",
+        "Tiszaligeti Stadion"
+      ],
+      "localities": [
+        "Szolnok",
+        "Tiszaliget"
+      ],
+      "source": "https://www.mlsz.hu/hir/atadtak-az-ujjaepitett-tiszaligeti-stadiont-szolnokon"
+    },
+    {
+      "venue_id": 23964,
+      "names": [
+        "Stade Am Pëtz",
+        "Stade am Petz"
+      ],
+      "localities": [
+        "Weidingen",
+        "Wiltz"
+      ],
+      "source": "https://www.fcwiltz.com/installations-271646v4"
+    },
+    {
+      "venue_id": 26399,
+      "names": [
+        "Stadionul Steaua"
+      ],
+      "localities": [
+        "Bucharest",
+        "București"
+      ],
+      "source": "https://www.csasteaua.ro/stadionul-steaua/"
+    },
+    {
+      "venue_id": 23993,
+      "names": [
+        "Arena Nationala",
+        "Arena Naţională"
+      ],
+      "localities": [
+        "Bucharest",
+        "Bucureşti"
+      ],
+      "source": "https://doc.pmb.ro/consiliu/sedinte/552/oz/12692.pdf"
+    },
+    {
+      "venue_id": 23878,
+      "names": [
+        "Fehérvári úti Stadion",
+        "Paksi FC Stadion"
+      ],
+      "localities": [
+        "Paks"
+      ],
+      "source": "https://www.paksifc.hu/stadion_info.php"
+    },
+    {
+      "venue_id": 23454,
+      "names": [
+        "Stadio Olimpico Carlo Zecchini"
+      ],
+      "localities": [
+        "Grosseto"
+      ],
+      "source": "https://www.comune.grosseto.it/app/uploads/2024/11/stadiozecchiniecampoalleggerimentopalazzolidescrizione.pdf"
+    },
+    {
+      "venue_id": 23820,
+      "names": [
+        "Aradippou Municipal Stadium",
+        "Dimotiko Stadio Aradippou"
+      ],
+      "localities": [
+        "Aradippou"
+      ],
+      "source": "https://aradippou.org.cy/our-city/municipal-stadium/"
+    },
+    {
+      "venue_id": 24073,
+      "names": [
+        "Roman Shukhevych Ternopil City Stadium",
+        "Ternopilskyi miskyi stadion im. Romana Shukhevycha"
+      ],
+      "localities": [
+        "Ternopil"
+      ],
+      "source": "https://fcl.uaf.ua/stadium/ternopilskij-miskij-stadion"
+    },
+    {
+      "venue_id": 23814,
+      "names": [
+        "GSP Stadium",
+        "Neo GSP"
+      ],
+      "localities": [
+        "Levkosía",
+        "Nicosia",
+        "Strovolos"
+      ],
+      "source": "https://www.gsp.org.cy/sports-center/"
+    },
+    {
+      "venue_id": 23588,
+      "names": [
+        "Stade Crédit Agricole La Licorne",
+        "Stade Crédit Agricole de la Licorne",
+        "Stade de la Licorne"
+      ],
+      "localities": [
+        "Amiens"
+      ],
+      "source": "https://www.amiensfootball.com/actualites/infos-pratiques-asc-asse"
+    },
+    {
+      "venue_id": 23024,
+      "names": [
+        "Stade de la Beaujoire",
+        "Stade de la Beaujoire - Louis Fonteneau"
+      ],
+      "localities": [
+        "Nantes"
+      ],
+      "source": "https://www.fcnantes.com/articles/article2809.php?num=1627"
+    },
+    {
+      "venue_id": 23023,
+      "names": [
+        "Stade de la Mosson",
+        "Stade de la Mosson-Mondial 98"
+      ],
+      "localities": [
+        "Montpellier"
+      ],
+      "source": "https://en-commun.eolas-58.montpellier.fr/sites/default/files/magazines/en-commun-2012-06_0.pdf"
+    },
+    {
+      "venue_id": 23036,
+      "names": [
+        "Nouste Camp",
+        "Stade Nouste Camp"
+      ],
+      "localities": [
+        "Bizanos",
+        "Pau"
+      ],
+      "source": "https://www.paufc.fr/club/nouste-camp"
+    },
+    {
+      "venue_id": 24006,
+      "names": [
+        "Superbet Arena - Giulesti",
+        "Superbet Arena-Giulești"
+      ],
+      "localities": [
+        "Bucharest",
+        "București"
+      ],
+      "source": "https://fcbt.ro/venue/stadion-superbet-arena-giulesti-bucuresti/"
+    },
+    {
+      "venue_id": 23995,
+      "names": [
+        "Stadionul Arcul de Triumf"
+      ],
+      "localities": [
+        "Bucharest",
+        "București"
+      ],
+      "source": "https://www.uefa.com/womenseuropeanqualifiers/match/2048874/"
+    },
+    {
+      "venue_id": 19923,
+      "names": [
+        "Toughsheet Community Stadium"
+      ],
+      "localities": [
+        "Bolton",
+        "Horwich"
+      ],
+      "source": "https://www.bwfc.co.uk/fans/fans-and-visitors"
+    },
+    {
+      "venue_id": 538,
+      "names": [
+        "Blundell Park"
+      ],
+      "localities": [
+        "Cleethorpes",
+        "Cleethorpes, North East Lincolnshire",
+        "Grimsby"
+      ],
+      "source": "https://gtfc.co.uk/visitors/"
+    },
+    {
+      "venue_id": 594,
+      "names": [
+        "Prenton Park"
+      ],
+      "localities": [
+        "Birkenhead",
+        "Birkenhead, Merseyside",
+        "Wirral"
+      ],
+      "source": "https://www.tottenhamhotspur.com/media/13776/tranmere_away-guide.pdf"
+    },
+    {
+      "venue_id": 11929,
+      "names": [
+        "LNER Community Stadium",
+        "York`s LNER Community Stadium"
+      ],
+      "localities": [
+        "Huntington",
+        "York",
+        "York, North Yorkshire"
+      ],
+      "source": "https://yorksmc.co.uk/getting-here/"
+    },
+    {
+      "venue_id": 23287,
+      "names": [
+        "Roazhon Park"
+      ],
+      "localities": [
+        "Rennes"
+      ],
+      "source": "https://www.staderennais.com/comment-acceder-au-roazhon-park"
+    },
+    {
+      "venue_id": 24023,
+      "names": [
+        "Anzhi Arena",
+        "Anzhi-Arena"
+      ],
+      "localities": [
+        "Kaspijsk",
+        "Kaspiysk"
+      ],
+      "source": "https://editorial.uefa.com/resources/02a2-2004c8d438c3-b03724f6d21e-1000/uefa_european_football_directory_2025-26_march_edition.pdf.pdf"
+    },
+    {
+      "venue_id": 25743,
+      "names": [
+        "Stadio Alberto Pinto",
+        "Stadio Comunale Alberto Pinto"
+      ],
+      "localities": [
+        "Caserta"
+      ],
+      "source": "https://www.casertanafc.it/storia-stadio-pinto"
+    },
+    {
+      "venue_id": 25746,
+      "names": [
+        "Campo Comunale Domenico Monterisi",
+        "Stadio Domenico Monterisi"
+      ],
+      "localities": [
+        "Cerignola"
+      ],
+      "source": "https://www.audacecerignola.it/modulo-di-contatto/"
+    },
+    {
+      "venue_id": 23120,
+      "names": [
+        "Stadio Carlo Castellani",
+        "Stadio Carlo Castellani – Computer Gross Arena"
+      ],
+      "localities": [
+        "Empoli"
+      ],
+      "source": "https://www.empolifc.it/footer/footer-1/fstadio"
+    },
+    {
+      "venue_id": 23113,
+      "names": [
+        "Stadio Comunale Via del Mare",
+        "Stadio Via del Mare"
+      ],
+      "localities": [
+        "Lecce"
+      ],
+      "source": "https://uslecce.it/stadio/"
+    },
+    {
+      "venue_id": 23103,
+      "names": [
+        "Bluenergy Stadium",
+        "Bluenergy Stadium - Stadio Friuli",
+        "Stadio Friuli"
+      ],
+      "localities": [
+        "Udine"
+      ],
+      "source": "https://www.udinese.it/stadio/stadio/come-arrivare"
+    },
+    {
+      "venue_id": 23109,
+      "names": [
+        "Stadio Olimpico Grande Torino",
+        "Stadio Olimpico di Torino"
+      ],
+      "localities": [
+        "Torino",
+        "Turin"
+      ],
+      "source": "https://www.torinofc.it/en/stadio/stadio-olimpico-grande-torino"
+    },
+    {
+      "venue_id": 23119,
+      "names": [
+        "Orogel Stadium-Dino Manuzzi",
+        "Stadio Dino Manuzzi"
+      ],
+      "localities": [
+        "Cesena"
+      ],
+      "source": "https://www.cesenafc.com/it/society/stadium"
+    },
+    {
+      "venue_id": 23127,
+      "names": [
+        "Stadio Comunale Euganeo",
+        "Stadio Euganeo"
+      ],
+      "localities": [
+        "Padova"
+      ],
+      "source": "https://www.padovacalcio.it/biglietti/stadio-euganeo/"
+    },
+    {
+      "venue_id": 23126,
+      "names": [
+        "Stadio Comunale Romeo Menti",
+        "Stadio Romeo Menti"
+      ],
+      "localities": [
+        "Castellammare di Stabia"
+      ],
+      "source": "https://www.ssjuvestabia.it/comunicato-ufficiale-2/"
+    },
+    {
+      "venue_id": 23128,
+      "names": [
+        "Citta di Arezzo",
+        "Stadio Città di Arezzo"
+      ],
+      "localities": [
+        "Arezzo"
+      ],
+      "source": "https://ssarezzo.it/stadio-citta-di-arezzo/"
+    },
+    {
+      "venue_id": 23123,
+      "names": [
+        "Stadio Comunale",
+        "Stadio Comunale Chiavari",
+        "Stadio Enrico Sannazzari"
+      ],
+      "localities": [
+        "Chiavari"
+      ],
+      "source": "https://www.entella.it/stadio-enrico-sannazzari/"
+    },
+    {
+      "venue_id": 23763,
+      "names": [
+        "Vazgen Sargsyan anvan Hanrapetakan Marzadasht"
+      ],
+      "localities": [
+        "Yerevan"
+      ],
+      "source": "https://www.visityerevan.am/places/details/815/en/"
+    },
+    {
+      "venue_id": 23813,
+      "names": [
+        "AEK Arena",
+        "AEK Arena - George Karapatakis"
+      ],
+      "localities": [
+        "Larnaca"
+      ],
+      "source": "https://www.aek.com.cy/page/gipedo"
+    },
+    {
+      "venue_id": 23866,
+      "names": [
+        "Levadia Stadium",
+        "Stadio Levadias"
+      ],
+      "localities": [
+        "Levadia",
+        "Livadeia"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Levadia_Municipal_Stadium"
+    },
+    {
+      "venue_id": 23963,
+      "names": [
+        "Centre Sportif du Deich",
+        "Stade Am Deich"
+      ],
+      "localities": [
+        "Ettelbruck"
+      ],
+      "source": "https://mapcarta.com/fr/W1010337734"
+    },
+    {
+      "venue_id": 24043,
+      "names": [
+        "Stadion u Gornjoj Varoši",
+        "Zemun Stadium"
+      ],
+      "localities": [
+        "Belgrade",
+        "Beograd",
+        "Zemun"
+      ],
+      "source": "https://fkzemun.com/stadion/"
+    },
+    {
+      "venue_id": 24044,
+      "names": [
+        "Caizcoin Arena",
+        "Gradski Stadion"
+      ],
+      "localities": [
+        "Novi Pazar"
+      ],
+      "source": "https://stadiumdb.com/stadiums/ser/gradski_stadion_novi_pazar"
+    },
+    {
+      "venue_id": 24070,
+      "names": [
+        "Girnyk",
+        "Hirnyk Stadium",
+        "Stadion Hirnyk"
+      ],
+      "localities": [
+        "Kryvyi Rih",
+        "Kryvyj Rih"
+      ],
+      "source": "https://upl.ua/en/stadiums/view/2766"
+    },
+    {
+      "venue_id": 25522,
+      "names": [
+        "Stadio Verias",
+        "Veria Stadium"
+      ],
+      "localities": [
+        "Veria",
+        "Veroia"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Veria_Stadium"
+    },
+    {
+      "venue_id": 25534,
+      "names": [
+        "Athanasios Diakos Stadium",
+        "Dimotiko Athlitiko Kentro Lamias"
+      ],
+      "localities": [
+        "Lamia"
+      ],
+      "source": "https://www.visitlamia.com/el/prdct/dimotiko-athlitiko-kentro-athanasios-diakos"
+    },
+    {
+      "venue_id": 26474,
+      "names": [
+        "Fisht Olympic Stadium",
+        "Olimpiyskiy Stadion Fisht"
+      ],
+      "localities": [
+        "Adler",
+        "Sirius",
+        "Sochi"
+      ],
+      "source": "https://www.olympedia.org/venues/894"
+    },
+    {
+      "venue_id": 26486,
+      "names": [
+        "KAMAZ Stadium",
+        "Kamaz Stadium",
+        "Stadion KAMAZ"
+      ],
+      "localities": [
+        "Naberezhnye Chelny"
+      ],
+      "source": "https://en.wikipedia.org/wiki/KAMAZ_Stadium"
+    },
+    {
+      "venue_id": 23278,
+      "names": [
+        "Campos de Sport de El Sardinero",
+        "Estadio El Sardinero"
+      ],
+      "localities": [
+        "Santander"
+      ],
+      "source": "https://mapcarta.com/es/33036590"
+    },
+    {
+      "venue_id": 23002,
+      "names": [
+        "Nord Energi Arena"
+      ],
+      "localities": [
+        "Hjorring",
+        "Hjørring"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Hj%C3%B8rring_Stadium"
+    },
+    {
+      "venue_id": 23158,
+      "names": [
+        "Asito Stadium",
+        "Asito stadion",
+        "Erve Asito"
+      ],
+      "localities": [
+        "Almelo"
+      ],
+      "source": "https://www.heracles.nl/2024/03/08/stadion-heracles-almelo-krijgt-nieuwe-naam-asito-stadion/"
+    },
+    {
+      "venue_id": 23140,
+      "names": [
+        "Bingoal Stadion",
+        "WerkTalent Stadion"
+      ],
+      "localities": [
+        "Den Haag",
+        "The Hague",
+        "s-Gravenhage",
+        "’s-Gravenhage"
+      ],
+      "source": "https://adodenhaag.nl/nl/club/werktalent-stadion/routebeschrijving"
+    },
+    {
+      "venue_id": 23161,
+      "names": [
+        "De Herdgang",
+        "PSV Campus De Herdgang"
+      ],
+      "localities": [
+        "Eindhoven"
+      ],
+      "source": "https://fandesk.psv.nl/support/solutions/articles/80000303575-waar-vind-ik-psv-campus-de-herdgang-"
+    },
+    {
+      "venue_id": 23172,
+      "names": [
+        "Sportcomplex De Toekomst",
+        "Sportpark De Toekomst"
+      ],
+      "localities": [
+        "Amstelvoorde",
+        "Amsterdam-Duivendrecht",
+        "Ouder-Amstel"
+      ],
+      "source": "https://www.ajax.nl/fans/sportpark-de-toekomst/"
+    },
+    {
+      "venue_id": 23339,
+      "names": [
+        "Chobani Stadium Fenerbahce Sukru Saracoglu",
+        "Chobani Stadyumu Fenerbahçe Şükrü Saracoğlu Spor Kompleksi"
+      ],
+      "localities": [
+        "Istanbul",
+        "İstanbul"
+      ],
+      "source": "https://www.tff.org/Default.aspx?kulupID=3592&pageID=395"
+    },
+    {
+      "venue_id": 23336,
+      "names": [
+        "Tupras Stadium",
+        "Tüpraş Stadyumu"
+      ],
+      "localities": [
+        "Istanbul",
+        "İstanbul"
+      ],
+      "source": "https://www.bjk.com.tr/tr/haber/94019/tuprasla-imzalanan-stadyum-isim-hakki-ve-reklam-sponsorluk-anlasmasi-hakkinda.html"
+    },
+    {
+      "venue_id": 23342,
+      "names": [
+        "Alanya Oba Stadium",
+        "GAIN Park Stadium",
+        "GAİN Park Stadyumu"
+      ],
+      "localities": [
+        "Alanya",
+        "Antalya",
+        "Oba"
+      ],
+      "source": "https://www.alanyaspor.org.tr/Haber/stadyumumuzun-yeni-ismi-gain-park-stadyumu-oldu"
+    },
+    {
+      "venue_id": 22982,
+      "names": [
+        "Hohe Warte Stadium",
+        "Naturarena Hohe Warte"
+      ],
+      "localities": [
+        "Vienna",
+        "Wien"
+      ],
+      "source": "https://www.firstviennafc.at/anreise.html?lang=de"
+    },
+    {
+      "venue_id": 22973,
+      "names": [
+        "ImmoAgentur Stadion",
+        "ImmoAgentur Stadion Bregenz"
+      ],
+      "localities": [
+        "Bregenz"
+      ],
+      "source": "https://www.bundesliga.at/de/team/schwarz-weiss-bregenz/6521/stadion"
+    },
+    {
+      "venue_id": 23343,
+      "names": [
+        "Eryaman Stadium",
+        "Eryaman Stadyumu"
+      ],
+      "localities": [
+        "Ankara",
+        "Etimesgut"
+      ],
+      "source": "https://visitankara-webui.dev.kultur.gov.tr/Place/index/50"
+    },
+    {
+      "venue_id": 23351,
+      "names": [
+        "Corum Stadyumu",
+        "Çorum Şehir Stadyumu"
+      ],
+      "localities": [
+        "Corum",
+        "Çorum"
+      ],
+      "source": "https://corumfk.com.tr/stadyumumuz"
+    },
+    {
+      "venue_id": 23352,
+      "names": [
+        "TURKA Kocaeli Stadyumu",
+        "Turka Arac Muayene Kocaeli Stadyumu",
+        "Yıldız Entegre Kocaeli Stadyumu"
+      ],
+      "localities": [
+        "Alikahya",
+        "Izmit",
+        "Kocaeli",
+        "İzmit"
+      ],
+      "source": "https://kocaelispor.com.tr/tesisler"
+    },
+    {
+      "venue_id": 23451,
+      "names": [
+        "Stadio Tonino Benelli",
+        "Tonino Benelli"
+      ],
+      "localities": [
+        "Pesaro"
+      ],
+      "source": "https://www.vispesaro1898.it/vis/stadio/"
+    },
+    {
+      "venue_id": 23458,
+      "names": [
+        "Stadio Vanni Sanna",
+        "Vanni Sanna"
+      ],
+      "localities": [
+        "Sassari"
+      ],
+      "source": "https://seftorrescalcio.it/stadio-vanni-sanna/"
+    },
+    {
+      "venue_id": 23428,
+      "names": [
+        "Stadio Tommaso Dal Molin",
+        "Tommaso Dal Molin"
+      ],
+      "localities": [
+        "Arzignano"
+      ],
+      "source": "https://www.arzignanovalchiampo.it/2024/07/03/nuovo-campo-per-lo-stadio-dal-molin/"
+    },
+    {
+      "venue_id": 23407,
+      "names": [
+        "AFAS Stadion",
+        "Achter de Kazerne"
+      ],
+      "localities": [
+        "Malines",
+        "Mechelen"
+      ],
+      "source": "https://kvmechelen.be/club/stadion/"
+    },
+    {
+      "venue_id": 23414,
+      "names": [
+        "Daio Wasabi Stayen",
+        "Daio Wasabi Stayen Stadium"
+      ],
+      "localities": [
+        "Saint-Trond",
+        "Sint-Truiden",
+        "St.-Trond"
+      ],
+      "source": "https://stvv.com/pdf/bache_rio.pdf"
+    },
+    {
+      "venue_id": 23587,
+      "names": [
+        "Stadion Polonii",
+        "Stadion Polonii im. generała Kazimierza Sosnkowskiego"
+      ],
+      "localities": [
+        "Warsaw",
+        "Warszawa"
+      ],
+      "source": "https://kspolonia.pl/wp-content/uploads/2025/09/Regulamin-meczow_imprez_masowych_Polonia-Warszawa_09_2025.pdf"
+    },
+    {
+      "venue_id": 23318,
+      "names": [
+        "Chorten Arena",
+        "Stadion Miejski"
+      ],
+      "localities": [
+        "Bialystok",
+        "Białystok"
+      ],
+      "source": "https://jagiellonia.pl/stadion/"
+    },
+    {
+      "venue_id": 23321,
+      "names": [
+        "Stadion Miejski Legii Warszawa im. Marszałka Józefa Piłsudskiego",
+        "Stadion Wojska Polskiego"
+      ],
+      "localities": [
+        "Warsaw",
+        "Warszawa"
+      ],
+      "source": "https://legia.com/stadion"
+    },
+    {
+      "venue_id": 23514,
+      "names": [
+        "Parque Desportivo Comendador Joaquim de Almeida Freitas",
+        "Parque Joaquim de Almeida Freitas"
+      ],
+      "localities": [
+        "Moreira de Conegos",
+        "Moreira de Cónegos"
+      ],
+      "source": "https://www.ligaportugal.pt/team/226/moreirense-fc/20262027"
+    },
+    {
+      "venue_id": 23401,
+      "names": [
+        "Campo Manuel Marques",
+        "Estadio Manuel Marques",
+        "Estádio Manuel Marques"
+      ],
+      "localities": [
+        "Torres Vedras"
+      ],
+      "source": "https://www.torreense.com/instalacoes"
+    },
+    {
+      "venue_id": 23555,
+      "names": [
+        "Estadi Municipal de Montilivi",
+        "Estadio Municipal de Montilivi"
+      ],
+      "localities": [
+        "Girona"
+      ],
+      "source": "https://www.gironafc.cat/es/mapa"
+    },
+    {
+      "venue_id": 23276,
+      "names": [
+        "Campo de Futbol de Vallecas",
+        "Estadio de Vallecas"
+      ],
+      "localities": [
+        "Madrid"
+      ],
+      "source": "https://www.rayovallecano.es/estadio"
+    },
+    {
+      "venue_id": 23273,
+      "names": [
+        "Coliseum",
+        "Estadio Coliseum"
+      ],
+      "localities": [
+        "Getafe"
+      ],
+      "source": "https://www.getafecf.com/estadio/estadio-coliseum"
+    },
+    {
+      "venue_id": 23572,
+      "names": [
+        "Estadio Municipal Nuevo Pepico Amat",
+        "Estadio Nuevo Pepico Amat"
+      ],
+      "localities": [
+        "Elda"
+      ],
+      "source": "https://www.cdeldense.es/estadio-nuevo-pepico-amat"
+    },
+    {
+      "venue_id": 24221,
+      "names": [
+        "Estadio Nuevo Colombino",
+        "Nuevo Colombino"
+      ],
+      "localities": [
+        "Huelva"
+      ],
+      "source": "https://www.recreativohuelva.com/estadio-nuevo-colombino/"
+    },
+    {
+      "venue_id": 23154,
+      "names": [
+        "De Vijverberg",
+        "Stadion De Vijverberg"
+      ],
+      "localities": [
+        "Doetinchem"
+      ],
+      "source": "https://www.degraafschap.nl/club/stadion"
+    },
+    {
+      "venue_id": 23447,
+      "names": [
+        "Stadio Comunale Riviera delle Palme",
+        "Stadio Riviera delle Palme"
+      ],
+      "localities": [
+        "San Benedetto del Tronto"
+      ],
+      "source": "https://www.comune.sanbenedettodeltronto.ap.it/it/page/stadio-comunale-riviera-delle-palme"
+    },
+    {
+      "venue_id": 25810,
+      "names": [
+        "Stadio Attilio Bravi",
+        "Stadio Comunale Attilio Bravi"
+      ],
+      "localities": [
+        "Bra"
+      ],
+      "source": "https://acbra.it/lo-stadio/"
+    },
+    {
+      "venue_id": 25740,
+      "names": [
+        "Stadio Comunale San Nicola",
+        "Stadio San Nicola"
+      ],
+      "localities": [
+        "Bari"
+      ],
+      "source": "https://interregaismart.regione.puglia.it/en/-/stadio-san-nicola-palazzi-storici-e-architetture-di-pregio-1"
+    },
+    {
+      "venue_id": 23650,
+      "names": [
+        "Gradski Stadion",
+        "Gradski stadion Ivan Kusek Apas"
+      ],
+      "localities": [
+        "Koprivnica"
+      ],
+      "source": "https://www.nk-slaven-belupo.hr/o-klubu/gradski-stadion-ivan-kusek-apas"
+    },
+    {
+      "venue_id": 23496,
+      "names": [
+        "Bonifika",
+        "Stadion Bonifika",
+        "ŠRC Bonifika"
+      ],
+      "localities": [
+        "Koper"
+      ],
+      "source": "https://fckoper.si/stadion/"
+    },
+    {
+      "venue_id": 23766,
+      "names": [
+        "Armavir Stadium",
+        "Armaviri Hakob Tonoyani Stadium",
+        "Hakob Tonoyan Stadium"
+      ],
+      "localities": [
+        "Armavir"
+      ],
+      "source": "https://www.fcalashkert.com/stadium"
+    },
+    {
+      "venue_id": 25699,
+      "names": [
+        "Dimona Municipal Stadium",
+        "Municipal stadium"
+      ],
+      "localities": [
+        "Dimona"
+      ],
+      "source": "https://mapcarta.com/W56725294"
+    },
+    {
+      "venue_id": 26661,
+      "names": [
+        "Mestsky futbalovy stadion Milana Janeka",
+        "Štadión Liptovský Mikuláš"
+      ],
+      "localities": [
+        "Liptovsky Mikulas",
+        "Liptovský Mikuláš"
+      ],
+      "source": "https://www.mikulas.sk/samosprava/archiv-sprav/stranka/19/12290"
+    },
+    {
+      "venue_id": 26074,
+      "names": [
+        "De Zwaaier",
+        "Sportpark De Zwaaier"
+      ],
+      "localities": [
+        "Werkendam"
+      ],
+      "source": "https://www.kozakkenboys.nl/816/contactpersonen/"
+    },
+    {
+      "venue_id": 23376,
+      "names": [
+        "Sportpark Hohenberg",
+        "Sportpark Höhenberg"
+      ],
+      "localities": [
+        "Cologne",
+        "Köln"
+      ],
+      "source": "https://viktoria1904.de/teams/anfahrt/"
+    },
+    {
+      "venue_id": 23062,
+      "names": [
+        "Max-Morlock-Stadion"
+      ],
+      "localities": [
+        "Nuremberg",
+        "Nürnberg"
+      ],
+      "source": "https://www.fcn.de/der-club/stadion/stadion-nuernberg/"
+    },
+    {
+      "venue_id": 23066,
+      "names": [
+        "Voith-Arena"
+      ],
+      "localities": [
+        "Heidenheim",
+        "Heidenheim an der Brenz"
+      ],
+      "source": "https://www.fc-heidenheim.de/voith-arena"
+    },
+    {
+      "venue_id": 23079,
+      "names": [
+        "LEUNA-CHEMIE-STADION",
+        "Leuna Chemie Stadion"
+      ],
+      "localities": [
+        "Halle",
+        "Halle (Saale)",
+        "Saale"
+      ],
+      "source": "https://www.hallescherfc.de/verein"
+    },
+    {
+      "venue_id": 24132,
+      "names": [
+        "PSD Bank Arena"
+      ],
+      "localities": [
+        "Frankfurt",
+        "Frankfurt am Main"
+      ],
+      "source": "https://frankfurt.de/themen/sport/sportorte/outdoor/stadien/stadion-am-bornheimer-hang"
+    },
+    {
+      "venue_id": 24135,
+      "names": [
+        "Sparda-Bank-Hessen-Stadion"
+      ],
+      "localities": [
+        "Offenbach",
+        "Offenbach am Main"
+      ],
+      "source": "https://www.ofc.de/media/haus-und_benutzungsordnung_gueltig_ab_16.05.2_025_ohne_unterschrift.pdf"
+    },
+    {
+      "venue_id": 24019,
+      "names": [
+        "Akhmat Arena"
+      ],
+      "localities": [
+        "Grozny",
+        "Groznyi",
+        "Groznyj"
+      ],
+      "source": "https://fc-akhmat.ru/club/contacts/"
+    },
+    {
+      "venue_id": 24015,
+      "names": [
+        "Rostov Arena"
+      ],
+      "localities": [
+        "Rostov",
+        "Rostov-On-Don",
+        "Rostov-na-Donu"
+      ],
+      "source": "https://fc-rostov.ru/more/rostov-arena"
+    },
+    {
+      "venue_id": 24064,
+      "names": [
+        "Chornomorets Stadium",
+        "Stadion Chornomorets"
+      ],
+      "localities": [
+        "Odesa",
+        "Odessa"
+      ],
+      "source": "https://www.chornomorets.ua/contacts"
+    },
+    {
+      "venue_id": 24063,
+      "names": [
+        "Dynamo Stadium named after Valeriy Lobanovskyi",
+        "Stadion Dynamo im. Valeriy Lobanovskyi"
+      ],
+      "localities": [
+        "Kiev",
+        "Kyiv"
+      ],
+      "source": "https://fcdynamo.com/en/pages/dynamo-stadium-named-after-valeriy-lobanovskyi"
+    },
+    {
+      "venue_id": 24201,
+      "names": [
+        "Estadio Balear"
+      ],
+      "localities": [
+        "Palma",
+        "Palma de Mallorca",
+        "Palma de Mallorca, Illes Balears"
+      ],
+      "source": "https://www.atleticobaleares.com/el-club/"
+    },
+    {
+      "venue_id": 22970,
+      "names": [
+        "Innviertel Arena"
+      ],
+      "localities": [
+        "Ried",
+        "Ried Im Innkreis"
+      ],
+      "source": "https://www.svried.at/news/stadion-der-sv-guntamatic-ried-heisst-jetzt-innviertel-arena/"
+    },
+    {
+      "venue_id": 23301,
+      "names": [
+        "Fortuna Arena"
+      ],
+      "localities": [
+        "Prague",
+        "Praha"
+      ],
+      "source": "https://www.slavia.cz/eng/stadium"
+    },
+    {
+      "venue_id": 24094,
+      "names": [
+        "Estadi de la FAF"
+      ],
+      "localities": [
+        "Andorra",
+        "Encamp"
+      ],
+      "source": "https://www.faf.ad/pnfg/NPcd/NFG_VisCampos?Codigo_Campo=672686&cod_primaria=1000122"
+    },
+    {
+      "venue_id": 23422,
+      "names": [
+        "Stadio Comunale Silvio Piola",
+        "Stadio Silvio Piola"
+      ],
+      "localities": [
+        "Novara"
+      ],
+      "source": "https://www.novarafootballclub.it/accrediti/"
+    },
+    {
+      "venue_id": 23425,
+      "names": [
+        "Mino Favini",
+        "Stadio Mino Favini"
+      ],
+      "localities": [
+        "Meda"
+      ],
+      "source": "https://www.comune.meda.mb.it/vivere-il-comune/luoghi/dettaglio-luogo/Stadio-Citta-di-Meda-Mino-Favini/"
+    },
+    {
+      "venue_id": 23585,
+      "names": [
+        "Stadion Miejski",
+        "Stadion Miejski w Skierniewicach"
+      ],
+      "localities": [
+        "Skierniewice"
+      ],
+      "source": "https://www.bip.um.skierniewice.pl/dokumenty/raport_o_stanie_Miasta_Skierniewice_za_2024_rok.pdf"
+    },
+    {
+      "venue_id": 25828,
+      "names": [
+        "Mario Sandrini",
+        "Stadio Mario Sandrini"
+      ],
+      "localities": [
+        "Legnago"
+      ],
+      "source": "https://sac5.halleysac.it/c023044/zf/index.php/bandi-gara/bandi-gara/download-allegato/allegato/713"
+    },
+    {
+      "venue_id": 26501,
+      "names": [
+        "Avangard Stadium",
+        "Stadion Avangard"
+      ],
+      "localities": [
+        "Domodedovo"
+      ],
+      "source": "https://fcdomodedovo.com/stadium"
+    },
+    {
+      "venue_id": 26460,
+      "names": [
+        "Anzhi-Arena"
+      ],
+      "localities": [
+        "Kaspijsk",
+        "Kaspiysk"
+      ],
+      "source": "https://editorial.uefa.com/resources/02a2-2004c8d438c3-b03724f6d21e-1000/uefa_european_football_directory_2025-26_march_edition.pdf.pdf"
+    },
+    {
+      "venue_id": 24207,
+      "names": [
+        "Campo Municipal El Collao",
+        "Estadio El Collao"
+      ],
+      "localities": [
+        "Alcoi",
+        "Alcoy"
+      ],
+      "source": "https://www.alcoi.org/es/areas/deportes/instalaciones/instalacion_004.html"
+    },
+    {
+      "venue_id": 24237,
+      "names": [
+        "Estadio La Albuera",
+        "Estadio Municipal de La Albuera"
+      ],
+      "localities": [
+        "Segovia"
+      ],
+      "source": "https://www.segovia.es/sites/default/files/Media/Files/2026-10/AYS_JGL_20261022_ACT_Acuerdos.pdf"
+    },
+    {
+      "venue_id": 23710,
+      "names": [
+        "Estadio Gal",
+        "Stadium Gal"
+      ],
+      "localities": [
+        "Irun",
+        "Irún"
+      ],
+      "source": "https://www.irun.org/es/entidades-servicios/25-real-union-club?iden=1776"
+    },
+    {
+      "venue_id": 23247,
+      "names": [
+        "Campo Municipal El Pozuelo",
+        "Estadio Municipal El Pozuelo"
+      ],
+      "localities": [
+        "Torremolinos"
+      ],
+      "source": "https://www.rfaf.es/pnfg/NPcd/NFG_VisEquipos?Codigo_Equipo=801215&cod_primaria=1000119"
+    },
+    {
+      "venue_id": 25745,
+      "names": [
+        "Stadio Comunale Simonetta Lamberti",
+        "Stadio Simonetta Lamberti"
+      ],
+      "localities": [
+        "Cava de' Tirreni"
+      ],
+      "source": "https://www.cavese1919.com/stadio-c-simonetta-lamberti/"
+    },
+    {
+      "venue_id": 23261,
+      "names": [
+        "Estádio Cívitas Metropolitano",
+        "Metropolitano Stadium",
+        "Riyadh Air Metropolitano"
+      ],
+      "localities": [
+        "Madrid"
+      ],
+      "source": "https://www.atleticodemadrid.com/noticias/las-calles-en-torno-al-riyadh-air-metropolitano-ya-hacen-referencia-a-nuestra-historia"
+    },
+    {
+      "venue_id": 22992,
+      "names": [
+        "Parken",
+        "Parken Stadium"
+      ],
+      "localities": [
+        "Copenhagen",
+        "København"
+      ],
+      "source": "https://fck.dk/en/content/parken-stadium"
+    },
+    {
+      "venue_id": 23177,
+      "names": [
+        "Alfheim",
+        "Romssa Arena"
+      ],
+      "localities": [
+        "Tromso",
+        "Tromsø"
+      ],
+      "source": "https://www.til.no/qa"
+    },
+    {
+      "venue_id": 22831,
+      "names": [
+        "Strandvallen"
+      ],
+      "localities": [
+        "Hallevik",
+        "Hällevik",
+        "Sölvesborg"
+      ],
+      "source": "https://solvesborg.se/uppleva-och-gora/lokaler-och-anlaggningar/fotbollsplaner-.html"
+    },
+    {
+      "venue_id": 23265,
+      "names": [
+        "Estadio Ramón Sánchez Pizjuán",
+        "Estadio Ramón Sánchez-Pizjuán"
+      ],
+      "localities": [
+        "Sevilla",
+        "Seville"
+      ],
+      "source": "https://sevillafc.es/"
+    },
+    {
+      "venue_id": 23170,
+      "names": [
+        "Frans Heesen Stadion"
+      ],
+      "localities": [
+        "Os",
+        "Oss"
+      ],
+      "source": "https://toposs.nl/stadion"
+    },
+    {
+      "venue_id": 23375,
+      "names": [
+        "Südstadion"
+      ],
+      "localities": [
+        "Cologne",
+        "Köln"
+      ],
+      "source": "https://www.fortuna-koeln.de/club/suedstadion/"
+    },
+    {
+      "venue_id": 23611,
+      "names": [
+        "Stade de Rocourt"
+      ],
+      "localities": [
+        "Liège",
+        "Rocourt"
+      ],
+      "source": "https://fcliege.be/fr/stade/"
+    },
+    {
+      "venue_id": 24046,
+      "names": [
+        "Stadion na Banovom brdu"
+      ],
+      "localities": [
+        "Belgrade",
+        "Beograd"
+      ],
+      "source": "https://www.stadiumguide.com/stadion-fk-cukaricki/"
+    },
+    {
+      "venue_id": 24041,
+      "names": [
+        "Omladinski Stadion"
+      ],
+      "localities": [
+        "Belgrade",
+        "Beograd"
+      ],
+      "source": "https://ofkbeograd.com/stadion/"
+    },
+    {
+      "venue_id": 23059,
+      "names": [
+        "Olympiastadion",
+        "Olympiastadion Berlin"
+      ],
+      "localities": [
+        "Berlin"
+      ],
+      "source": "https://olympiastadion.berlin/en/about-the-stadium/"
+    },
+    {
+      "venue_id": 23369,
+      "names": [
+        "AKON ARENA",
+        "Flyeralarm Arena"
+      ],
+      "localities": [
+        "Wurzburg",
+        "Wurzburger",
+        "Würzburg"
+      ],
+      "source": "https://www.bfv.de/mspw/regionalliga-bayern/2022-23/fc-wuerzburger-kickers/wurzburger-kickers-neuer-name-fur-stadion-am-dallenberg"
+    },
+    {
+      "venue_id": 24097,
+      "names": [
+        "Sachs-Stadion",
+        "Willy-Sachs-Stadion"
+      ],
+      "localities": [
+        "Schweinfurt"
+      ],
+      "source": "https://www.fcschweinfurt1905.de/stadion/"
+    },
+    {
+      "venue_id": 23378,
+      "names": [
+        "Ludwigspark Stadion",
+        "Stadion Ludwigspark"
+      ],
+      "localities": [
+        "Saarbrucken",
+        "Saarbrücken"
+      ],
+      "source": "https://www.saarbruecken.de/leben_in_saarbruecken/sport_und_vereine/sportstaetten"
+    },
+    {
+      "venue_id": 23444,
+      "names": [
+        "Stadio Comunale Domenico Francioni",
+        "Stadio Domenico Francioni"
+      ],
+      "localities": [
+        "Latina"
+      ],
+      "source": "https://www.comune.latina.it/notizie/Stadio-Francioni-e-campo--Ex-Fulgorcavi---concessione-temporanea-al-Latina-Calcio.html"
+    },
+    {
+      "venue_id": 25758,
+      "names": [
+        "Porta Elisa",
+        "Stadio Porta Elisa"
+      ],
+      "localities": [
+        "Lucca"
+      ],
+      "source": "https://www.comune.lucca.it/vivere-il-comune/luoghi/stadio-porta-elisa/"
+    },
+    {
+      "venue_id": 25861,
+      "names": [
+        "Franco Fanuzzi",
+        "Stadio Franco Fanuzzi"
+      ],
+      "localities": [
+        "Brindisi"
+      ],
+      "source": "https://commissariogiochimediterraneo.it/progetto/stadio-franco-fanuzzi/"
+    },
+    {
+      "venue_id": 23400,
+      "names": [
+        "Estádio Dr. Machado de Matos",
+        "Stadion Dr. Machado de Matos"
+      ],
+      "localities": [
+        "Felgueiras"
+      ],
+      "source": "https://fcfsad.pt/contactos"
+    },
+    {
+      "venue_id": 23399,
+      "names": [
+        "Amarante Stadium",
+        "Estádio Municipal de Amarante"
+      ],
+      "localities": [
+        "Amarante"
+      ],
+      "source": "https://www.ligaportugal.pt/team/11/amarante-fc?tab=squad"
+    },
+    {
+      "venue_id": 23393,
+      "names": [
+        "Estadio EFAPEL Cidade de Coimbra",
+        "Estádio EFAPEL"
+      ],
+      "localities": [
+        "Coimbra"
+      ],
+      "source": "https://www.academica-oaf.pt/wp-content/uploads/2025/06/SDUQ_Orcamento-2025-2026.pdf"
+    },
+    {
+      "venue_id": 27155,
+      "names": [
+        "Aktepe Stadium",
+        "Aktepe Stadı"
+      ],
+      "localities": [
+        "Ankara"
+      ],
+      "source": "https://www.tff.org/Default.aspx?kulupId=6&pageID=395"
+    },
+    {
+      "venue_id": 27157,
+      "names": [
+        "Pendik Stadyumu",
+        "Siltaş Yapı Pendik Stadyumu"
+      ],
+      "localities": [
+        "Istanbul",
+        "Pendik",
+        "İstanbul"
+      ],
+      "source": "https://www.tff.org/Default.aspx?pageID=394&stadID=104"
+    },
+    {
+      "venue_id": 23815,
+      "names": [
+        "Antonis Papadopoulos Stadium",
+        "Stadio Antonis Papadopoulos"
+      ],
+      "localities": [
+        "Larnaca"
+      ],
+      "source": "https://anorthosisfc.com.cy/2026/10/40-chronia-antonis-papadopoulos1986-2026/"
+    },
+    {
+      "venue_id": 23817,
+      "names": [
+        "Stadio Stelios Kyriakides",
+        "Stelios Kyriakides Stadium"
+      ],
+      "localities": [
+        "Paphos"
+      ],
+      "source": "https://store.pafosfc.com.cy/stores"
+    },
+    {
+      "venue_id": 24016,
+      "names": [
+        "Samara Arena",
+        "Solidarnost Samara Arena"
+      ],
+      "localities": [
+        "Samara"
+      ],
+      "source": "https://visit-samara.ru/places/samara-arena"
+    },
+    {
+      "venue_id": 23765,
+      "names": [
+        "Football Academy Stadium",
+        "Yerevan Football Academy",
+        "Yerevan Football Academy Stadium"
+      ],
+      "localities": [
+        "Yerevan"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Yerevan_Football_Academy_Stadium"
+    },
+    {
+      "venue_id": 23762,
+      "names": [
+        "Gandzasar Stadium",
+        "Stadion Gandzasar"
+      ],
+      "localities": [
+        "Kapan"
+      ],
+      "source": "https://mapcarta.com/34556098"
+    },
+    {
+      "venue_id": 24311,
+      "names": [
+        "MIKA Stadium",
+        "Mika"
+      ],
+      "localities": [
+        "Yerevan"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Mika_Stadium"
+    },
+    {
+      "venue_id": 23867,
+      "names": [
+        "Kleanthis Vikelidis Stadium",
+        "Stadio Harilaou Kleánthis Vikelídis"
+      ],
+      "localities": [
+        "Charilaou",
+        "Thessaloniki",
+        "Thessaloníki"
+      ],
+      "source": "https://www.arisfc.com.gr/index.php/en/egatastaseis/vikelidis"
+    },
+    {
+      "venue_id": 25502,
+      "names": [
+        "AEL Arena",
+        "AEL FC Arena"
+      ],
+      "localities": [
+        "Larissa"
+      ],
+      "source": "https://www.aelfc.gr/egkatastaseis/ael-fc-arena/"
+    },
+    {
+      "venue_id": 23869,
+      "names": [
+        "Panthessaliko Stadio",
+        "Panthessaliko Stadium"
+      ],
+      "localities": [
+        "Volos"
+      ],
+      "source": "https://www.volosfc.com/agonistiki-edra/"
+    },
+    {
+      "venue_id": 27472,
+      "names": [
+        "Pankritio Stadio",
+        "Pankritio Stadium"
+      ],
+      "localities": [
+        "Heraklion",
+        "Iraklio",
+        "Iraklio (Heraklion)"
+      ],
+      "source": "https://www.heraklion.gr/en/citizen/citybus/citybus.html"
+    },
+    {
+      "venue_id": 23802,
+      "names": [
+        "Stadion Ticha",
+        "Ticha"
+      ],
+      "localities": [
+        "Varna"
+      ],
+      "source": "https://chernomorepfc.bg/bg/kontakti/"
+    },
+    {
+      "venue_id": 24624,
+      "names": [
+        "Druzhba",
+        "Stadion Druzhba"
+      ],
+      "localities": [
+        "Dobrich"
+      ],
+      "source": "https://pfcdobrudzha1919.com/stadion/"
+    },
+    {
+      "venue_id": 24694,
+      "names": [
+        "Stadion Cibalia",
+        "Stadion HNK Cibalia"
+      ],
+      "localities": [
+        "Vinkovci"
+      ],
+      "source": "https://www.znsvs.hr/klubovi/hnk-cibalia"
+    },
+    {
+      "venue_id": 24074,
+      "names": [
+        "Cherkasy Arena",
+        "Tsentralnyi Stadium"
+      ],
+      "localities": [
+        "Cherkasy"
+      ],
+      "source": "https://fc-lnz.com/kontaky"
+    },
+    {
+      "venue_id": 24000,
+      "names": [
+        "Arena Francisc Neuman",
+        "Stadionul Francisc von Neuman"
+      ],
+      "localities": [
+        "Arad"
+      ],
+      "source": "https://www.superliga.ro/cluburi/uta-arad"
+    },
+    {
+      "venue_id": 23337,
+      "names": [
+        "Basaksehir Fatih Terim Stadium",
+        "Başakşehir Fatih Terim Stadyumu"
+      ],
+      "localities": [
+        "Istanbul",
+        "İstanbul"
+      ],
+      "source": "https://www.basaksehir.bel.tr/basaksehir-fatih-terim-stadyumu"
+    },
+    {
+      "venue_id": 24489,
+      "names": [
+        "Aulandstadion Mannsdorf"
+      ],
+      "localities": [
+        "Mannsdorf",
+        "Mannsdorf an der Donau"
+      ],
+      "source": "https://www.fcmarchfeld.at/standorte/aulandstadion-mannsdorf/"
+    },
+    {
+      "venue_id": 22985,
+      "names": [
+        "Solarstadion Gleisdorf",
+        "Solarstadion der Stadt Gleisdorf"
+      ],
+      "localities": [
+        "Gleisdorf"
+      ],
+      "source": "https://www.steiermark.com/de/Oststeiermark/Urlaub-planen/Ausflugsziele/Solarstadion-Gleisdorf_isd_36033746"
+    },
+    {
+      "venue_id": 26768,
+      "names": [
+        "Portoval",
+        "Stadion Portoval"
+      ],
+      "localities": [
+        "Novo Mesto",
+        "Novo mesto"
+      ],
+      "source": "https://www.nzs.si/klubi/moski/2-slovenska-nogometna-liga/klubi/nk-krka"
+    },
+    {
+      "venue_id": 23271,
+      "names": [
+        "Estadio La Cartuja de Sevilla",
+        "Estadio de La Cartuja"
+      ],
+      "localities": [
+        "Sevilla",
+        "Seville"
+      ],
+      "source": "https://www.juntadeandalucia.es/cultura/agendaculturaldeandalucia/espacios/estadio-olimpico-de-sevilla-la-cartuja"
+    },
+    {
+      "venue_id": 23238,
+      "names": [
+        "Estadio Enrique Roca",
+        "Estadio Enrique Roca de Murcia"
+      ],
+      "localities": [
+        "Churra",
+        "Murcia"
+      ],
+      "source": "https://www.ffrm.es/pnfg/NPcd/NFG_VisCampos?Codigo_Campo=924&cod_primaria=1000122"
+    },
+    {
+      "venue_id": 23568,
+      "names": [
+        "Campo de Fútbol Municipal de Barreiro",
+        "Municipal de Barreiro"
+      ],
+      "localities": [
+        "Vigo"
+      ],
+      "source": "https://rccelta.es/club/instalaciones/"
+    },
+    {
+      "venue_id": 23234,
+      "names": [
+        "Estadio Cerro del Espino",
+        "Miniestadio Cerro del Espino"
+      ],
+      "localities": [
+        "Majadahonda"
+      ],
+      "source": "https://www.esmadrid.com/deporte/centro-deportivo-majadahonda-atletico-madrid-cerro-espino"
+    },
+    {
+      "venue_id": 23031,
+      "names": [
+        "Stade Bauer",
+        "Stade de Paris (Stade Bauer)"
+      ],
+      "localities": [
+        "Paris - Saint-Ouen",
+        "Saint-Ouen",
+        "Saint-Ouen-sur-Seine"
+      ],
+      "source": "https://www.redstar.fr/le-stade-bauer/"
+    },
+    {
+      "venue_id": 23405,
+      "names": [
+        "Den Dreef",
+        "King Power at Den Dreef Stadion"
+      ],
+      "localities": [
+        "Heverlee"
+      ],
+      "source": "https://ohleuven.com/over-ons/king-power-at-den-dreef/"
+    },
+    {
+      "venue_id": 24543,
+      "names": [
+        "Armand Melis Stadion",
+        "Armand Melis Stadium"
+      ],
+      "localities": [
+        "Dessel"
+      ],
+      "source": "https://www.dessel.be/verenigingen/detail/61/k-f-c-dessel-sport-vzw"
+    },
+    {
+      "venue_id": 26320,
+      "names": [
+        "Estádio da Medideira",
+        "Medideira Stadium"
+      ],
+      "localities": [
+        "Amora"
+      ],
+      "source": "https://afsetubal.fpf.pt/DesktopModules/InstitutionalDocuments/DownloadFiles.ashx?IdDoc=179276"
+    },
+    {
+      "venue_id": 23723,
+      "names": [
+        "Parque Municipal dos Desportos",
+        "Parque Municipal dos Desportos de Fafe"
+      ],
+      "localities": [
+        "Fafe"
+      ],
+      "source": "https://www.cm-fafe.pt/noticia/obras-para-criacao-da-praceta-do-estadio-e-parque-de-estacionamento-norte-ja-arrancaram"
+    },
+    {
+      "venue_id": 26473,
+      "names": [
+        "Nizhny Novgorod Stadium",
+        "Sovcombank Arena",
+        "Stadion Nizhny Novgorod"
+      ],
+      "localities": [
+        "Nizhniy Novgorod",
+        "Nizhny Novgorod"
+      ],
+      "source": "https://www.fcnn.ru/stadium"
+    },
+    {
+      "venue_id": 24017,
+      "names": [
+        "Gazovik Stadium",
+        "Stadion Gazovik"
+      ],
+      "localities": [
+        "Orenburg",
+        "Rostoshi"
+      ],
+      "source": "https://fcorenburg.ru/club/stadion.html"
+    },
+    {
+      "venue_id": 26480,
+      "names": [
+        "Central Stadium",
+        "Stadion Central'nyj"
+      ],
+      "localities": [
+        "Chelyabinsk"
+      ],
+      "source": "https://fc-chel.ru/club/arena/"
+    },
+    {
+      "venue_id": 26459,
+      "names": [
+        "BetBoom Arena",
+        "BetBoom Аrena",
+        "Neftyanik Stadium"
+      ],
+      "localities": [
+        "Ufa"
+      ],
+      "source": "https://www.fcufa.pro/news-new/fk-ufa-i-betboom-zavershayut-sotrudnichestvo"
+    },
+    {
+      "venue_id": 23078,
+      "names": [
+        "GGZ Arena",
+        "GGZ-Arena Zwickau"
+      ],
+      "localities": [
+        "Zwickau"
+      ],
+      "source": "https://fsv-zwickau.de/stadion/"
+    },
+    {
+      "venue_id": 23311,
+      "names": [
+        "Mestsky stadion Miroslava Valenty",
+        "Městský fotbalový stadion Miroslava Valenty"
+      ],
+      "localities": [
+        "Uherske Hradiste",
+        "Uherské Hradiště"
+      ],
+      "source": "https://www.fcslovacko.cz/cs/stadion-zakladni-informace"
+    },
+    {
+      "venue_id": 26762,
+      "names": [
+        "Stanko Mlakar Stadium",
+        "Športni Center Stanko Mlakar"
+      ],
+      "localities": [
+        "Kranj"
+      ],
+      "source": "https://prostor.kranj.si/prostorski-akti/datoteke/36/be756d75ae4c6dadcc1a.pdf/UD_544-91_21_%C5%A0CKR%20Stanko%20Mlakar.pdf"
+    },
+    {
+      "venue_id": 23484,
+      "names": [
+        "Gradski Stadion",
+        "Gradski stadion Bijeljina"
+      ],
+      "localities": [
+        "Bijeljina"
+      ],
+      "source": "https://fkradnikbijeljina.com/club/general-information"
+    },
+    {
+      "venue_id": 23486,
+      "names": [
+        "Gradski Stadion",
+        "Gradski stadion Banja Luka"
+      ],
+      "localities": [
+        "Banja Luka"
+      ],
+      "source": "https://aroundus.com/p/6000584-gradski-stadion"
+    },
+    {
+      "venue_id": 23575,
+      "names": [
+        "Polsat Plus Arena",
+        "Polsat Plus Arena Gdańsk"
+      ],
+      "localities": [
+        "Gdansk",
+        "Gdańsk"
+      ],
+      "source": "https://polsatplusarenagdansk.pl/kontakt/"
+    },
+    {
+      "venue_id": 23576,
+      "names": [
+        "Stadion Miejski",
+        "Stadion Miejski w Gdyni"
+      ],
+      "localities": [
+        "Gdynia"
+      ],
+      "source": "https://www.gdyniasport.pl/pl/obiekty/stadion-miejski-w-gdyni"
+    },
+    {
+      "venue_id": 23328,
+      "names": [
+        "Stadion Miejski",
+        "Stadion Miejski w Gliwicach"
+      ],
+      "localities": [
+        "Gliwice"
+      ],
+      "source": "https://piast-gliwice.eu/static/upload/store/Regulamin_Obiektu_-_Stadion_Miejski_im._Piotra_Wieczorka_w_Gliwicach.pdf"
+    },
+    {
+      "venue_id": 26241,
+      "names": [
+        "Stadion Miejski",
+        "Stadion Miejski w Lomzy"
+      ],
+      "localities": [
+        "Lomza",
+        "Łomża"
+      ],
+      "source": "https://lks.lomza.pl/stadion/"
+    },
+    {
+      "venue_id": 23807,
+      "names": [
+        "Hristo Botev Stadium",
+        "Stadion Hristo Botev"
+      ],
+      "localities": [
+        "Vraca",
+        "Vratsa"
+      ],
+      "source": "https://botev-vratsa.com/klub/stadion/"
+    },
+    {
+      "venue_id": 24622,
+      "names": [
+        "Lokomotiv stadium",
+        "Stadion Lokomotiv"
+      ],
+      "localities": [
+        "Gorna Orjahovica",
+        "Gorna Oryahovitsa"
+      ],
+      "source": "https://lokomotivgo.bg/stadion/"
+    },
+    {
+      "venue_id": 27154,
+      "names": [
+        "Ataturk Olimpiyat",
+        "Atatürk Olimpiyat Stadı"
+      ],
+      "localities": [
+        "Istanbul",
+        "İstanbul"
+      ],
+      "source": "https://www.tff.org/Default.aspx?pageId=530&stadId=110"
+    },
+    {
+      "venue_id": 27162,
+      "names": [
+        "ESENLER EROKSPOR STADI",
+        "Esenler Erokspor Stadyumu",
+        "Esenler Stadium"
+      ],
+      "localities": [
+        "Esenler",
+        "Istanbul",
+        "İstanbul"
+      ],
+      "source": "https://www.eroksporfk.com/futbol"
+    },
+    {
+      "venue_id": 25742,
+      "names": [
+        "Stadio Comunale Pino Zaccheria",
+        "Stadio Pino Zaccheria"
+      ],
+      "localities": [
+        "Foggia"
+      ],
+      "source": "https://www.calciofoggia1920.net/lo-stadio/"
+    },
+    {
+      "venue_id": 25749,
+      "names": [
+        "Stadio Alberto De Cristofaro",
+        "Stadio Comunale Alberto De Cristofaro"
+      ],
+      "localities": [
+        "Giugliano",
+        "Giugliano in Campania"
+      ],
+      "source": "https://www.giugliano1928.it/regolamento-stadio/"
+    },
+    {
+      "venue_id": 23430,
+      "names": [
+        "Giuseppe Voltini",
+        "Stadio Giuseppe Voltini"
+      ],
+      "localities": [
+        "Crema"
+      ],
+      "source": "https://www.cremaonline.it/articoli/images/32000-0-ev_atto%2Bindirizzo.pdf"
+    },
+    {
+      "venue_id": 25771,
+      "names": [
+        "Carlo Speroni",
+        "Stadio Carlo Speroni"
+      ],
+      "localities": [
+        "Busto Arsizio"
+      ],
+      "source": "https://www.lega-pro.com/com/1213-25DIV.pdf"
+    },
+    {
+      "venue_id": 26663,
+      "names": [
+        "Pasienky",
+        "Štadión Pasienky"
+      ],
+      "localities": [
+        "Bratislava"
+      ],
+      "source": "https://www.skslovan.com/?context=13"
+    },
+    {
+      "venue_id": 26303,
+      "names": [
+        "Estádio Municipal de Alpendorada",
+        "Municipal Stadium Alpendorada"
+      ],
+      "localities": [
+        "Alpendorada",
+        "Alpendurada e Matos"
+      ],
+      "source": "https://www.jf-alpendorada.pt/viver/equipamentos/estadio-municipal/"
+    },
+    {
+      "venue_id": 23636,
+      "names": [
+        "Stadium Viktoria Zizkov",
+        "eFotbal aréna"
+      ],
+      "localities": [
+        "Prague",
+        "Praha"
+      ],
+      "source": "https://www.fkvz.cz/text/stadion"
+    },
+    {
+      "venue_id": 22993,
+      "names": [
+        "Cepheus Park",
+        "Cepheus Park Randers"
+      ],
+      "localities": [
+        "Randers"
+      ],
+      "source": "https://www.randersfc.dk/kampdag/cepheus-park-randers"
+    },
+    {
+      "venue_id": 23873,
+      "names": [
+        "Kaftanzoglio Stadio",
+        "Kaftanzoglio Stadium"
+      ],
+      "localities": [
+        "Thessaloniki",
+        "Thessaloníki"
+      ],
+      "source": "https://kaftanzoglio.gr/"
+    },
+    {
+      "venue_id": 23865,
+      "names": [
+        "Stadio Theodoros Kolokotronis",
+        "Theodoros Kolokotronis Stadium"
+      ],
+      "localities": [
+        "Tripoli"
+      ],
+      "source": "https://asterastripolis.gr/images/downloads/programma-anaptyxis-ypodomon-v3.pdf"
+    },
+    {
+      "venue_id": 24486,
+      "names": [
+        "1508 SaalfeldenArena"
+      ],
+      "localities": [
+        "Saalfelden",
+        "Saalfelden am Steinernen Meer"
+      ],
+      "source": "https://www.austria-salzburg.at/mc-locations/1508-saalfeldenarena-lichtenbergstrasse-9d-5760-saalfelden/"
+    },
+    {
+      "venue_id": 22972,
+      "names": [
+        "Stadion Tivoli NEU",
+        "Tivoli Stadion Tirol"
+      ],
+      "localities": [
+        "Innsbruck"
+      ],
+      "source": "https://www.olympiaworld.at/arenen-angebote/die-arenen/tivoli-stadion-tirol/"
+    },
+    {
+      "venue_id": 23809,
+      "names": [
+        "Bistritsa Stadium",
+        "Stadion Vitosha"
+      ],
+      "localities": [
+        "Bistrica",
+        "Bistritsa",
+        "Sofia"
+      ],
+      "source": "https://cska1948.bg/en/stadiums/page/2"
+    },
+    {
+      "venue_id": 25031,
+      "names": [
+        "Viimsi Staadion"
+      ],
+      "localities": [
+        "Haabneeme",
+        "Viimsi"
+      ],
+      "source": "https://www.spordiregister.ee/et/ehitis/3594/viimsi_staadion"
+    },
+    {
+      "venue_id": 25154,
+      "names": [
+        "Stade Maurice Rousson",
+        "Stade Rousson"
+      ],
+      "localities": [
+        "Feurs"
+      ],
+      "source": "https://www.us-feurs.com/contact/"
+    },
+    {
+      "venue_id": 23694,
+      "names": [
+        "Centre sportif de Colovray",
+        "Colovray Sports Centre"
+      ],
+      "localities": [
+        "Nyon"
+      ],
+      "source": "https://www.nyon.ch/vivre-a-nyon/loisirs-sport-et-nature/infrastructures-sportives/centres-et-poles-sportifs-1523"
+    },
+    {
+      "venue_id": 24130,
+      "names": [
+        "Bediani Arena",
+        "Bediani-Arena",
+        "CENTUS ARENA"
+      ],
+      "localities": [
+        "Aalen"
+      ],
+      "source": "https://www.vfr-aalen.de/aktuelles/news/details/bediani-wird-neuer-namenspartner-der-arena-des-vfr-aalen"
+    },
+    {
+      "venue_id": 26401,
+      "names": [
+        "Stadionul Ştefan Dobay",
+        "Stefan Dobay Stadium"
+      ],
+      "localities": [
+        "Dumbravita",
+        "Dumbrăvița"
+      ],
+      "source": "https://cscdumbravita.ro/stadion/stadion-stefan-dobay/"
+    },
+    {
+      "venue_id": 23727,
+      "names": [
+        "Estádio Municipal das Laranjeiras",
+        "Municipal das Laranjeiras"
+      ],
+      "localities": [
+        "Paredes"
+      ],
+      "source": "https://www.cm-paredes.pt/pages/2443"
+    },
+    {
+      "venue_id": 26502,
+      "names": [
+        "Stadion Trud",
+        "Trud Stadium"
+      ],
+      "localities": [
+        "Ulyanovsk"
+      ],
+      "source": "https://www.fcvu.ru/o-klube/"
+    },
+    {
+      "venue_id": 23505,
+      "names": [
+        "Vanlose Idraetspark",
+        "Vanløse IP"
+      ],
+      "localities": [
+        "Vanlose",
+        "Vanløse"
+      ],
+      "source": "https://kulturogfritidv.kk.dk/husene-i-kultur-og-fritid-v/vanloese-idraetspark/kontakt"
+    },
+    {
+      "venue_id": 23502,
+      "names": [
+        "Valby Idraetspark",
+        "Valby Idrætspark"
+      ],
+      "localities": [
+        "Copenhagen",
+        "København",
+        "Valby"
+      ],
+      "source": "https://kulturogfritidv.kk.dk/om-kultur-og-fritid-v"
+    },
+    {
+      "venue_id": 23857,
+      "names": [
+        "David Petriashvili Arena",
+        "David Petriashvili Stadium"
+      ],
+      "localities": [
+        "Tbilisi"
+      ],
+      "source": "https://www.gff.ge/ge/media/news/19329"
+    },
+    {
+      "venue_id": 25269,
+      "names": [
+        "Erosi Manjgaladze Stadium",
+        "Stadioni Erosi Manjgaladze"
+      ],
+      "localities": [
+        "Samtredia"
+      ],
+      "source": "https://www.gff.ge/ge/media/news/9827"
+    },
+    {
+      "venue_id": 25270,
+      "names": [
+        "Stadioni Tamaz Stepania",
+        "Tamaz Stepania Stadium"
+      ],
+      "localities": [
+        "Bolnisi"
+      ],
+      "source": "https://www.flashscore.ge/team/bolnisi/U7p9spIF/fixtures/"
+    },
+    {
+      "venue_id": 27214,
+      "names": [
+        "Balikesir Ataturk Stadyumu",
+        "Balıkesir Atatürk Stadyumu"
+      ],
+      "localities": [
+        "Balikesir",
+        "Balıkesir"
+      ],
+      "source": "https://en.wikipedia.org/wiki/Bal%C4%B1kesir_Atat%C3%BCrk_Stadium"
+    },
+    {
+      "venue_id": 23754,
+      "names": [
+        "Elbasan Arena"
+      ],
+      "localities": [
+        "Elbasan",
+        "Elbasani"
+      ],
+      "source": "https://under21.fshf.org/stadiumet/"
+    },
+    {
+      "venue_id": 27460,
+      "names": [
+        "Arena Kombetare",
+        "Arena Kombëtare"
+      ],
+      "localities": [
+        "Tirana",
+        "Tiranë",
+        "Tiranë (Tirana)"
+      ],
+      "source": "https://fshf.org/?tv=arena-kombetare-2"
+    },
+    {
+      "venue_id": 23332,
+      "names": [
+        "Stadion Radomiaka",
+        "Stadion Radomiaka Radom"
+      ],
+      "localities": [
+        "Radom"
+      ],
+      "source": "https://www.gov.pl/web/gunb/stadion-radomskiego-centrum-sportu-z-pozytywna-decyzja-nadzoru-budowlanego"
+    },
+    {
+      "venue_id": 23787,
+      "names": [
+        "Borisov Arena"
+      ],
+      "localities": [
+        "Barysaw",
+        "Borisov"
+      ],
+      "source": "https://www.stadiumguide.com/borisov-arena/"
+    },
+    {
+      "venue_id": 23431,
+      "names": [
+        "Sportitalia Arena",
+        "Stadio XXV Aprile"
+      ],
+      "localities": [
+        "Carate Brianza"
+      ],
+      "source": "https://it.wikipedia.org/wiki/Stadio_XXV_Aprile_%28Carate_Brianza%29"
+    },
+    {
+      "venue_id": 24065,
+      "names": [
+        "Stadion Ukraina",
+        "Ukraina Stadium"
+      ],
+      "localities": [
+        "Lviv"
+      ],
+      "source": "https://fcl.uaf.ua/stadium/ukraina"
+    },
+    {
+      "venue_id": 24066,
+      "names": [
+        "Kolos Stadium",
+        "Stadion Kolos"
+      ],
+      "localities": [
+        "Kovalivka"
+      ],
+      "source": "https://www.upl.ua/en/stadiums"
+    },
+    {
+      "venue_id": 24069,
+      "names": [
+        "Bukovyna Stadium",
+        "Stadion Bukovyna"
+      ],
+      "localities": [
+        "Chernivtsi"
+      ],
+      "source": "https://www.bukfc.com/stadion/info"
+    },
+    {
+      "venue_id": 23989,
+      "names": [
+        "Stadion Tuško Polje",
+        "Tusko"
+      ],
+      "localities": [
+        "Tuzi"
+      ],
+      "source": "https://fscg.me/files/documents/1131/Almanahfscg%202014-15_web.pdf"
     }
   ],
   "team_reviews": [
