@@ -541,6 +541,8 @@ def transaction_integrity(connection, items, *, preimages=None, manifest=None, s
         bucket = observations.setdefault(row['fixture_id'], [])
         if row not in bucket:
             bucket.append(row)
+    from backend.fixture_catalogue_recheck import protect_original_bindings
+    original_binding_holds = protect_original_bindings(connection, preimages, observations)
     result = reconcile_observations(connection, observations, preimages=preimages)
     fixtures = Table('fixtures', MetaData(), autoload_with=connection)
     for diagnostic in manifest or []:
@@ -573,6 +575,8 @@ def transaction_integrity(connection, items, *, preimages=None, manifest=None, s
             connection.execute(VENUES.update().where(VENUES.c.fixture_id==fid).values(**values) if current
                                else VENUES.insert().values(fixture_id=fid,**values))
         elif current and current['actor']=='AUTOMATED_CANONICAL_CONFLICT':
+            if fid in original_binding_holds:
+                continue
             provider_id = (diagnostic.get('raw_provider_venue') or {}).get('id')
             if current['state'] in {'DISPUTED', 'UNRESOLVED'} and (
                     type(provider_id) is not int or provider_id <= 0):
@@ -604,11 +608,12 @@ def transaction_integrity(connection, items, *, preimages=None, manifest=None, s
                 values=dict(identity=identity(row),state='DISPUTED',actor='AUTOMATED_GEOGRAPHIC_CONFLICT',revision=(current['revision'] if current else 0)+1)
                 connection.execute(VENUES.update().where(VENUES.c.fixture_id==fid).values(**values) if current else VENUES.insert().values(fixture_id=fid,**values))
             elif not geo['hold'] and current and current['actor']=='AUTOMATED_GEOGRAPHIC_CONFLICT':
+                if fid in original_binding_holds:continue
                 connection.execute(VENUES.update().where(VENUES.c.fixture_id==fid).values(state='PROVIDER_ASSIGNED',venue_id=row['venue_id'],revision=current['revision']+1,actor='AUTOMATED_GEOGRAPHIC_RESOLUTION'))
     # Both lifecycle and discovery writers use this same transaction hook.
     # Reuse approved catalogue facts across future seasons without provider I/O.
     from backend.fixture_catalogue_recheck import reevaluate
-    result['catalogue_reevaluation'] = reevaluate(connection, items=items, manifest=manifest)
+    result['catalogue_reevaluation'] = reevaluate(connection, items=items, manifest=manifest, preimages=preimages)
     run = CURRENT_RUN.get()
     if run is not None:
         stored = connection.execute(select(RUNS.c.receipt).where(RUNS.c.run_id==run.run_id).with_for_update()).scalar_one()

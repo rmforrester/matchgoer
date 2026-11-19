@@ -12,8 +12,46 @@ from sqlalchemy import Table,MetaData,select,inspect,update,func
 
 COUNTRIES=('England','Scotland','Wales','Northern-Ireland','Ireland')
 AUTOMATIC=('AUTOMATED_CANONICAL_CONFLICT','AUTOMATED_GEOGRAPHIC_CONFLICT')
+PREIMAGE_CONFLICT='ORIGINAL_VENUE_BINDING_CONFLICT'
 
-def reevaluate(connection, *, now=None, items=(), manifest=None, registry=None):
+def protect_original_bindings(connection, preimages, observed_ids):
+    """Retain pre-write conflicts across transactions, not just this recheck.
+
+    Only the existing verified publication process may adjudicate these conflicts.
+    A provider update or a catalogue alias is not fixture-specific authority.
+    """
+    from backend.fixture_integrity import VENUES, serial
+    ids=set(observed_ids)
+    if not ids:return set()
+    ft=Table('fixtures',MetaData(),autoload_with=connection)
+    vt=Table('venues',MetaData(),autoload_with=connection)
+    rows={r['fixture_id']:dict(r) for r in connection.execute(select(ft).where(ft.c.fixture_id.in_(ids))).mappings()}
+    prior=preimages or{}
+    ground_ids={r.get('venue_id') for r in rows.values()}|{(prior.get(fid)or{}).get('venue_id') for fid in ids}
+    roots={r['venue_id']:r.get('canonical_venue_id')or r['venue_id'] for r in connection.execute(
+        select(vt).where(vt.c.venue_id.in_(ground_ids-{None}))).mappings()}
+    blocked=set()
+    for p in connection.execute(select(VENUES).where(VENUES.c.fixture_id.in_(ids)).with_for_update()).mappings():
+        if p['state'] not in {'DISPUTED','UNRESOLVED'} or p['actor'] not in AUTOMATIC:continue
+        if p.get('source_url') or p.get('evidence_sha256'):continue
+        fid=p['fixture_id'];history=list(p.get('history')or[])
+        if any(h.get('reason')==PREIMAGE_CONFLICT for h in history):blocked.add(fid);continue
+        if fid not in (preimages or{}):blocked.add(fid);continue
+        before=preimages[fid];after=rows.get(fid)
+        if not before or not after or before.get('venue_id') is None:continue
+        old=before['venue_id'];new=after.get('venue_id')
+        if roots.get(old,old)==roots.get(new,new):continue
+        blocked.add(fid)
+        # Do not alter reviewed history. Its existing veto remains authoritative.
+        if any(h.get('source_url')or h.get('evidence_sha256')or h.get('state')=='OFFICIAL_VERIFIED'or(h.get('actor')and not h['actor'].startswith('AUTOMATED_'))for h in history):continue
+        history.append(dict(reason=PREIMAGE_CONFLICT,actor='AUTOMATED_PREIMAGE_GUARD',
+                            original_fixture=serial(before),updated_venue_id=new))
+        changed=connection.execute(update(VENUES).where(VENUES.c.fixture_id==fid,VENUES.c.revision==p['revision'])
+            .values(history=history,revision=p['revision']+1))
+        if changed.rowcount!=1:raise RuntimeError('CATALOGUE_PREIMAGE_GUARD_CHANGED')
+    return blocked
+
+def reevaluate(connection, *, now=None, items=(), manifest=None, registry=None, preimages=None):
     from backend.fixture_integrity import VENUES,SCHEDULE,RUNS,CURRENT_RUN,identity,utc,serial,venue_geography
     from ingestion.discovery_venues import resolve_event_venue
     from ingestion.venue_identity import normalize_identity
@@ -60,9 +98,13 @@ def reevaluate(connection, *, now=None, items=(), manifest=None, registry=None):
         try:r=observation(item)
         except (KeyError,TypeError,ValueError):continue
         if r['fixture_id']in ids and r not in current[r['fixture_id']]:current[r['fixture_id']].append(r)
+    protected=protect_original_bindings(connection,preimages,current)
+    # The protection step may have appended a conflict to the policy history.
+    policies={r['fixture_id']:dict(r)for r in connection.execute(select(VENUES).where(VENUES.c.fixture_id.in_(ids))).mappings()}
     cache={};released=[]
     for f in candidates:
         fid=f['fixture_id'];p=policies[fid];s=schedules.get(fid);cfg=scopes.get((f['league_id'],f['season']))
+        if fid in protected or any(h.get('reason')==PREIMAGE_CONFLICT for h in p.get('history')or[]):counts['ORIGINAL_BINDING_REQUIRES_VERIFIED_PUBLICATION']+=1;continue
         if fid in explicit or fid in blocked:counts['EXPLICIT_OR_REJECTED_OBSERVATION_HOLD']+=1;continue
         if p.get('source_url')or p.get('evidence_sha256')or p.get('identity')!=identity(f):counts['REVIEWED_OR_POLICY_IDENTITY_HOLD']+=1;continue
         if any(h.get('source_url')or h.get('evidence_sha256')or h.get('state')=='OFFICIAL_VERIFIED'or(h.get('actor')and not h['actor'].startswith('AUTOMATED_'))for h in p.get('history')or[]):counts['REVIEWED_POLICY_HISTORY']+=1;continue
@@ -93,6 +135,11 @@ def reevaluate(connection, *, now=None, items=(), manifest=None, registry=None):
             except ValueError:cache[key]=(None,'CONFLICT')
         target,method=cache[key]
         if method!='MAP_READY'or target is None:counts['UNRESOLVED_OR_CONFLICTING_VENUE']+=1;continue
+        prior=(preimages or{}).get(fid)
+        if prior and prior.get('venue_id')is not None:
+            old=prior['venue_id'];original=venues.get(old)
+            original_root=(original.get('canonical_venue_id')or old)if original else old
+            if original_root!=target:counts['ORIGINAL_BINDING_REQUIRES_VERIFIED_PUBLICATION']+=1;continue
         assigned=venues.get(f['venue_id']);root=(assigned.get('canonical_venue_id')or assigned['venue_id'])if assigned else None
         if root!=target:counts['BINDING_CHANGE_REQUIRES_VERIFIED_PUBLICATION']+=1;continue
         review=reviews.get(target);approved=bool(review and review.get('source','').startswith('https://'))
