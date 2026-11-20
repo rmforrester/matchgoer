@@ -37,6 +37,20 @@ def reviewed_home_proof(item, reviews):
     return matching[0] if matching else None
 
 
+def locality_diagnostic(event, ground, *, bound_ground=None):
+    """Observational metadata only; never authorises a venue or releases a hold."""
+    pid = event.get('id')
+    missing_id = pid is None or (type(pid) is int and pid == 0)
+    return dict(policy_reason='VENUE_DISPUTED', diagnostic_subreason='VENUE_LOCALITY_CONFLICT',
+                bound_ground_id=(bound_ground or {}).get('venue_id'),
+                bound_ground_locality=(bound_ground or {}).get('city'),
+                conflicting_ground_id=ground.get('venue_id'),
+                conflicting_ground_locality=ground.get('city'),
+                observed_provider_locality=event.get('city'),
+                provider_venue_identity_missing=missing_id and not event.get('name'),
+                provider_venue_id=pid, provider_venue_name=event.get('name'))
+
+
 def resolve_event_venue(event, scope, venues, refs, aliases, proof=None):
     physical = CanonicalVenues({vid: v['canonical_venue_id'] for vid,v in venues.items()
                                if v.get('canonical_venue_id') is not None})
@@ -97,7 +111,11 @@ def resolve_event_venue(event, scope, venues, refs, aliases, proof=None):
         if reviews.get(root,{}).get('physical_country',venues[root].get('country')) not in countries and not proof:
             raise ValueError('VENUE_COUNTRY_CONFLICT')
         if not compatible(root):
-            raise ValueError('VENUE_LOCALITY_CONFLICT')
+            error = ValueError('VENUE_LOCALITY_CONFLICT')
+            roots = direct if direct else named
+            ground = venues[next(iter(roots))] if len(roots) == 1 else {}
+            error.venue_diagnostic = locality_diagnostic(event, ground)
+            raise error
         # Stable provider references establish identity; labels do not rename a ground.
         # A label identifying another existing physical ground is a real contradiction.
         if named and root not in named:
@@ -106,7 +124,11 @@ def resolve_event_venue(event, scope, venues, refs, aliases, proof=None):
     else:
         ids = {root for root in named if compatible(root)}
         if named and not ids:
-            raise ValueError('VENUE_LOCALITY_CONFLICT')
+            error = ValueError('VENUE_LOCALITY_CONFLICT')
+            roots = direct if direct else named
+            ground = venues[next(iter(roots))] if len(roots) == 1 else {}
+            error.venue_diagnostic = locality_diagnostic(event, ground)
+            raise error
     if len(ids)>1:
         raise ValueError('AMBIGUOUS_EVENT_VENUE')
     if not ids:

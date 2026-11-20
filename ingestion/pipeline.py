@@ -949,11 +949,19 @@ def plan_fixture_discovery(connection, payloads, start, end, *, max_candidates=5
                 # Keep provider labels, withhold its ground, and retry normally.
                 if str(error) not in {'VENUE_COUNTRY_CONFLICT', 'VENUE_CITY_CONFLICT', 'VENUE_NAME_CONFLICT', 'VENUE_EQUIVALENCE_REVIEW', 'VENUE_GEOGRAPHIC_CONFLICT', 'UNKNOWN_CANONICAL_VENUE', 'AMBIGUOUS_EVENT_VENUE', 'AMBIGUOUS_REVIEWED_HOME_GROUND', 'AMBIGUOUS_OR_UNKNOWN_VENUE', 'INVALID_PROVIDER_VENUE_ID', 'VENUE_LOCALITY_CONFLICT', 'REVIEWED_EVENT_VENUE_CONFLICT'}:
                     raise
+                if getattr(error, 'venue_diagnostic', None):
+                    detail = dict(error.venue_diagnostic)
+                    bound = venues.get((existing.get(fid) or {}).get('venue_id'), {})
+                    bound = venues.get(bound.get('canonical_venue_id')) or bound
+                    detail.update(fixture_id=fid, policy_reason='VENUE_DISPUTED',
+                                  bound_ground_id=bound.get('venue_id'), bound_ground_locality=bound.get('city'))
+                    report.setdefault('locality_conflicts', []).append(detail)
                 vid, venue, location = None, {}, 'UNRESOLVED_' + str(error)
             verification = fixture_verifications.get(fid)
             if verification:
                 pinned = verified_venue(dict(fixture_id=fid, league_id=scope_key[0], season=scope_key[1], home_team_id=home, away_team_id=away), verification)
                 if pinned is not None:
+                    report['locality_conflicts'] = [x for x in report.get('locality_conflicts', []) if x['fixture_id'] != fid]
                     vid, location = pinned, 'MAP_READY'
                     venue = venues[vid]
             key = (kickoff, home, away)
@@ -1018,6 +1026,7 @@ def run_fixture_discovery(engine, client, day, *, write=False, max_requests=750,
         if write and plan["rows"]:
             result["inserted"] = apply_fixture_discovery_plan(engine,payloads,start,end,
                 expected_rows=plan['rows'],approved_scopes=approved_scopes,event_proofs=event_proofs,preflight_plan=plan)
+        result["locality_conflicts"] = plan.get("locality_conflicts", [])
         result["passed"] = True
     except Exception as error:
         result["errors"].append(str(error) if type(error) is ValueError and str(error).isupper() else type(error).__name__)

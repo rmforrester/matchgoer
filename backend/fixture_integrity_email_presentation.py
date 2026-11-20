@@ -108,6 +108,14 @@ def render(health, summary, now):
     categories = Counter(x['reason'] for x in summary.get('urgent', []) if x.get('priority') == 'P1')
     for reason, count in categories.most_common(3):
         metrics.append(f'Top warning reason: {label(reason)} — {count} reason entries (may overlap).')
+    locality = summary.get('locality_conflicts') or []
+    if locality:
+        metrics.append(f'Venue locality conflicts: {len(locality)}')
+        for case in locality[:3]:
+            bound = case.get('bound_ground_locality') or 'unbound'
+            observed = case.get('observed_provider_locality') or 'not supplied'
+            metrics.append(f"{case['fixture_id']} {bound} → observed {observed}")
+        metrics.append('Complete locality-conflict cases: technical receipt/detail (not limited to the first 100 warnings).')
     if not context.get('metrics'):
         metrics.append('Insert/update/request metrics are not available in this alert.')
     references = [f"Reconciliation receipt: fixture_integrity_runs / {summary.get('run_id') or health.get('run_id') or 'unavailable'}",

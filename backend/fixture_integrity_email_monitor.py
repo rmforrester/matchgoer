@@ -99,7 +99,27 @@ def material(receipt,now,current):
     critical_ids={x['fixture_id']for x in urgent if x['priority']=='P0'}
     warning_ids={x['fixture_id']for x in urgent if x['priority']=='P1'}-critical_ids
     deferred=(receipt.get('report',{}).get('global_fixture_discovery')or{}).get('deferred_scopes',[])
-    return dict(urgent=urgent,coverage_entries=sum(groups.values()),groups=grouped,
+    # Dedicated, uncapped diagnostic detail. Historical receipts without the
+    # field mean unavailable, not a claim that this failure mode was checked.
+    conflicts = {}
+    report = receipt.get('report') or {}
+    sources = list((report.get('venue_reconciliation') or {}).get('unresolved_or_conflicting', []))
+    sources += list(receipt.get('lifecycle_decisions') or [])
+    discovery_groups = [(report.get('fixture_discovery') or {})] + list((report.get('global_fixture_discovery') or {}).get('groups', []))
+    for group in discovery_groups:
+        sources += list(group.get('locality_conflicts') or [])
+    for item in sources:
+        detail = item.get('venue_diagnostic') or item
+        if detail.get('diagnostic_subreason') != 'VENUE_LOCALITY_CONFLICT': continue
+        fid = item['fixture_id']; row = current.get(fid)
+        if (not row or _time(row['kickoff']) < now-timedelta(hours=2)
+                or row.get('status') not in ACTIVE or row.get('superseded_by') is not None or ready(row)): continue
+        # Preserve the recorded diagnostic without promoting it to a new alert.
+        conflicts[fid] = dict(detail, fixture_id=fid, policy_reason='VENUE_DISPUTED',
+                              home_team=row.get('home_team'), away_team=row.get('away_team'))
+    locality = sorted(conflicts.values(), key=lambda x:x['fixture_id'])
+    return dict(locality_conflicts=locality, locality_conflict_count=len(locality),
+                urgent=urgent,coverage_entries=sum(groups.values()),groups=grouped,
                 excluded=dict(excluded),deferred_scopes=deferred,
                 critical_count=len(critical_ids),warning_count=len(warning_ids),
                 critical_entries=sum(x['priority']=='P0'for x in urgent),
@@ -118,7 +138,12 @@ def read_material(now):
             health=execution_health(runs,now)
             selected=next((r for r in runs if r['run_id']==health.get('run_id')),None)
             receipt=selected['receipt']if selected else {}
-            ids=list({i['fixture_id']for i in receipt.get('exception_report',{}).get('exceptions',[])})
+            ids={i['fixture_id']for i in receipt.get('exception_report',{}).get('exceptions',[])}
+            ids.update(i['fixture_id'] for i in receipt.get('lifecycle_decisions', []) if i.get('venue_diagnostic'))
+            report = receipt.get('report') or {}
+            groups = [report.get('fixture_discovery') or {}] + list((report.get('global_fixture_discovery') or {}).get('groups', []))
+            ids.update(i['fixture_id'] for g in groups for i in g.get('locality_conflicts', []))
+            ids=list(ids)
             rows=c.execute(text('''SELECT f.fixture_id,f.league_id,f.season,f.home_team_id,f.away_team_id,
               f.home_team,f.away_team,f.country,f.league_name competition,coalesce(s.effective_kickoff,f.fixture_date) kickoff,
               coalesce(s.effective_status,f.status) status,s.schedule_hold,s.superseded_by,s.conflicts,
@@ -159,6 +184,8 @@ def technical_summary(health, summary, now):
              'league_coverage_reference':'fixture_integrity_runs.receipt.league_coverage',
              'league_coverage_status':(summary.get('league_coverage')or{}).get('status','UNAVAILABLE'),
              'note':'Current SELECT facts rechecked. Coverage warnings do not mean reconciliation failed; unaffected processing continues.'}
+    content['locality_conflicts'] = summary.get('locality_conflicts', [])
+    content['locality_conflict_count'] = summary.get('locality_conflict_count', 0)
     return content
 
 

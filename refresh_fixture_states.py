@@ -122,7 +122,7 @@ def select_outside_window(rows, day, start, end, capacity):
     return selected, report
 
 
-def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
+def resolve_venue(candidate, item, venues, refs, aliases, review_context=None, *, diagnostic=None):
     """Reuse discovery's canonical physical resolver; never mutate ground records."""
     from types import SimpleNamespace
     from ingestion.discovery_venues import resolve_event_venue, reviewed_home_proof
@@ -171,12 +171,20 @@ def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
                        for city in review.get("localities", ())}
             if (observed_city and stored_city and observed_city != stored_city
                     and observed_city not in allowed):
+                if diagnostic is not None:
+                    from ingestion.discovery_venues import locality_diagnostic
+                    diagnostic.update(locality_diagnostic(raw, ground, bound_ground=ground))
                 return old, "DISPUTED"
             return checked(old, "MISSING")
         vid, location = resolve_event_venue(raw, scope,
             by_id, refs, aliases, proof)
     except ValueError as error:
         reason = str(error)
+        if diagnostic is not None and getattr(error, 'venue_diagnostic', None):
+            diagnostic.update(error.venue_diagnostic)
+            ground = by_id.get(old) or {}
+            ground = by_id.get(ground.get('canonical_venue_id')) or ground
+            diagnostic.update(bound_ground_id=ground.get('venue_id'), bound_ground_locality=ground.get('city'))
         if reason in {"AMBIGUOUS_EVENT_VENUE", "AMBIGUOUS_REVIEWED_HOME_GROUND"}:
             return old, "AMBIGUOUS"
         return old, "DISPUTED"
@@ -286,11 +294,13 @@ def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venu
     try:
         if any(value is not None and (type(value) is not int or value < 0) for value in (values["home_goals"], values["away_goals"])):
             raise ValueError("Invalid goal values")
-        values["venue_id"], venue_result = resolve_venue(candidate, item, *venue_context) if expanded and venue_context else (getattr(candidate, "venue_id", None), "DISABLED" if not expanded else "NOT_CHECKED")
+        diagnostic = {}
+        values["venue_id"], venue_result = resolve_venue(candidate, item, *venue_context, diagnostic=diagnostic) if expanded and venue_context else (getattr(candidate, "venue_id", None), "DISABLED" if not expanded else "NOT_CHECKED")
     except (KeyError, ValueError, TypeError, AttributeError):
         result.update(classification="PROVIDER_MALFORMED", reason="Malformed provider goals or venue")
         return result, None
     result.update(stored_venue_id=getattr(candidate, "venue_id", None), provider_venue_id=values["venue_id"], venue_mapping=venue_result, raw_provider_venue=(item.get("fixture") or {}).get("venue"))
+    if diagnostic: result['venue_diagnostic'] = diagnostic
     labels=(item.get('fixture') or {}).get('venue') or {}
     result['venue_label_changes']={field:dict(stored=getattr(candidate,'venue_'+field),provider=labels.get(field))
         for field in ('name','city') if hasattr(candidate,'venue_'+field) and labels.get(field) is not None
@@ -677,7 +687,7 @@ def run_reconciliation() -> int:
     venue_exceptions = [dict(fixture_id=r['fixture_id'],outcome=r.get('venue_mapping'),
         stored_venue_id=r.get('stored_venue_id'),proposed_venue_id=r.get('provider_venue_id'),
         raw_provider_venue=r.get('raw_provider_venue'),identity_check_result=r['identity_check_result'],
-        classification=r['classification']) for r in manifest if 'venue_mapping' in r and
+        classification=r['classification'],venue_diagnostic=r.get('venue_diagnostic')) for r in manifest if 'venue_mapping' in r and
         (r['venue_mapping'] not in {'MATCHED','MATCHED_HOME_REVIEW','DISABLED'} or r.get('stored_venue_id')!=r.get('provider_venue_id'))]
     report = {
         "outside_window_tracking": tracking,
