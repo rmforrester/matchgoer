@@ -157,6 +157,21 @@ def resolve_venue(candidate, item, venues, refs, aliases, review_context=None):
             fallback = proof is not None
         missing_id = raw.get("id") is None or (type(raw.get("id")) is int and raw["id"] == 0)
         if missing_id and not raw.get("name") and proof is None:
+            # Missing identity cannot confirm a retained ground against a supplied
+            # conflicting locality. Only existing ground-scoped facts may excuse
+            # the difference; locality alone must never select a replacement.
+            from ingestion.venue_identity import normalize_identity
+            ground = by_id.get(old) or {}
+            canonical_id = ground.get("canonical_venue_id") or old
+            ground = by_id.get(canonical_id) or ground
+            observed_city = normalize_identity(raw.get("city"))
+            stored_city = normalize_identity(ground.get("city"))
+            allowed = {normalize_identity(city)
+                       for review in scope.venue_reviews if review["venue_id"] == canonical_id
+                       for city in review.get("localities", ())}
+            if (observed_city and stored_city and observed_city != stored_city
+                    and observed_city not in allowed):
+                return old, "DISPUTED"
             return checked(old, "MISSING")
         vid, location = resolve_event_venue(raw, scope,
             by_id, refs, aliases, proof)
