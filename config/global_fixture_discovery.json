@@ -13434,19 +13434,6 @@
       "source": "https://fandesk.psv.nl/support/solutions/articles/80000303575-waar-vind-ik-psv-campus-de-herdgang-"
     },
     {
-      "venue_id": 23172,
-      "names": [
-        "Sportcomplex De Toekomst",
-        "Sportpark De Toekomst"
-      ],
-      "localities": [
-        "Amstelvoorde",
-        "Amsterdam-Duivendrecht",
-        "Ouder-Amstel"
-      ],
-      "source": "https://www.ajax.nl/fans/sportpark-de-toekomst/"
-    },
-    {
       "venue_id": 23339,
       "names": [
         "Chobani Stadium Fenerbahce Sukru Saracoglu",
@@ -14381,17 +14368,6 @@
       "source": "https://anorthosisfc.com.cy/2026/10/40-chronia-antonis-papadopoulos1986-2026/"
     },
     {
-      "venue_id": 23817,
-      "names": [
-        "Stadio Stelios Kyriakides",
-        "Stelios Kyriakides Stadium"
-      ],
-      "localities": [
-        "Paphos"
-      ],
-      "source": "https://store.pafosfc.com.cy/stores"
-    },
-    {
       "venue_id": 24016,
       "names": [
         "Samara Arena",
@@ -14470,19 +14446,6 @@
         "Volos"
       ],
       "source": "https://www.volosfc.com/agonistiki-edra/"
-    },
-    {
-      "venue_id": 27472,
-      "names": [
-        "Pankritio Stadio",
-        "Pankritio Stadium"
-      ],
-      "localities": [
-        "Heraklion",
-        "Iraklio",
-        "Iraklio (Heraklion)"
-      ],
-      "source": "https://www.heraklion.gr/en/citizen/citybus/citybus.html"
     },
     {
       "venue_id": 23802,
@@ -14992,17 +14955,6 @@
       "source": "https://kaftanzoglio.gr/"
     },
     {
-      "venue_id": 23865,
-      "names": [
-        "Stadio Theodoros Kolokotronis",
-        "Theodoros Kolokotronis Stadium"
-      ],
-      "localities": [
-        "Tripoli"
-      ],
-      "source": "https://asterastripolis.gr/images/downloads/programma-anaptyxis-ypodomon-v3.pdf"
-    },
-    {
       "venue_id": 24486,
       "names": [
         "1508 SaalfeldenArena"
@@ -15198,19 +15150,6 @@
       "source": "https://under21.fshf.org/stadiumet/"
     },
     {
-      "venue_id": 27460,
-      "names": [
-        "Arena Kombetare",
-        "Arena Kombëtare"
-      ],
-      "localities": [
-        "Tirana",
-        "Tiranë",
-        "Tiranë (Tirana)"
-      ],
-      "source": "https://fshf.org/?tv=arena-kombetare-2"
-    },
-    {
       "venue_id": 23332,
       "names": [
         "Stadion Radomiaka",
@@ -15286,6 +15225,444 @@
         "Tuzi"
       ],
       "source": "https://fscg.me/files/documents/1131/Almanahfscg%202014-15_web.pdf"
+    },
+    {
+      "venue_id": 522,
+      "names": [],
+      "localities": [
+        "Colchester",
+        "Colchester, Essex"
+      ],
+      "source": "https://www.cu-fc.com/venuehire/more/useful-information/"
+    },
+    {
+      "venue_id": 585,
+      "names": [],
+      "localities": [
+        "Southampton",
+        "Southampton, Hampshire"
+      ],
+      "source": "https://www.southamptonfc.com/en/contact-us-opening-hours-southampton-fc"
+    },
+    {
+      "venue_id": 1618,
+      "names": [],
+      "localities": [
+        "Boston",
+        "Foxborough, Massachusetts"
+      ],
+      "source": "https://www.gillettestadium.com/directions/"
+    },
+    {
+      "venue_id": 22822,
+      "names": [],
+      "localities": [
+        "Gothenburg",
+        "Göteborg"
+      ],
+      "source": "https://bkhacken.se/en/nordic-wellness-arena"
+    },
+    {
+      "venue_id": 22949,
+      "names": [],
+      "localities": [
+        "Leczna",
+        "Łęczna"
+      ],
+      "source": "https://bilety.gornik.leczna.pl/"
+    },
+    {
+      "venue_id": 22997,
+      "names": [],
+      "localities": [
+        "Br?ndby",
+        "Brondby",
+        "Brøndby",
+        "Copenhagen"
+      ],
+      "source": "https://brondby.com/fans/stadion"
+    },
+    {
+      "venue_id": 23008,
+      "names": [],
+      "localities": [
+        "Koge",
+        "Køge"
+      ],
+      "source": "https://www.hbkoge.dk/fan-guide/capelli-sport-stadion/"
+    },
+    {
+      "venue_id": 23100,
+      "names": [],
+      "localities": [
+        "Milan",
+        "Milano"
+      ],
+      "source": "https://sansirostadium.com/info/?lang=en"
+    },
+    {
+      "venue_id": 23172,
+      "names": [
+        "Sportcomplex De Toekomst",
+        "Sportpark De Toekomst"
+      ],
+      "localities": [
+        "Amstelvoorde",
+        "Amsterdam",
+        "Amsterdam-Duivendrecht",
+        "Ouder-Amstel"
+      ],
+      "source": "https://www.ajax.nl/fans/sportpark-de-toekomst/"
+    },
+    {
+      "venue_id": 23259,
+      "names": [],
+      "localities": [
+        "Geneva",
+        "Lancy"
+      ],
+      "source": "https://stade.ch/contact-acces/"
+    },
+    {
+      "venue_id": 23323,
+      "names": [],
+      "localities": [
+        "Plock",
+        "Płock"
+      ],
+      "source": "https://wisla-plock.pl/klub/stadion/"
+    },
+    {
+      "venue_id": 23333,
+      "names": [],
+      "localities": [
+        "Lodz",
+        "Łódź"
+      ],
+      "source": "https://widzew.com/dokumenty/Regulamin-Stadionu-Miejskiego-przy-al.-Pilsudskiego.pdf"
+    },
+    {
+      "venue_id": 23394,
+      "names": [],
+      "localities": [
+        "Pedroso, Vila Nova de Gaia",
+        "Vila Nova de Gaia"
+      ],
+      "source": "https://www.cm-gaia.pt/fotos/galeria_documentos/08_2016.pdf"
+    },
+    {
+      "venue_id": 23411,
+      "names": [],
+      "localities": [
+        "Gent",
+        "Ghent"
+      ],
+      "source": "https://visit.gent.be/en/see-do/kaa-gent-football-stadium"
+    },
+    {
+      "venue_id": 23511,
+      "names": [],
+      "localities": [
+        "Lisboa",
+        "Lisbon"
+      ],
+      "source": "https://www.slbenfica.pt/en-us/apoio/faqs"
+    },
+    {
+      "venue_id": 23513,
+      "names": [],
+      "localities": [
+        "Funchal",
+        "Funchal (Ilha da Madeira)"
+      ],
+      "source": "https://www.csmaritimo.org.pt/wp-content/uploads/2024/02/DFs-jul21.pdf"
+    },
+    {
+      "venue_id": 23517,
+      "names": [],
+      "localities": [
+        "Funchal",
+        "Ilha da Madeira"
+      ],
+      "source": "https://www.cdnacional.pt/cidade-desportiva/"
+    },
+    {
+      "venue_id": 23519,
+      "names": [],
+      "localities": [
+        "Ponta Delgada",
+        "Ponta Delgada, Ilha de São Miguel, Açores"
+      ],
+      "source": "https://cdsantaclara.com/estadio/"
+    },
+    {
+      "venue_id": 23520,
+      "names": [],
+      "localities": [
+        "Lisboa",
+        "Lisbon"
+      ],
+      "source": "https://ligaportugalstorage.blob.core.windows.net/backoffice/assets/Guia_do_Adepto_SCP_25_26_b1a533e853.pdf"
+    },
+    {
+      "venue_id": 23559,
+      "names": [],
+      "localities": [
+        "Santa Cruz de Tenerife",
+        "Santa Cruz de Tenerife (Tenerife)"
+      ],
+      "source": "https://www.clubdeportivotenerife.es/informacion-institucional"
+    },
+    {
+      "venue_id": 23566,
+      "names": [],
+      "localities": [
+        "Castellon",
+        "Castellón de la Plana"
+      ],
+      "source": "https://www.cdcastellon.com/preguntas-frecuentes/"
+    },
+    {
+      "venue_id": 23583,
+      "names": [],
+      "localities": [
+        "Lodz",
+        "Łódź"
+      ],
+      "source": "https://lkslodz.pl/klub/stadion-krola/"
+    },
+    {
+      "venue_id": 23615,
+      "names": [],
+      "localities": [
+        "Roeselare",
+        "Roeselare (Roulers)"
+      ],
+      "source": "https://www.clubbrugge.be/nl/over-club-nxt"
+    },
+    {
+      "venue_id": 23691,
+      "names": [],
+      "localities": [
+        "Jona",
+        "Rapperswil-Jona"
+      ],
+      "source": "https://fcrj.ch/pages/verkehrsanbindung"
+    },
+    {
+      "venue_id": 23731,
+      "names": [],
+      "localities": [
+        "Lisboa",
+        "Lisbon"
+      ],
+      "source": "https://atleticocp.pt/pt/contactos"
+    },
+    {
+      "venue_id": 23732,
+      "names": [],
+      "localities": [
+        "Aveiro",
+        "Santa Maria da Feira",
+        "São João de Ver"
+      ],
+      "source": "https://www.scsjver.pt/pt/contactos-sad"
+    },
+    {
+      "venue_id": 23735,
+      "names": [],
+      "localities": [
+        "Lisboa",
+        "Lisbon"
+      ],
+      "source": "https://www.osbelenenses.com/clube/instalacoes/"
+    },
+    {
+      "venue_id": 23771,
+      "names": [],
+      "localities": [
+        "Gabala",
+        "Qəbələ"
+      ],
+      "source": "https://gabalafc.az/az/xeber/xeber/qebelede-qolsuz-sulh-7480"
+    },
+    {
+      "venue_id": 23783,
+      "names": [],
+      "localities": [
+        "Mahilyow",
+        "Mogilev"
+      ],
+      "source": "https://en.wikipedia.org/wiki/FC_Dnepr_Mogilev"
+    },
+    {
+      "venue_id": 23817,
+      "names": [
+        "Stadio Stelios Kyriakides",
+        "Stelios Kyriakides Stadium"
+      ],
+      "localities": [
+        "Pafos",
+        "Paphos"
+      ],
+      "source": "https://store.pafosfc.com.cy/stores"
+    },
+    {
+      "venue_id": 23865,
+      "names": [
+        "Stadio Theodoros Kolokotronis",
+        "Theodoros Kolokotronis Stadium"
+      ],
+      "localities": [
+        "Tripoli",
+        "Tripolis"
+      ],
+      "source": "https://asterastripolis.gr/images/downloads/programma-anaptyxis-ypodomon-v3.pdf"
+    },
+    {
+      "venue_id": 23986,
+      "names": [],
+      "localities": [
+        "Petrovac",
+        "Petrovac na Moru"
+      ],
+      "source": "https://fscg.me/utakmice/petrovac-kom-9549589/"
+    },
+    {
+      "venue_id": 24048,
+      "names": [],
+      "localities": [
+        "Belgrade",
+        "Beograd"
+      ],
+      "source": "https://www.uefa.com/newsfiles/573512.pdf"
+    },
+    {
+      "venue_id": 24095,
+      "names": [],
+      "localities": [
+        "Munich",
+        "München"
+      ],
+      "source": "https://www.entdecken.muenchen.de/en/station/21-2/"
+    },
+    {
+      "venue_id": 24227,
+      "names": [],
+      "localities": [
+        "Jerez",
+        "Jerez de la Frontera"
+      ],
+      "source": "https://www.jerez.es/webs-municipales/deportes/sedes-horarios-y-precios/estadio-chapin"
+    },
+    {
+      "venue_id": 24675,
+      "names": [],
+      "localities": [
+        "Smolian",
+        "Smolyan"
+      ],
+      "source": "https://www.smolyan.bg/bg/menu/subcontent/570"
+    },
+    {
+      "venue_id": 24710,
+      "names": [],
+      "localities": [
+        "Bjelovar",
+        "Ždralovi"
+      ],
+      "source": "https://semafor.hns.family/klubovi/1372/nk-mladost-zdralovi/?cid=114348034"
+    },
+    {
+      "venue_id": 24801,
+      "names": [],
+      "localities": [
+        "Achna",
+        "Dasaki Achnas"
+      ],
+      "source": "https://www.cfa.com.cy/En/clubprofile/58/164"
+    },
+    {
+      "venue_id": 25796,
+      "names": [],
+      "localities": [
+        "Erice",
+        "Trapani"
+      ],
+      "source": "https://www.lega-pro.com/com/2526-66L.pdf"
+    },
+    {
+      "venue_id": 26609,
+      "names": [],
+      "localities": [
+        "Belgrade",
+        "Beograd"
+      ],
+      "source": "https://www.fkvozdovac.rs/kontakt/"
+    },
+    {
+      "venue_id": 26833,
+      "names": [],
+      "localities": [
+        "O Carballiño",
+        "Ourense"
+      ],
+      "source": "https://cdarenteiro.es/contacto/"
+    },
+    {
+      "venue_id": 27165,
+      "names": [],
+      "localities": [
+        "Ankara",
+        "Sincan"
+      ],
+      "source": "https://www.tff.org/Default.aspx?pageId=394&stadId=6323"
+    },
+    {
+      "venue_id": 27173,
+      "names": [],
+      "localities": [
+        "Izmir",
+        "Menemen"
+      ],
+      "source": "https://www.tff.org/Default.aspx?kulupID=1120&pageId=28"
+    },
+    {
+      "venue_id": 27174,
+      "names": [],
+      "localities": [
+        "Adapazari",
+        "Adapazarı"
+      ],
+      "source": "https://www.sakarya.bel.tr/uploads/files/genclik_programi_sakarya_rehberi.pdf"
+    },
+    {
+      "venue_id": 27460,
+      "names": [
+        "Arena Kombetare",
+        "Arena Kombëtare"
+      ],
+      "localities": [
+        "Tirana",
+        "Tiranë",
+        "Tiranë (Tirana)"
+      ],
+      "source": "https://fshf.org/?tv=arena-kombetare-2",
+      "physical_country": "Albania"
+    },
+    {
+      "venue_id": 27472,
+      "names": [
+        "Pankritio Stadio",
+        "Pankritio Stadium"
+      ],
+      "localities": [
+        "Heraklion",
+        "Iraklio",
+        "Iraklio (Heraklion)"
+      ],
+      "source": "https://www.heraklion.gr/en/citizen/citybus/citybus.html",
+      "physical_country": "Greece"
     }
   ],
   "team_reviews": [
