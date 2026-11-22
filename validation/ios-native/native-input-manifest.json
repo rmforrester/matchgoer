@@ -1,8 +1,7 @@
 {
   "version": "0.1.2",
-  "build": "17",
-  "build_number_status": "UNSIGNED_LOCAL_CANDIDATE_NOT_RESERVED_CHECK_ASC_BEFORE_SIGNED_UPLOAD",
-  "zip_sha256": "1faf39bff6799ea4b9f907bdcb89130fc85e83bc55e46ab6fa325e2e8025aaca",
+  "build": "18",
+  "zip_sha256": "4a82e7487476251078bb71b4e3325351d5a40c0c6105936ed726daa08f1a0e91",
   "files": [
     {
       "path": "ios/.gitignore",
@@ -87,7 +86,7 @@
     {
       "path": "ios/App/App/Info.plist",
       "size": 3283,
-      "sha256": "1b08cf8b6950ccc9d64f6e4057ade6c79bac73a3f564c2fa831c28a2c140e120"
+      "sha256": "657b1eb9ae560fa28ce3ec28c0d0d4a99c8001a0e9ba3e80327eda53f6b9abf1"
     },
     {
       "path": "ios/App/App/MatchgoerAnalytics.swift",
@@ -171,8 +170,8 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "size": 2495401,
-      "sha256": "14da23514ed1cb6c1f54df0d58597d130087b1b845b006fe3e43ff03e3986278"
+      "size": 2495140,
+      "sha256": "44a84f246ac4823823dafbc9fb5ab128cb445cd7f18d79595bda43e052186162"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -284,5 +283,10 @@
       "size": 23,
       "sha256": "4838938a72b913b99cfda54a43bbe73f05893071dc6e3702b0adc44794b64272"
     }
-  ]
+  ],
+  "changed_entries": [
+    "ios/App/App/Info.plist",
+    "ios/App/App/public/bundle.js"
+  ],
+  "accepted_build17_input_sha256": "1faf39bff6799ea4b9f907bdcb89130fc85e83bc55e46ab6fa325e2e8025aaca"
 }

@@ -2,7 +2,7 @@
 # Unsigned physical-device archive only. No signing, installation or upload.
 set -euo pipefail
 archive="${1:-native-input.zip}"
-expected="1faf39bff6799ea4b9f907bdcb89130fc85e83bc55e46ab6fa325e2e8025aaca"
+expected="4a82e7487476251078bb71b4e3325351d5a40c0c6105936ed726daa08f1a0e91"
 [[ "$(uname -s)" == Darwin ]] || { echo 'BLOCKED: macOS/Xcode required'; exit 2; }
 [[ "${DEVELOPER_DIR:-}" == /Applications/Xcode_26.3.app/Contents/Developer ]] || { echo 'STOP: explicit Xcode 26.3 selection required'; exit 2; }
 [[ -x "$DEVELOPER_DIR/usr/bin/xcodebuild" ]] || { echo 'BLOCKED: Xcode 26.3 unavailable'; exit 2; }
@@ -25,7 +25,7 @@ xcodebuild -project "$project" -scheme App -configuration Release \
   -archivePath "$PWD/evidence/Matchgoer-unsigned.xcarchive" \
   -derivedDataPath "$PWD/DerivedData-device" -clonedSourcePackagesDirPath "$PWD/SourcePackages" \
   -resultBundlePath "$PWD/evidence/DeviceArchive.xcresult" \
-  PRODUCT_BUNDLE_IDENTIFIER=com.matchgoer.app MARKETING_VERSION=0.1.2 CURRENT_PROJECT_VERSION=17 \
+  PRODUCT_BUNDLE_IDENTIFIER=com.matchgoer.app MARKETING_VERSION=0.1.2 CURRENT_PROJECT_VERSION=18 \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO archive 2>&1 | tee evidence/device-archive.log
 app="$PWD/evidence/Matchgoer-unsigned.xcarchive/Products/Applications/App.app"
 [[ -d "$app" && -f "$app/Info.plist" ]] || { echo 'FAIL: archived application missing'; exit 4; }
@@ -39,7 +39,7 @@ python3 - "$app" <<'PY'
 import pathlib,plistlib,sys,json
 app=pathlib.Path(sys.argv[1]);info=plistlib.loads((app/'Info.plist').read_bytes())
 assert info['CFBundleIdentifier']=='com.matchgoer.app'
-assert info['CFBundleVersion']=='17' and info['CFBundleShortVersionString']=='0.1.2'
+assert info['CFBundleVersion']=='18' and info['CFBundleShortVersionString']=='0.1.2'
 assert info['UIDeviceFamily']==[1]
 assert info.get('NSCameraUsageDescription') and info.get('NSLocationWhenInUseUsageDescription')
 assert (app/'PrivacyInfo.xcprivacy').is_file()
