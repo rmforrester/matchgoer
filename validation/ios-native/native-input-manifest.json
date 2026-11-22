@@ -1,7 +1,8 @@
 {
+  "zip_sha256": "1569c5d8446fbfd2e344b50234786a25db9febc29bcb45462f8403fa105b973e",
+  "base_sha256": "4a82e7487476251078bb71b4e3325351d5a40c0c6105936ed726daa08f1a0e91",
   "version": "0.1.2",
   "build": "18",
-  "zip_sha256": "4a82e7487476251078bb71b4e3325351d5a40c0c6105936ed726daa08f1a0e91",
   "files": [
     {
       "path": "ios/.gitignore",
@@ -10,8 +11,8 @@
     },
     {
       "path": "ios/App/App.xcodeproj/project.pbxproj",
-      "size": 18042,
-      "sha256": "9b28c61c0fdf0dee59d8e50e8ccab92aaf6f383fe68e2ceed0f4adeb53740a64"
+      "size": 18472,
+      "sha256": "10d1f0810523f450cfbc83f3ba739d74dcf046f4a242d6277d85d6b26ad18161"
     },
     {
       "path": "ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist",
@@ -95,8 +96,13 @@
     },
     {
       "path": "ios/App/App/MatchgoerAuth.swift",
-      "size": 7050,
-      "sha256": "37cb5cac36226499a8f8e656148e1b9adb627a295091e9581a4fab81f60fc237"
+      "size": 7109,
+      "sha256": "f6a2d0262cf52b90085cdc1ffd274f663d14c067e85ba1fb3d50a503a803336a"
+    },
+    {
+      "path": "ios/App/App/MatchgoerLocation.swift",
+      "size": 4856,
+      "sha256": "0a1c9bde281a9ed8b8e0bc71b8d9f0a563e8d2208148dda5a8fadd53923759b8"
     },
     {
       "path": "ios/App/App/PrivacyInfo.xcprivacy",
@@ -170,8 +176,8 @@
     },
     {
       "path": "ios/App/App/public/bundle.js",
-      "size": 2495140,
-      "sha256": "44a84f246ac4823823dafbc9fb5ab128cb445cd7f18d79595bda43e052186162"
+      "size": 2495826,
+      "sha256": "31b758d9eea9a99c73a1e2babdedc64c68e2c6db5c918ad3d10a7fec3ff04620"
     },
     {
       "path": "ios/App/App/public/cordova.js",
@@ -283,10 +289,5 @@
       "size": 23,
       "sha256": "4838938a72b913b99cfda54a43bbe73f05893071dc6e3702b0adc44794b64272"
     }
-  ],
-  "changed_entries": [
-    "ios/App/App/Info.plist",
-    "ios/App/App/public/bundle.js"
-  ],
-  "accepted_build17_input_sha256": "1faf39bff6799ea4b9f907bdcb89130fc85e83bc55e46ab6fa325e2e8025aaca"
+  ]
 }
