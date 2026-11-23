@@ -1,0 +1,1744 @@
+{
+  "source": "Saved 10 November investigation; test-only snapshot, no provider calls",
+  "payloads": [
+    {
+      "fixture": {
+        "id": 1649683,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Select Car Leasing Stadium",
+          "city": "Reading"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 53,
+          "name": "Reading",
+          "logo": "https://media.api-sports.io/football/teams/53.png",
+          "winner": null
+        },
+        "away": {
+          "id": 4686,
+          "name": "Stockport County",
+          "logo": "https://media.api-sports.io/football/teams/4686.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649688,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "The Brick Community Stadium",
+          "city": "Wigan"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 61,
+          "name": "Wigan",
+          "logo": "https://media.api-sports.io/football/teams/61.png",
+          "winner": null
+        },
+        "away": {
+          "id": 747,
+          "name": "Barnsley",
+          "logo": "https://media.api-sports.io/football/teams/747.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649685,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Aesseal New York Stadium",
+          "city": "Rotherham"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 73,
+          "name": "Rotherham",
+          "logo": "https://media.api-sports.io/football/teams/73.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1334,
+          "name": "Bristol Rovers",
+          "logo": "https://media.api-sports.io/football/teams/1334.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649684,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Spotland Stadium",
+          "city": "Rochdale"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1339,
+          "name": "Rochdale",
+          "logo": "https://media.api-sports.io/football/teams/1339.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1367,
+          "name": "Newport County",
+          "logo": "https://media.api-sports.io/football/teams/1367.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649674,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "SMH Group Stadium",
+          "city": "Chesterfield"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1345,
+          "name": "Chesterfield",
+          "logo": "https://media.api-sports.io/football/teams/1345.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1372,
+          "name": "Cheltenham",
+          "logo": "https://media.api-sports.io/football/teams/1372.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649682,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Vale Park",
+          "city": "Stoke on Trent"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1351,
+          "name": "Port Vale",
+          "logo": "https://media.api-sports.io/football/teams/1351.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1373,
+          "name": "Leyton Orient",
+          "logo": "https://media.api-sports.io/football/teams/1373.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649687,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "The Croud Meadow",
+          "city": "Shrewsbury"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1352,
+          "name": "Shrewsbury",
+          "logo": "https://media.api-sports.io/football/teams/1352.png",
+          "winner": null
+        },
+        "away": {
+          "id": 748,
+          "name": "Burton Albion",
+          "logo": "https://media.api-sports.io/football/teams/748.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649690,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Adams Park",
+          "city": "High Wycombe"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1358,
+          "name": "Wycombe",
+          "logo": "https://media.api-sports.io/football/teams/1358.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1348,
+          "name": "Milton Keynes Dons",
+          "logo": "https://media.api-sports.io/football/teams/1348.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649675,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": null,
+          "city": "Colchester"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1361,
+          "name": "Colchester",
+          "logo": "https://media.api-sports.io/football/teams/1361.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1374,
+          "name": "Mansfield Town",
+          "logo": "https://media.api-sports.io/football/teams/1374.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649676,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Alexandra Stadium",
+          "city": "Crewe"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1363,
+          "name": "Crewe",
+          "logo": "https://media.api-sports.io/football/teams/1363.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1357,
+          "name": "Plymouth",
+          "logo": "https://media.api-sports.io/football/teams/1357.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649678,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "St James Park",
+          "city": "Exeter"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1364,
+          "name": "Exeter City",
+          "logo": "https://media.api-sports.io/football/teams/1364.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1368,
+          "name": "Stevenage",
+          "logo": "https://media.api-sports.io/football/teams/1368.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649679,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Blundell Park",
+          "city": "Cleethorpes"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1365,
+          "name": "Grimsby",
+          "logo": "https://media.api-sports.io/football/teams/1365.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1349,
+          "name": "Oldham",
+          "logo": "https://media.api-sports.io/football/teams/1349.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649673,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Holker Street",
+          "city": "Barrow in Furness"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1819,
+          "name": "Barrow",
+          "logo": "https://media.api-sports.io/football/teams/1819.png",
+          "winner": null
+        },
+        "away": {
+          "id": 4695,
+          "name": "Kidderminster Harriers",
+          "logo": "https://media.api-sports.io/football/teams/4695.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649680,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": null,
+          "city": null
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1824,
+          "name": "Guiseley AFC",
+          "logo": "https://media.api-sports.io/football/teams/1824.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1376,
+          "name": "Notts County",
+          "logo": "https://media.api-sports.io/football/teams/1376.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649691,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "York Community Stadium",
+          "city": "York"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1828,
+          "name": "York",
+          "logo": "https://media.api-sports.io/football/teams/1828.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1371,
+          "name": "Carlisle",
+          "logo": "https://media.api-sports.io/football/teams/1371.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649677,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": null,
+          "city": null
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1829,
+          "name": "Dover",
+          "logo": "https://media.api-sports.io/football/teams/1829.png",
+          "winner": null
+        },
+        "away": {
+          "id": 46,
+          "name": "Leicester",
+          "logo": "https://media.api-sports.io/football/teams/46.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649672,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": "Mill Farm",
+          "city": "Wesham"
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 1839,
+          "name": "AFC Fylde",
+          "logo": "https://media.api-sports.io/football/teams/1839.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1359,
+          "name": "Luton",
+          "logo": "https://media.api-sports.io/football/teams/1359.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649686,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": null,
+          "city": null
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 7744,
+          "name": "Salisbury",
+          "logo": "https://media.api-sports.io/football/teams/7744.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1356,
+          "name": "Blackpool",
+          "logo": "https://media.api-sports.io/football/teams/1356.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649689,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": null,
+          "city": null
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 7758,
+          "name": "Wimborne Town",
+          "logo": "https://media.api-sports.io/football/teams/7758.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1343,
+          "name": "Bradford",
+          "logo": "https://media.api-sports.io/football/teams/1343.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    },
+    {
+      "fixture": {
+        "id": 1649681,
+        "referee": null,
+        "timezone": "UTC",
+        "date": "2026-12-05T15:00:00+00:00",
+        "timestamp": 1796482800,
+        "periods": {
+          "first": null,
+          "second": null
+        },
+        "venue": {
+          "id": null,
+          "name": null,
+          "city": null
+        },
+        "status": {
+          "long": "Not Started",
+          "short": "NS",
+          "elapsed": null,
+          "extra": null
+        }
+      },
+      "league": {
+        "id": 45,
+        "name": "FA Cup",
+        "country": "England",
+        "logo": "https://media.api-sports.io/football/leagues/45.png",
+        "flag": "https://media.api-sports.io/flags/gb-eng.svg",
+        "season": 2026,
+        "round": "Round of 128",
+        "standings": false
+      },
+      "teams": {
+        "home": {
+          "id": 8899,
+          "name": "Plymouth Parkway",
+          "logo": "https://media.api-sports.io/football/teams/8899.png",
+          "winner": null
+        },
+        "away": {
+          "id": 1369,
+          "name": "Barnet",
+          "logo": "https://media.api-sports.io/football/teams/1369.png",
+          "winner": null
+        }
+      },
+      "goals": {
+        "home": null,
+        "away": null
+      },
+      "score": {
+        "halftime": {
+          "home": null,
+          "away": null
+        },
+        "fulltime": {
+          "home": null,
+          "away": null
+        },
+        "extratime": {
+          "home": null,
+          "away": null
+        },
+        "penalty": {
+          "home": null,
+          "away": null
+        }
+      }
+    }
+  ],
+  "canonical": {
+    "venues": [
+      {
+        "venue_id": 532,
+        "name": "St James Park",
+        "address": "Stadium Way",
+        "city": "Exeter, Devon",
+        "country": "England",
+        "capacity": 8830,
+        "latitude": "50.730637",
+        "longitude": "-3.519476",
+        "provider_venue_id": 532,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 538,
+        "name": "Blundell Park",
+        "address": "Blundell Park",
+        "city": "Cleethorpes, North East Lincolnshire",
+        "country": "England",
+        "capacity": 9546,
+        "latitude": "53.570230",
+        "longitude": "-0.046512",
+        "provider_venue_id": 538,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 572,
+        "name": "Vale Park",
+        "address": "Hamil Road, Burslem",
+        "city": "Stoke-on-Trent, Staffordshire",
+        "country": "England",
+        "capacity": 19052,
+        "latitude": "53.049956",
+        "longitude": "-2.192698",
+        "provider_venue_id": 572,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 577,
+        "name": "Crown Oil Arena",
+        "address": "Sandy Lane",
+        "city": "Rochdale, Greater Manchester",
+        "country": "England",
+        "capacity": 10249,
+        "latitude": "53.620795",
+        "longitude": "-2.179913",
+        "provider_venue_id": 577,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 578,
+        "name": "AESSEAL New York Stadium",
+        "address": "Don Street",
+        "city": "Rotherham, South Yorkshire",
+        "country": "England",
+        "capacity": 12021,
+        "latitude": "53.427551",
+        "longitude": "-1.360497",
+        "provider_venue_id": 578,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 602,
+        "name": "Adams Park",
+        "address": "Hillbottom Road",
+        "city": "High Wycombe, Buckinghamshire",
+        "country": "England",
+        "capacity": 10000,
+        "latitude": "51.630411",
+        "longitude": "-0.800283",
+        "provider_venue_id": 602,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 11876,
+        "name": "Mornflake Stadium",
+        "address": "Gresty Road",
+        "city": "Crewe, Cheshire",
+        "country": "England",
+        "capacity": 10153,
+        "latitude": "53.087402",
+        "longitude": "-2.435733",
+        "provider_venue_id": 11876,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 11929,
+        "name": "LNER Community Stadium",
+        "address": "Kathryn Avenue, Huntington",
+        "city": "York, North Yorkshire",
+        "country": "England",
+        "capacity": 8500,
+        "latitude": "53.984291",
+        "longitude": "-1.052743",
+        "provider_venue_id": 11929,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 12052,
+        "name": "Select Car Leasing Stadium",
+        "address": "Shooters Way / Junction 11, M4",
+        "city": "Reading, Berkshire",
+        "country": "England",
+        "capacity": 24200,
+        "latitude": "51.422335",
+        "longitude": "-0.983124",
+        "provider_venue_id": 12052,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 19197,
+        "name": "SO Legal Stadium",
+        "address": "Holker Street",
+        "city": "Barrow-in-Furness, Cumbria",
+        "country": "England",
+        "capacity": 6500,
+        "latitude": "54.118970",
+        "longitude": "-3.228520",
+        "provider_venue_id": 19197,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 19924,
+        "name": "SMH Group Stadium",
+        "address": "1866 Sheffield Road, Whittington Moor",
+        "city": "Chesterfield, Derbyshire",
+        "country": "England",
+        "capacity": 10338,
+        "latitude": "53.253558",
+        "longitude": "-1.425819",
+        "provider_venue_id": 19924,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      },
+      {
+        "venue_id": 19925,
+        "name": "The Croud Meadow",
+        "address": "Oteley Road",
+        "city": "Shrewsbury, Shropshire",
+        "country": "England",
+        "capacity": 9875,
+        "latitude": "52.690934",
+        "longitude": "-2.752156",
+        "provider_venue_id": 19925,
+        "canonical_venue_id": null,
+        "equivalence_source": null
+      }
+    ],
+    "aliases": [
+      {
+        "venue_name_id": 363,
+        "venue_id": 532,
+        "name": "St James Park",
+        "normalized_name": "st james park",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 364,
+        "venue_id": 538,
+        "name": "Blundell Park",
+        "normalized_name": "blundell park",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 343,
+        "venue_id": 572,
+        "name": "Vale Park",
+        "normalized_name": "vale park",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 6283,
+        "venue_id": 577,
+        "name": "Spotland Stadium",
+        "normalized_name": "spotland stadium",
+        "name_type": "provider",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "global_high_impact_venue_v1",
+        "observed_at": "2026-09-18 02:34:32.080144+00:00"
+      },
+      {
+        "venue_name_id": 338,
+        "venue_id": 577,
+        "name": "Crown Oil Arena",
+        "normalized_name": "crown oil arena",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 334,
+        "venue_id": 578,
+        "name": "AESSEAL New York Stadium",
+        "normalized_name": "aesseal new york stadium",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 162,
+        "venue_id": 602,
+        "name": "Adams Park",
+        "normalized_name": "adams park",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 6288,
+        "venue_id": 11876,
+        "name": "Alexandra Stadium",
+        "normalized_name": "alexandra stadium",
+        "name_type": "provider",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "global_high_impact_venue_v1",
+        "observed_at": "2026-09-18 02:34:32.080144+00:00"
+      },
+      {
+        "venue_name_id": 362,
+        "venue_id": 11876,
+        "name": "Mornflake Stadium",
+        "normalized_name": "mornflake stadium",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 368,
+        "venue_id": 11929,
+        "name": "LNER Community Stadium",
+        "normalized_name": "lner community stadium",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 6292,
+        "venue_id": 11929,
+        "name": "York Community Stadium",
+        "normalized_name": "york community stadium",
+        "name_type": "provider",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "global_high_impact_venue_v1",
+        "observed_at": "2026-09-18 02:34:32.080144+00:00"
+      },
+      {
+        "venue_name_id": 324,
+        "venue_id": 12052,
+        "name": "Select Car Leasing Stadium",
+        "normalized_name": "select car leasing stadium",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 374,
+        "venue_id": 19197,
+        "name": "SO Legal Stadium",
+        "normalized_name": "so legal stadium",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 6295,
+        "venue_id": 19197,
+        "name": "Holker Street",
+        "normalized_name": "holker street",
+        "name_type": "provider",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "global_high_impact_venue_v1",
+        "observed_at": "2026-09-18 02:34:32.080144+00:00"
+      },
+      {
+        "venue_name_id": 340,
+        "venue_id": 19924,
+        "name": "SMH Group Stadium",
+        "normalized_name": "smh group stadium",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      },
+      {
+        "venue_name_id": 344,
+        "venue_id": 19925,
+        "name": "The Croud Meadow",
+        "normalized_name": "the croud meadow",
+        "name_type": "current",
+        "valid_from": null,
+        "valid_to": null,
+        "source": "legacy_backfill",
+        "observed_at": "2026-08-14 10:54:02.845496+00:00"
+      }
+    ],
+    "identity_overrides": []
+  }
+}

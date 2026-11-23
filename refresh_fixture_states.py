@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -15,7 +16,7 @@ from dotenv import load_dotenv
 from sqlalchemy import MetaData, Table, and_, create_engine, select, update
 
 from ingestion.api_football import ApiFootballClient
-from ingestion.pipeline import TerraceTalkImporter
+from ingestion.pipeline import TerraceTalkImporter, run_fixture_discovery
 
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT / "backend" / ".env")
@@ -66,37 +67,132 @@ def expanded_refresh_enabled():
     return value == "true"
 
 
+def fixture_discovery_enabled():
+    value = os.getenv("ENABLE_NEW_FIXTURE_DISCOVERY", "false").strip().lower()
+    if value not in {"true", "false", ""}:
+        raise SystemExit("ENABLE_NEW_FIXTURE_DISCOVERY must be TRUE or FALSE; refusing execution")
+    return value == "true"
+
+
 def refresh_window(day, lookback=30, lookahead=30):
     today = datetime.combine(day, datetime.min.time(), tzinfo=timezone.utc)
     return today - timedelta(days=lookback), today + timedelta(days=lookahead + 1)
 
 
-def resolve_venue(candidate, item, venues, refs, aliases):
-    """Read-only mapping: no speculative venues or canonical metadata changes."""
+def select_outside_window(rows, day, start, end, capacity):
+    """Retain date-independent tracking without fetching every distant fixture daily.
+
+    Older unresolved records are due daily; distant future IDs have stable weekly
+    buckets. Advance by the available batch on repeat visits, including when the
+    budget covers less than half a bucket, rather than retaining a fixed prefix. No cursor,
+    schema or scheduler is required. Terminal records retain the existing policy.
+    """
+    eligible = [r for r in rows if r.status in RETRYABLE_STATUSES
+                and not start <= utc_datetime(r.fixture_date) < end]
+    older = sorted((r for r in eligible if utc_datetime(r.fixture_date) < start), key=lambda r: r.fixture_id)
+    future = [r for r in eligible if utc_datetime(r.fixture_date) >= end]
+    due = sorted((r for r in future if int(hashlib.sha256(str(r.fixture_id).encode()).hexdigest(), 16) % 7
+                  == day.toordinal() % 7), key=lambda r: r.fixture_id)
+
+    def rotate(items, visit, take):
+        if not items:
+            return items
+        offset = (visit * take) % len(items)
+        return items[offset:] + items[:offset]
+
+    capacity = max(0, capacity)
+    if older and due:
+        old_count = min(len(older), (capacity + int(day.toordinal() % 2 == 0)) // 2)
+        future_count = min(len(due), capacity - old_count)
+        old_count += min(len(older) - old_count, capacity - old_count - future_count)
+        future_count += min(len(due) - future_count, capacity - old_count - future_count)
+    else:
+        old_count, future_count = min(len(older), capacity), min(len(due), capacity)
+    alternating_single_slot = capacity == 1 and older and due
+    older = rotate(older, day.toordinal() // 2 if alternating_single_slot else day.toordinal(), old_count)
+    due = rotate(due, day.toordinal() // (14 if alternating_single_slot else 7), future_count)
+    selected = older[:old_count] + due[:future_count]
+    report = dict(enabled=True, eligible=len(eligible), older_due=len(older), future_total=len(future),
+                  future_due=len(due), future_not_due=len(future) - len(due), future_bucket_days=7,
+                  capacity=capacity, selected_ids=[r.fixture_id for r in selected],
+                  selected_older=old_count, selected_future=future_count,
+                  older_deferred=len(older) - old_count, future_due_deferred=len(due) - future_count,
+                  oldest_unresolved_stored_kickoff=min((utc_datetime(r.fixture_date).isoformat() for r in older), default=None),
+                  due_deferred=len(older) + len(due) - len(selected))
+    return selected, report
+
+
+def resolve_venue(candidate, item, venues, refs, aliases, review_context=None, *, diagnostic=None):
+    """Reuse discovery's canonical physical resolver; never mutate ground records."""
+    from types import SimpleNamespace
+    from ingestion.discovery_venues import resolve_event_venue, reviewed_home_proof
     old = getattr(candidate, "venue_id", None)
     raw = (item.get("fixture") or {}).get("venue") or {}
-    pid = raw.get("id")
-    if not pid:
-        return old, "MISSING"
-    ids = {r["venue_id"] for r in refs if r["provider"] == "api_football" and r["provider_venue_id"] == pid and not r.get("valid_to")}
-    ids.update(v["venue_id"] for v in venues if v.get("provider_venue_id") == pid)
-    if len(ids) != 1:
-        return old, "AMBIGUOUS" if ids else "UNKNOWN"
-    target = next((v for v in venues if v["venue_id"] in ids), None)
-    if target is None:
-        return old, "UNKNOWN"
-    normalize = TerraceTalkImporter._normalize_venue_identity_name
-    names = {normalize(target.get("name") or "")}
-    names.update(normalize(a["name"]) for a in aliases if a["venue_id"] == target["venue_id"] and not a.get("valid_to"))
-    if not raw.get("name") or normalize(raw["name"]) not in names:
+    context = review_context or {}
+    from backend.fixture_integrity import verified_venue, venue_geography
+    by_id = {v["venue_id"]: v for v in venues}
+    def checked(vid,method):
+        result=venue_geography({'country':getattr(candidate,'country',None)},by_id.get(vid),
+                               allowed_countries=context.get('venue_countries',()))
+        return (old,'DISPUTED') if result['hold'] else (vid,method)
+    decision = context.get('fixture_verifications', {}).get(candidate.fixture_id)
+    if decision:
+        pinned = verified_venue({k: getattr(candidate, k) for k in ('fixture_id','league_id','season','home_team_id','away_team_id')}, decision)
+        if pinned is not None:
+            return checked(pinned, "MATCHED_VERIFIED_OVERRIDE")
+    country = getattr(candidate, "country", None)
+    by_id = {v["venue_id"]: v for v in venues}
+    scope = SimpleNamespace(country=country,
+        venue_countries=context.get("venue_countries", ()),
+        venue_reviews=tuple(r for r in context.get("venue_reviews", ()) if r["venue_id"] in by_id))
+    identity = provider_identity(item)
+    key = (*identity.values(), utc_datetime(item["fixture"]["date"]).isoformat())
+    proof = context.get("event_proofs", {}).get(key)
+    fallback = False
+    try:
+        # Only scoped, independently verified routine-league attestations qualify.
+        # Never replace an established event binding or bypass a venue policy.
+        if proof is None and old is None and decision is None:
+            proof = reviewed_home_proof(item, context.get("home_ground_reviews", ()))
+            fallback = proof is not None
+        missing_id = raw.get("id") is None or (type(raw.get("id")) is int and raw["id"] == 0)
+        if missing_id and not raw.get("name") and proof is None:
+            # Missing identity cannot confirm a retained ground against a supplied
+            # conflicting locality. Only existing ground-scoped facts may excuse
+            # the difference; locality alone must never select a replacement.
+            from ingestion.venue_identity import normalize_identity
+            ground = by_id.get(old) or {}
+            canonical_id = ground.get("canonical_venue_id") or old
+            ground = by_id.get(canonical_id) or ground
+            observed_city = normalize_identity(raw.get("city"))
+            stored_city = normalize_identity(ground.get("city"))
+            allowed = {normalize_identity(city)
+                       for review in scope.venue_reviews if review["venue_id"] == canonical_id
+                       for city in review.get("localities", ())}
+            if (observed_city and stored_city and observed_city != stored_city
+                    and observed_city not in allowed):
+                if diagnostic is not None:
+                    from ingestion.discovery_venues import locality_diagnostic
+                    diagnostic.update(locality_diagnostic(raw, ground, bound_ground=ground))
+                return old, "DISPUTED"
+            return checked(old, "MISSING")
+        vid, location = resolve_event_venue(raw, scope,
+            by_id, refs, aliases, proof)
+    except ValueError as error:
+        reason = str(error)
+        if diagnostic is not None and getattr(error, 'venue_diagnostic', None):
+            diagnostic.update(error.venue_diagnostic)
+            ground = by_id.get(old) or {}
+            ground = by_id.get(ground.get('canonical_venue_id')) or ground
+            diagnostic.update(bound_ground_id=ground.get('venue_id'), bound_ground_locality=ground.get('city'))
+        if reason in {"AMBIGUOUS_EVENT_VENUE", "AMBIGUOUS_REVIEWED_HOME_GROUND"}:
+            return old, "AMBIGUOUS"
         return old, "DISPUTED"
-    if raw.get("city") and target.get("city") and normalize(raw["city"]) != normalize(target["city"]):
-        return old, "DISPUTED"
-    if getattr(candidate, "country", None) and target.get("country") and normalize(candidate.country) != normalize(target["country"]):
-        return old, "DISPUTED"
-    if target.get("latitude") is None or target.get("longitude") is None:
-        return old, "UNRESOLVED_DIRECTIONS"
-    return target["venue_id"], "MATCHED"
+    if vid is None:
+        return old, "UNKNOWN" if location == "UNRESOLVED_EVENT_VENUE" else "DISPUTED"
+    if location == "KNOWN_VENUE_MISSING_COORDINATES":
+        return vid, "UNRESOLVED_DIRECTIONS"
+    return checked(vid, "MATCHED_HOME_REVIEW" if fallback else "MATCHED")
 
 
 def provider_values(item: dict[str, Any]) -> dict[str, Any]:
@@ -110,6 +206,7 @@ def provider_values(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def provider_identity(item: dict[str, Any]) -> dict[str, Any]:
+    """Stable event identity; kickoff/status are mutable lifecycle values, not keys."""
     return {
         "fixture_id": (item.get("fixture") or {}).get("id"),
         "league_id": (item.get("league") or {}).get("id"),
@@ -117,6 +214,52 @@ def provider_identity(item: dict[str, Any]) -> dict[str, Any]:
         "home_team_id": ((item.get("teams") or {}).get("home") or {}).get("id"),
         "away_team_id": ((item.get("teams") or {}).get("away") or {}).get("id"),
     }
+
+
+def lifecycle_team_context(connection, candidates, responses):
+    """Reuse approved scoped identity resolution, never create or remap clubs.
+
+    Ordinary equal provider/stored IDs retain existing name/alias behaviour.
+    A differing ID or an explicit approved scope must pass the shared resolver.
+    This uses bounded database reads and no additional provider requests.
+    """
+    from ingestion.team_identity import (ProviderTeamObservation,
+        resolve_provider_team_batch, TeamIdentityError)
+    approved = set(connection.exec_driver_sql(
+        "SELECT provider_team_id,league_id,season FROM team_identity_overrides "
+        "WHERE provider='api_football' AND review_status='APPROVED'").all())
+    selected, observations = {}, []
+    for candidate in candidates:
+        rows = responses.get(candidate.fixture_id, [])
+        if len(rows) != 1:
+            continue
+        item = rows[0]
+        raw = provider_identity(item)
+        if any(type(raw[k]) is not int or raw[k] <= 0 for k in raw):
+            continue  # Existing malformed/identity guards handle this record.
+        sides = {}
+        for side in ('home', 'away'):
+            pid = raw[side + '_team_id']
+            if pid != getattr(candidate, side + '_team_id') or (pid, raw['league_id'], raw['season']) in approved:
+                name = ((item.get('teams') or {}).get(side) or {}).get('name') or ''
+                observation = ProviderTeamObservation('api_football', pid, name, raw['league_id'], raw['season'])
+                sides[side] = observation
+                observations.append(observation)
+        if sides:
+            selected[candidate.fixture_id] = sides
+    try:
+        receipts = resolve_provider_team_batch(connection, observations)
+    except (TeamIdentityError, ValueError, TypeError):
+        return {fid: dict(error='SCOPED_IDENTITY_RESOLUTION_CONFLICT') for fid in selected}
+    context = {}
+    for fid, sides in selected.items():
+        resolved = {side: receipts[o.key] for side, o in sides.items()}
+        valid = all(r.identity_resolution == 'REVIEWED_SCOPED_OVERRIDE' and r.approved_override_id is not None
+                    for r in resolved.values())
+        context[fid] = dict(error=None if valid else 'APPROVED_SCOPED_MAPPING_REQUIRED',
+            canonical_ids={side + '_team_id': r.canonical_team_id for side, r in resolved.items()},
+            receipts={side: r.serializable() for side, r in resolved.items()})
+    return context
 
 
 def manifest_base(candidate: Any) -> dict[str, Any]:
@@ -131,7 +274,7 @@ def manifest_base(candidate: Any) -> dict[str, Any]:
     }
 
 
-def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venue_context=None, expanded=True) -> tuple[dict[str, Any], dict[str, Any] | None]:
+def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venue_context=None, expanded=True, identity_context=None) -> tuple[dict[str, Any], dict[str, Any] | None]:
     result = manifest_base(candidate)
     if candidate.fixture_id in REVIEW_HOLDS:
         result["manual_hold"] = REVIEW_HOLDS[candidate.fixture_id]
@@ -151,16 +294,31 @@ def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venu
     try:
         if any(value is not None and (type(value) is not int or value < 0) for value in (values["home_goals"], values["away_goals"])):
             raise ValueError("Invalid goal values")
-        values["venue_id"], venue_result = resolve_venue(candidate, item, *venue_context) if expanded and venue_context else (getattr(candidate, "venue_id", None), "DISABLED" if not expanded else "NOT_CHECKED")
+        diagnostic = {}
+        values["venue_id"], venue_result = resolve_venue(candidate, item, *venue_context, diagnostic=diagnostic) if expanded and venue_context else (getattr(candidate, "venue_id", None), "DISABLED" if not expanded else "NOT_CHECKED")
     except (KeyError, ValueError, TypeError, AttributeError):
         result.update(classification="PROVIDER_MALFORMED", reason="Malformed provider goals or venue")
         return result, None
     result.update(stored_venue_id=getattr(candidate, "venue_id", None), provider_venue_id=values["venue_id"], venue_mapping=venue_result, raw_provider_venue=(item.get("fixture") or {}).get("venue"))
+    if diagnostic: result['venue_diagnostic'] = diagnostic
+    labels=(item.get('fixture') or {}).get('venue') or {}
+    result['venue_label_changes']={field:dict(stored=getattr(candidate,'venue_'+field),provider=labels.get(field))
+        for field in ('name','city') if hasattr(candidate,'venue_'+field) and labels.get(field) is not None
+        and labels.get(field)!=getattr(candidate,'venue_'+field)}
     result.update(
         provider_fixture_date=values["fixture_date"].isoformat(), provider_status=values["status"],
         provider_home_goals=values["home_goals"], provider_away_goals=values["away_goals"],
     )
     identity = provider_identity(item)
+    result['raw_provider_identity'] = dict(identity)
+    if identity_context is not None:
+        result['team_identity_resolution'] = identity_context
+        if identity_context.get('error'):
+            result.update(identity_check_result='FAIL', classification='IDENTITY_MISMATCH',
+                          reason=identity_context['error'])
+            return result, None
+        identity.update(identity_context['canonical_ids'])
+        result['resolved_provider_identity'] = dict(identity)
     expected = {key: getattr(candidate, key) for key in identity}
     mismatches = {key: {"stored": expected[key], "provider": identity[key]} for key in identity if expected[key] != identity[key]}
     if mismatches:
@@ -174,13 +332,15 @@ def classify_candidate(candidate: Any, provider_rows: list[dict[str, Any]], venu
         values.pop("venue_id")
     changed = [field for field in values if (utc_datetime(getattr(candidate, field)) if field == "fixture_date" else getattr(candidate, field, None)) != values[field]]
     result["proposed_changed_fields"] = changed
-    if candidate.status in TERMINAL_STATUSES and changed:
+    if candidate.status in TERMINAL_STATUSES and changed and not (
+            candidate.status in DURABLE_COMPLETED_STATUSES and changed == ["venue_id"]
+            and getattr(candidate, "venue_id", None) is None and values["venue_id"] is not None):
         result.update(classification="TERMINAL_CONFLICT_REVIEW", reason="Stored terminal fixture disagrees with provider")
         return result, None
     if values["status"] not in RETRYABLE_STATUSES | TERMINAL_STATUSES:
         result.update(classification="PROVIDER_MALFORMED", reason=f"Unsupported provider status {values['status']!r}; no mutation proposed", proposed_changed_fields=[])
         return result, None
-    if candidate.status in TERMINAL_STATUSES:
+    if candidate.status in TERMINAL_STATUSES and not changed:
         result.update(classification="NO_CHANGE", reason="Stored terminal fixture agrees with provider")
         return result, None
     if not changed:
@@ -275,9 +435,16 @@ def execution_outcome(*, write_requested, commit_confirmed, expanded, incomplete
     return bool(success), 0 if success else 1
 
 
-def main() -> int:
+def run_reconciliation() -> int:
     args = parser().parse_args()
     expanded = expanded_refresh_enabled()
+    discovery_enabled = fixture_discovery_enabled()
+    global_value = os.getenv("ENABLE_GLOBAL_FIXTURE_DISCOVERY", "false").strip().lower()
+    if global_value not in {"true", "false", ""}:
+        raise SystemExit("ENABLE_GLOBAL_FIXTURE_DISCOVERY must be TRUE or FALSE")
+    global_enabled = global_value == "true"
+    args.max_requests=min(args.max_requests,750)
+    discovery_enabled = discovery_enabled or global_enabled
     if not args.nightly:
         raise SystemExit("Use --nightly for bounded reconciliation")
     if args.lookahead_days < 0 or args.max_requests < 1:
@@ -297,14 +464,26 @@ def main() -> int:
     start, end = refresh_window(cutoff_day, args.lookback_days, args.lookahead_days)
     if not expanded:
         end = cutoff
+    eligible_status = fixtures.c.status.in_(sorted(RETRYABLE_STATUSES))
+    if expanded:
+        # A completed row with a missing venue still needs a later provider retry.
+        eligible_status = eligible_status | (fixtures.c.status.in_(sorted(DURABLE_COMPLETED_STATUSES)) & fixtures.c.venue_id.is_(None))
     query = select(
         fixtures.c.fixture_id, fixtures.c.fixture_date, fixtures.c.status, fixtures.c.home_goals, fixtures.c.away_goals,
         fixtures.c.league_id, fixtures.c.season, fixtures.c.home_team_id, fixtures.c.away_team_id, fixtures.c.home_team, fixtures.c.away_team, fixtures.c.venue_id, fixtures.c.country,
-    ).where(fixtures.c.fixture_date >= start, fixtures.c.fixture_date < end, fixtures.c.status.in_(sorted(RETRYABLE_STATUSES)))
+        *(fixtures.c[name] for name in ('venue_name','venue_city') if name in fixtures.c),
+    ).where(fixtures.c.fixture_date >= start, fixtures.c.fixture_date < end, eligible_status)
     if args.country:
         query = query.where(fixtures.c.country == args.country)
     with engine.connect() as connection:
         candidates = list(connection.execute(query.order_by(fixtures.c.fixture_id)))
+        # Membership depends on unresolved status, not a mutable stored kickoff.
+        outside_query = select(*query.selected_columns).where(
+            fixtures.c.status.in_(sorted(RETRYABLE_STATUSES)),
+            (fixtures.c.fixture_date < start) | (fixtures.c.fixture_date >= end))
+        if args.country:
+            outside_query = outside_query.where(fixtures.c.country == args.country)
+        outside_rows = list(connection.execute(outside_query)) if expanded else []
         venues = list(connection.execute(select(Table("venues", MetaData(), autoload_with=connection))).mappings()) if expanded else []
         refs = list(connection.execute(select(Table("venue_provider_refs", MetaData(), autoload_with=connection))).mappings()) if expanded else []
         aliases = list(connection.execute(select(Table("venue_names", MetaData(), autoload_with=connection))).mappings()) if expanded else []
@@ -312,13 +491,59 @@ def main() -> int:
         older_rows = connection.execute(
             select(fixtures.c.status).where(fixtures.c.fixture_date < start, fixtures.c.status.in_(sorted(RETRYABLE_STATUSES)))
         ).all()
+    review_data = {}
+    scope_reviews = {}
+    if expanded:
+        from ingestion.global_discovery import load_registry, event_proofs
+        review_data = load_registry()
+        proof_map = event_proofs(review_data)
+        for scope in review_data['scopes']:
+            scope_reviews[(scope['league_id'],scope['provider_season'])] = dict(
+                venue_countries=scope.get('venue_countries', ()),
+                venue_reviews=review_data.get('venue_reviews', ()),
+                home_ground_reviews=review_data.get('home_ground_reviews', ()),
+                event_proofs=proof_map)
+    from backend.fixture_integrity import venue_decisions
+    with engine.connect() as connection:
+        fixture_verifications = venue_decisions(connection)
+    for context in scope_reviews.values():
+        context['fixture_verifications'] = fixture_verifications
     natural_keys: dict[tuple[Any, int, int], set[int]] = {}
     for row in natural_rows:
         natural_keys.setdefault((utc_datetime(row.fixture_date), row.home_team_id, row.away_team_id), set()).add(row.fixture_id)
     client = ApiFootballClient(api_key, ROOT / ".cache" / "api-football-refresh")
+    primary_candidates = list(candidates)
+    primary_requests = (len(primary_candidates) + 19) // 20
+    # Preserve the existing stages' budgets before optional tracking work. USA
+    # needs five inventories and a possible quota bootstrap; global shares100.
+    downstream_reserve = (100 if global_enabled else 6 if discovery_enabled else 0) + (2 if args.enrich_highlights else 0)
+    tracking_requests = max(0, args.max_requests - client.requests_made - primary_requests
+                            - downstream_reserve - int(not primary_candidates))
+    selected, tracking = select_outside_window(outside_rows, cutoff_day, start, end,
+                                               tracking_requests * 20) if expanded else ([], dict(enabled=False))
+    candidates += selected
+    tracking.update(reserved_downstream_requests=downstream_reserve, requested_ids=[], quota_deferred_ids=[])
     responses: dict[int, list[dict[str, Any]]] = {row.fixture_id: [] for row in candidates}
-    budget_exceeded = (len(candidates) + 19) // 20 > args.max_requests
-    for batch in ([] if budget_exceeded else chunks(list(responses))):
+    budget_exceeded = primary_requests + client.requests_made > args.max_requests
+    batches = ([(False, b) for b in chunks([r.fixture_id for r in primary_candidates])]
+               + [(True, b) for b in chunks([r.fixture_id for r in selected])])
+    tracking_started_at = None
+    for outside, batch in ([] if budget_exceeded else batches):
+        if outside:
+            if tracking_started_at is None:
+                tracking_started_at = client.requests_made
+            if not client.failures and not client.quota_is_fresh() and client.requests_made + downstream_reserve + 1 < args.max_requests:
+                try:
+                    client.get('/status', use_cache=False)
+                except (RuntimeError, ValueError, TypeError):
+                    pass
+            if (client.failures or not client.highlights_quota_available()
+                    or client.quota['daily_remaining'] <= 100 + downstream_reserve
+                    or client.requests_made + downstream_reserve + 1 > args.max_requests):
+                requested = set(tracking['requested_ids'])
+                tracking['quota_deferred_ids'] = [r.fixture_id for r in selected if r.fixture_id not in requested]
+                break
+            tracking['requested_ids'].extend(batch)
         try:
             items = client.fixtures_by_ids(batch)
         except (RuntimeError, ValueError, TypeError):
@@ -333,9 +558,18 @@ def main() -> int:
             fixture_id = item["fixture"].get("id")
             if fixture_id in responses:
                 responses[fixture_id].append(item)
+    if tracking['quota_deferred_ids']:
+        # Unfetched optional records are a recorded deferral, not a fabricated
+        # provider-missing result or a reason to suppress a safe primary commit.
+        deferred = set(tracking['quota_deferred_ids'])
+        candidates = [r for r in candidates if r.fixture_id not in deferred]
+        responses = {fid: items for fid, items in responses.items() if fid not in deferred}
+    tracking['provider_requests'] = 0 if tracking_started_at is None else client.requests_made - tracking_started_at
+    with engine.connect() as connection:
+        identity_contexts = lifecycle_team_context(connection, candidates, responses)
     manifest, updates = [], {}
     for candidate in candidates:
-        item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases), expanded=expanded)
+        item, values = classify_candidate(candidate, responses[candidate.fixture_id], (venues, refs, aliases, scope_reviews.get((candidate.league_id,candidate.season), {"fixture_verifications": fixture_verifications})), expanded=expanded, identity_context=identity_contexts.get(candidate.fixture_id))
         manifest.append(item)
         if values is not None:
             updates[candidate.fixture_id] = values
@@ -343,7 +577,7 @@ def main() -> int:
     if budget_exceeded:
         validation["passed"] = False
         validation["problems"].append("Request ceiling exceeded; no provider calls made")
-    incomplete = any(row["venue_mapping"] not in {"MATCHED", "MISSING", "DISABLED"} for row in manifest if "venue_mapping" in row) or any(row["classification"] in {"PROVIDER_MISSING", "PROVIDER_DUPLICATE", "IDENTITY_MISMATCH", "PROVIDER_MALFORMED", "TERMINAL_CONFLICT_REVIEW", "MANUAL_REVIEW_HOLD"} for row in manifest)
+    incomplete = any(row["venue_mapping"] not in {"MATCHED", "MATCHED_HOME_REVIEW", "MATCHED_VERIFIED_OVERRIDE", "MISSING", "DISABLED"} for row in manifest if "venue_mapping" in row) or any(row["classification"] in {"PROVIDER_MISSING", "PROVIDER_DUPLICATE", "IDENTITY_MISMATCH", "PROVIDER_MALFORMED", "TERMINAL_CONFLICT_REVIEW", "MANUAL_REVIEW_HOLD"} for row in manifest)
     write_requested = args.write
     commit_confirmed = False
     if args.write:
@@ -360,6 +594,21 @@ def main() -> int:
                         connection.exec_driver_sql("SET LOCAL statement_timeout = '120s'")
                         connection.exec_driver_sql("SET LOCAL idle_in_transaction_session_timeout = '120s'")
                         connection.exec_driver_sql("LOCK TABLE fixtures IN SHARE ROW EXCLUSIVE MODE")
+                    if expanded:
+                        if connection.dialect.name == "postgresql":
+                            connection.exec_driver_sql("LOCK TABLE venues, venue_provider_refs, venue_names IN SHARE MODE")
+                        def stable(rows):
+                            return sorted(json.dumps(dict(r),sort_keys=True,default=str) for r in rows)
+                        for name, baseline in [('venues',venues),('venue_provider_refs',refs),('venue_names',aliases)]:
+                            current_context=list(connection.execute(select(Table(name,MetaData(),autoload_with=connection))).mappings())
+                            if stable(current_context)!=stable(baseline):
+                                raise RuntimeError("Venue mapping preimage changed: "+name)
+                    if connection.dialect.name == 'postgresql':
+                        connection.exec_driver_sql('LOCK TABLE teams, team_identity_overrides IN SHARE MODE')
+                    if lifecycle_team_context(connection, candidates, responses) != identity_contexts:
+                        raise RuntimeError('Team identity mapping preimage changed')
+                    if venue_decisions(connection) != fixture_verifications:
+                        raise RuntimeError('Venue verification revision changed')
                     preimage = fixture_snapshot(connection, fixtures)
                     for candidate in candidates:
                         current = preimage.get(candidate.fixture_id)
@@ -378,6 +627,9 @@ def main() -> int:
                                      fixtures.c.away_goals.is_(None) if before.away_goals is None else fixtures.c.away_goals == before.away_goals)
                         if connection.execute(update(fixtures).where(guard).values(**values)).rowcount != 1:
                             raise RuntimeError(f"Concurrent fixture change detected for {fixture_id}; transaction rolled back")
+                    from backend.fixture_integrity import transaction_integrity
+                    transaction_integrity(connection, [items[0] for items in responses.values() if len(items)==1],
+                        preimages=preimage, manifest=manifest, stage='lifecycle')
                     reconcile_final_state(connection, fixtures, preimage, updates)
                 # Set only after engine.begin().__exit__ returns from COMMIT.
                 commit_confirmed = True
@@ -392,8 +644,37 @@ def main() -> int:
         provider_failures=client.failures, validation=validation, manifest=manifest)
     lifecycle_requests = client.requests_made
     lifecycle_failures = list(client.failures)
+    lifecycle_success = execution_success
+    discovery = None
+    discovery_started_at = client.requests_made
+    if discovery_enabled:
+        if args.country not in (None, "USA"):
+            discovery = {"enabled": True, "passed": True, "inserted": 0,
+                         "skipped": "COUNTRY_SCOPE_EXCLUDED"}
+        elif execution_success and (not write_requested or commit_confirmed):
+            discovery = run_fixture_discovery(engine, client, cutoff_day,
+                write=write_requested and commit_confirmed, max_requests=(min(args.max_requests-2,discovery_started_at+100) if global_enabled else args.max_requests))
+            if not discovery["passed"]:
+                execution_success, exit_code = False, 1
+        else:
+            discovery = {"enabled": True, "passed": False, "inserted": 0,
+                         "errors": ["RECONCILIATION_FAILED_OR_COUNTRY_EXCLUDED"]}
+    global_discovery = None
+    if global_enabled:
+        if lifecycle_success and (not write_requested or commit_confirmed):
+            try:
+                from ingestion.global_discovery import run_global_discovery
+                global_discovery = run_global_discovery(engine,client,cutoff_day,
+                    write=write_requested and commit_confirmed,max_requests=args.max_requests,
+                    discovery_started_at=discovery_started_at,country=args.country)
+            except Exception as error:
+                global_discovery = dict(enabled=True,passed=False,errors=[type(error).__name__])
+            if not global_discovery['passed']:
+                execution_success,exit_code=False,1
+        else:
+            global_discovery = dict(enabled=True,passed=False,errors=['RECONCILIATION_FAILED'])
     highlights = None
-    if args.enrich_highlights and execution_success and commit_confirmed:
+    if args.enrich_highlights and lifecycle_success and commit_confirmed:
         # Existing lifecycle commit is authoritative and remains independent of event coverage.
         try:
             from ingestion.matchday_highlights import run_demand_enrichment
@@ -403,14 +684,24 @@ def main() -> int:
                                                held_ids=REVIEW_HOLDS, max_requests=args.max_requests)
         except Exception as error:
             highlights = {"enabled": True, "errors": [type(error).__name__]}
+    venue_exceptions = [dict(fixture_id=r['fixture_id'],outcome=r.get('venue_mapping'),
+        stored_venue_id=r.get('stored_venue_id'),proposed_venue_id=r.get('provider_venue_id'),
+        raw_provider_venue=r.get('raw_provider_venue'),identity_check_result=r['identity_check_result'],
+        classification=r['classification'],venue_diagnostic=r.get('venue_diagnostic')) for r in manifest if 'venue_mapping' in r and
+        (r['venue_mapping'] not in {'MATCHED','MATCHED_HOME_REVIEW','DISABLED'} or r.get('stored_venue_id')!=r.get('provider_venue_id'))]
     report = {
+        "outside_window_tracking": tracking,
+        "venue_reconciliation": dict(mapping_counts=dict(Counter(r.get('venue_mapping','NOT_CHECKED') for r in manifest)),
+            changed_assignments=[r['fixture_id'] for r in manifest if 'venue_id' in r['proposed_changed_fields']],
+            label_changes=[dict(fixture_id=r['fixture_id'],changes=r['venue_label_changes']) for r in manifest if r.get('venue_label_changes')],
+            unresolved_or_conflicting=venue_exceptions,automatic_ground_creations=0,extra_provider_requests=0),
         "execution_success": execution_success, "commit_confirmed": commit_confirmed,
         "exit_code": exit_code,
         "execution_outcome": ("FIXTURE REFRESH COMMITTED" if execution_success and commit_confirmed
-                              else "FIXTURE REFRESH FAILED — COMMIT CONFIRMED; REVIEW REQUIRED" if commit_confirmed
-                              else "FIXTURE REFRESH FAILED — NO SUCCESSFUL COMMIT CONFIRMED" if write_requested
+                              else "FIXTURE REFRESH FAILED â€” COMMIT CONFIRMED; REVIEW REQUIRED" if commit_confirmed
+                              else "FIXTURE REFRESH FAILED â€” NO SUCCESSFUL COMMIT CONFIRMED" if write_requested
                               else "DRY RUN PASSED" if execution_success else "DRY RUN INCOMPLETE OR FAILED"),
-        "coverage_outcome": "COVERAGE INCOMPLETE — EXCLUSIONS RECORDED" if incomplete else "COVERAGE COMPLETE",
+        "coverage_outcome": "COVERAGE INCOMPLETE â€” EXCLUSIONS RECORDED" if incomplete else "COVERAGE COMPLETE",
         "generated_at": datetime.now(timezone.utc).isoformat(), "mode": "write" if args.write else "dry-run", "policy": "nightly",
         "expanded_refresh_enabled": expanded, "write_error": write_error, "complete": not incomplete and not lifecycle_failures and not write_error and validation["passed"], "window_start": start.isoformat(), "window_end_exclusive": end.isoformat(), "lookahead_days": args.lookahead_days if expanded else 0, "max_requests": args.max_requests,
         "as_of": cutoff_day.isoformat(), "lookback_days": args.lookback_days, "country": args.country,
@@ -424,10 +715,60 @@ def main() -> int:
     if highlights is not None:
         report["matchday_highlights"] = highlights
         report["total_provider_requests"] = client.requests_made
+    if discovery is not None:
+        report["fixture_discovery"] = discovery
+        report["lifecycle_execution_success"] = lifecycle_success
+        report["total_provider_requests"] = client.requests_made
+        report["complete"] = report["complete"] and discovery["passed"]
+    if global_discovery is not None:
+        report["global_fixture_discovery"] = global_discovery
+        report["total_provider_requests"] = client.requests_made
+        report["complete"] = report["complete"] and global_discovery.get("coverage_complete",False)
+    if tracking.get('due_deferred') or tracking['quota_deferred_ids']:
+        report['complete'] = False
+        report['coverage_outcome'] = "COVERAGE INCOMPLETE â€” OUTSIDE-WINDOW RETRIES DEFERRED"
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps({key: value for key, value in report.items() if key != "manifest"}, indent=2))
     return exit_code
+
+
+def main() -> int:
+    # Durable receipts are independent of the fixture transaction. Dry runs never write receipts.
+    from backend.fixture_integrity import RunReceipt, CURRENT_RUN
+    args = parser().parse_args()
+    expanded_refresh_enabled()
+    fixture_discovery_enabled()
+    if not args.write:
+        return run_reconciliation()
+    if not args.confirm_write:
+        return run_reconciliation()
+    url = os.getenv('DATABASE_URL')
+    if not url:
+        return run_reconciliation()
+    receipt_engine = create_engine(url)
+    receipt = RunReceipt(receipt_engine, source_sha=os.getenv('RAILWAY_GIT_COMMIT_SHA'))
+    token = CURRENT_RUN.set(receipt)
+    code, failure = 1, None
+    try:
+        code = run_reconciliation()
+    except BaseException as exc:
+        failure = type(exc).__name__
+        raise
+    finally:
+        CURRENT_RUN.reset(token)
+        try:
+            report = json.loads(args.report.read_text(encoding='utf-8')) if args.report.exists() else {}
+            # A stale report must never turn a new crash into a successful receipt.
+            result = receipt.finish(report if failure is None else {}, error=failure or ('EXIT_'+str(code) if code else None))
+            if failure is None:
+                report['integrity_receipt'] = result
+                args.report.write_text(json.dumps(report, indent=2, default=str), encoding='utf-8')
+                if result['state'] == 'FAILED':
+                    code = 1
+        finally:
+            pass  # Process-scoped receipt pool; individual transactions always close.
+    return code
 
 
 if __name__ == "__main__":

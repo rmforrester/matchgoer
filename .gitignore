@@ -42,3 +42,11 @@ reports/*
 !reports/ingestion/
 reports/ingestion/*
 !reports/ingestion/venue-identity-review-candidates-2026-08-14.json
+
+# Production source promotion never includes local evidence or generated artifacts.
+/reports/
+/.worktrees/
+**/.env
+**/__pycache__/
+*.pyc
+/.cache/

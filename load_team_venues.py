@@ -1,3 +1,4 @@
+import os
 import requests
 import psycopg2
 import time
@@ -7,7 +8,7 @@ import time
 # CONFIG
 # ==========================
 
-API_KEY = "ff239cf358b6b099d0c75212c24a3e9f"
+API_KEY = os.environ["API_FOOTBALL_KEY"]
 
 DB_CONFIG = {
     "host": "localhost",

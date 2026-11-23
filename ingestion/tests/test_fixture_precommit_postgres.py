@@ -16,16 +16,26 @@ class PrecommitPostgresTests(unittest.TestCase):
    db.commit()
   self.e.dispose()
   with self.e.begin() as c:
+   c.exec_driver_sql('CREATE TABLE teams(team_id INTEGER PRIMARY KEY,team_name TEXT)')
+   c.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
    c.exec_driver_sql('CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY, fixture_date TIMESTAMPTZ, status TEXT, home_goals INTEGER, away_goals INTEGER, league_id INTEGER, season INTEGER, home_team_id INTEGER, away_team_id INTEGER, home_team TEXT, away_team TEXT, venue_id INTEGER, country TEXT, editorial TEXT)')
    c.exec_driver_sql('CREATE TABLE venues (venue_id INTEGER, provider_venue_id INTEGER, name TEXT, city TEXT, country TEXT, latitude FLOAT, longitude FLOAT)')
    c.exec_driver_sql('CREATE TABLE venue_provider_refs (venue_id INTEGER, provider TEXT, provider_venue_id INTEGER, valid_to TEXT)');c.exec_driver_sql('CREATE TABLE venue_names (venue_id INTEGER, name TEXT, valid_to TEXT)')
    for i in [100,101,102,*r.REVIEW_HOLDS]:c.execute(text("INSERT INTO fixtures VALUES (:id,'2026-09-01 19:45:00+00','NS',NULL,NULL,39,2026,:home,2,'Home','Away',3,'England','preserve')"),dict(id=i,home=i))
+  from backend.fixture_integrity import META
+  META.create_all(self.e)
   self.fake=Mock();self.fake.failures=[];self.fake.requests_made=1;self.fake.fixtures_by_ids.return_value=[provider(home_team_id=100),provider(fixture_id=101,home_team_id=999),*[provider(fixture_id=i,home_team_id=i) for i in r.REVIEW_HOLDS]]
   self.before=self.state();self.commits=0;self.database_errors=[]
   @event.listens_for(self.e,'handle_error')
   def failed(context):self.database_errors.append(getattr(context.original_exception,'pgcode',None))
+  @event.listens_for(self.e,'before_cursor_execute')
+  def fixture_write(c,cursor,statement,parameters,context,many):
+   if statement.lstrip().upper().startswith(('UPDATE FIXTURES ','INSERT INTO FIXTURES ','DELETE FROM FIXTURES ')):c.info.update(fixture_mutation=True,fixture_fault_pending=True)
   @event.listens_for(self.e,'commit')
-  def committed(c):self.commits+=1
+  def committed(c):
+   if c.info.pop('fixture_mutation',False):self.commits+=1
+  @event.listens_for(self.e,'rollback')
+  def rolled_back(c):c.info.pop('fixture_mutation',None);c.info.pop('fixture_fault_pending',None)
  def tearDown(self):self.e.dispose()
  def state(self):
   with self.e.connect() as c:return c.exec_driver_sql('SELECT * FROM fixtures ORDER BY fixture_id').all()
@@ -52,7 +62,8 @@ class PrecommitPostgresTests(unittest.TestCase):
  def test_H_idempotence(self):
   self.run_writer();after=self.state();receipt=self.run_writer();self.assertEqual(receipt['proposed_fixture_rows_changed'],0);self.assertEqual(after,self.state())
  def test_commit_failure_is_not_success(self):
-  def fail_commit(connection):raise RuntimeError('synthetic commit failure')
+  def fail_commit(connection):
+   if connection.info.pop('fixture_fault_pending',False):raise RuntimeError('synthetic commit failure')
   event.listen(self.e,'commit',fail_commit)
   try:
    report=self.run_writer();self.assertFalse(report['commit_confirmed']);self.assertFalse(report['execution_success']);self.assertEqual(report['exit_code'],1);self.assertIsNotNone(report['write_error'])

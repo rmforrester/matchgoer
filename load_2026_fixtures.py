@@ -1,8 +1,9 @@
+import os
 import requests
 import psycopg2
 
 
-API_KEY = "ff239cf358b6b099d0c75212c24a3e9f"
+API_KEY = os.environ["API_FOOTBALL_KEY"]
 
 HEADERS = {
     "x-apisports-key": API_KEY

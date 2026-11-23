@@ -1,7 +1,8 @@
+import os
 import requests
 import pandas as pd
 
-API_KEY = "ff239cf358b6b099d0c75212c24a3e9f"
+API_KEY = os.environ["API_FOOTBALL_KEY"]
 
 url = "https://v3.football.api-sports.io/venues"
 

@@ -3,3 +3,11 @@
 !requirements.txt
 !backup.py
 !restore_check.py
+!supabase_recovery.py
+!deletion_suppression.py
+!run_all.py
+!recovery_policy.py
+!mandatory_restore.py
+!identity_monitor.py
+!identity-continuity-baseline.json
+!email_presentation.py

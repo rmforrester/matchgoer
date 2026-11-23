@@ -9,6 +9,73 @@ from test_fixture_reconciliation import candidate, provider, KICKOFF
 from refresh_fixture_states import classify_candidate, resolve_venue, refresh_window, validate_plan, ALLOWED_FIELDS
 from ingestion.api_football import ApiFootballClient
 
+
+class NewDiscoveryIntegrationTests(unittest.TestCase):
+    def test_discovery_failure_does_not_suppress_committed_lifecycle_highlights(self):
+        import io
+        import json
+        from contextlib import redirect_stdout
+        from unittest.mock import patch
+        import refresh_fixture_states as refresh
+        from test_fixture_discovery import database, Client
+        engine=database()
+        self.addCleanup(engine.dispose)
+        client=Client();client.fixtures_by_ids=Mock(return_value=[])
+        for failure in ('CANDIDATE_OVERFLOW_NO_DISCOVERY_WRITE','QUOTA_HEADROOM_UNAVAILABLE'):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as folder:
+                receipt=Path(folder)/'receipt.json'
+                env={'DATABASE_URL':'synthetic','API_FOOTBALL_KEY':'synthetic',
+                     'ENABLE_EXPANDED_FIXTURE_REFRESH':'false','ENABLE_NEW_FIXTURE_DISCOVERY':'true'}
+                with patch.object(refresh,'create_engine',return_value=engine), \
+                     patch.object(refresh,'ApiFootballClient',return_value=client), \
+                     patch.object(refresh,'run_fixture_discovery',return_value=dict(passed=False,errors=[failure],inserted=0)), \
+                     patch('ingestion.matchday_highlights.run_demand_enrichment',return_value=dict(enabled=True,extra_requests=0)) as highlights, \
+                     patch.dict('os.environ',env), \
+                     patch('sys.argv',['refresh','--nightly','--as-of','2026-11-03','--write','--confirm-write','--enrich-highlights','--report',str(receipt)]), \
+                     redirect_stdout(io.StringIO()):
+                    self.assertEqual(refresh.main(),1)
+                report=json.loads(receipt.read_text())
+                self.assertTrue(report['commit_confirmed'])
+                self.assertTrue(report['lifecycle_execution_success'])
+                self.assertFalse(report['execution_success'])
+                highlights.assert_called_once()
+                self.assertEqual(highlights.call_args.kwargs['max_requests'],750)
+                self.assertEqual(report['matchday_highlights']['extra_requests'],0)
+
+    def test_optional_stage_and_existing_commit_boundary(self):
+        import io
+        import json
+        from contextlib import redirect_stdout
+        from unittest.mock import patch
+        import refresh_fixture_states as refresh
+        from test_fixture_discovery import database, Client
+        for enabled, write, stage_passed in ((False, True, True), (True, False, True),
+                                             (True, True, True), (True, True, False)):
+            engine = database()
+            fake = Client()
+            fake.fixtures_by_ids = Mock(return_value=[])
+            with tempfile.TemporaryDirectory() as d:
+                receipt = Path(d) / 'receipt.json'
+                args = ['refresh', '--nightly', '--as-of', '2026-11-03', '--report', str(receipt)]
+                if write: args += ['--write', '--confirm-write']
+                stage = dict(passed=stage_passed, inserted=0)
+                env = {'DATABASE_URL': 'synthetic', 'API_FOOTBALL_KEY': 'synthetic',
+                       'ENABLE_EXPANDED_FIXTURE_REFRESH': 'false',
+                       'ENABLE_NEW_FIXTURE_DISCOVERY': str(enabled).lower()}
+                with patch.object(refresh, 'create_engine', return_value=engine), \
+                     patch.object(refresh, 'ApiFootballClient', return_value=fake), \
+                     patch.object(refresh, 'run_fixture_discovery', return_value=stage) as discovery, \
+                     patch.dict('os.environ', env), patch('sys.argv', args), redirect_stdout(io.StringIO()):
+                    code = refresh.main()
+                report = json.loads(receipt.read_text())
+                self.assertEqual(discovery.call_count, int(enabled))
+                self.assertEqual(report['commit_confirmed'], write)
+                self.assertEqual(code, 0 if stage_passed or not enabled else 1)
+                if enabled:
+                    self.assertEqual(discovery.call_args.kwargs['write'], write)
+            engine.dispose()
+
+
 class RefreshSafetyTests(unittest.TestCase):
     def context(self):
         return ([dict(venue_id=7,provider_venue_id=70,name="Stadium Example",city="Town",country="England",latitude=1,longitude=2)], [dict(venue_id=7,provider="api_football",provider_venue_id=70,valid_to=None)], [])
@@ -32,9 +99,9 @@ class RefreshSafetyTests(unittest.TestCase):
     def test_ambiguous(self):
         v,r,a=self.context();r.append(dict(venue_id=8,provider="api_football",provider_venue_id=70));self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Example")),v,r,a),(3,"AMBIGUOUS"))
     def test_disputed(self):
-        self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Wrong")),*self.context()),(3,"DISPUTED"))
+        self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Example",city="Another city")),*self.context()),(3,"DISPUTED"))
     def test_no_directions(self):
-        v,r,a=self.context();v[0]["latitude"]=None;self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Example")),v,r,a),(3,"UNRESOLVED_DIRECTIONS"))
+        v,r,a=self.context();v[0]["latitude"]=None;self.assertEqual(resolve_venue(self.row(),self.item(dict(id=70,name="Example")),v,r,a),(7,"UNRESOLVED_DIRECTIONS"))
     def test_lifecycle(self):
         for status in ("PST","CANC","ABD","FT"):
             v=classify_candidate(self.row(),[provider(status=status)],self.context())[1];self.assertEqual(v["status"],status)
@@ -64,6 +131,8 @@ class RefreshSafetyTests(unittest.TestCase):
         import json
         import refresh_fixture_states as refresh
         engine=create_engine("sqlite://")
+        with engine.begin() as identity_connection:
+            identity_connection.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
         with engine.begin() as c:
             c.execute(text("CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY, fixture_date DATETIME, status TEXT, home_goals INTEGER, away_goals INTEGER, league_id INTEGER, season INTEGER, home_team_id INTEGER, away_team_id INTEGER, home_team TEXT, away_team TEXT, venue_id INTEGER, country TEXT)"))
             c.execute(text("CREATE TABLE venues (venue_id INTEGER, provider_venue_id INTEGER, name TEXT, city TEXT, country TEXT, latitude FLOAT, longitude FLOAT)"))
@@ -73,6 +142,8 @@ class RefreshSafetyTests(unittest.TestCase):
             for table in ('supporter_intents','meeting_preferences','match_board','attendance','ground_visits','fixture_editorial','ticket_sources','teams','home_content'):
                 c.execute(text('CREATE TABLE '+table+' (id INTEGER, content TEXT)'))
                 c.execute(text('INSERT INTO '+table+" VALUES (1,'preserve-exactly')"))
+        from backend.fixture_integrity import META
+        META.create_all(engine)
         fake=Mock();fake.failures=[];fake.requests_made=1;fake.fixtures_by_ids.return_value=[provider()]
         with tempfile.TemporaryDirectory() as d, patch.object(refresh,'create_engine',return_value=engine), patch.object(refresh,'ApiFootballClient',return_value=fake), patch.dict('os.environ',{'DATABASE_URL':'test','API_FOOTBALL_KEY':'test','ENABLE_EXPANDED_FIXTURE_REFRESH':'TRUE'}):
             args=['refresh','--nightly','--as-of','2026-09-02','--write','--confirm-write','--report',str(Path(d)/'receipt.json')]
@@ -144,9 +215,15 @@ class HighlightsRefreshIntegrationTests(unittest.TestCase):
         import refresh_fixture_states as refresh
         import json
         engine=create_engine('sqlite://')
+        with engine.begin() as identity_connection:
+            identity_connection.exec_driver_sql('CREATE TABLE venues(venue_id INTEGER PRIMARY KEY,country TEXT,latitude FLOAT,longitude FLOAT)')
+            identity_connection.exec_driver_sql('CREATE TABLE teams(team_id INTEGER PRIMARY KEY,team_name TEXT)')
+            identity_connection.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
         with engine.begin() as c:
             c.exec_driver_sql('CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY, fixture_date DATETIME, status TEXT, home_goals INTEGER, away_goals INTEGER, league_id INTEGER, season INTEGER, home_team_id INTEGER, away_team_id INTEGER, home_team TEXT, away_team TEXT, venue_id INTEGER, country TEXT)')
             c.exec_driver_sql("INSERT INTO fixtures VALUES (100,'2026-09-01 19:45:00.000000','NS',NULL,NULL,39,2026,1,2,'Home','Away',3,'England')")
+        from backend.fixture_integrity import META
+        META.create_all(engine)
         client=Mock();client.requests_made=1;client.failures=[];client.fixtures_by_ids.return_value=[provider()]
         with tempfile.TemporaryDirectory() as d, patch.object(refresh,'create_engine',return_value=engine),patch.object(refresh,'ApiFootballClient',return_value=client),patch.dict('os.environ',{'DATABASE_URL':'local-only','API_FOOTBALL_KEY':'synthetic','ENABLE_EXPANDED_FIXTURE_REFRESH':'false'}):
             base=['refresh','--nightly','--as-of','2026-09-02','--report',str(Path(d)/'report.json')]
@@ -201,6 +278,9 @@ class HighlightsRefreshIntegrationTests(unittest.TestCase):
         import refresh_fixture_states as refresh
         import json
         engine=create_engine('sqlite://')
+        with engine.begin() as identity_connection:
+            identity_connection.exec_driver_sql('CREATE TABLE teams(team_id INTEGER PRIMARY KEY,team_name TEXT)')
+            identity_connection.exec_driver_sql('CREATE TABLE team_identity_overrides(team_identity_override_id INTEGER PRIMARY KEY,provider TEXT,provider_team_id INTEGER,league_id INTEGER,season INTEGER,canonical_team_id INTEGER,expected_provider_name TEXT,review_status TEXT)')
         for t in [User.__table__,Venue.__table__,Fixture.__table__,VenueVisit.__table__,InterestedFixture.__table__,FixtureEventSnapshot.__table__]:t.create(engine)
         with Session(engine) as db:
             db.add(User(user_id=1,is_anonymous=False,account_status='registered'));db.add(Venue(venue_id=3,name='Synthetic'));db.flush()
@@ -208,6 +288,8 @@ class HighlightsRefreshIntegrationTests(unittest.TestCase):
             db.add(VenueVisit(visit_id=1,user_id=1,venue_id=3,fixture_id=100,visit_date=KICKOFF.date(),source='manual',created_at=KICKOFF));db.commit()
         row=provider();row['score']={'fulltime':{'home':2,'away':1}};row['events']=[dict(time=dict(elapsed=m,extra=None),team=dict(id=t),player=dict(id=m,name='Synthetic'),assist=dict(id=None,name=None),type='Goal',detail='Normal Goal') for m,t in [(10,1),(20,2),(30,1)]]
         client=Mock();client.requests_made=1;client.failures=[];client.fixtures_by_ids.return_value=[row]
+        from backend.fixture_integrity import META
+        META.create_all(engine)
         with tempfile.TemporaryDirectory() as d,patch.object(refresh,'create_engine',return_value=engine),patch.object(refresh,'ApiFootballClient',return_value=client),patch.dict('os.environ',{'DATABASE_URL':'local-only','API_FOOTBALL_KEY':'synthetic','ENABLE_EXPANDED_FIXTURE_REFRESH':'false'}):
             args=['refresh','--nightly','--as-of','2026-09-02','--write','--confirm-write','--enrich-highlights','--report',str(Path(d)/'report.json')]
             for i in range(2):

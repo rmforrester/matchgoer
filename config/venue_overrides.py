@@ -22,6 +22,17 @@ class ManualVenueOverride:
     source: str = "manual_verified"
 
 
+# Event-specific canonical evidence for insert-only discovery. Never a home default.
+# Keys pin fixture, competition, season, both provider teams and kickoff UTC.
+DISCOVERY_EVENT_VENUES = {
+    (1647413, 489, 2026, 27251, 18905, "2026-11-02T01:00:00+00:00"): {
+        "venue_id": 27774,
+        "venue_name": "Athletic Club Boise Soccer Stadium",
+        "city": "Garden City, Idaho",
+        "source": "https://www.acboise.com/2026-schedule/; https://www.oneknoxsc.com/news/2026/11/01/knxvacb110126/",
+    },
+}
+
 MANUAL_VENUE_OVERRIDES = (
     ManualVenueOverride(
         provider="api_football",

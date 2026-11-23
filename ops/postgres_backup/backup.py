@@ -290,12 +290,20 @@ def put_ciphertext(s3, bucket, key, file, h, size):
         verify_object(s3, bucket, key, h, size)
 
 
-def retention_candidates(rows):
+def retention_candidates(rows, observed=None):
     """Keep 30 successful UTC dates and 3 successful calendar months; never broad sync."""
+    try:
+        from .recovery_policy import expired
+    except ImportError:
+        from recovery_policy import expired
+    observed = observed or now()
     daily, monthly, remove = set(), set(), []
     for key, r in sorted(rows, key=lambda x: x[1]['completed_at_utc'], reverse=True):
         if not RECEIPT.fullmatch(key):
             raise BackupError('BACKUP_RETENTION_KEY_INVALID')
+        if expired(r['completed_at_utc'], observed):
+            remove.append((key, r))
+            continue
         day = datetime.fromisoformat(r['completed_at_utc']).date().isoformat()
         if '/daily/' in key:
             if day in daily or len(daily) >= 30:
@@ -386,11 +394,11 @@ def alert(reason, observed, test=False, env=os.environ):
         raise BackupError('BACKUP_ALERT_RECIPIENT_INVALID')
     if not key:
         raise BackupError('BACKUP_ALERT_CREDENTIAL_UNAVAILABLE')
-    title = 'Matchgoer database backup — ' + ('safe test alert' if test else 'attention required')
-    body = {'from': sender, 'to': [recipient], 'subject': title,
-            'text': ('Safe backup alert delivery test. No production restore or fixture processing occurred.' if test else
-                     'Backup protection requires attention. Code: ' + reason + '\nObserved UTC day: ' + observed.date().isoformat() +
-                     '\nUnrelated Matchgoer services continue. This message contains no database records or credentials.')}
+    try:
+        from .email_presentation import render
+    except ImportError:
+        from email_presentation import render
+    body = {'from': sender, 'to': [recipient], **render(reason, observed, test=test, env=env)}
     request = urllib.request.Request('https://api.resend.com/emails', data=json.dumps(body).encode(),
                                     headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json',
                                              'User-Agent': 'Matchgoer-DatabaseBackup/1.0',

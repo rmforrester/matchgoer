@@ -1,3 +1,9 @@
 # Preserve the exact approved non-sensitive audit evidence across Git checkouts.
 ops/postgres_backup/identity-continuity-baseline.json -text
 ops/postgres_backup/recovery_acceptance_evidence/*.json -text
+
+# Integrity-checked acknowledgement baselines must retain their sealed bytes.
+**/identity-continuity-baseline.json -text
+
+# Preserve the exact founder-approved checker package bytes.
+**/identity_monitor.py -text

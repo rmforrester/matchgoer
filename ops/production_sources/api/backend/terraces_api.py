@@ -1,0 +1,251 @@
+"""Disabled-by-default backend contracts. No frontend or hosted activation."""
+import asyncio,base64,binascii,json,os,subprocess,sys
+import hashlib,hmac,logging,re
+from pathlib import Path
+from datetime import datetime,timezone
+from fastapi import APIRouter,Depends,Header,HTTPException,Request,Query,Response
+from starlette.concurrency import run_in_threadpool
+from pydantic import BaseModel,ConfigDict,StrictBool,Field,ValidationError
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import DBAPIError
+from database import SessionLocal
+from models import TerracePhoto as Photo,TerracePhotoEvent as Event,VenueVisit
+from supporter_blocks import has_block
+from terraces import require_verified_account,require_photo_submitter,require_moderator,may_read_photo,configured_moderator_user_id,configured_upload_user_ids
+from terraces_images import MAX_INPUT_BYTES,SanitisedPhoto,ImageVariant
+from terraces_storage import LazyPrivatePhotoStorage as PrivatePhotoStorage,StorageUnavailable
+import terraces_service as service
+
+def controlled_photo_access(authorization:str|None=Header(default=None)):
+    # Controlled testing covers reads too: approved test images must not become public.
+    return transaction(lambda db:require_photo_submitter(db,authorization))
+
+def public_reads_enabled():
+    return os.getenv('TERRACES_PUBLIC_READS_ENABLED', 'false').casefold() == 'true'
+
+def photo_access(request: Request, authorization: str | None = Header(default=None)):
+    path=request.url.path
+    if request.method == 'GET' and path == '/terraces/photos':
+        if not public_reads_enabled(): raise HTTPException(404, 'Photographs are not available here yet')
+        return
+    if request.method == 'GET' and path.startswith('/terraces/photos/'):
+        if public_reads_enabled(): return
+        return controlled_photo_access(authorization)
+    if '/moderator/' in path:
+        return transaction(lambda db:require_moderator(db,authorization))
+    if request.method == 'POST' and path.startswith('/terraces/visits/'):
+        return controlled_photo_access(authorization)
+    if request.method == 'POST' and path.endswith('/reports') and not public_reads_enabled():
+        return controlled_photo_access(authorization)
+    return transaction(lambda db:require_verified_account(db,authorization))
+
+router=APIRouter(prefix='/terraces',tags=['From the Terraces'],dependencies=[Depends(photo_access)])
+slots=asyncio.Semaphore(2)
+class Metadata(BaseModel):
+    model_config=ConfigDict(extra='forbid',strict=True)
+    caption:str|None=Field(default=None,max_length=200)
+    public_consent:StrictBool
+    rights_acknowledged:StrictBool
+    consent_version:str
+class Note(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    reason:str=Field(min_length=1,max_length=200)
+class Hold(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    reason:str|None=Field(default=None,min_length=1,max_length=500)
+
+IMAGE_ERROR_CODES = frozenset(("unsupported_image_encoding", "image_decode_failed", "image_resource_limit", "image_validation_failed", "image_processing_failed"))
+IMAGE_REJECTION_GUARDS = frozenset(('signature_or_major_brand','heif_compatible_codec','decoded_format'))
+
+def record_image_rejection(data, content_type, error, actor_user_id=None):
+    # Temporary opt-in comparison. Never put the reference/input hash in logs,
+    # HTTP details, worker environment, DB, or frontend configuration.
+    moderator_id = configured_moderator_user_id()
+    if moderator_id is None or type(actor_user_id) is not int or actor_user_id != moderator_id:
+        return
+    reference = os.environ.get('TERRACES_REQUEST_DIAGNOSTIC_SHA256', '')
+    if not re.fullmatch('[a-fA-F0-9]{64}', reference):
+        return
+    detail = error.detail
+    code = detail.get('code') if isinstance(detail, dict) else None
+    if not isinstance(code, str) or code not in IMAGE_ERROR_CODES:
+        return
+    declared = (content_type or '').split(';', 1)[0].strip().lower()
+    allowed = {'image/jpeg','image/png','image/heic','image/heif','image/heic-sequence','image/heif-sequence','application/octet-stream','multipart/form-data'}
+    declared = declared if declared in allowed else 'other' if declared else 'missing'
+    mime, signature = 'unknown', 'unrecognised'
+    if not data:
+        signature = 'empty'
+    elif data.startswith(b'\xff\xd8\xff'):
+        mime, signature = 'image/jpeg', 'jpeg'
+    elif data.startswith(b'\x89PNG\r\n\x1a\n'):
+        mime, signature = 'image/png', 'png'
+    elif len(data) >= 12 and data[4:8] == b'ftyp':
+        brand = bytes(data[8:12])
+        # Classifications only, never raw image header bytes.
+        known = {b'heic',b'heix',b'hevc',b'hevx',b'mif1',b'msf1',b'heim',b'heis',b'hevm',b'hevs',b'avif',b'avis',b'jpeg'}
+        signature = 'ftyp_' + brand.decode('ascii') if brand in known else 'ftyp_other'
+        if brand in {b'heic',b'heix',b'hevc',b'hevx'}:
+            mime = 'image/heic'
+        elif brand == b'mif1':
+            mime = 'image/heif'
+    elif data.startswith(b'--'):
+        signature = 'multipart_prefix'
+    guard = getattr(error, 'image_guard', None)
+    record = {'request_content_type':declared, 'file_mime_classification':mime,
+              'file_byte_length':len(data), 'image_signature_classification':signature,
+              'matches_known_original':hmac.compare_digest(hashlib.sha256(data).hexdigest(), reference.lower()),
+              'rejection_category':code, 'rejecting_guard':guard if isinstance(guard, str) and guard in IMAGE_REJECTION_GUARDS else 'unavailable'}
+    logging.getLogger('terraces.image_diagnostic').warning('terraces_image_request_diagnostic %s', json.dumps(record, sort_keys=True))
+
+def image_rejection(code):
+    return HTTPException(422, {'code': code, 'message': 'Photograph could not be safely processed'})
+
+def decode(data):
+    environment={k:v for k,v in os.environ.items() if k in ('PATH','SYSTEMROOT','WINDIR','PYTHONPATH')}
+    environment['PYTHONDONTWRITEBYTECODE']='1'
+    flags=subprocess.CREATE_NO_WINDOW if sys.platform=='win32' else 0
+    try:
+        result=subprocess.run([sys.executable,str(Path(__file__).with_name('terraces_image_worker.py'))],input=data,capture_output=True,env=environment,timeout=15,creationflags=flags)
+        if result.returncode:
+            code = 'image_processing_failed'
+            guard = None
+            if result.returncode in (-9, -24):
+                code = 'image_resource_limit'
+            elif result.returncode == 2 and len(result.stdout) <= 256:
+                try:
+                    failure = json.loads(result.stdout)
+                    reported = failure.get('error_code')
+                    if isinstance(reported, str) and reported in IMAGE_ERROR_CODES:
+                        code = reported
+                    candidate = failure.get('guard')
+                    if code == 'unsupported_image_encoding' and isinstance(candidate, str) and candidate in IMAGE_REJECTION_GUARDS:
+                        guard = candidate
+                except (ValueError, AttributeError, TypeError):
+                    pass
+            rejection = image_rejection(code)
+            rejection.image_guard = guard
+            raise rejection
+        payload=json.loads(result.stdout)
+        variants=[ImageVariant(base64.b64decode(payload[n]['data'],validate=True),payload[n]['width'],payload[n]['height']) for n in ('display','thumbnail')]
+        return SanitisedPhoto(payload['sha256'],payload['bytes'],*variants)
+    except subprocess.TimeoutExpired:
+        raise image_rejection('image_resource_limit') from None
+    except (OSError, ValueError,KeyError,TypeError,binascii.Error):
+        raise image_rejection('image_processing_failed') from None
+
+def transaction(call):
+    with SessionLocal() as db:
+        try:return call(db)
+        except StorageUnavailable:
+            db.rollback();raise HTTPException(503,'Photographs are temporarily unavailable') from None
+        except DBAPIError:
+            db.rollback();raise HTTPException(503,'Photographs are temporarily unavailable. Please retry.') from None
+        except Exception:
+            db.rollback();raise
+
+@router.post('/visits/{visit_id}/photos',status_code=201)
+async def submit(visit_id:int,request:Request,response:Response,authorization:str|None=Header(default=None),idempotency_key:str=Header(),x_terraces_metadata:str=Header()):
+    # Verify identity/owned attendance BEFORE reading/decoding untrusted bytes.
+    def check(db):
+        actor=require_photo_submitter(db,authorization)
+        if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).filter(VenueVisit.source != "ground_collection").first():raise HTTPException(404,'Owned recorded matchday not found')
+        return actor.user_id
+    actor_user_id = await run_in_threadpool(transaction,check)
+    try:
+        if len(x_terraces_metadata)>2048:raise ValueError()
+        raw=base64.b64decode(x_terraces_metadata+'='*(-len(x_terraces_metadata)%4),altchars=b'-_',validate=True)
+        metadata=Metadata.model_validate_json(raw).model_dump()
+    except (ValueError,ValidationError,binascii.Error):raise HTTPException(422,'Invalid photo caption or sharing consent') from None
+    # Never queue an unbounded number of image workers/requests.
+    try:await asyncio.wait_for(slots.acquire(),timeout=.1)
+    except asyncio.TimeoutError:raise HTTPException(429,'Photo processing is busy. Please retry.') from None
+    try:
+        stream=request.stream().__aiter__();data=bytearray();deadline=asyncio.get_running_loop().time()+30
+        while True:
+            remaining=deadline-asyncio.get_running_loop().time()
+            if remaining<=0:raise HTTPException(408,'Photo upload timed out')
+            try:chunk=await asyncio.wait_for(stream.__anext__(),timeout=min(5,remaining))
+            except StopAsyncIteration:break
+            except asyncio.TimeoutError:raise HTTPException(408,'Photo upload timed out') from None
+            if len(data)+len(chunk)>MAX_INPUT_BYTES:raise HTTPException(413,'Photographs must be no larger than 10 MB')
+            data.extend(chunk)
+        try:
+            processed=await run_in_threadpool(decode,bytes(data))
+        except HTTPException as error:
+            if error.status_code == 422:
+                record_image_rejection(data, request.headers.get('content-type'), error, actor_user_id)
+            raise
+        finally:
+            data.clear()
+        result=await run_in_threadpool(transaction,lambda db:service.submit(db,PrivatePhotoStorage(),authorization,visit_id,processed,metadata,idempotency_key))
+        response.headers['Cache-Control']='no-store';return result
+    finally:slots.release()
+
+@router.get('/photos')
+def public_photos(response:Response,selection:str|None=Query(None,pattern='^(discover|my_matchdays)$'),venue_id:int|None=None,fixture_id:int|None=None,cursor:str|None=None,limit:int=Query(12,ge=1,le=24),matchday_of:int|None=Query(None,ge=1),authorization:str|None=Header(default=None)):
+    response.headers['Cache-Control']='no-store'
+    return transaction(lambda db:service.public_page(db,PrivatePhotoStorage(),venue_id=venue_id,fixture_id=fixture_id,cursor=cursor,limit=limit,selection=selection,matchday_of=matchday_of,attendance_user_id=require_verified_account(db,authorization).user_id if selection=='my_matchdays' else None,viewer_user_id=require_verified_account(db,authorization).user_id if authorization else None))
+
+@router.get('/visits/{visit_id}/photos')
+def owned_photos(visit_id:int,response:Response,authorization:str|None=Header(default=None)):
+    def action(db):
+        actor=require_verified_account(db,authorization)
+        if not db.query(VenueVisit).filter_by(visit_id=visit_id,user_id=actor.user_id).filter(VenueVisit.source != "ground_collection").first():raise HTTPException(404,'Recorded matchday not found')
+        # Owner-only reconciliation: never include submission keys in public or moderator payloads.
+        return {'can_submit':actor.user_id in configured_upload_user_ids(),'reconciliation_supported':True,'photos':[{**service.photo_payload(db,PrivatePhotoStorage(),row,private=True,viewer_user_id=actor.user_id), 'submission_key':row.submission_key} for row in db.query(Photo).filter_by(visit_id=visit_id,owner_user_id=actor.user_id).order_by(Photo.submitted_at,Photo.photo_id).all()]}
+    response.headers['Cache-Control']='no-store';return transaction(action)
+
+@router.get('/photos/{photo_id}')
+def photo_detail(photo_id:int,response:Response,authorization:str|None=Header(default=None)):
+    def action(db):
+        actor=require_verified_account(db,authorization) if authorization else None
+        row=db.get(Photo,photo_id)
+        if not row or not may_read_photo(row,actor) or not service.ready(db,row):raise HTTPException(404,'Photograph not found')
+        if actor and has_block(db,actor.user_id,row.owner_user_id):
+            raise HTTPException(404,'Photograph not found')
+        private=not (row.status=='APPROVED' and row.published_at is not None)
+        result=service.photo_payload(db,PrivatePhotoStorage(),row,private=private,viewer_user_id=actor.user_id if actor else None)
+        if not private:result.update(service.public_matchday_metadata(db,row,actor.user_id if actor else None))
+        return result
+    response.headers['Cache-Control']='no-store';return transaction(action)
+
+@router.delete('/photos/{photo_id}')
+def remove(photo_id:int,authorization:str|None=Header(default=None)):
+    return transaction(lambda db:service.remove(db,PrivatePhotoStorage(),authorization,photo_id))
+@router.post('/photos/{photo_id}/reports')
+def report(photo_id:int,note:Note,authorization:str|None=Header(default=None)):
+    return transaction(lambda db:service.report(db,authorization,photo_id,note.reason))
+
+@router.get('/moderator/photos')
+def moderator_photos(response:Response,state:str=Query('PENDING',pattern='^(PENDING|APPROVED|REJECTED)$'),limit:int=Query(24,ge=1,le=50),after_id:int=Query(0,ge=0),authorization:str|None=Header(default=None)):
+    def action(db):
+        require_moderator(db,authorization)
+        query=db.query(Photo).filter(Photo.status==state,Photo.photo_id>after_id)
+        if state=='PENDING':query=query.filter(service.ready_clause())
+        if state=='APPROVED':query=query.filter(Photo.published_at.is_not(None))
+        rows=query.order_by(Photo.photo_id).limit(limit+1).all()
+        return {'pending_count':db.query(Photo).filter(Photo.status=='PENDING',service.ready_clause()).count(),'photos':[service.photo_payload(db,PrivatePhotoStorage(),row,private=True) for row in rows[:limit]],'next_id':rows[limit-1].photo_id if len(rows)>limit else None}
+    response.headers['Cache-Control']='no-store';return transaction(action)
+@router.post('/moderator/photos/{photo_id}/approve')
+def approve(photo_id:int,authorization:str|None=Header(default=None)):
+    return transaction(lambda db:service.approve(db,authorization,photo_id))
+@router.post('/moderator/photos/{photo_id}/reject')
+def reject(photo_id:int,note:Note,authorization:str|None=Header(default=None)):
+    return transaction(lambda db:service.reject(db,authorization,photo_id,note.reason))
+@router.delete('/moderator/photos/{photo_id}')
+def moderator_remove(photo_id:int,authorization:str|None=Header(default=None)):
+    return transaction(lambda db:service.remove(db,PrivatePhotoStorage(),authorization,photo_id,moderator=True))
+@router.put('/moderator/photos/{photo_id}/hold')
+def set_hold(photo_id:int,body:Hold,authorization:str|None=Header(default=None)):
+    return transaction(lambda db:service.hold(db,authorization,photo_id,body.reason))
+@router.get('/moderator/reports')
+def reports(response:Response,limit:int=Query(24,ge=1,le=50),after_id:int=Query(0,ge=0),authorization:str|None=Header(default=None)):
+    def action(db):
+        require_moderator(db,authorization)
+        rows=db.query(Event).filter(Event.event_type=='PHOTO_REPORTED',Event.completed_at.is_(None),Event.event_id>after_id).order_by(Event.event_id).limit(limit+1).all()
+        return {'reports':[{'report_id':r.event_id,'photo_id':r.photo_id,'reason':r.payload.get('reason'),'created_at':r.created_at} for r in rows[:limit]],'next_id':rows[limit-1].event_id if len(rows)>limit else None}
+    response.headers['Cache-Control']='no-store';return transaction(action)
+@router.post('/moderator/reports/{event_id}/resolve')
+def resolve(event_id:int,note:Note,authorization:str|None=Header(default=None)):
+    return transaction(lambda db:service.resolve_report(db,authorization,event_id,note.reason))

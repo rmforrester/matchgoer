@@ -301,6 +301,8 @@ class VenueVisitCreate(BaseModel):
 
 class VenueVisitUpdate(BaseModel):
     fixture_id: int | None = None
+    visit_date: date | None = None
+    calendar_utc_offset_minutes: StrictInt | None = Field(default=None, ge=-720, le=840)
 
 
 class VenueVisitResponse(BaseModel):

@@ -1,6 +1,7 @@
+import os
 import requests
 
-API_KEY = "ff239cf358b6b099d0c75212c24a3e9f"
+API_KEY = os.environ["API_FOOTBALL_KEY"]
 
 headers = {
     "x-apisports-key": API_KEY

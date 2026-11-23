@@ -1,0 +1,469 @@
+from datetime import date, datetime
+from pydantic import BaseModel, Field, field_validator
+from pydantic import StrictBool, StrictInt
+
+
+class GoingUpdate(BaseModel):
+    going: StrictBool
+
+class VenueResponse(BaseModel):
+
+    venue_id: int
+    name: str
+    city: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class VenueGuideProvenanceResponse(BaseModel):
+    label: str
+    source_url: str | None = None
+    last_checked: date | None = None
+
+
+class VenueGuideFactResponse(BaseModel):
+    topic: str
+    content: str
+    provenance: VenueGuideProvenanceResponse
+    freshness: str
+
+
+class VenueGuideSectionResponse(BaseModel):
+    key: str
+    label: str
+    facts: list[VenueGuideFactResponse]
+
+
+class PreMatchSpotResponse(BaseModel):
+    pre_match_spot_id: int
+    display_name: str
+    classification: str
+    audience: str
+    supporting_line: str | None = None
+    location_context: str | None = None
+    directions_url: str | None = None
+
+
+class VenueGuideResponse(BaseModel):
+    venue_id: int
+    club_venue_id: int | None = None
+    club_name: str | None = None
+    has_current_information: bool
+    sections: list[VenueGuideSectionResponse]
+    before_match: list[PreMatchSpotResponse] = Field(default_factory=list)
+
+
+class ClubVenueKnowResponse(BaseModel):
+    club_venue_id: int
+    team_id: int
+    venue_id: int
+    before_match: list[PreMatchSpotResponse]
+
+
+class KnowProvenanceResponse(BaseModel):
+    source_type: str
+    source_title: str
+    source_url: str | None = None
+    source_date: date | None = None
+
+
+class KnowFactResponse(BaseModel):
+    know_fact_id: int
+    headline: str | None = None
+    content: str
+    provenance: list[KnowProvenanceResponse] = Field(default_factory=list)
+
+
+class FixtureKnowResponse(BaseModel):
+    fixture_id: int
+    team_id: int | None = None
+    venue_id: int | None = None
+    club_venue_id: int | None = None
+    club: list[KnowFactResponse] = Field(default_factory=list)
+    supporters: list[KnowFactResponse] = Field(default_factory=list)
+    matchday: list[KnowFactResponse] = Field(default_factory=list)
+    dont_miss: list[KnowFactResponse] = Field(default_factory=list)
+    before_match: list[PreMatchSpotResponse] = Field(default_factory=list)
+    good_to_know: list[KnowFactResponse] = Field(default_factory=list)
+
+
+class FixtureResponse(BaseModel):
+    integrity: dict | None = None
+
+    venue_id: int | None = None
+
+    fixture_id: int
+    fixture_date: datetime
+
+    home_team: str
+    away_team: str
+
+    league_name: str
+    status: str | None = None
+    home_goals: int | None = None
+    away_goals: int | None = None
+
+    interested_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class FixtureWithVenueResponse(BaseModel):
+    integrity: dict | None = None
+
+    fixture_id: int
+    fixture_date: datetime
+
+    home_team: str
+    away_team: str
+
+    league_name: str
+    status: str | None = None
+    home_goals: int | None = None
+    away_goals: int | None = None
+
+    venue: VenueResponse | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class DecisionReasonResponse(BaseModel):
+    key: str
+    emoji: str
+    label: str
+    explanation: str
+    importance: str
+
+
+class MatchdayTipCreate(BaseModel):
+    venue_id: int = Field(gt=0)
+    tip: str = Field(min_length=1, max_length=2000)
+
+    @field_validator('tip')
+    @classmethod
+    def clean_tip(cls, value):
+        value=value.strip()
+        if not value or any(ord(c)<32 and c not in '\n\r\t' for c in value):
+            raise ValueError('Enter useful advice without control characters')
+        return value
+
+
+class MatchdayTipResponse(BaseModel):
+    created_at: datetime | None = None
+    can_block_author: bool = False
+
+    tip_id: int
+    venue_id: int
+    tip: str
+    helpful_votes: int
+    report_count: int
+    status: str
+
+    class Config:
+        from_attributes = True
+
+
+# =========================================================
+# AWAY DAY REVIEWS
+# =========================================================
+
+class AwayDayReviewCreate(BaseModel):
+
+    venue_id: int
+
+    fixture_id: int | None = None
+
+    visit_date: datetime | None = None
+
+    recommend: bool | None = None
+
+    overall_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+    atmosphere_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+    pubs_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+    getting_there_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+    facilities_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+class AwayDayReviewUpdate(BaseModel):
+
+    recommend: bool | None = None
+
+    overall_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+    atmosphere_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+    pubs_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+    getting_there_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+    facilities_score: int | None = Field(
+        default=None,
+        ge=1,
+        le=10
+    )
+
+class AwayDayReviewResponse(BaseModel):
+
+    review_id: int
+    venue_id: int
+
+    recommend: bool | None = None
+
+    overall_score: float | None = None
+    atmosphere_score: int | None = None
+    pubs_score: int | None = None
+    getting_there_score: int | None = None
+    facilities_score: int | None = None
+
+    created_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class AwayDayScoreResponse(BaseModel):
+
+    away_day_score: float | None = None
+
+    review_count: int
+
+    recommend_percentage: float | None = None
+
+    category_scores: dict[str, float | None]
+
+class MyReviewResponse(BaseModel):
+
+    review_id: int
+
+    venue_id: int
+    venue_name: str
+    venue_city: str | None = None
+
+    fixture_id: int | None = None
+    fixture_date: datetime | None = None
+
+    home_team: str | None = None
+    away_team: str | None = None
+
+    visit_date: datetime | None = None
+
+    recommend: bool | None = None
+    recommend_percentage: float | None = None
+
+    overall_score: float | None = None
+    atmosphere_score: int | None = None
+    pubs_score: int | None = None
+    getting_there_score: int | None = None
+    facilities_score: int | None = None
+
+    created_at: datetime | None = None
+
+    class Config:
+            from_attributes = True
+
+
+class VenueVisitCreate(BaseModel):
+    collection_only: StrictBool = False
+    visit_date: date | None = None
+    fixture_id: int | None = None
+    calendar_utc_offset_minutes: StrictInt | None = Field(default=None, ge=-720, le=840)
+
+
+class VenueVisitUpdate(BaseModel):
+    allow_ground_change: StrictBool = False
+    fixture_id: int | None = None
+    visit_date: date | None = None
+    calendar_utc_offset_minutes: StrictInt | None = Field(default=None, ge=-720, le=840)
+
+
+class VenueVisitResponse(BaseModel):
+    visit_id: int
+    venue_id: int
+    fixture_id: int | None = None
+    visit_date: date | None = None
+    source: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class MyGroundReviewSummary(BaseModel):
+    review_id: int
+    state: str
+    completed: bool
+    overall_score: float | None = None
+    recommend: bool | None = None
+    atmosphere_score: int | None = None
+    pubs_score: int | None = None
+    getting_there_score: int | None = None
+    facilities_score: int | None = None
+
+
+class MyGroundFixtureSummary(BaseModel):
+    fixture_id: int
+    fixture_date: datetime
+    home_team: str
+    away_team: str
+    league_name: str
+    home_team_badge_url: str | None = None
+    away_team_badge_url: str | None = None
+
+
+class MyGroundVisitSummary(BaseModel):
+    visit_id: int
+    visit_date: date | None = None
+    fixture_id: int | None = None
+
+
+class MyGroundResponse(BaseModel):
+    independently_saved: bool = False
+    venue_id: int
+    venue_name: str
+    venue_city: str | None = None
+    venue_country: str | None = None
+    capacity: int | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    visit_count: int
+    first_visit_date: date | None = None
+    latest_visit_date: date | None = None
+    has_undated_visit: bool
+    visits: list[MyGroundVisitSummary]
+    attended_fixtures: list[MyGroundFixtureSummary]
+    review: MyGroundReviewSummary | None = None
+    community_terrace_rating: float | None = None
+    community_review_count: int
+    community_recommend_percentage: float | None = None
+
+
+class FootprintGround(BaseModel):
+    visit_ids: list[int] | None = None
+    venue_id: int
+    clubs: list[str]
+    season_visit_ids: list[int]
+
+
+class FootprintCompetition(BaseModel):
+    verified_ground_total: int | None = None
+    season_grounds: int | None = None
+    competition_id: int
+    tier: int | None = Field(default=None, ge=1, le=20)
+    season: int | None
+    season_label: str
+    name: str
+    country: str
+    season_start: date | None
+    season_end: date | None
+    coverage: str
+    total_clubs: int
+    lifetime_clubs: int | None
+    season_clubs: int | None
+    grounds: list[FootprintGround]
+
+
+class FootprintSummary(BaseModel):
+    attendance_competitions: list[FootprintCompetition] | None = None
+    reviewed_on: date
+    season_visit_ids: list[int]
+    unclassified_dated_visits: int
+    competitions: list[FootprintCompetition]
+
+
+class MyGroundFootprintResponse(BaseModel):
+    grounds: list[MyGroundResponse]
+    footprint: FootprintSummary
+
+
+class ProfileCreate(BaseModel):
+    display_name: str = Field(min_length=2, max_length=40)
+    supported_club: str | None = Field(default=None, max_length=80)
+
+
+class ProfileUpdate(BaseModel):
+    username: str | None = Field(default=None, min_length=3, max_length=30)
+    display_name: str | None = Field(default=None, min_length=2, max_length=40)
+    supported_club: str | None = Field(default=None, max_length=80)
+    broad_location: str | None = Field(default=None, max_length=100)
+    bio: str | None = Field(default=None, max_length=280)
+
+
+class AccountContextResponse(BaseModel):
+    registered: bool
+    profile_complete: bool
+    anonymous_session_present: bool
+    anonymous_activity: bool
+
+
+class MatchBoardPostCreate(BaseModel):
+    body: str = Field(min_length=1, max_length=500)
+    parent_post_id: int | None = None
+
+
+class MeetingIntentUpdate(BaseModel):
+    open_to_meet: bool
+
+
+class AccountConversionHandoffResponse(BaseModel):
+    handoff_token: str
+    expires_at: datetime
+
+
+class AccountClaimRequest(BaseModel):
+    handoff_token: str | None = Field(default=None, min_length=32, max_length=256)
+
+
+class AccountClaimResponse(BaseModel):
+    user_id: int
+    account_status: str
+    claimed: bool
+    idempotent: bool
+    profile_complete: bool
+
+
+class MatchBoardReportCreate(BaseModel):
+    reason: str

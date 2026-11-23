@@ -211,6 +211,8 @@ def claim_anonymous_user(
         if failure_hook:
             failure_hook("after_identity")
 
+        from account_deletion import record_guest_transfer
+        record_guest_transfer(db, user.user_id, user.user_id, "registration")
         user.account_status = "registered"
         user.is_anonymous = False
         user.registered_at = claimed_at
@@ -255,6 +257,9 @@ def _merge_into_existing_account(
         raise _claim_error(409, "CLAIM_SOURCE_INVALID", "The anonymous Matchgoer identity is not claimable")
     if source_session.revoked_at is not None:
         raise _claim_error(401, "ANONYMOUS_SESSION_REVOKED", "The anonymous Matchgoer session is no longer active")
+
+    from account_deletion import record_guest_transfer
+    record_guest_transfer(db, source_user.user_id, target_user.user_id, "merge")
 
     source_interests = db.query(InterestedFixture).filter(
         InterestedFixture.user_id == source_user.user_id,

@@ -1,0 +1,112 @@
+{
+  "event": "OPAQUE_APPROVED_IDENTITY_BASELINE",
+  "version": 1,
+  "approved_on": "2026-11-23",
+  "basis": "Founder acceptance of read-only identity investigation; whole-table pre-alert fingerprint unchanged; founder-authorized exact test-orphan acknowledgement after private email correlation on 2026-11-23.",
+  "prior_table_fingerprint": "f00a74ed3911e79172a6807e0e403630",
+  "relationships": [
+    {
+      "identity_key": "206c4f4b0dbb8614895a0b56fa8608319dac0d830a1def9df94aa284c04555c3",
+      "user_key": "27cf14dfc2232b941066f7c3f8cad04c9820f80a2362fc313f0567b0bae2d527"
+    },
+    {
+      "identity_key": "2b53302e608f5b0a4bbacdc897f9d26da073c1415117bc929fd667d458fbb697",
+      "user_key": "f6543e952ecb93fba1fa65c547c5073a5d25aba46611fe6cc76c1d2645deb3ff"
+    },
+    {
+      "identity_key": "4f3c24444853a4c7de78d7356370080e9f981e48d5087f7c53ffd24a4b4c89f2",
+      "user_key": "6d78b19a042a64f08cc4df0d42fb91cd757829718e60e82a54e3498f03f3ef32"
+    },
+    {
+      "identity_key": "51246e6895cb98eb8d9822bd889b084692c8f80e8882b2bf7b27e3682c4779be",
+      "user_key": "5631e5efadc1db19f6b2453cc6a2d6b76a81682d8c8594680343794a2558a91e"
+    },
+    {
+      "identity_key": "58e508177431a820d7f5d7559268e8392dc2b76988fc55c6af1638466c4f70d1",
+      "user_key": "10e4e7caf8b078429bb1c80b1a10118ac6f963eff098fd25a66c78862ae5ebce"
+    },
+    {
+      "identity_key": "5f13f11c73d69379e372ab732efa1c2480c87db741f3be4e53d583e1726fa7c0",
+      "user_key": "3837e1aa083f578c9179bdd9e3b2b0ebe980361d800f99637c7b331c29a26e87"
+    },
+    {
+      "identity_key": "60c43c891cd9161711f28137d1b744ebcd8cbd788af461113ab36c4f663ef00a",
+      "user_key": "8e57858ab42fef1ee804b572421beb315e9fb3bd562f10f2f1c9ccf0384e8d99"
+    },
+    {
+      "identity_key": "65ecd89d95fa7b3c5892e856a64de9e2c96075a0b10495a943e519b8b89d2618",
+      "user_key": "10716564f7bea47036cae9a39adc7dcd395850714228939a2b508d4e57d61824"
+    },
+    {
+      "identity_key": "6a939d9a05050e489fcaffdc108d06fa9b199aeb755b8b16d4ba56dce12edf96",
+      "user_key": "6360659f97100b35f3dd80cd08358fb415757f07ee670a9e1d3b4ae7fa14a0cf"
+    },
+    {
+      "identity_key": "6dc921188b645733db63fb69e037ceb906814f563768071d3172f4b4c1660a2a",
+      "user_key": "f74fee330886f88ceea28e9bdb43c9db1df048010398f407c9cb67e1c1c80e5e"
+    },
+    {
+      "identity_key": "6ed6c3e0dd3772c7f94e7b99a87705d658b9adf9ec6d0248d41878547a5f124c",
+      "user_key": "2b0ebe245db547be83a6fe7635f1e9204b237b7e9f8ed0347fd92cede5791c60"
+    },
+    {
+      "identity_key": "8088ec6c4ea8627240a5c4b9db52ca2669296f0622a066083a2f39440daab360",
+      "user_key": "eb0c9cdc0862653468dacc6a876a0c40e9d642c50f798bae1162fe27f18d482c"
+    },
+    {
+      "identity_key": "9e5d34fd74f501350cdffd3e43276c19fc8bf95456e2a1a8418099c16da3cc72",
+      "user_key": "ff231d4dee9c91e9ead0253639c25479b934a352b052aa23ad05f6b79efa137b"
+    },
+    {
+      "identity_key": "b5e44d0a9de84e0255e01beeef973c76a0c5864db8e5c1e3472b0fec4db7d601",
+      "user_key": "38813d9a6e5332787f13dac070d265339c4c711beea8b21f82966684bda30e79"
+    },
+    {
+      "identity_key": "bf15c85753131ce3f662309df4aa2836bcc77d9b01eaf1846cba0b1539c3d0ff",
+      "user_key": "c4da2d0f7e453e96af0d89290487d88f9c26298313beb91dbf77411833563ba2"
+    },
+    {
+      "identity_key": "d8ad219482f1dc6c70397d1ead3b85fcd7e404e8facc4eff043ec48831e8bbcb",
+      "user_key": "ab16ce326c754df41ed00df6f64f7073dcac3e2986bbf8b2a1ce4549b189a0fb"
+    },
+    {
+      "identity_key": "fe163fc283bc59b64d490dea4e00e3c3fced328b24f25be7390a26b979d342b0",
+      "user_key": "5b33003a928495b97792ac286d477b54dd20eb773c74ae2fb3653bc5950ad6dd"
+    },
+    {
+      "identity_key": "1344c0a548b27908d8e377215d78363f8d9521182aee4ee5117dda1bc42332fe",
+      "user_key": "fe35907591696b6a53ef1010575751a6ff02c810b26a6738e718fbfab4af0e55"
+    }
+  ],
+  "acknowledged_orphans": [
+    {
+      "case": "CASE-01",
+      "identity_key": "2b53302e608f5b0a4bbacdc897f9d26da073c1415117bc929fd667d458fbb697",
+      "user_key": "f6543e952ecb93fba1fa65c547c5073a5d25aba46611fe6cc76c1d2645deb3ff",
+      "status": "ACKNOWLEDGED_UNRESOLVED_ORPHAN",
+      "disposition": "UNKNOWN_PRESERVE_ALL_RECORDS"
+    },
+    {
+      "case": "CASE-02",
+      "identity_key": "d8ad219482f1dc6c70397d1ead3b85fcd7e404e8facc4eff043ec48831e8bbcb",
+      "user_key": "ab16ce326c754df41ed00df6f64f7073dcac3e2986bbf8b2a1ce4549b189a0fb",
+      "status": "ACKNOWLEDGED_UNRESOLVED_ORPHAN",
+      "disposition": "UNKNOWN_PRESERVE_ALL_RECORDS"
+    },
+    {
+      "case": "CASE-03",
+      "identity_key": "5f13f11c73d69379e372ab732efa1c2480c87db741f3be4e53d583e1726fa7c0",
+      "user_key": "3837e1aa083f578c9179bdd9e3b2b0ebe980361d800f99637c7b331c29a26e87",
+      "status": "ACKNOWLEDGED_UNRESOLVED_ORPHAN",
+      "disposition": "UNKNOWN_PRESERVE_ALL_RECORDS"
+    },
+    {
+      "case": "FOUNDER_TEST_ACCOUNT_MANUAL_AUTH_DELETION_20261123",
+      "identity_key": "1344c0a548b27908d8e377215d78363f8d9521182aee4ee5117dda1bc42332fe",
+      "user_key": "fe35907591696b6a53ef1010575751a6ff02c810b26a6738e718fbfab4af0e55",
+      "status": "ACKNOWLEDGED_UNRESOLVED_ORPHAN",
+      "disposition": "FOUNDER_TEST_ACCOUNT_MANUAL_AUTH_DELETION; exact email match to founder-confirmed replacement account verified privately. Mapping/history retained; no repair or merge."
+    }
+  ],
+  "raw_personal_identifiers": false
+}

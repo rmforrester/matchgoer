@@ -1,0 +1,20 @@
+[
+  {"venue_id":511,"localities":["Bromley"],"names":["Copperjax Community Stadium"],"source":"https://www.brentfordfc.com/en/matches/men-s-b-team/bromley-v-brentford-u21-english-football-league-trophy-20260922","retained_review":"reports/venue-equivalence-release-20261018/identity-evidence.md; retain only approved physical root 511, no new equivalence"},
+  {"venue_id":529,"localities":["River"],"names":["Crabble Athletic Ground"],"source":"https://doverathletic.com/contact-us/"},
+  {"venue_id":5552,"localities":["Hornchurch","Upminster"],"source":"https://www.hornchurchfcarchive.com/club-information/club-and-directions/"},
+  {"venue_id":22940,"localities":["Newport"],"geographic_hold":true,"source":"https://www.newport-county.co.uk/first-time-visits-families","reason":"Canonical Rodney Parade has a point outside Newport. Retain provider evidence but leave new fixture unlinked pending correction; do not select duplicate 22779."},
+  {"venue_id":526,"localities":["London"],"names":["Victoria Road"],"source":"https://daggers.co.uk/contact-us/"},
+  {"venue_id":5613,"localities":["Surrey"],"source":"https://waltonhershamfc.com/club/how-to-find-us/"},
+  {"venue_id":23108,"localities":["Florence"],"source":"https://www.uefa.com/MultimediaFiles/Download/PressRelease/uefa/UEFAMedia/67/57/57/675757_DOWNLOAD.pdf"},
+  {"venue_id":23041,"localities":["Munich"],"source":"https://fcbayern.com/en/privacy-information-video-surveillance-on-match-days-of-fc-bayern-muenchen"},
+  {"venue_id":23049,"localities":["Frankfurt"],"source":"https://en.eintracht.de/stadium/directions/"},
+  {"venue_id":23604,"localities":["Antwerp","Antwerpen","Anvers"],"source":"https://www.beerschot.be/en/mobiliteit.php"},
+  {"venue_id":23012,"localities":["Nykobing Falster"],"source":"https://www.nykobingfc.dk/om-nfc/faciliteter/lollands-bank-park/"},
+  {"venue_id":24166,"localities":["Amorebieta-Etxano"],"source":"https://sdamorebieta.eus/es/instalaciones/"},
+  {"venue_id":25937,"localities":["Beggen"],"source":"https://www.vdl.lu/de/besuchen/freizeit-und-sport/sportanlagen/fussballplaetze"},
+  {"venue_id":27459,"physical_country":"Ireland","source":"https://www.avivastadium.ie/contact-us","reason":"Existing country World is competition provenance; venue operator confirms Dublin. No canonical row update."},
+  {"venue_id":22998,"localities":["Kongens Lyngby"],"source":"https://lyngby-boldklub.dk/faq/"},
+  {"venue_id":24210,"localities":["Cartagena"],"source":"https://deportes.cartagena.es/instalaciones_detalle.asp?categoria=3&id=54"},
+  {"venue_id":23801,"localities":["Ruse"],"source":"https://fan.fcdunav.bg/stadium-info/"},
+  {"venue_id":26522,"localities":["Roschino"],"source":"https://fc-leningradec.ru/roshhino-arena/"}
+]

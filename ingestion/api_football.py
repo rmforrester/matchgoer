@@ -52,6 +52,22 @@ class ApiFootballClient:
         return self.cache_dir / f"{endpoint.strip('/').replace('/', '_')}-{hashlib.sha256(identity.encode()).hexdigest()}.json"
 
     def get(self, endpoint: str, *, use_cache: bool = True, **params: Any) -> list[dict[str, Any]]:
+        from backend.fixture_integrity import CURRENT_RUN
+        receipt = CURRENT_RUN.get()
+        cached = use_cache and self._cache_path(endpoint, params).exists()
+        if receipt is not None and not cached:
+            receipt.request(endpoint, params)
+        try:
+            result = self._get(endpoint, use_cache=use_cache, **params)
+        except BaseException:
+            if receipt is not None and not cached:
+                receipt.request(endpoint, params, failed=True)
+            raise
+        if receipt is not None and not cached:
+            receipt.request(endpoint, params, payload={"response": result})
+        return result
+
+    def _get(self, endpoint: str, *, use_cache: bool = True, **params: Any) -> list[dict[str, Any]]:
         cache_path = self._cache_path(endpoint, params)
         if use_cache and cache_path.exists():
             self.cache_hits += 1
@@ -81,6 +97,16 @@ class ApiFootballClient:
             message = f"{endpoint} {params}: {payload['errors']}"
             self.failures.append(message)
             raise RuntimeError(message)
+        if endpoint == "/fixtures" and "from" in params:
+            # Discovery cannot mistake a truncated response for a complete inventory.
+            paging = payload.get("paging") or {}
+            if (not isinstance(payload.get("response"), list)
+                    or type(payload.get("results")) is not int
+                    or payload["results"] != len(payload.get("response", []))
+                    or paging.get("current") != 1 or paging.get("total") != 1):
+                message = "/fixtures: incomplete date-window inventory; discovery withheld"
+                self.failures.append(message)
+                raise RuntimeError(message)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         cache_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return payload.get("response", [])

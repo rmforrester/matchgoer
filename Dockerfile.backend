@@ -13,5 +13,6 @@ COPY backend ./backend
 COPY config ./config
 COPY ingestion ./ingestion
 COPY refresh_fixture_states.py ./
+COPY scripts/check_fixture_integrity.py ./scripts/check_fixture_integrity.py
 
 CMD ["sh", "-c", "uvicorn main:app --app-dir /app/backend --host 0.0.0.0 --port ${PORT:-8000}"]
