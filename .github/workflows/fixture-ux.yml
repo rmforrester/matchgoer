@@ -1,0 +1,63 @@
+name: Canonical production source Linux validation
+on:
+  push:
+    branches: [validation/canonical-production-20261124]
+permissions:
+  contents: read
+jobs:
+  validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: fixture_test
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: [55439:5432]
+        options: >-
+          --health-cmd "pg_isready -U fixture_test -d postgres"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          path: harness
+      - uses: actions/checkout@v4
+        with:
+          ref: 59eaef1b257afdb1aee81b6b0485b7f7d537d34d
+          persist-credentials: false
+          fetch-depth: 0
+          path: source
+      - name: Validate exact canonical source using existing regression suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = 59eaef1b257afdb1aee81b6b0485b7f7d537d34d
+          mkdir -p validation-output
+          chmod 0777 validation-output
+          docker pull python:3.14-slim
+          docker image inspect python:3.14-slim > validation-output/container-image.json
+          docker run --rm --network host --memory=1g --cpus=2 --pids-limit=128 \
+            --cap-drop=ALL --security-opt=no-new-privileges \
+            -v "$PWD/source:/source:ro" -v "$PWD/harness/validation/canonical-source:/validation:ro" \
+            -v "$PWD/validation-output:/output" \
+            -e PYTHONDONTWRITEBYTECODE=1 \
+            -e MATCHGOER_LOCAL_POSTGRES_TEST=TRUE \
+            -e DATABASE_URL=postgresql://fixture_test@127.0.0.1:55439/postgres \
+            python:3.14-slim sh -eu -c '
+              python -m pip install --no-cache-dir --only-binary=:all: -r /source/requirements.txt
+              python -m pip check
+              python -m pip freeze > /output/dependencies.txt
+              python /validation/run_canonical_ci.py
+            ' 2>&1 | tee validation-output/validation-console.txt
+      - name: Retain synthetic validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-source-linux-validation
+          path: validation-output/
+          retention-days: 7
+          if-no-files-found: error
